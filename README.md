@@ -1,4 +1,4 @@
-#AIIA <br>
+# AIIA <br>
 Script work similar to lm-studio but in terminal.<br>
 <br>
 #--<br>
