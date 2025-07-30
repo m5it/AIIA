@@ -1,6 +1,11 @@
 # AIIA <br>
 Script work similar to lm-studio but in terminal. Tested on ubuntu and older osx. Thanks to ollama works on older osx! Because if you try lm-studio it dont...<br>
 <br>
+# <b>Tips:</b><br>
+  #Redirect port 11434 from one machine to yours so AIIA can run.<br>
+  ssh -N -L 11434:localhost:11434 anothermachine@192.168.1.123<br>
+  
+  #other tips are ollama exports .. check on google or ask AIIA...
 <br>
 # <b>Usage:</b><br>
 # A.)<br>
