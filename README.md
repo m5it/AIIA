@@ -1,22 +1,23 @@
-<b>AIIA</b> Script work similar to lm-studio but in terminal.<br>
+#<b>AIIA</b> <br>
+Script work similar to lm-studio but in terminal.<br>
 <br>
 #--<br>
-# <b>Usage:</b><br>
-# Start program with all options included and work as chat bot.<br>
+#Usage:<br>
+<b>Start program with all options included and work as chat bot.</b><br>
 python run.py -m llama3.1<br>
 <br>
-# In this case AIIA work as date parse service. Important is chat memory we set with option -M 1<br>
+<b>In this case AIIA work as date parse service. Important is chat memory we set with option -M 1</b><br>
 python run.py -m llama3.1 -M 1 -Y "THU, 19 JUN"<br>
-# Response:<br>
+<b>Response:</b><br>
 2025-06-19 00:00:00<br>
 <br>
 #--<br>
 # User commands:<br>
 #--<br>
-# By running help inside of chat:<br>
+<b>By running help inside of chat:</b><br>
 !HELP^X # Press CTRL+X and EnTER to send to AIIA so we can use new lines, pasting etc..<br>
 <br>
-# Response:<br>
+<b>Response:</b><br>
 New Session - Like restarting program. Usage: !NEW SESSION<br>
 Break Session - Start new history... Usage: !BREAK SESSION<br>
 Stats - Display statistics for program Usage: !STATS<br>
