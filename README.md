@@ -1,44 +1,44 @@
-<b>AIIA</b> Script work similar to lm-studio but in terminal.
-
-#--
+<b>AIIA</b> Script work similar to lm-studio but in terminal.<br>
+<br>
+#--<br>
 # <b>Usage:</b><br>
-# Start program with all options included and work as chat bot.
-python run.py -m llama3.1
-
-# In this case AIIA work as date parse service. Important is chat memory we set with option -M 1
-python run.py -m llama3.1 -M 1 -Y "THU, 19 JUN"
-# Response:
-2025-06-19 00:00:00
-
-#--
-# User commands:
-#--
-# By running help inside of chat:
-!HELP^X # Press CTRL+X and EnTER to send to AIIA so we can use new lines, pasting etc..
-
-# Response:
-New Session - Like restarting program. Usage: !NEW SESSION
-Break Session - Start new history... Usage: !BREAK SESSION
-Stats - Display statistics for program Usage: !STATS
-Action Options - LIST, SET, GET action options Usage: 
-LIST Ex.: !AO [action_num]
-GET Ex.: !AO [action_num] GET path
-!SET Ex.: AO [action_num] SET path=/Memorize
-
-Import Actions - Import actions from classes/code Usage: !IA
-Preview Imported Actions - Preview imported actions that are ready to get executed. Usage: !PA
-Execute Action - Execute specific action... Usage: !EA
-Clear Tools - Clear loaded tools to start fresh chat or load new tools. Usage: !CT
-Tools - Choose tools to use with AIIA. Usage: !TOOLS
-Preview History - Preview current chat history Usage: !PH
-Preview Memory - Preview current chat memorized messages. Usage: !PM
-Memory Specific - Memory specific message from history. Usage: !MS [history_num]
-Memory all history - Memory all rows from history. Usage: !MAH
-Memory Last - Memory last message from assistant. Usage: !ML
-Memory Delete Row - Delete specific row from memory in use. Usage: !MDR [memory_num]
-Memory Delete All - Delete all rows from memory in use. Usage: !MDA
-Update Handle - Reinit code of program. Used after program update so there is no need to stop the program. Usage: !UPDATE HANDLE
-Quit - Stop the program Usage: !QUIT
-Load - Load text file as input to send to AIIA. Usage: !LOAD textfile.txt Text of textfile.txt will be loaded with this text and sent to AIIA. This is example.
-Help - Display of available actions. Usage: !HELP
-
+# Start program with all options included and work as chat bot.<br>
+python run.py -m llama3.1<br>
+<br>
+# In this case AIIA work as date parse service. Important is chat memory we set with option -M 1<br>
+python run.py -m llama3.1 -M 1 -Y "THU, 19 JUN"<br>
+# Response:<br>
+2025-06-19 00:00:00<br>
+<br>
+#--<br>
+# User commands:<br>
+#--<br>
+# By running help inside of chat:<br>
+!HELP^X # Press CTRL+X and EnTER to send to AIIA so we can use new lines, pasting etc..<br>
+<br>
+# Response:<br>
+New Session - Like restarting program. Usage: !NEW SESSION<br>
+Break Session - Start new history... Usage: !BREAK SESSION<br>
+Stats - Display statistics for program Usage: !STATS<br>
+Action Options - LIST, SET, GET action options Usage: <br>
+LIST Ex.: !AO [action_num]<br>
+GET Ex.: !AO [action_num] GET path<br>
+!SET Ex.: AO [action_num] SET path=/Memorize<br>
+<br>
+Import Actions - Import actions from classes/code Usage: !IA<br>
+Preview Imported Actions - Preview imported actions that are ready to get executed. Usage: !PA<br>
+Execute Action - Execute specific action... Usage: !EA<br>
+Clear Tools - Clear loaded tools to start fresh chat or load new tools. Usage: !CT<br>
+Tools - Choose tools to use with AIIA. Usage: !TOOLS<br>
+Preview History - Preview current chat history Usage: !PH<br>
+Preview Memory - Preview current chat memorized messages. Usage: !PM<br>
+Memory Specific - Memory specific message from history. Usage: !MS [history_num]<br>
+Memory all history - Memory all rows from history. Usage: !MAH<br>
+Memory Last - Memory last message from assistant. Usage: !ML<br>
+Memory Delete Row - Delete specific row from memory in use. Usage: !MDR [memory_num]<br>
+Memory Delete All - Delete all rows from memory in use. Usage: !MDA<br>
+Update Handle - Reinit code of program. Used after program update so there is no need to stop the program. Usage: !UPDATE HANDLE<br>
+Quit - Stop the program Usage: !QUIT<br>
+Load - Load text file as input to send to AIIA. Usage: !LOAD textfile.txt Text of textfile.txt will be loaded with this text and sent to AIIA. This is example.<br>
+Help - Display of available actions. Usage: !HELP<br>
+<br>
