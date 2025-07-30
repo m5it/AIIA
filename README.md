@@ -1,5 +1,5 @@
 # AIIA <br>
-Script work similar to lm-studio but in terminal.<br>
+Script work similar to lm-studio but in terminal. Tested on ubuntu and older osx. Thanks to ollama works on older osx! Because if you try lm-studio it dont...<br>
 <br>
 <br>
 # <b>Usage:</b><br>
