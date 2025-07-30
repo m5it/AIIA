@@ -7,7 +7,8 @@ Script work similar to lm-studio but in terminal.<br>
 python run.py -m llama3.1<br>
 <br>
 <b>In this case AIIA work as date parse service. Important is chat memory we set with option -M 1</b><br>
-python run.py -m llama3.1 -M 1 -Y "THU, 19 JUN"<br>
+<small><u>Chat memory is saved in directory history/... User defined memory is saved as 0.user.dbk and default history is 0.dbk...</u></small><br>
+python run.py -m llama3.1 -M 0 -Y "THU, 19 JUN"<br>
 <b>Response:</b><br>
 2025-06-19 00:00:00<br>
 <br>
