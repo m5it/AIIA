@@ -3,9 +3,11 @@ Script work similar to lm-studio but in terminal.<br>
 <br>
 <br>
 # <b>Usage:</b><br>
+# A.)<br>
 <b>Start program with all options included and work as chat bot.</b><br>
 python run.py -m llama3.1<br>
 <br>
+# B.)<br>
 <b>In this case AIIA work as date parse service. Important is chat memory we set with option -M 1</b><br>
 python run.py -m llama3.1 -M 0 -Y "THU, 19 JUN"<br>
 <b>Response:</b><br>
