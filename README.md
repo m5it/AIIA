@@ -1,8 +1,8 @@
 # AIIA <br>
 Script work similar to lm-studio but in terminal.<br>
 <br>
-#--<br>
-#Usage:<br>
+<br>
+# <b>Usage:</b><br>
 <b>Start program with all options included and work as chat bot.</b><br>
 python run.py -m llama3.1<br>
 <br>
