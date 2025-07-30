@@ -15,7 +15,7 @@ python run.py -m llama3.1 -M 1 -Y "THU, 19 JUN"<br>
 # User commands:<br>
 #--<br>
 <b>By running help inside of chat:</b><br>
-!HELP^X # Press CTRL+X and EnTER to send to AIIA so we can use new lines, pasting etc..<br>
+!HELP^X <b># Press CTRL+X and EnTER to send to AIIA so we can use new lines, pasting etc..</b><br>
 <br>
 <b>Response:</b><br>
 New Session - Like restarting program. Usage: !NEW SESSION<br>
