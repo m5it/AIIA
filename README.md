@@ -26,7 +26,7 @@ Stats - Display statistics for program Usage: !STATS<br>
 Action Options - LIST, SET, GET action options Usage: <br>
 LIST Ex.: !AO [action_num]<br>
 GET Ex.: !AO [action_num] GET path<br>
-!SET Ex.: AO [action_num] SET path=/Memorize<br>
+SET Ex.: AO [action_num] SET path=/Memorize<br>
 <br>
 Import Actions - Import actions from classes/code Usage: !IA<br>
 Preview Imported Actions - Preview imported actions that are ready to get executed. Usage: !PA<br>
