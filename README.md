@@ -3,6 +3,12 @@ Script work similar to lm-studio but in terminal. Tested on ubuntu and older osx
 <br>
 <b>server responses example:</b><br>
 <img src="server_responses.png" style="width:100%;height:auto;"><br>
+
+<b>one response only, no memory loaded:</b><br>
+<img src="hello_from_terminal.png" style="width:100%;height:auto;"><br>
+
+<b>hello from chat, no memory loaded (check !HELP):</b><br>
+<img src="hello_from_run.png" style="width:100%;height:auto;"><br>
 <br>
 # <b>Tips:</b><br>
   #Redirect port 11434 from one machine to yours so AIIA can run.<br>
