@@ -4,6 +4,9 @@ Script work similar to lm-studio but in terminal. Tested on ubuntu and older osx
 <b>help example:</b><br>
 <img src="help.png" style="width:100%;height:auto;"><br>
 
+<b>in use example:</b><br>
+<img src="inuse.png" style="width:100%;height:auto;"><br>
+
 <b>server responses example:</b><br>
 <img src="server_responses.png" style="width:100%;height:auto;"><br>
 
