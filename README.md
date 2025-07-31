@@ -17,6 +17,9 @@ Script work similar to lm-studio but in terminal. Tested on ubuntu and older osx
   #Redirect port 11434 from one machine to yours so AIIA can run.<br>
   ssh -N -L 11434:localhost:11434 anothermachine@192.168.1.123<br>
   
+  <b>#Create python virtual environment and install dependencies there.. like pip install ollama.. etc.</b>
+  
+  
   #other tips are ollama exports .. check on google or ask AIIA...
 <br>
 # <b>Usage:</b><br>
