@@ -1,0 +1,121 @@
+
+
+
+
+
+class BERTDataset(torch.utils.data.Dataset):
+	def __init__(self, tokens, labels=None):
+		print("__init__() START! tokens.len: ", len(tokens))
+		self.tokens = tokens  # inputs
+		if labels is not None:
+			self.labels = labels
+
+	def __getitem__(self, idx):
+		print("__getitem__() START! {}".format(idx))
+		ott = self.tokens[idx]
+		input_ids      = ott['input_ids'].detach().clone() 
+		attention_mask = ott['attention_mask'].detach().clone() 
+		label          = self.labels[idx]
+		
+		# Create a tensor with shape (batch_size, max_sequence_length)
+		#sequence_lengths = torch.tensor([input_ids.size(1)] * len(self.tokens))
+		#input_data = {
+		#	'input_ids': torch.cat((input_ids), dim=0),
+		#	'attention_mask': torch.cat((attention_mask), dim=0),
+		#	'labels': label,
+		#}
+		#return input_data
+		return {
+			'input_ids': input_ids,
+			'attention_mask': attention_mask,
+			'labels': label,
+		}
+	
+	def __iter__(self):
+		print("__iter__() START!")
+		return iter(self.tokens)
+	
+	def __len__(self):
+		print("__len__() START!")
+		return len(self.tokens)
+
+
+
+
+
+#
+class BERTDataset(torch.utils.data.Dataset):
+	def __init__(self, tokens, labels=None):
+		print("__init__() START! tokens.len: ",len(tokens))
+		self.tokens = tokens  # inputs
+		if labels is not None:
+			self.labels = labels
+
+	def __getitem__(self, idx):
+		print("__getitem__() START! {}".format( idx ))
+		ott = self.tokens[idx]
+		input_ids      = ott['input_ids'].detach().clone() 
+		attention_mask = ott['attention_mask'].detach().clone() 
+		label          = self.labels[idx]
+		if 'labels' in self:
+			return {
+					'input_ids': input_ids,
+					'attention_mask': attention_mask,
+					#'labels': self.labels[idx]
+					'labels': label,
+			}
+		else:
+			return {'input_ids': input_ids, 'attention_mask': attention_mask}
+	#
+	def __iter__(self):
+		print("__iter__() START!")
+		return iter(self.tokens)
+	#
+	def __len__(self):
+		print("__len__() START!")
+		return len(self.tokens)
+
+
+
+
+
+class BERTDataset(torch.utils.data.Dataset):
+	#
+	def __init__(self, tokens, labels=None):
+		self.cnt = -1
+		self.tokens = tokens # inputs
+		self.labels = None
+		if labels is not None:
+			self.labels = labels
+	#
+	def __getitem__(self, idx):
+		global cntpos,cnt1,cnt2
+		self.cnt+=1
+		ott = self.tokens[self.cnt]
+		input_ids      = torch.tensor( ott['input_ids'] )
+		attention_mask = torch.tensor( ott['attention_mask'] )
+		print("{} / {} / {} / {} ) getitem() label: {} -> {}".format(self.cnt, idx, cnt1, cnt2, self.labels[self.cnt], input_ids.tolist()))
+		#self.cnt+=1
+		if 'labels' in self:
+			return {
+				'input_ids': input_ids,
+				'attention_mask': attention_mask,
+				'labels': self.labels[self.cnt]
+			}
+		else:
+			return {'input_ids': input_ids, 'attention_mask': attention_mask}
+	
+	# def __getitem__(self, idx):
+		# input_ids = torch.tensor([self.text_tokens[idx]]).squeeze(0)
+		# attention_mask = torch.tensor([1] * len(self.text_tokens[idx])).squeeze(0)
+		# if 'labels' in self:
+			# return {
+				# 'input_ids': input_ids,
+				# 'attention_mask': attention_mask,
+				# 'labels': self.labels[idx]
+			# }
+		# else:
+			# return {'input_ids': input_ids, 'attention_mask': attention_mask}
+
+	def __len__(self):
+		return len(self.tokens)
