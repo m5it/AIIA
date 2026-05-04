@@ -20,33 +20,44 @@ python run.py -T 0.8             # set temperature
 - **History**: `history/` (gitignored) — session-based chat history, session ID tracked in `sessid.aiia`
 - **Working dirs**: `workin/` (input for tools), `workout/` (output) — both gitignored
 
-## Text-Based Tool Invocation
+## XML Tool Invocation
 
-The model can invoke tools by outputting `!TOOL ToolName key=value` in responses. All tools in `tools/` are auto-loaded.
+The model invokes tools by writing XML blocks. Tools load dynamically when first invoked — no pre-loading needed.
 
-**Available tools:**
-- `ReadFile` — Read file from `workin/` (params: `fileName`)
-- `WriteFile` — Write file to `workout/` (params: `fileName`, `contentOfFile`)
-- `AppendFile` — Append to file in `workout/` (params: `fileName`, `contentOfFile`)
-- `CreateFile` — Create new file in `workout/` (fails if exists) (params: `fileName`, `content`)
-- `List` — List files in a path (params: `path` optional)
-- `listTools` — Show all available tools (no params)
-- `ExecuteScript` — Run script files `.py`, `.sh`, `.js`, etc. (params: `fileName`, `args` optional)
-- `Grep` — Search files by regex pattern (params: `pattern`, `fileName` optional, `recursive` optional)
-- `Diff` — Compare two files (params: `file1`, `file2`, `unified` optional)
-- `Sed` — Find/replace in files (params: `pattern`, `replacement`, `fileName`, `inplace` optional)
-- `Find` — Find files by name pattern (params: `pattern`, `path` optional)
-- `Head` — Show first N lines of file (params: `fileName`, `lines` optional)
-- `Tail` — Show last N lines of file (params: `fileName`, `lines` optional)
-- `Sort` — Sort lines in file (params: `fileName`, `numeric`/`reverse`/`unique` optional)
+**BASIC FORMAT:**
+```xml
+<ToolName>
+<param1>value1</param1>
+<param2>value2</param2>
+</ToolName>
+```
+
+**Available tools (14 total):**
+- `ReadFile` — Read from `workin/` (params: `<fileName>`)
+- `WriteFile` — Write to `workout/` (params: `<fileName>`, `<contentOfFile>`)
+- `AppendFile` — Append in `workout/` (params: `<fileName>`, `<contentOfFile>`)
+- `CreateFile` — Create new file in `workout/` (fails if exists) (params: `<fileName>`, `<content>`)
+- `List` — List files (params: `<path>` optional)
+- `listTools` — Show all tools (no params)
+- `ExecuteScript` — Run `.py`, `.sh`, `.js` scripts (params: `<fileName>`, `<args>` optional)
+- `Grep` — Regex search (params: `<pattern>`, `<fileName>` optional, `<recursive>` optional)
+- `Diff` — Compare files (params: `<file1>`, `<file2>`, `<unified>` optional)
+- `Sed` — Find/replace (params: `<pattern>`, `<replacement>`, `<fileName>`, `<inplace>` optional)
+- `Find` — Find files by name (params: `<pattern>`, `<path>` optional)
+- `Head` — First N lines (params: `<fileName>`, `<lines>` optional)
+- `Tail` — Last N lines (params: `<fileName>`, `<lines>` optional)
+- `Sort` — Sort lines (params: `<fileName>`, `<numeric>/<reverse>/<unique>` optional)
 
 **Example model output:**
-```
-!TOOL WriteFile fileName=hello.py contentOfFile="print('Hello World')"
-!TOOL ExecuteScript fileName=hello.py
-!TOOL Grep pattern="TODO" recursive=true
-!TOOL Head fileName=script.py lines=20
-!TOOL Diff file1=old.txt file2=new.txt unified=true
+```xml
+<WriteFile>
+<fileName>hello.sh</fileName>
+<contentOfFile>echo "Hello World"</contentOfFile>
+</WriteFile>
+
+<ExecuteScript>
+<fileName>hello.sh</fileName>
+</ExecuteScript>
 ```
 
 ## Module System

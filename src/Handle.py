@@ -71,35 +71,82 @@ class Handle():
 		self.hLG.echo("Set system message ( CTRL+x ENTER to Finish. ): ",{'color':True,'colorValue':'orange','debugOnly':False})
 		tmp = user_input({'quit_with_ctrlx':True})
 		#
-			# Default system message teaching model about text-based tool invocation
+			# Default system message teaching model about XML tool invocation
 		tool_instructions = """
-You can invoke tools by writing: !TOOL ToolName key=value
+You are an AI assistant with access to tools. To use a tool, write an XML block with the tool name as the tag.
 
-Available tools (use exact names):
-- ReadFile: Read file from workin/. Params: fileName
-- WriteFile: Write file to workout/. Params: fileName, contentOfFile
-- AppendFile: Append to file in workout/. Params: fileName, contentOfFile
-- CreateFile: Create new file in workout/ (fails if exists). Params: fileName, content
-- List: List files in a path. Params: [path] (optional)
+BASIC FORMAT:
+<ToolName>
+<param1>value1</param1>
+<param2>value2</param2>
+</ToolName>
+
+AVAILABLE TOOLS (use exact names):
+- ReadFile: Read file from workin/. Params: <fileName>
+- WriteFile: Write file to workout/. Params: <fileName>, <contentOfFile>
+- AppendFile: Append to file in workout/. Params: <fileName>, <contentOfFile>
+- CreateFile: Create new file in workout/ (fails if exists). Params: <fileName>, <content>
+- List: List files in a path. Params: [<path>] (optional)
 - listTools: Show all available tools. No params.
-- ExecuteScript: Run script (.py, .sh, .js, etc). Params: fileName, [args]
-- Grep: Search files by regex pattern. Params: pattern, [fileName], [recursive]
-- Diff: Compare two files. Params: file1, file2, [unified]
-- Sed: Find/replace in files. Params: pattern, replacement, fileName, [inplace]
-- Find: Find files by name pattern. Params: pattern, [path]
-- Head: Show first N lines of file. Params: fileName, [lines]
-- Tail: Show last N lines of file. Params: fileName, [lines]
-- Sort: Sort lines in file. Params: fileName, [numeric], [reverse], [unique]
+- ExecuteScript: Run script (.py, .sh, .js, etc). Params: <fileName>, [<args>]
+- Grep: Search files by regex pattern. Params: <pattern>, [<fileName>], [<recursive>]
+- Diff: Compare two files. Params: <file1>, <file2>, [<unified>]
+- Sed: Find/replace in files. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
+- Find: Find files by name pattern. Params: <pattern>, [<path>]
+- Head: Show first N lines of file. Params: <fileName>, [<lines>]
+- Tail: Show last N lines of file. Params: <fileName>, [<lines>]
+- Sort: Sort lines in file. Params: <fileName>, [<numeric>  [<reverse>], [<unique>]
 
-Examples:
-!TOOL ReadFile fileName=test.txt
-!TOOL WriteFile fileName=output.txt contentOfFile="Hello World"
-!TOOL Grep pattern="TODO" fileName=script.py
-!TOOL Grep pattern="TODO" recursive=true
-!TOOL Head fileName=script.py lines=20
-!TOOL Diff file1=old.txt file2=new.txt unified=true
-!TOOL Sed pattern="foo" replacement="bar" fileName=test.txt
-IMPORTANT: Use exact tool names as shown above.
+EXAMPLES:
+1. Read a file:
+<ReadFile><fileName>test.txt</fileName></ReadFile>
+
+2. Write a file:
+<WriteFile>
+<fileName>output.txt</fileName>
+<contentOfFile>Hello World</contentOfFile>
+</WriteFile>
+
+3. Create and execute a script:
+<WriteFile>
+<fileName>hello.sh</fileName>
+<contentOfFile>echo "Hello World"</contentOfFile>
+</WriteFile>
+
+<ExecuteScript>
+<fileName>hello.sh</fileName>
+</ExecuteScript>
+
+4. Search for TODO in a file:
+<Grep>
+<pattern>TODO</pattern>
+<fileName>script.py</fileName>
+</Grep>
+
+5. Search recursively:
+<Grep>
+<pattern>TODO</pattern>
+<recursive>true</recursive>
+</Grep>
+
+6. View first 20 lines:
+<Head>
+<fileName>script.py</fileName>
+<lines>20</lines>
+</Head>
+
+7. Compare files:
+<Diff>
+<file1>old.txt</file1>
+<file2>new.txt</file2>
+<unified>true</unified>
+</Diff>
+
+IMPORTANT: 
+- Write tool name as XML tag (case-sensitive)
+- Use exact parameter names as child tags
+- Close all tags properly
+- Tools load automatically when you invoke them
 """
 		#
 		if tmp!="":
@@ -116,8 +163,8 @@ IMPORTANT: Use exact tool names as shown above.
 		self.hAC.Choose()
 		# Choose history
 		self.hHM.Choose()
-		# Choose tools (auto-load all by default)
-		self.hTC.Choose(auto_load_all=True)
+		# Tools will be loaded dynamically when model invokes them via XML
+		# self.hTC.Choose(auto_load_all=True)  # Disabled - load on-demand
 		return True
 	
 	#
@@ -352,81 +399,107 @@ IMPORTANT: Use exact tool names as shown above.
 	
 	#
 	def ParseTextToolInvocation(self, text):
-		# Parse text for tool invocations like: !TOOL ReadFile fileName=test.txt
+		# Parse XML-style tool invocations like: <ReadFile><fileName>test.txt</fileName></ReadFile>
 		# Returns: [{'name':'ReadFile', 'parameters':{'fileName':'test.txt'}}, ...]
 		import re
 		results = []
 		#
-		# Pattern: !TOOL ToolName key=value key2=value2
-		# Using finditer to handle multiple invocations properly
-		pattern = r'!TOOL\s+(\w+)\s*([^!]*)'
-		matches = re.finditer(pattern, text)
+		# Find complete tool blocks: <ToolName>...</ToolName>
+		# Use balanced matching - find opening tag, then find matching closing tag
 		#
-		for match in matches:
-			toolName = match.group(1)
-			param_str = match.group(2).strip()
-			params = {}
+		i = 0
+		while i < len(text):
+			# Find next opening tag
+			open_match = re.search(r'<(\w+)>', text[i:])
+			if not open_match:
+				break
 			#
-			# Parse key=value pairs
-			if param_str:
-				# Pattern to match key=value where value can be quoted
-				kv_pattern = r'(\w+)=("[^"]*"|[^\s"]+)'
-				kv_matches = re.findall(kv_pattern, param_str)
-				#
-				for kv in kv_matches:
-					key = kv[0]
-					value = kv[1]
-					# Remove quotes if present
-					if value.startswith('"') and value.endswith('"'):
-						value = value[1:-1]
-					params[key] = value
+			toolName = open_match.group(1)
+			start_pos = i + open_match.start()
+			inner_start = i + open_match.end()
+			#
+			# Find matching closing tag </toolName>
+			close_tag = '</{}>'.format(toolName)
+			close_pos = text.find(close_tag, inner_start)
+			#
+			if close_pos == -1:
+				# No closing tag found, skip
+				i = inner_start
+				continue
+			#
+			# Extract inner content
+			inner_content = text[inner_start:close_pos]
+			#
+			# Parse parameters from inner content
+			params = {}
+			param_pattern = r'<(\w+)>(.*?)</\1>'
+			for pm in re.finditer(param_pattern, inner_content, re.DOTALL):
+				key = pm.group(1)
+				value = pm.group(2).strip()
+				params[key] = value
 			#
 			results.append({
 				'name': toolName,
 				'parameters': params
 			})
+			#
+			# Move past this tool block
+			i = close_pos + len(close_tag)
 		#
 		return results
 	
 	#
 	def ExecuteTextTool(self, toolName, params):
-		# Execute a tool based on text-based invocation
-		# First check if tool is loaded in hTC.handles
-		if toolName in self.hTC.handles:
+		# Execute a tool based on XML invocation
+		# Load tool dynamically if not already loaded
+		if toolName not in self.hTC.handles:
+			self.hLG.echo("Tool {} not loaded, loading dynamically...".format(toolName), {'color':True, 'colorValue':'orange'})
+			#
 			try:
-				h = self.hTC.handles[toolName]['handle']
-				result = h.run(**params)
-				return result
+				# Find tool file by name
+				tool_file = None
+				for f in os.listdir(self.Options['tools_path']):
+					# Check if file matches tool_XXX.py pattern
+					if f.startswith("tool_") and f.endswith(".py"):
+						file_tool_name = f[5:-3]  # Extract name from tool_XXX.py
+						# Try to match with toolName (case-insensitive)
+						if file_tool_name.lower() == toolName.lower():
+							tool_file = f
+							break
+				#
+				if tool_file is None:
+					return "Tool `{}` not found in tools/".format(toolName)
+				#
+				# Load the tool
+				tmp = splitFileNameExtension(tool_file)
+				mod = importmodule(tmp['name'], True, {'path':self.Options['tools_path']})
+				#
+				# Initialize with proper class name (try toolName or file name)
+				h = None
+				for cls_name in [toolName, tmp['name']]:
+					try:
+						h = initmodule(mod, cls_name)
+						if h:
+							break
+					except:
+						continue
+				#
+				if h is None:
+					return "Failed to initialize tool `{}`".format(toolName)
+				#
+				# Store in handles
+				self.hTC.handles[toolName] = {'handle': h}
+				self.hLG.echo("Tool {} loaded successfully".format(toolName), {'color':True, 'colorValue':'green'})
 			except Exception as E:
-				return "Error executing {}: {}".format(toolName, E)
+				return "Error loading tool {}: {}".format(toolName, E)
 		#
-		# Tool not loaded, try to load it dynamically
-		self.hLG.echo("Tool {} not loaded, attempting to load...".format(toolName), {'color':True, 'colorValue':'orange'})
-		#
+		# Execute the tool
 		try:
-			# Find tool file
-			tool_file = None
-			for f in os.listdir(self.Options['tools_path']):
-				if rmatch(f, "tool_{}.py".format(toolName)):
-					tool_file = f
-					break
-			#
-			if tool_file is None:
-				return "Tool `{}` not found in tools/".format(toolName)
-			#
-			# Load the tool
-			tmp = splitFileNameExtension(tool_file)
-			mod = importmodule(tmp['name'], True, {'path':self.Options['tools_path']})
-			h   = initmodule(mod, toolName)
-			#
-			if h is None:
-				return "Failed to initialize tool `{}`".format(toolName)
-			#
-			# Execute
+			h = self.hTC.handles[toolName]['handle']
 			result = h.run(**params)
 			return result
 		except Exception as E:
-			return "Error loading/executing {}: {}".format(toolName, E)
+			return "Error executing {}: {}".format(toolName, E)
 	
 	#
 	def You(self, data=None):
