@@ -17,7 +17,7 @@ Options         = {
 	#
 	"SPEAK"               :True,
 	#
-	"AI_MODEL"            :"gemma3:12b",
+	"AI_MODEL"            :"gemma3:latest",
 	"AI_FILE_SESSID"      :"sessid.aiia",
 	"AI_USER_HISTORY"     :"huser.aiia",
 	"AI_FILE_HISTORY"     :"history.aiia",

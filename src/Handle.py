@@ -70,17 +70,54 @@ class Handle():
 		# Choose system message
 		self.hLG.echo("Set system message ( CTRL+x ENTER to Finish. ): ",{'color':True,'colorValue':'orange','debugOnly':False})
 		tmp = user_input({'quit_with_ctrlx':True})
+		#
+			# Default system message teaching model about text-based tool invocation
+		tool_instructions = """
+You can invoke tools by writing: !TOOL ToolName key=value
+
+Available tools (use exact names):
+- ReadFile: Read file from workin/. Params: fileName
+- WriteFile: Write file to workout/. Params: fileName, contentOfFile
+- AppendFile: Append to file in workout/. Params: fileName, contentOfFile
+- CreateFile: Create new file in workout/ (fails if exists). Params: fileName, content
+- List: List files in a path. Params: [path] (optional)
+- listTools: Show all available tools. No params.
+- ExecuteScript: Run script (.py, .sh, .js, etc). Params: fileName, [args]
+- Grep: Search files by regex pattern. Params: pattern, [fileName], [recursive]
+- Diff: Compare two files. Params: file1, file2, [unified]
+- Sed: Find/replace in files. Params: pattern, replacement, fileName, [inplace]
+- Find: Find files by name pattern. Params: pattern, [path]
+- Head: Show first N lines of file. Params: fileName, [lines]
+- Tail: Show last N lines of file. Params: fileName, [lines]
+- Sort: Sort lines in file. Params: fileName, [numeric], [reverse], [unique]
+
+Examples:
+!TOOL ReadFile fileName=test.txt
+!TOOL WriteFile fileName=output.txt contentOfFile="Hello World"
+!TOOL Grep pattern="TODO" fileName=script.py
+!TOOL Grep pattern="TODO" recursive=true
+!TOOL Head fileName=script.py lines=20
+!TOOL Diff file1=old.txt file2=new.txt unified=true
+!TOOL Sed pattern="foo" replacement="bar" fileName=test.txt
+IMPORTANT: Use exact tool names as shown above.
+"""
+		#
 		if tmp!="":
-			# append to chat history
-			self.Response('system',{'content':tmp,})
+			# append to chat history with tool instructions
+			system_content = "{}\n\n{}".format(tmp, tool_instructions)
+			self.Response('system',{'content':system_content,})
 			# append to chat memory
-			self.msgs.append( self.Response('system',{'content':tmp, 'return_object':True}) )
+			self.msgs.append( self.Response('system',{'content':system_content, 'return_object':True}) )
+		else:
+			# Use default tool instructions as system message
+			self.Response('system',{'content':tool_instructions,})
+			self.msgs.append( self.Response('system',{'content':tool_instructions, 'return_object':True}) )
 		# Choose actions
 		self.hAC.Choose()
 		# Choose history
 		self.hHM.Choose()
-		# Choose tools
-		self.hTC.Choose()
+		# Choose tools (auto-load all by default)
+		self.hTC.Choose(auto_load_all=True)
 		return True
 	
 	#
@@ -204,6 +241,46 @@ class Handle():
 		#
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
 		#
+		# Check for text-based tool invocation like: !TOOL ToolName key=value key2=value2
+		tool_invocations = self.ParseTextToolInvocation(response)
+		#
+		if tool_invocations:
+			self.hLG.echo("Parse() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
+			#
+			for inv in tool_invocations:
+				toolName = inv['name']
+				params   = inv['parameters']
+				#
+				self.hLG.echo("Executing tool from text: {} with {}".format(toolName, params), {'color':True})
+				#
+				result = self.ExecuteTextTool(toolName, params)
+				#
+				self.hLG.echo("Tool result: {}".format(result), {'color':True, 'colorValue':'green'})
+				#
+				self.Response('tool',{'content':str(result),'name':toolName})
+			#
+			# Get AI response after tool execution
+			self.hLG.echo("Getting AI response after tool execution...", {'color':True})
+			#
+			res2 = chat(
+				self.Options['AI_MODEL'],
+				messages=self.msgs,
+				stream=True,
+				options={'temperature':self.Options['AI_TEMPERATURE']}
+			)
+			#
+			response2 = ""
+			for chunk in res2:
+				part = chunk['message']['content']
+				self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
+				response2 = response2 + part
+			#
+			self.Response('assistant',{'content':response2,'skip_history':opt_skip_history,})
+			#
+			if opt_return_object:
+				return response2
+			return True
+		#
 		if opt_return_object:
 			return response
 		return True
@@ -272,6 +349,84 @@ class Handle():
 		# Unknown response or none
 		else:
 			self.Response('assistant',{'content':"Error: no content?"})
+	
+	#
+	def ParseTextToolInvocation(self, text):
+		# Parse text for tool invocations like: !TOOL ReadFile fileName=test.txt
+		# Returns: [{'name':'ReadFile', 'parameters':{'fileName':'test.txt'}}, ...]
+		import re
+		results = []
+		#
+		# Pattern: !TOOL ToolName key=value key2=value2
+		# Using finditer to handle multiple invocations properly
+		pattern = r'!TOOL\s+(\w+)\s*([^!]*)'
+		matches = re.finditer(pattern, text)
+		#
+		for match in matches:
+			toolName = match.group(1)
+			param_str = match.group(2).strip()
+			params = {}
+			#
+			# Parse key=value pairs
+			if param_str:
+				# Pattern to match key=value where value can be quoted
+				kv_pattern = r'(\w+)=("[^"]*"|[^\s"]+)'
+				kv_matches = re.findall(kv_pattern, param_str)
+				#
+				for kv in kv_matches:
+					key = kv[0]
+					value = kv[1]
+					# Remove quotes if present
+					if value.startswith('"') and value.endswith('"'):
+						value = value[1:-1]
+					params[key] = value
+			#
+			results.append({
+				'name': toolName,
+				'parameters': params
+			})
+		#
+		return results
+	
+	#
+	def ExecuteTextTool(self, toolName, params):
+		# Execute a tool based on text-based invocation
+		# First check if tool is loaded in hTC.handles
+		if toolName in self.hTC.handles:
+			try:
+				h = self.hTC.handles[toolName]['handle']
+				result = h.run(**params)
+				return result
+			except Exception as E:
+				return "Error executing {}: {}".format(toolName, E)
+		#
+		# Tool not loaded, try to load it dynamically
+		self.hLG.echo("Tool {} not loaded, attempting to load...".format(toolName), {'color':True, 'colorValue':'orange'})
+		#
+		try:
+			# Find tool file
+			tool_file = None
+			for f in os.listdir(self.Options['tools_path']):
+				if rmatch(f, "tool_{}.py".format(toolName)):
+					tool_file = f
+					break
+			#
+			if tool_file is None:
+				return "Tool `{}` not found in tools/".format(toolName)
+			#
+			# Load the tool
+			tmp = splitFileNameExtension(tool_file)
+			mod = importmodule(tmp['name'], True, {'path':self.Options['tools_path']})
+			h   = initmodule(mod, toolName)
+			#
+			if h is None:
+				return "Failed to initialize tool `{}`".format(toolName)
+			#
+			# Execute
+			result = h.run(**params)
+			return result
+		except Exception as E:
+			return "Error loading/executing {}: {}".format(toolName, E)
 	
 	#
 	def You(self, data=None):
