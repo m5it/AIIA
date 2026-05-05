@@ -406,10 +406,13 @@ IMPORTANT:
 		#
 		# Find complete tool blocks: <ToolName>...</ToolName>
 		# Use balanced matching - find opening tag, then find matching closing tag
+		# Use case-insensitive matching
 		#
 		i = 0
+		text_lower = text.lower()  # For case-insensitive tag matching
+		#
 		while i < len(text):
-			# Find next opening tag
+			# Find next opening tag (case-insensitive)
 			open_match = re.search(r'<(\w+)>', text[i:])
 			if not open_match:
 				break
@@ -418,14 +421,23 @@ IMPORTANT:
 			start_pos = i + open_match.start()
 			inner_start = i + open_match.end()
 			#
-			# Find matching closing tag </toolName>
+			# Find matching closing tag </toolName> (case-insensitive)
 			close_tag = '</{}>'.format(toolName)
-			close_pos = text.find(close_tag, inner_start)
+			close_tag_lower = '</{}>'.format(toolName.lower())
 			#
-			if close_pos == -1:
+			# Search in lowercased text for position
+			pos_in_remaining = text_lower.find(close_tag_lower, inner_start)
+			if pos_in_remaining == -1:
+				# Try exact case
+				pos_in_remaining = text.find(close_tag, inner_start)
+			#
+			if pos_in_remaining == -1:
 				# No closing tag found, skip
 				i = inner_start
 				continue
+			#
+			# Map position back to original text
+			close_pos = pos_in_remaining
 			#
 			# Extract inner content
 			inner_content = text[inner_start:close_pos]
