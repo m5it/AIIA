@@ -251,12 +251,14 @@ IMPORTANT:
 		#
 		x = self.You() # return: 0, 1, 2=continue, 3=break
 		#self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False,'debugOnly':False})
-		self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False,})
+		self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False})
 		#
 		if x!=None and x>=2:
 			return x # return 2=continue or 3=break, 4=update handle
 		
 		#
+		# AI() now loops internally to handle multiple tool calls
+		# Returns True when done (no more tool calls)
 		x = self.AI()
 		self.hLG.echo("Handle.Chat() AI() response: {}".format(x),{'color':False})
 		
@@ -288,7 +290,7 @@ IMPORTANT:
 		#
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
 		#
-		# Check for text-based tool invocation like: !TOOL ToolName key=value key2=value2
+		# Check for XML tool invocations
 		tool_invocations = self.ParseTextToolInvocation(response)
 		#
 		if tool_invocations:
@@ -298,11 +300,19 @@ IMPORTANT:
 				toolName = inv['name']
 				params   = inv['parameters']
 				#
-				self.hLG.echo("Executing tool from text: {} with {}".format(toolName, params), {'color':True})
+				# Show user what tool is being called (preview)
+				params_str = ', '.join(['{}={}'.format(k, v) for k, v in params.items()])
+				self.hLG.echo("🔧 Executing: {} ({})".format(toolName, params_str if params_str else 'no params'), {'color':True, 'colorValue':'cyan'})
 				#
 				result = self.ExecuteTextTool(toolName, params)
 				#
-				self.hLG.echo("Tool result: {}".format(result), {'color':True, 'colorValue':'green'})
+				# Truncate result if too long
+				MAX_PREVIEW = 500
+				result_str = str(result)
+				if len(result_str) > MAX_PREVIEW:
+					result_str = result_str[:MAX_PREVIEW] + "... (truncated, {} chars total)".format(len(str(result)))
+				#
+				self.hLG.echo("✓ Result: {}".format(result_str), {'color':True, 'colorValue':'green'})
 				#
 				self.Response('tool',{'content':str(result),'name':toolName})
 			#
@@ -559,40 +569,32 @@ IMPORTANT:
 		#opt_response_with = opts['response_with'] if 'response_with' in opts else None
 		#opt_response_with_opts = opts['response_with_opts'] if 'response_with_opts' in opts else {}
 		#
-		res           = {}
-		msgs          = [] # tempolary array of messages to send to AIIA
-		self.lastMsgs = [] # clear lastMsgs
-		
+		# Loop to handle multiple rounds of tool calls
+		max_iterations = 5  # Prevent infinite loops
+		iteration = 0
 		#
-		for msg in self.msgs: # loop trough array of history messages that you wish to include for AIIA
-			msgs.append( msg )
-			self.lastMsgs.append( msg )
-		# append last user message
-		if len(self.hHM.msgs)>0:
-			msgs.append( self.hHM.msgs[ len(self.hHM.msgs)-1 ] )
-			self.lastMsgs.append( self.hHM.msgs[ len(self.hHM.msgs)-1 ] )
-		
-		# Nothing to send to AIIA, continue to repeat input!
-		if len(msgs)<=0:
-			print("WARNING: msgs len is 0, Repeating user_input!")
-			return 2 # as continue
-		#print("AIIA.Ai() DEBUG msgs.len: {}".format(len(msgs)))
-		#print(msgs)
-		
-		#
-		if len(self.hTC.prepared)>0:
-			self.hLG.echo("DEBUG preparing chat with tools, {}".format(self.hTC.prepared),{'color':False})
-			res: ChatResponse = chat(
-				self.Options['AI_MODEL'],
-				messages=msgs,
-				tools=self.hTC.prepared,
-				#temperature=self.Options['AI_TEMPERATURE'],
-				options={'temperature':self.Options['AI_TEMPERATURE']}
-			)
-			self.ParseTools(res)
-		# Chat without tools, normal chat
-		else:
-			self.hLG.echo("DEBUG preparing chat without tools",{'color':False})
+		while iteration < max_iterations:
+			iteration += 1
+			#
+			res           = {}
+			msgs          = [] # temporary array of messages to send to AIIA
+			self.lastMsgs = [] # clear lastMsgs
+			#
+			for msg in self.msgs: # loop trough array of history messages that you wish to include for AIIA
+				msgs.append( msg )
+				self.lastMsgs.append( msg )
+			# append last user message
+			if len(self.hHM.msgs)>0:
+				msgs.append( self.hHM.msgs[ len(self.hHM.msgs)-1 ] )
+				self.lastMsgs.append( self.hHM.msgs[ len(self.hHM.msgs)-1 ] )
+			#
+			# Nothing to send to AIIA, continue to repeat input!
+			if len(msgs)<=0:
+				print("WARNING: msgs len is 0, Repeating user_input!")
+				return 2 # as continue
+			#
+			# Chat without tools, normal chat (XML tools handle themselves)
+			self.hLG.echo("DEBUG preparing chat (iteration {})".format(iteration),{'color':False})
 			res: ChatResponse = chat(
 				self.Options['AI_MODEL'],
 				messages=msgs,
@@ -600,8 +602,26 @@ IMPORTANT:
 				#temperature=self.Options['AI_TEMPERATURE'],
 				options={'temperature':self.Options['AI_TEMPERATURE']}
 			)
-			#return self.Parse(res,{'return_object':opt_return_object})
-			return self.Parse(res,opts)
+			#
+			# Parse result (handles XML tool calls)
+			result = self.Parse(res,{'return_object':True, 'skip_history':True})
+			#
+			# Check if tools were executed by looking for tool invocations in result
+			tool_invocations = self.ParseTextToolInvocation(result)
+			#
+			if not tool_invocations:
+				# No more tool calls - return final response
+				self.Response('assistant',{'content':result,'skip_history':False})
+				if opt_return_object:
+					return result
+				return True
+			#
+			self.hLG.echo("Iteration {}: Found {} more tool call(s), continuing...".format(iteration, len(tool_invocations)), {'color':True, 'colorValue':'orange'})
+			# Continue loop - don't return to user yet
+		#
+		# Max iterations reached
+		self.hLG.echo("WARNING: Max tool iterations ({}) reached".format(max_iterations), {'color':True, 'colorValue':'red'})
+		return True
 	
 	#--
 	# class Commands
