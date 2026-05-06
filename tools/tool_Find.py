@@ -7,7 +7,7 @@ class Find():
 		print("Find() STARTING")
 		self.info = {
 			"name":"Find",
-			"description":"Find files by name pattern. Searches in workin/ and workout/ directories.",
+			"description":"Find files by name pattern. Searches in work/ directory.",
 			"parameters":{
 				"returnType":"string",
 				"required":["pattern"],
@@ -18,7 +18,7 @@ class Find():
 					},
 					"path":{
 						"type":"string", 
-						"description":"(Optional) Specific path to search. Default: both workin/ and workout/."
+						"description":"(Optional) Specific path to search. Default: work/."
 					},
 				},
 			},
@@ -28,34 +28,46 @@ class Find():
 		print("Find.run() STARTING, pattern: {}, path: {}".format(pattern, path))
 		#
 		results = []
+		errors = []
 		#
 		# Determine search paths
 		search_paths = []
 		if path:
-			if os.path.exists("workin/{}".format(path)):
-				search_paths.append("workin/{}".format(path))
-			elif os.path.exists("workout/{}".format(path)):
-				search_paths.append("workout/{}".format(path))
+			# Remove work/ prefix if already present to avoid double prefix
+			if path.startswith("work/"):
+				full_path = path
 			else:
-				search_paths.append(path)
+				full_path = "work/{}".format(path)
+			search_paths.append(full_path)
 		else:
-			search_paths = ["workin/", "workout/"]
+			search_paths = ["work/"]
 		#
 		# Use find command
 		for sp in search_paths:
 			try:
 				result = subprocess.run(
-					["find", sp, "-name", pattern, "-type", "f"],
+					["find", sp, "-name", pattern],
 					capture_output=True,
 					text=True,
 					timeout=10
 				)
-				if result.stdout:
+				if result.stdout.strip():
 					results.extend(result.stdout.strip().split('\n'))
+				if result.stderr:
+					errors.append("find error in {}: {}".format(sp, result.stderr.strip()))
 			except Exception as E:
-				print("Find.run() error on {}: {}".format(sp, E))
+				error_msg = "Find.run() error on {}: {}".format(sp, E)
+				print(error_msg)
+				errors.append(error_msg)
 		#
-		if not results:
-			return "No files found matching pattern: {}".format(pattern)
+		response = ""
+		if results:
+			response += "\n".join(results)
+		if errors:
+			if response:
+				response += "\n\nErrors:\n"
+			response += "\n".join(errors)
+		if not response:
+			response = "No files found matching pattern: {}".format(pattern)
 		#
-		return "\n".join(results)
+		return response

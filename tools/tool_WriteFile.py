@@ -29,7 +29,15 @@ class WriteFile():
 		print("WriteFile.run() STARTING, {}, len: {}, opts: {}".format( fileName, len(contentOfFile), opts))
 		ret=""
 		try:
-			x = fwrite("workout/{}".format(fileName), contentOfFile, True)
+			# Create parent directories if they don't exist
+			import os
+			full_path = "work/{}".format(fileName)
+			parent_dir = os.path.dirname(full_path)
+			if parent_dir and not os.path.exists(parent_dir):
+				os.makedirs(parent_dir, exist_ok=True)
+				print("WriteFile.run() Created directory: {}".format(parent_dir))
+			#
+			x = fwrite(full_path, contentOfFile, True)
 		except Exception as E:
 			print("WriteFile.run() ERROR: {}".format(E))
 			return "Error occured: {}".format(E)

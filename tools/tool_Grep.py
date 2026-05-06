@@ -7,7 +7,7 @@ class Grep():
 		print("Grep() STARTING")
 		self.info = {
 			"name":"Grep",
-			"description":"Search for patterns in files using regex. Searches in workin/ and workout/ directories.",
+			"description":"Search for patterns in files using regex. Searches in work/ directory.",
 			"parameters":{
 				"returnType":"string",
 				"required":["pattern"],
@@ -18,7 +18,7 @@ class Grep():
 					},
 					"fileName":{
 						"type":"string", 
-						"description":"(Optional) Specific file to search. If not provided, searches all files in workin/ and workout/."
+						"description":"(Optional) Specific file to search. If not provided, searches all files in work/."
 					},
 					"recursive":{
 						"type":"boolean", 
@@ -43,16 +43,17 @@ class Grep():
 		search_paths = []
 		#
 		if fileName:
-			# Search in specific file
-			if os.path.exists("workin/{}".format(fileName)):
-				search_paths.append("workin/{}".format(fileName))
-			elif os.path.exists("workout/{}".format(fileName)):
-				search_paths.append("workout/{}".format(fileName))
-			else:
-				return "Error: File {} not found in workin/ or workout/".format(fileName)
+			# Search in specific file - try work/ first, then fallback
+			for prefix in ["work/"]:
+				full_path = "{}{}".format(prefix, fileName)
+				if os.path.exists(full_path):
+					search_paths.append(full_path)
+					break
+			if not search_paths:
+				return "Error: File {} not found in work/".format(fileName)
 		else:
-			# Search all files in workin/ and workout/
-			search_paths = ["workin/", "workout/"]
+			# Search all files in work/
+			search_paths = ["work/"]
 		#
 		cmd.extend(search_paths)
 		#

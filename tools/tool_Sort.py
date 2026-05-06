@@ -7,7 +7,7 @@ class Sort():
 		print("Sort() STARTING")
 		self.info = {
 			"name":"Sort",
-			"description":"Sort lines in a file alphabetically or numerically. Reads from workin/ and workout/.",
+			"description":"Sort lines in a file alphabetically or numerically. Reads from work/ directory.",
 			"parameters":{
 				"returnType":"string",
 				"required":["fileName"],
@@ -38,7 +38,7 @@ class Sort():
 		# Find file
 		file_path = self._find_file(fileName)
 		if not file_path:
-			return "Error: File {} not found in workin/ or workout/".format(fileName)
+			return "Error: File {} not found in work/".format(fileName)
 		#
 		# Build sort command
 		cmd = ["sort"]
@@ -73,8 +73,7 @@ class Sort():
 			return "Error executing sort: {}".format(E)
 	#
 	def _find_file(self, fileName):
-		for prefix in ["workin/", "workout/"]:
-			full_path = "{}{}".format(prefix, fileName)
-			if os.path.exists(full_path):
-				return full_path
+		full_path = "work/{}".format(fileName)
+		if os.path.exists(full_path):
+			return full_path
 		return None

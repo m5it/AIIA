@@ -14,7 +14,7 @@ class ExecuteScript():
 				"properties":{
 					"fileName":{
 						"type":"string", 
-						"description":"Name of the script file to execute (e.g., script.sh, test.py). File should be in workin/ folder."
+						"description":"Name of the script file to execute (e.g., script.sh, test.py). File should be in work/ folder."
 					},
 					"args":{
 						"type":"string", 
@@ -27,12 +27,10 @@ class ExecuteScript():
 	def run(self, fileName, args="", opts={}):
 		print("ExecuteScript.run() STARTING, fileName: {}, args: {}".format(fileName, args))
 		#
-		# Check both workin/ and workout/ folders
-		file_path = "workin/{}".format(fileName)
+		# Check work/ folder
+		file_path = "work/{}".format(fileName)
 		if not os.path.exists(file_path):
-			file_path = "workout/{}".format(fileName)
-		if not os.path.exists(file_path):
-			return "Error: File {} not found in workin/ or workout/".format(fileName)
+			return "Error: File {} not found in work/".format(fileName)
 		#
 		# Determine interpreter based on file extension
 		ext = os.path.splitext(fileName)[1].lower()

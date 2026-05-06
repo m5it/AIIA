@@ -1,0 +1,116 @@
+<?php require_once('../Connections/sanmig.php');
+
+if (!function_exists("GetSQLValueString")) {
+  function GetSQLValueString($theValue, $theType, $theDefinedValue = "", $theNotDefinedValue = "") 
+  {
+    $theValue = get_magic_quotes_gpc() ? stripslashes($theValue) : $theValue;
+
+    $theValue = function_exists("mysql_real_escape_string") ? mysql_real_escape_string($theValue) : mysql_escape_string($theValue);
+
+    switch ($theType) {
+      case "text":
+        $theValue = ($theValue != "") ? "'" . $theValue . "'" : "NULL";
+        break;    
+      case "long":
+      case "int":
+        $theValue = ($theValue != "") ? intval($theValue) : "NULL";
+        break;
+      case "double":
+        $theValue = ($theValue != "") ? "'" . doubleval($theValue) . "'" : "NULL";
+        break;
+      case "date":
+        $theValue = ($theValue != "") ? "'" . $theValue . "'" : "NULL";
+        break;
+      case "defined":
+        $theValue = ($theValue != "") ? $theDefinedValue : $theNotDefinedValue;
+        break;
+    }
+    return $theValue;
+  }
+}
+
+$editFormAction = $_SERVER['PHP_SELF'];
+if (isset($_SERVER['QUERY_STRING'])) {
+  $editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
+}
+
+if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "form1")) {
+
+
+
+  $insertSQL = sprintf("INSERT INTO restaurants_ads (`place`, `number`, photo, title, subtitle, date) VALUES (%s, %s, %s, %s, %s, %s)",
+                       GetSQLValueString($_POST['place'], "text"),
+                       GetSQLValueString($_POST['number'], "text"),
+                       GetSQLValueString($_POST['photo'], "text"),
+                       GetSQLValueString($_POST['title'], "text"),
+                       GetSQLValueString($_POST['subtitle'], "text"),
+                       GetSQLValueString($_POST['notes'], "text"),
+                       GetSQLValueString($_POST['date'], "date"));
+
+  mysql_select_db($database_sanmig, $sanmig);
+  $Result1 = mysql_query($insertSQL, $sanmig) or die(mysql_error());
+
+  $insertGoTo = "manage_restaurant_ads.php";
+  if (isset($_SERVER['QUERY_STRING'])) {
+    $insertGoTo .= (strpos($insertGoTo, '?')) ? "&" : "?";
+    $insertGoTo .= $_SERVER['QUERY_STRING'];
+  }
+  header(sprintf("Location: %s", $insertGoTo));
+}
+?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title> &nbsp; Add Ads</title>
+<link href="../../styles/admin.css" rel="stylesheet" type="text/css" />
+<style>
+#start_hour, #ending_hour, #start_minute, #ending_minute, .timing {display:inline; width: 50px;}
+#day {width:155px;font:inherit;}
+</style>
+</head>
+
+<body>
+<h1>Restaurant: Post Your Ad or Article</h1>
+<form id="form1" name="form1" method="POST" action="<?php echo $editFormAction; ?>">
+  <p>
+    <label for="place">Place:</label>
+    <input name="place" id="place" maxlength="3" />
+  </p>
+  <p>
+    <label for="number">Number:</label>
+    <input name="number" type="number" id="number" maxlength="3" />
+  </p>
+  <p>
+    <label for="photo">Photo:</label>
+ <input name="photo" type="phot" id="phot" size="600" maxlength="600" />
+  </p>
+  <p>
+    <label for="insert"></label> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+    <input type="submit" name="insert" id="insert" value="Submit" />
+  </p>
+    <p>
+    <label for="title">Title:</label>
+<input name="title" type="title" id="title" size="200" maxlength="200" />
+  </p>
+<label for="subtitle">Text:</label>
+<textarea name="subtitle" rows="2" id="subtitle"></textarea>
+  </p>
+  <p>
+    <label for="date">Buy Date:</label>
+    <input name="date" type="date" id="date" maxlength="10" />&nbsp;&nbsp;yyyy-mm-dd
+  </p>
+  <p>
+    <label for="notes">Price / Notes:</label>
+    <input name="notes" type="notes" id="notes" size="600" maxlength="600" />
+  </p>
+  <p>
+    <label for="insert"></label>
+    <input type="submit" name="insert" id="insert" value="Submit" />
+  </p>
+
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <input type="hidden" name="MM_insert" value="form1" />
+</form>
+</body>
+</html>

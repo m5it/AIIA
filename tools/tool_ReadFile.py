@@ -20,10 +20,15 @@ class ReadFile():
 			},
 		}
 	#
-	def run(self, fileName):
+	def run(self, fileName, opts={}):
 		print("ReadFile.run() STARTING on name: {}".format(fileName))
-		data = fread("workin/{}".format(fileName))
+		# Try work/ only
+		path = "work/{}".format(fileName)
+		if not os.path.exists(path):
+			return "Error: File `{}` not found in work/".format(fileName)
+		
+		data = fread(path)
 		if data==False:
-			return "Failed retriving content of file {}".format(fileName)
+			return "Failed retrieving content of file {}".format(fileName)
 		return data
 		

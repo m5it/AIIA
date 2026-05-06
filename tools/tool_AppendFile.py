@@ -25,10 +25,18 @@ class AppendFile():
 		}
 	#
 	def run(self, fileName, contentOfFile, opts={}):
-		print("AppendFile.run() STARTING, {}, len: {}, opts: {}".format( fileName, len(contentOfFile), opts))
+		print("AppendFile.run() STARTING, {}, len: {}".format( fileName, len(contentOfFile)))
 		ret=""
 		try:
-			x = fwrite("workout/{}".format(fileName), contentOfFile, False)
+			# Use work/ directory
+			file_path = "work/{}".format(fileName)
+			
+			# Create parent directories if they don't exist
+			parent_dir = os.path.dirname(file_path)
+			if parent_dir and not os.path.exists(parent_dir):
+				os.makedirs(parent_dir, exist_ok=True)
+			
+			x = fwrite(file_path, contentOfFile, False)  # False = append mode
 		except Exception as E:
 			print("AppendFile.run() ERROR: {}".format(E))
 			return "Error occured: {}".format(E)

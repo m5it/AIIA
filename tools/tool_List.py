@@ -24,7 +24,7 @@ class List():
 	def run(self, path="", opts={}):
 		print("List.run() STARTING, path: {}, opts: {}".format( path, opts ))
 		opt_match       = None if "match" not in opts else opts["match"] # regex
-		opt_hiddenpath  = "workin/" if "hiddenpath" not in opts else opts["hiddenpath"] # ai dont need to know real path
+		opt_hiddenpath  = "work/" if "hiddenpath" not in opts else opts["hiddenpath"] # ai dont need to know real path
 		usepath         = "{}{}".format(opt_hiddenpath,path)
 		ret             = {}
 		print("List.run() usepath: {}".format( usepath ))

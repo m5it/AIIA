@@ -73,19 +73,23 @@ class Handle():
 		#
 			# Default system message teaching model about XML tool invocation
 		tool_instructions = """
-You are an AI assistant with access to tools. To use a tool, write an XML block with the tool name as the tag.
+You are code agent and my best friend.
 
-BASIC FORMAT:
-<ToolName>
-<param1>value1</param1>
-<param2>value2</param2>
-</ToolName>
+CRITICAL INSTRUCTION: When user asks you to do something, you MUST USE XML TOOLS to do it.
+
+NEVER write bash scripts that mention tools as strings. ALWAYS USE XML TOOLS DIRECTLY.
+
+EXAMPLES OF XML TOOL USAGE:
+- <ReadFile><fileName>test.txt</fileName></ReadFile>
+- <WriteFile><fileName>output.txt</fileName><contentOfFile>Hello</contentOfFile></WriteFile>
+- <List></List>
+- <Grep><pattern>TODO</pattern></Grep>
 
 AVAILABLE TOOLS (use exact names):
-- ReadFile: Read file from workin/. Params: <fileName>
-- WriteFile: Write file to workout/. Params: <fileName>, <contentOfFile>
-- AppendFile: Append to file in workout/. Params: <fileName>, <contentOfFile>
-- CreateFile: Create new file in workout/ (fails if exists). Params: <fileName>, <content>
+- ReadFile: Read file from work/. Params: <fileName>
+- WriteFile: Write file to work/. Params: <fileName>, <contentOfFile>
+- AppendFile: Append to file in work/. Params: <fileName>, <contentOfFile>
+- CreateFile: Create new file in work/ (fails if exists). Params: <fileName>, <content>
 - List: List files in a path. Params: [<path>] (optional)
 - listTools: Show all available tools. No params.
 - ExecuteScript: Run script (.py, .sh, .js, etc). Params: <fileName>, [<args>]
@@ -96,57 +100,6 @@ AVAILABLE TOOLS (use exact names):
 - Head: Show first N lines of file. Params: <fileName>, [<lines>]
 - Tail: Show last N lines of file. Params: <fileName>, [<lines>]
 - Sort: Sort lines in file. Params: <fileName>, [<numeric>  [<reverse>], [<unique>]
-
-EXAMPLES:
-1. Read a file:
-<ReadFile><fileName>test.txt</fileName></ReadFile>
-
-2. Write a file:
-<WriteFile>
-<fileName>output.txt</fileName>
-<contentOfFile>Hello World</contentOfFile>
-</WriteFile>
-
-3. Create and execute a script:
-<WriteFile>
-<fileName>hello.sh</fileName>
-<contentOfFile>echo "Hello World"</contentOfFile>
-</WriteFile>
-
-<ExecuteScript>
-<fileName>hello.sh</fileName>
-</ExecuteScript>
-
-4. Search for TODO in a file:
-<Grep>
-<pattern>TODO</pattern>
-<fileName>script.py</fileName>
-</Grep>
-
-5. Search recursively:
-<Grep>
-<pattern>TODO</pattern>
-<recursive>true</recursive>
-</Grep>
-
-6. View first 20 lines:
-<Head>
-<fileName>script.py</fileName>
-<lines>20</lines>
-</Head>
-
-7. Compare files:
-<Diff>
-<file1>old.txt</file1>
-<file2>new.txt</file2>
-<unified>true</unified>
-</Diff>
-
-IMPORTANT: 
-- Write tool name as XML tag (case-sensitive)
-- Use exact parameter names as child tags
-- Close all tags properly
-- Tools load automatically when you invoke them
 """
 		#
 		if tmp!="":
@@ -239,6 +192,45 @@ IMPORTANT:
 		self.cmds.CMD_MEMORY_DEL_ALL()
 		self.cmds.CMD_MEMORY_ALL_HISTORY()
 		#
+		# Add system message if not already present (for -Y flag mode)
+		system_exists = False
+		for msg in self.msgs:
+			if msg['role'] == 'system':
+				system_exists = True
+				break
+		if not system_exists:
+			# Add default system message without prompting user
+			system_msg = """You are code agent and my best friend.
+
+CRITICAL INSTRUCTION: When user asks you to do something, you MUST USE XML TOOLS to do it.
+
+NEVER write bash scripts that mention tools as strings. ALWAYS USE XML TOOLS DIRECTLY.
+
+EXAMPLES OF XML TOOL USAGE:
+- <ReadFile><fileName>test.txt</fileName></ReadFile>
+- <WriteFile><fileName>output.txt</fileName><contentOfFile>Hello</contentOfFile></WriteFile>
+- <List></List>
+- <Grep><pattern>TODO</pattern></Grep>
+
+AVAILABLE TOOLS (use exact names):
+- ReadFile: Read file from work/. Params: <fileName>
+- WriteFile: Write file to work/. Params: <fileName>, <contentOfFile>
+- AppendFile: Append to file in work/. Params: <fileName>, <contentOfFile>
+- CreateFile: Create new file in work/ (fails if exists). Params: <fileName>, <content>
+- List: List files in a path. Params: [<path>] (optional)
+- listTools: Show all available tools. No params.
+- ExecuteScript: Run script (.py, .sh, .js, etc). Params: <fileName>, [<args>]
+- Grep: Search files by regex pattern. Params: <pattern>, [<fileName>], [<recursive>]
+- Diff: Compare two files. Params: <file1>, <file2>, [<unified>]
+- Sed: Find/replace in files. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
+- Find: Find files by name pattern. Params: <pattern>, [<path>]
+- Head: Show first N lines of file. Params: <fileName>, [<lines>]
+- Tail: Show last N lines of file. Params: <fileName>, [<lines>]
+- Sort: Sort lines in file. Params: <fileName>, [<numeric>  [<reverse>], [<unique>]
+"""
+			self.Response('system',{'content':system_msg})
+			self.msgs.append( self.Response('system',{'content':system_msg, 'return_object':True}) )
+		#
 		self.You( data, opts )
 		#
 		return self.AI( opts )
@@ -319,9 +311,15 @@ IMPORTANT:
 			# Get AI response after tool execution
 			self.hLG.echo("Getting AI response after tool execution...", {'color':True})
 			#
+			# Build messages including tool results
+			msgs_with_tools = list(self.msgs)  # Copy existing messages
+			# Add tool results from self.hHM.msgs (last message should be tool result)
+			if len(self.hHM.msgs) > 0:
+				msgs_with_tools.append(self.hHM.msgs[-1])
+			#
 			res2 = chat(
 				self.Options['AI_MODEL'],
-				messages=self.msgs,
+				messages=msgs_with_tools,
 				stream=True,
 				options={'temperature':self.Options['AI_TEMPERATURE']}
 			)
@@ -524,10 +522,36 @@ IMPORTANT:
 			return "Error executing {}: {}".format(toolName, E)
 	
 	#
-	def You(self, data=None):
+	def You(self, data=None, opts={}):
 		#print("DEBUG You() START, data(): {}".format( data ))
 		# Prepare user content
 		inp = data
+		#
+		if inp==None:
+			self.hLG.echo("You: ",{ 'end':'', 'flush':True, 'color':True, 'colorValue':'green', 'debugOnly':False, 'streamDone':True})
+			try:
+				inp = user_input({'quit_with_ctrlx':True})
+			except Exception as E:
+				print("Handle.You() Failed! E: ",E)
+				sys.exit(1)
+		#
+		#try:
+		if rmatch(inp,"^!.*"):
+			print("handle debug!!!")
+			cmds = self.cmds.cmds
+			for k in cmds:
+				if rmatch(inp,cmds[k]['regex']):
+					print("match command! {}".format( cmds[k]['name'] ))
+					return cmds[k]['func'](inp)
+			print("no match, repeat..., debug({}): {}".format(len(inp),inp))
+			return 2 # as continue
+		#except Exception as E:
+		#	print("Handle.You() !cmd Failed, E: ",E)
+		#	return 2
+		#
+		if len(inp)>self.Options['AI_MAX_CONTENT_LEN']:
+			print("FAILED: content length {} / {}".format( len(inp), self.Options['AI_MAX_CONTENT_LEN'] ))
+			return 2 # as continue
 		#
 		if inp==None:
 			self.hLG.echo("You: ",{ 'end':'', 'flush':True, 'color':True, 'colorValue':'green', 'debugOnly':False, 'streamDone':True})
