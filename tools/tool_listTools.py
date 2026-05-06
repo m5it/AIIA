@@ -42,17 +42,13 @@ class listTools():
 		for tool in sorted(tool_list, key=lambda x: x["name"]):
 			output += "\n- {}: {}".format(tool["name"], tool["description"])
 		
-		# Add usage examples from Commands.cmds if available
-		try:
-			from src.Handle import Handle
-			# This is a bit tricky since we need an instance, but we can show examples
-			output += "\n\nUsage examples:"
-			output += "\n- <List></List>  # List files in work/"
-			output += "\n- <ReadFile><fileName>test.txt</fileName></ReadFile>  # Read file from work/"
-			output += "\n- <WriteFile><fileName>output.txt</fileName><contentOfFile>Hello</contentOfFile></WriteFile>  # Write file to work/"
-			output += "\n- <Find><pattern>*.py</pattern></Find>  # Find Python files in work/"
-			output += "\n- <Grep><pattern>def </pattern><fileName>test.py</fileName></Grep>  # Search in file"
-		except:
-			pass
+		# Add usage examples
+		output += "\n\nUsage examples:"
+		output += "\n- <List></List>  # List files in work/"
+		output += "\n- <ReadFile><fileName>test.txt</fileName></ReadFile>  # Read file from work/"
+		output += "\n- <WriteFile><fileName>output.txt</fileName><contentOfFile>Hello</contentOfFile></WriteFile>  # Write file to work/"
+		output += "\n- <Terminal><arg1>ls</arg1><arg2>-la</arg2></Terminal>  # Execute terminal command (secure)"
+		output += "\n- <Find><pattern>*.py</pattern></Find>  # Find files in work/"
+		output += "\n- <Grep><pattern>def </pattern><fileName>test.py</fileName></Grep>  # Search in file"
 		
 		return output

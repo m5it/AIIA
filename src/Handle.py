@@ -75,17 +75,26 @@ class Handle():
 		tool_instructions = """
 You are code agent and my best friend.
 
+MODE: {mode}
+
 CRITICAL INSTRUCTION: When user asks you to do something, you MUST USE XML TOOLS to do it.
 
 NEVER write bash scripts that mention tools as strings. ALWAYS USE XML TOOLS DIRECTLY.
 
+ALL TERMINAL COMMANDS GO THROUGH Terminal TOOL.
+
+WHEN USER SAYS: "run ls", "execute ls", "use terminal to..."
+→ YOU MUST WRITE: <Terminal><arg1>ls</arg1></Terminal>
+
 EXAMPLES OF XML TOOL USAGE:
 - <ReadFile><fileName>test.txt</fileName></ReadFile>
 - <WriteFile><fileName>output.txt</fileName><contentOfFile>Hello</contentOfFile></WriteFile>
+- <Terminal><arg1>ls</arg1><arg2>-la</arg2></Terminal>
 - <List></List>
 - <Grep><pattern>TODO</pattern></Grep>
 
 AVAILABLE TOOLS (use exact names):
+- Terminal: Execute terminal commands (secure, allowlist-based). Params: <arg1>, [<arg2>], ... (dynamic args)
 - ReadFile: Read file from work/. Params: <fileName>
 - WriteFile: Write file to work/. Params: <fileName>, <contentOfFile>
 - AppendFile: Append to file in work/. Params: <fileName>, <contentOfFile>
@@ -104,14 +113,15 @@ AVAILABLE TOOLS (use exact names):
 		#
 		if tmp!="":
 			# append to chat history with tool instructions
-			system_content = "{}\n\n{}".format(tmp, tool_instructions)
+			system_content = "{}\n\n{}".format(tmp, tool_instructions.format(mode=self.Options.get('MODE', 'build')))
 			self.Response('system',{'content':system_content,})
 			# append to chat memory
 			self.msgs.append( self.Response('system',{'content':system_content, 'return_object':True}) )
 		else:
 			# Use default tool instructions as system message
-			self.Response('system',{'content':tool_instructions,})
-			self.msgs.append( self.Response('system',{'content':tool_instructions, 'return_object':True}) )
+			system_content = tool_instructions.format(mode=self.Options.get('MODE', 'build'))
+			self.Response('system',{'content':system_content,})
+			self.msgs.append( self.Response('system',{'content':system_content, 'return_object':True}) )
 		# Choose actions
 		self.hAC.Choose()
 		# Choose history
@@ -471,6 +481,64 @@ AVAILABLE TOOLS (use exact names):
 	#
 	def ExecuteTextTool(self, toolName, params):
 		# Execute a tool based on XML invocation
+		#
+		# ROUTING: If ExecuteScript is called with a non-script file, route to Terminal
+		if toolName.lower() == 'executescript':
+			fileName = params.get('fileName', '')
+			script_extensions = ['.py', '.sh', '.js', '.bash', '.zsh', '.fish', '.bat', '.cmd', '.ps1']
+			is_script = any(fileName.lower().endswith(ext) for ext in script_extensions)
+			#
+			if not is_script and fileName:
+				# Route to Terminal tool
+				print("Routing ExecuteScript({}) to Terminal tool".format(fileName))
+				# Build args for Terminal: arg1=fileName, arg2=args, etc.
+				terminal_args = {}
+				terminal_args['arg1'] = fileName
+				#
+			# Add additional args if provided
+			if 'args' in params:
+				args = params['args']
+				# Handle if args is a string (could be JSON array, Python list repr, or space-separated)
+				if isinstance(args, str):
+					import json
+					# Try to parse as JSON array first
+					try:
+						parsed_args = json.loads(args)
+						if isinstance(parsed_args, list):
+							for i, arg in enumerate(parsed_args, start=2):
+								terminal_args['arg{}'.format(i)] = str(arg)
+							args = None  # Mark as processed
+					except:
+						pass
+					#
+					if args:  # Not JSON, try other formats
+						# Check if it looks like a Python list representation: [item1, item2, ...]
+						if args.strip().startswith('[') and args.strip().endswith(']'):
+							# Strip brackets and split by comma
+							inner = args.strip()[1:-1].strip()
+							if inner:  # Not empty
+								# Split by comma and clean up
+								parts = [p.strip().strip('"\'') for p in inner.split(',')]
+								for i, arg in enumerate(parts, start=2):
+									if arg:  # Skip empty parts
+										terminal_args['arg{}'.format(i)] = arg
+							args = None
+					#
+					if args:  # Still not processed, treat as space-separated
+						import shlex
+						try:
+							parsed_args = shlex.split(args)
+							for i, arg in enumerate(parsed_args, start=2):
+								terminal_args['arg{}'.format(i)] = arg
+						except:
+							terminal_args['arg2'] = args
+				elif isinstance(args, list):
+					for i, arg in enumerate(args, start=2):
+						terminal_args['arg{}'.format(i)] = str(arg)
+				#
+				toolName = 'Terminal'
+				params = terminal_args
+		#
 		# Load tool dynamically if not already loaded
 		if toolName not in self.hTC.handles:
 			self.hLG.echo("Tool {} not loaded, loading dynamically...".format(toolName), {'color':True, 'colorValue':'orange'})
@@ -742,13 +810,20 @@ AVAILABLE TOOLS (use exact names):
 					"usage"      :"!PH",
 					"func"       :self.CMD_PREVIEW_HISTORY,
 				},
-				"PREVIEW_MEMORY":{
-					"name"       :"Preview Memory",
-					"description":"Preview current chat memorized messages.",
-					"regex"      :r"^!PM+$",
-					"usage"      :"!PM",
-					"func"       :self.CMD_PREVIEW_MEMORY,
-				},
+			"PREVIEW_MEMORY":{
+				"name"       :"Preview Memory",
+				"description":"Preview current chat memorized messages.",
+				"regex"      :r"^!PM+$",
+				"usage"      :"!PM",
+				"func"       :self.CMD_PREVIEW_MEMORY,
+			},
+			"MODE":{
+				"name"       :"Mode",
+				"description":"Switch between plan (0) and build (1) mode. Shows current mode if no argument given.",
+				"regex"      :r"^!MODE(\s+[01])?$",
+				"usage"      :"!MODE [0|1]",
+				"func"       :self.CMD_MODE,
+			},
 				"MEMORY_SPECIFIC":{
 					"name"       :"Memory Specific",
 					"description":"Memory specific message from history.",
@@ -1049,3 +1124,37 @@ AVAILABLE TOOLS (use exact names):
 			print("Handle.Commands.__init__() START")
 
 
+
+		def CMD_MODE(self, inp=""):
+			print("CMD_MODE() START, inp: {}".format(inp))
+			#
+			a = inp.split(" ")
+			if len(a) < 2:
+				# Show current mode
+				mode = self.handle.Options.get('MODE', 'build')
+				print("Current mode: {} (0=plan, 1=build)".format(mode))
+				return 2
+			#
+			new_mode = a[1].strip()
+			if new_mode not in ['0', '1']:
+				print("Invalid mode: {}. Use 0 (plan) or 1 (build)".format(new_mode))
+				return 2
+			#
+			if new_mode == '0':
+				self.handle.Options['MODE'] = 'plan'
+				print("Mode changed to PLAN. You are now in read-only mode.")
+			else:
+				self.handle.Options['MODE'] = 'build'
+				print("Mode changed to BUILD. You can now make changes.")
+			#
+			# Update system message with new mode
+			for i, msg_obj in enumerate(self.handle.msgs):
+				if msg_obj.get('role') == 'system':
+					# Replace old system message with updated one
+					old_content = msg_obj.get('content', '')
+					new_content = old_content.replace('MODE: plan', 'MODE: {}'.format(self.handle.Options['MODE']))
+					new_content = new_content.replace('MODE: build', 'MODE: {}'.format(self.handle.Options['MODE']))
+					self.handle.msgs[i]['content'] = new_content
+					break
+			#
+			return 2

@@ -28,6 +28,8 @@ Options         = {
 	"AI_LIVE"             :True,
 	"AI_TEMPERATURE"      :0.7,
 	#
+	"MODE"                :"build",  # "plan" or "build" mode
+	#
 	"path"                :"{}/".format(os.path.dirname(__file__)),
 	"tools_path"          :"tools",
 	"actions_path"        :"actions",
