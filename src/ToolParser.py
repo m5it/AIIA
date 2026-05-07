@@ -8,10 +8,12 @@ class ToolParser:
 	Parses AI responses for XML tool invocations and job_done tags
 	"""
 	
-	def __init__(self, logger=None):
+	def __init__(self, logger=None, handle=None):
 		self.logger = logger
+		self.handle = handle
 	
 	def ParseTextToolInvocation(self, text):
+		print("ToolParser().ParseTextToolInvocation() START! text: {}".format(text))
 		# Parse XML-style tool invocations like: <ReadFile><fileName>test.txt</fileName></ReadFile>
 		# Also handles self-closing tags: <listTools/>
 		# Returns: [{'name':'ReadFile', 'parameters':{'fileName':'test.txt'}}, ...]
@@ -68,6 +70,7 @@ class ToolParser:
 		return results
 	
 	def CheckJobDone(self, text):
+		print("ToolParser().CheckJobDone() START!")
 		# Check if response contains <job_done/> or <job_done></job_done>
 		pattern1 = r'<job_done\s*/?>'
 		pattern2 = r'<job_done>.*?</job_done>'
@@ -77,9 +80,10 @@ class ToolParser:
 		return False
 	
 	def ExtractToolResult(self, text):
+		print("ToolParser().ExtractToolResult() START! text: {}".format(text))
 		# Remove all tool invocations from text, return clean text
 		# Used to get the actual response without XML tool calls
-		import re
+		#import re
 		#
 		# Remove self-closing tags
 		text = re.sub(r'<\w+\s*/>', '', text)

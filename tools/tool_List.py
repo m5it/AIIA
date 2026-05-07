@@ -30,6 +30,7 @@ class List():
 		print("List.run() usepath: {}".format( usepath ))
 		#
 		for n in os.listdir( usepath ):
+			#print("List.run() DEBUG n: {}".format(n))
 			#
 			if opt_match != None:
 				if rmatch(n,opt_match)==False:

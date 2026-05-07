@@ -1,11 +1,11 @@
+tmp
 cppublic.sh
 test/bart-base
 test/bert-base-uncased
 .venv
 .venv_vllm
 history/*
-workout/*
-workin/*
+work
 __pycache__
 *\.pyc
 examples/models/*

@@ -17,7 +17,7 @@ Options         = {
 	#
 	"SPEAK"               :True,
 	#
-	"AI_MODEL"            :"qwen3-coder:30b",
+	"AI_MODEL"            :"gemma4:26b",
 	"AI_FILE_SESSID"      :"sessid.aiia",
 	"AI_USER_HISTORY"     :"huser.aiia",
 	"AI_FILE_HISTORY"     :"history.aiia",

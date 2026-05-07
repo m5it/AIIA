@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """
 Test script to debug WriteFile tool execution issue
+# <ReadFile><fileName>test.txt</fileName></ReadFile>
+# <listTools/>
+# <WriteFile><fileName>TestProject/run.sh</fileName><contentOfFile>#!/bin/bash
+# Simple menu
+# </contentOfFile></WriteFile>
 """
 import sys
 sys.path.insert(0, '.')

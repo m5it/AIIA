@@ -23,6 +23,7 @@ class Handle():
 		self.hLG     = initmodule(importmodule("Log",True,{'path':'src'}),"Log",{'handle':self,'debug':self.Options['DEBUG']})
 		self.hAC     = initmodule(importmodule("Actions",True,{'path':'src'}),"Actions",{'handle':self,})
 		self.hTC     = initmodule(importmodule("ToolChooser",True,{'path':'src'}),"ToolChooser",{'handle':self,})
+		#self.hTP     = initmodule(importmodule("ToolParser",True,{'path':'src'}),"ToolParser",{'handle':self,})
 		self.hHM     = initmodule(importmodule("HistoryManager",True,{'path':'src'}),"HistoryManager",{'handle':self,'quiet':self.Options['QUIET'],'path':self.Options['path']})
 	#
 	def Init(self):
@@ -298,58 +299,14 @@ AVAILABLE TOOLS (use exact names):
 		if tool_invocations:
 			self.hLG.echo("Parse() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
 			#
-			for inv in tool_invocations:
-				toolName = inv['name']
-				params   = inv['parameters']
-				#
-				# Show user what tool is being called (preview)
-				params_str = ', '.join(['{}={}'.format(k, v) for k, v in params.items()])
-				self.hLG.echo("🔧 Executing: {} ({})".format(toolName, params_str if params_str else 'no params'), {'color':True, 'colorValue':'cyan'})
-				#
-				result = self.ExecuteTextTool(toolName, params)
-				#
-				# Truncate result if too long
-				MAX_PREVIEW = 500
-				result_str = str(result)
-				if len(result_str) > MAX_PREVIEW:
-					result_str = result_str[:MAX_PREVIEW] + "... (truncated, {} chars total)".format(len(str(result)))
-				#
-				self.hLG.echo("✓ Result: {}".format(result_str), {'color':True, 'colorValue':'green'})
-				#
-				self.Response('tool',{'content':str(result),'name':toolName})
+			self.FireToolInvocation(tool_invocations)
 			#
-			# Get AI response after tool execution
-			self.hLG.echo("Getting AI response after tool execution...", {'color':True})
-			#
-			# Build messages including tool results
-			msgs_with_tools = list(self.msgs)  # Copy existing messages
-			# Add tool results from self.hHM.msgs (last message should be tool result)
-			if len(self.hHM.msgs) > 0:
-				msgs_with_tools.append(self.hHM.msgs[-1])
-			#
-			res2 = chat(
-				self.Options['AI_MODEL'],
-				messages=msgs_with_tools,
-				stream=True,
-				options={'temperature':self.Options['AI_TEMPERATURE']}
-			)
-			#
-			response2 = ""
-			for chunk in res2:
-				part = chunk['message']['content']
-				self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
-				response2 = response2 + part
-			#
-			self.Response('assistant',{'content':response2,'skip_history':opt_skip_history,})
-			#
-			if opt_return_object:
-				return response2
-			return True
+			# Return the original response so caller knows tools were executed
+			return response
 		#
 		if opt_return_object:
 			return response
 		return True
-	
 	#--
 	# ParseTools():
 	# 22.7.25 - ( working on, missing `stream` part. )
@@ -416,50 +373,83 @@ AVAILABLE TOOLS (use exact names):
 			self.Response('assistant',{'content':"Error: no content?"})
 	
 	#
+	def FireToolInvocation(self, tool_invocations):
+		print("DEBUG FireToolInvocation() START, tool_invocations: {}".format(tool_invocations))
+		#
+		for inv in tool_invocations:
+			print("DEBUG FireToolInvocation() name: {}".format(inv['name']))
+			toolName = inv['name']
+			params   = inv['parameters']
+			#
+			# Show user what tool is being called (preview)
+			params_str = ', '.join(['{}={}'.format(k, v) for k, v in params.items()])
+			self.hLG.echo("🔧 Executing: {} ({})".format(toolName, params_str if params_str else 'no params'), {'color':True, 'colorValue':'cyan'})
+			#
+			result = self.ExecuteTextTool(toolName, params)
+			print("DEBUG FireToolInvocation() result: ",result)
+			#
+			# Truncate result if too long
+			MAX_PREVIEW = 500
+			result_str = str(result)
+			if len(result_str) > MAX_PREVIEW:
+				result_str = result_str[:MAX_PREVIEW] + "... (truncated, {} chars total)".format(len(str(result)))
+			#
+			self.hLG.echo("✓ Result: {}".format(result_str), {'color':True, 'colorValue':'green'})
+			#
+			self.Response('tool',{'content':str(result),'name':toolName})
+	#
 	def ParseTextToolInvocation(self, text):
+		print("DEBUG ParseTextToolInvocation START, text: {}".format( text ))
 		# Parse XML-style tool invocations like: <ReadFile><fileName>test.txt</fileName></ReadFile>
+		# Also handles self-closing tags: <listTools/>
 		# Returns: [{'name':'ReadFile', 'parameters':{'fileName':'test.txt'}}, ...]
 		import re
 		results = []
 		#
-		# Find complete tool blocks: <ToolName>...</ToolName>
-		# Use balanced matching - find opening tag, then find matching closing tag
-		# Use case-insensitive matching
-		#
+		# Find tool invocations - both full tags and self-closing tags
+		# Pattern matches: <TagName>...</TagName> or <TagName/>
 		i = 0
-		text_lower = text.lower()  # For case-insensitive tag matching
-		#
 		while i < len(text):
-			# Find next opening tag (case-insensitive)
-			open_match = re.search(r'<(\w+)>', text[i:])
-			if not open_match:
+			# Find next opening or self-closing tag
+			# Match <TagName> or <TagName/>
+			tag_match = re.search(r'<(\w+)(?:>|/>)', text[i:])
+			if not tag_match:
 				break
-			#
-			toolName = open_match.group(1)
-			start_pos = i + open_match.start()
-			inner_start = i + open_match.end()
-			#
+			
+			toolName = tag_match.group(1)
+			tag_start = i + tag_match.start()
+			tag_end = i + tag_match.end()
+			
+			# Check if it's a self-closing tag
+			if text[tag_end-2:tag_end] == '/>':
+				# Self-closing tag - no parameters
+				results.append({
+					'name': toolName,
+					'parameters': {}
+				})
+				i = tag_end
+				continue
+			
+			# Full tag with closing tag
+			inner_start = tag_end
+			
 			# Find matching closing tag </toolName> (case-insensitive)
 			close_tag = '</{}>'.format(toolName)
 			close_tag_lower = '</{}>'.format(toolName.lower())
-			#
-			# Search in lowercased text for position
-			pos_in_remaining = text_lower.find(close_tag_lower, inner_start)
-			if pos_in_remaining == -1:
-				# Try exact case
-				pos_in_remaining = text.find(close_tag, inner_start)
-			#
-			if pos_in_remaining == -1:
+			
+			text_lower = text.lower()
+			pos = text_lower.find(close_tag_lower, inner_start)
+			if pos == -1:
+				pos = text.find(close_tag, inner_start)
+			
+			if pos == -1:
 				# No closing tag found, skip
 				i = inner_start
 				continue
-			#
-			# Map position back to original text
-			close_pos = pos_in_remaining
-			#
+			
 			# Extract inner content
-			inner_content = text[inner_start:close_pos]
-			#
+			inner_content = text[inner_start:pos]
+			
 			# Parse parameters from inner content
 			params = {}
 			param_pattern = r'<(\w+)>(.*?)</\1>'
@@ -467,19 +457,20 @@ AVAILABLE TOOLS (use exact names):
 				key = pm.group(1)
 				value = pm.group(2).strip()
 				params[key] = value
-			#
+			
 			results.append({
 				'name': toolName,
 				'parameters': params
 			})
-			#
+			
 			# Move past this tool block
-			i = close_pos + len(close_tag)
-		#
+			i = pos + len(close_tag)
+		
 		return results
 	
 	#
 	def ExecuteTextTool(self, toolName, params):
+		print("DEBUG ExecuteTextTool START, toolName: {}".format( toolName ))
 		# Execute a tool based on XML invocation
 		#
 		# ROUTING: If ExecuteScript is called with a non-script file, route to Terminal
@@ -603,24 +594,6 @@ AVAILABLE TOOLS (use exact names):
 				print("Handle.You() Failed! E: ",E)
 				sys.exit(1)
 		#
-		#try:
-		if rmatch(inp,"^!.*"):
-			print("handle debug!!!")
-			cmds = self.cmds.cmds
-			for k in cmds:
-				if rmatch(inp,cmds[k]['regex']):
-					print("match command! {}".format( cmds[k]['name'] ))
-					return cmds[k]['func'](inp)
-			print("no match, repeat..., debug({}): {}".format(len(inp),inp))
-			return 2 # as continue
-		#except Exception as E:
-		#	print("Handle.You() !cmd Failed, E: ",E)
-		#	return 2
-		#
-		if len(inp)>self.Options['AI_MAX_CONTENT_LEN']:
-			print("FAILED: content length {} / {}".format( len(inp), self.Options['AI_MAX_CONTENT_LEN'] ))
-			return 2 # as continue
-		#
 		if inp==None:
 			self.hLG.echo("You: ",{ 'end':'', 'flush':True, 'color':True, 'colorValue':'green', 'debugOnly':False, 'streamDone':True})
 			try:
@@ -628,6 +601,7 @@ AVAILABLE TOOLS (use exact names):
 			except Exception as E:
 				print("Handle.You() Failed! E: ",E)
 				sys.exit(1)
+		
 		#
 		#try:
 		if rmatch(inp,"^!.*"):
@@ -646,6 +620,16 @@ AVAILABLE TOOLS (use exact names):
 		if len(inp)>self.Options['AI_MAX_CONTENT_LEN']:
 			print("FAILED: content length {} / {}".format( len(inp), self.Options['AI_MAX_CONTENT_LEN'] ))
 			return 2 # as continue
+		
+		#
+		#tool_invocations1 = self.hTP.ParseTextToolInvocation(inp)
+		tool_invocations = self.ParseTextToolInvocation(inp)
+		#print("DEBUG You() tool_invocations1: {}".format(tool_invocations1))
+		print("DEBUG You() tool_invocations: {}".format(tool_invocations))
+		if tool_invocations:
+			self.hLG.echo("Parse() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
+			#
+			self.FireToolInvocation(tool_invocations)
 		
 		# Append user content
 		if inp != None:
