@@ -157,23 +157,26 @@ AVAILABLE TOOLS (use exact names):
 		self.hLG.echo("Handle.Chat() STARTING!",{'color':True})
 		#
 		#self.lastMsgs = [] # clear lastMsgs
-		#
-		x = self.You() # return: 0, 1, 2=continue, 3=break
-		#self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False,'debugOnly':False})
-		self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False})
-		#
-		if x!=None and x>=2:
-			return x # return 2=continue or 3=break, 4=update handle
-		
-		#
-		# AI() now loops internally to handle multiple tool calls
-		# Returns True when done (no more tool calls)
-		x = self.AI()
-		self.hLG.echo("Handle.Chat() AI() response: {}".format(x),{'color':False})
-		
-		#
-		self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
-		return x
+		while True:
+			#
+			x = self.You() # return: 0, 1, 2=continue, 3=break
+			#self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False,'debugOnly':False})
+			self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False})
+			#
+			#if x!=None and x>=2:
+			if x>=3:
+				return x # return 2=continue or 3=break, 4=update handle
+			elif x==2:
+				continue
+			
+			#
+			# AI() now loops internally to handle multiple tool calls
+			# Returns True when done (no more tool calls)
+			x = self.AI()
+			self.hLG.echo("Handle.Chat() AI() response: {}".format(x),{'color':False})
+			#
+			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
+			#return x
 	
 	#
 	def Parse(self, res, opts={}):
@@ -182,8 +185,6 @@ AVAILABLE TOOLS (use exact names):
 		opt_skip_history  = opts['skip_history'] if 'skip_history' in opts else False
 		opt_skip_color    = opts['skip_color'] if 'skip_color' in opts else False
 		opt_return_object = opts['return_object'] if 'return_object' in opts else False
-		#opt_response_with = opts['response_with'] if 'response_with' in opts else None
-		#opt_response_with_opts = opts['response_with_opts'] if 'response_with_opts' in opts else None
 		color             = True
 		if opt_skip_color:
 			color=False
@@ -200,13 +201,11 @@ AVAILABLE TOOLS (use exact names):
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
 		#
 		# Check for XML tool invocations
-		#tool_invocations = self.ParseTextToolInvocation(response)
 		tool_invocations = self.hTP.ParseTextToolInvocation(response)
 		#
 		if tool_invocations:
 			self.hLG.echo("Parse() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
 			#
-			#self.FireToolInvocation(tool_invocations)
 			self.hTP.FireToolInvocation(tool_invocations)
 			#
 			# Return the original response so caller knows tools were executed
@@ -217,6 +216,7 @@ AVAILABLE TOOLS (use exact names):
 			#return response
 			return {'invocations': tool_invocations, 'response': response }
 		return True
+	
 	#
 	def You(self, data=None, opts={}):
 		#print("DEBUG You() START, data(): {}".format( data ))
@@ -239,8 +239,7 @@ AVAILABLE TOOLS (use exact names):
 				print("Handle.You() Failed! E: ",E)
 				sys.exit(1)
 		
-		#
-		#try:
+		# Handle user commands
 		if rmatch(inp,"^!.*"):
 			print("handle debug!!!")
 			cmds = self.cmds.cmds
@@ -250,23 +249,16 @@ AVAILABLE TOOLS (use exact names):
 					return cmds[k]['func'](inp)
 			print("no match, repeat..., debug({}): {}".format(len(inp),inp))
 			return 2 # as continue
-		#except Exception as E:
-		#	print("Handle.You() !cmd Failed, E: ",E)
-		#	return 2
-		#
 		if len(inp)>self.Options['AI_MAX_CONTENT_LEN']:
 			print("FAILED: content length {} / {}".format( len(inp), self.Options['AI_MAX_CONTENT_LEN'] ))
 			return 2 # as continue
 		
-		#
+		# Handle model tool calls
 		tool_invocations = self.hTP.ParseTextToolInvocation(inp)
-		#tool_invocations = self.ParseTextToolInvocation(inp)
-		#print("DEBUG You() tool_invocations1: {}".format(tool_invocations1))
 		print("DEBUG You() tool_invocations: {}".format(tool_invocations))
 		if tool_invocations:
 			self.hLG.echo("Parse() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
 			#
-			#self.FireToolInvocation(tool_invocations)
 			self.hTP.FireToolInvocation(tool_invocations)
 		
 		# Append user content
@@ -280,8 +272,6 @@ AVAILABLE TOOLS (use exact names):
 		self.hLG.echo("Handle.AI() STARTING, opts: {}".format(opts),{'color':False})
 		#
 		opt_return_object = opts['return_object'] if 'return_object' in opts else False
-		#opt_response_with = opts['response_with'] if 'response_with' in opts else None
-		#opt_response_with_opts = opts['response_with_opts'] if 'response_with_opts' in opts else {}
 		#
 		# Loop to handle multiple rounds of tool calls
 		max_iterations = 5  # Prevent infinite loops
@@ -323,12 +313,8 @@ AVAILABLE TOOLS (use exact names):
 			result = self.Parse(res,{'return_object':True, 'skip_history':True})
 			#
 			# Check if tools were executed by looking for tool invocations in result
-			#tool_invocations = self.ParseTextToolInvocation(result)
-			#tool_invocations = self.hTP.ParseTextToolInvocation(result)
-			#
 			if not result['invocations']:
 				# No more tool calls - return final response
-				#self.Response('assistant',{'content':result['response'],'skip_history':False})
 				if opt_return_object:
 					return result['response']
 				return True

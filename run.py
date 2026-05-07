@@ -1,8 +1,6 @@
 #!/usr/bin/python
 from ollama import ChatResponse, chat
-#import select
 import getopt, os
-import signal
 import atexit, traceback
 #
 from src.functions import *
@@ -41,16 +39,40 @@ Options         = {
 hHA = None # handle to class Handle()
 #--
 #
-#def signal_handler(sig, frame):
-#	Run()
+def Help():
+	print()
+	print("Help for AIIA...: ")
+	print("-h                         # Help")
+	print("-v                         # Version")
+	print("-m [model_name]            # Choose model")
+	print("-M [history_num]           # Memorize specific history")
+	print("-Y [content_data]          # Set data / content to send as request to AIIA.")
+	print()
 #
-#signal.signal(signal.SIGINT, signal_handler)
-
+def Run(prepared=False):
+	global Options, hHA
+	#
+	while Options['AI_LIVE']:
+		#
+		if prepared==False:
+			hHA.hPP.Prepare()
+		#
+		x = hHA.Chat()
+		#
+		if x==4: # Update Handle() class (reload)
+			hHA = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", Options)
+		elif x==3: # Break
+			#print("DEBUG run() in loop, break...")
+			break
 #--
 #
 def cleanup():
 	global Options,Stats
 	print("cleanup() START")
+	#
+	#hHA.hPP.SaveMemory()
+	#
+	#Run(True)
 	return True
 #
 def handle_exception(exc_type, exc_value, exc_traceback):
@@ -71,39 +93,12 @@ atexit.register(cleanup)
 sys.excepthook = handle_exception
 
 #
-def Help():
-	print()
-	print("Help for AIIA...: ")
-	print("-h                         # Help")
-	print("-v                         # Version")
-	print("-m [model_name]            # Choose model")
-	print("-M [history_num]           # Memorize specific history")
-	print("-Y [content_data]          # Set data / content to send as request to AIIA.")
-	print()
-#
-def Run():
-	global Options, hHA
-	#
-	while True:
-		x = hHA.Chat()
-		#
-		if x==4: # Update Handle() class (reload)
-			hHA = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", Options)
-		elif x==3: # Break
-			#print("DEBUG run() in loop, break...")
-			break
-
-#
 def Main(argv):
 	global Options, hHA
 	#
 	opt_help = False
 	opt_one  = None # Send one request and exit
 	oneOpt   = {} # options for one request from terminal
-	#
-	#print("__file__      : {}".format( __file__ ))
-	#print("real(__file__): {}".format( os.path.dirname(__file__) ))
-	#sys.exit(1)
 	#
 	try:
 		opts, args = getopt.getopt(argv,"dvhm:M:Y:T:",["--model", "--memory_specific", "--you", "--temperature"])
@@ -147,12 +142,8 @@ def Main(argv):
 	print("  * AIIA is like LM Studio for `Large language models` just running in terminal and in python.")
 	print("If you have any questions you can join #help on https://chat.grandekos.com")
 	print("--------------------------------------------------------------------------\n")
-	#--
-	while Options['AI_LIVE']:
-		# Prepare actions, history, tools, system message
-		hHA.hPP.Prepare()
-		#
-		Run()
+	#
+	Run()
 
 #
 if __name__ == "__main__":
