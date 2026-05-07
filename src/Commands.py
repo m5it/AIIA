@@ -1,16 +1,11 @@
-"""
-Commands - User command handling for AIIA
-"""
-import os
-import re
-from src.functions import *
-
+#--
+# class Commands
 class Commands():
 	#
-	def __init__(self, handle):
-		#print("Commands.__init__() START")
+	def __init__(self, opts={}):
+		#print("Handle.Commands.__init__() START")
 		#
-		self.handle = handle
+		self.handle = opts['handle'] if 'handle' in opts else None # to master class / Handle()
 		#
 		self.cmds    = {
 			"NEW_SESSION":{
@@ -98,13 +93,20 @@ class Commands():
 				"usage"      :"!PH",
 				"func"       :self.CMD_PREVIEW_HISTORY,
 			},
-			"PREVIEW_MEMORY":{
-				"name"       :"Preview Memory",
-				"description":"Preview current chat memorized messages.",
-				"regex"      :r"^!PM+$",
-				"usage"      :"!PM",
-				"func"       :self.CMD_PREVIEW_MEMORY,
-			},
+		"PREVIEW_MEMORY":{
+			"name"       :"Preview Memory",
+			"description":"Preview current chat memorized messages.",
+			"regex"      :r"^!PM+$",
+			"usage"      :"!PM",
+			"func"       :self.CMD_PREVIEW_MEMORY,
+		},
+		"MODE":{
+			"name"       :"Mode",
+			"description":"Switch between plan (0) and build (1) mode. Shows current mode if no argument given.",
+			"regex"      :r"^!MODE(\s+[01])?$",
+			"usage"      :"!MODE [0|1]",
+			"func"       :self.CMD_MODE,
+		},
 			"MEMORY_SPECIFIC":{
 				"name"       :"Memory Specific",
 				"description":"Memory specific message from history.",
@@ -173,9 +175,268 @@ class Commands():
 	#
 	def CMD_HELP(self, inp=""):
 		print("\nAvailable user commands (Ex.: !CMD): ")
+		#self.handle.hLG.echo("\nAvailable user commands (Ex.: !CMD): \n",{'color':True,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True})
 		for k in self.cmds:
 			print("{} - {} Usage: {}".format( self.cmds[k]['name'], self.cmds[k]['description'], self.cmds[k]['usage'] ))
+			#self.handle.hLG.echo("{} - {} Usage: {}".format( self.cmds[k]['name'], self.cmds[k]['description'], self.cmds[k]['usage'] ),{'color':True,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True})
 		print("\n")
 		return 2
+	#
+	def CMD_NEW_SESSION(self, inp):
+		return 3 # as break
+	#
+	def CMD_BREAK_SESSION(self, inp):
+		return 3
+	#
+	def CMD_CLEAR_TOOLS(self, inp):
+		print("Clearing tools...")
+		self.handle.hTC.selected             = []
+		self.handle.Options['current_tools'] = []
+		self.handle.Options['handle_tools']  = {}
+		return 2 # as continue / repeat
+	#
+	def CMD_TOOLS(self, inp):
+		print("Loading tools...")
+		return 2 # as continue / repeat
+	#
+	def CMD_STATS(self, inp):
+		print("Stats            :")
+		print("-----------------")
+		print("mem.msgs.len     : {}".format( len(self.handle.msgs) ))
+		print("history.msgs.len : {}".format( len(self.handle.hHM.msgs) ))
+		print("last.msgs.len    : {}".format( len(self.handle.lastMsgs) ))
+		print(self.handle.lastMsgs)
+		print("row_id           : {}".format( self.handle.Options['AI_ROW_ID'] ))
+		print("sess_id          : {}".format( self.handle.Options['AI_SESS_ID'] ))
+		print("history          : {} / {}".format( self.handle.Options['AI_FILE_HISTORY'], self.handle.hHM.history ))
+		print("user.history     : {}".format( self.handle.Options['AI_USER_HISTORY'] ))
+		#
+		print("available actions: {}".format( len(self.handle.hAC.available) ))
+		print("imported actions : {}".format( len(self.handle.hAC.imported) ))
+		print("available history: {}".format( len(self.handle.hHM.available) ))
+		print("available tools  : {}".format( len(self.handle.hTC.available) ))
+		print("imported tools   : {}".format( len(self.handle.hTC.prepared) ))
+		print("-----------------")
+		print("Options         :")
+		print("-----------------")
+		for k in self.handle.Options:
+			print("{} => {}".format( k, self.handle.Options[ k ] ))
+		return 2 # as continue
+	#
+	def CMD_ACTION_OPTION_SAVE(self,inp=""):
+		print("CMD_ACTION_OPTION_SAVE() START!")
+	#
+	def CMD_ACTION_OPTIONS_LIST(self,inp=""):
+		print("CMD_ACTION_OPTIONS_LIST() START!")
+	#
+	def CMD_ACTION_OPTIONS(self,inp):
+		self.handle.hLG.echo("CMD_ACTION_OPTIONS START")
+		#
+		a = inp.split(" ",3)
+		# If you are missing knowledge you land on HELP and informations to learn.
+		if len(a)<2:
+			self.CMD_HELP()
+			return 2
+		self.handle.hLG.echo("CMD_ACTION_OPTIONS a({}): {}".format( len(a), a))
+		p = int(a[1])
+		# Check if action is imported and ready to use, if not get back to You: ...
+		if p not in self.handle.hAC.imported:
+			print("CMD_ACTION_OPTIONS position {} don't exists!".format( p ))
+			return 2
+		# Get handle of action
+		h = self.handle.hAC.imported[p]
+		self.handle.hLG.echo("CMD_ACTION_OPTIONS h( {} ): {}".format( h['name'], h['handle'] ))
+		#
+		if len(a)>=3 and a[2]=="SET":
+			print("CMD_ACTION_OPTIONS SET {}".format( a[3] ))
+			#
+			a1 = a[3].split("=")
+			if a1[0] not in h['handle'].options:
+				print("CMD_ACTION_OPTIONS SET {} Failed, key dont exists!".format( a1[0] ))
+			#
+			h['handle'].options[ a1[0] ] = a1[1]
+		elif len(a)>=3 and a[2]=="GET":
+			print("CMD_ACTION_OPTIONS GET {}".format( a[3] ))
+			if a[3] not in h['handle'].options:
+				print("CMD_ACTION_OPTIONS GET {} Failed, key dont exists!".format( a[3] ))
+			print("CMD_ACTION_OPTIONS GET {} = {}".format( a[3], h['handle'].options[ a[3] ] ))
+		else:
+			#
+			self.handle.hLG.echo( "USAGE: ", { 'color':True, 'colorValue':'orange', 'debugOnly':False} )
+			self.handle.hLG.echo("  !AO [action_num] [cmd] [value]",{'debugOnly':False})
+			self.handle.hLG.echo("  !AO 0 GET key",{'debugOnly':False})
+			self.handle.hLG.echo("  !AO 0 SET key=value",{'debugOnly':False})
+			self.handle.hLG.echo("  key = option name ",{'debugOnly':False})
+			#
+			self.handle.hLG.echo("Options -> Values for {}".format( h['name'] ), { 'color':True, 'colorValue':'orange', 'debugOnly':False})
+			for k in h['handle'].options:
+				self.handle.hLG.echo("{} -> {}".format( k, h['handle'].options[k] ),{'debugOnly':False})
+		return 2
+	#
+	def CMD_IMPORT_ACTIONS(self,inp):
+		print("CMD_IMPORT_ACTIONS START")
+		self.handle.hAC.Choose()
+	#
+	def CMD_PREVIEW_ACTIONS(self,inp):
+		#print("CMD_PREVIEW_ACTIONS START")
+		if len(self.handle.hAC.imported)<=0:
+			print("No actions imported.")
+			return 2
+		print("Available actions to import: ")
+		n=0
+		for k in self.handle.hAC.imported:
+			obj = self.handle.hAC.imported[k]
+			print("{} / {}.) {}".format( n, k, obj['name'] ))
+			n+=1
+		print("\nTips:")
+		print("Continue with command `!AO...` and `!EA...`")
+		print()
+		print("!EA - Execute action examples: ")
+		print("Usage: !EA [num] aka !EA 0           - Used to execute specific action. In this case action at position 0\n")
+		print("!AO - Action options examples: ")
+		print("Usage: !AO [num]                     - List specific action options\n")
+		print("Usage: !AO [num] SET path /Memorize  - Set action option path=/Memorize\n")
+		print("Usage: !AO [num] GET path            - Get action option value\n")
+		return 2
+	#
+	def CMD_EXEC_ACTION(self,inp):
+		print("CMD_EXEC_ACTION START, inp: {}".format( inp ))
+		a = inp.split(" ")
+		print("CMD_EXEC_ACTION DEBUG a",a)
+		#
+		if len(a)<2:
+			print("CMD_EXEC_ACTION Failed length: {}. (D1)".format( len(a) ))
+			return 2
+		#
+		if int(a[1]) not in self.handle.hAC.imported:
+			print("CMD_EXEC_ACTION Failed position: {}. (D2)".format( a[1] ))
+			return 2
+		#
+		h = self.handle.hAC.imported[ int(a[1]) ]['handle']
+		print("CMD_EXEC_ACTION executing {}".format( h ))
+		h.Exec()
+		return 2
+	#
+	def CMD_PREVIEW_HISTORY(self, inp=""):
+		self.handle.hLG.echo("Handle.Commands.CMD_PREVIEW_HISTORY START!, history.len: {}".format( len(self.handle.hHM.msgs) ))
+		i=0
+		for msg in self.handle.hHM.msgs:
+			self.handle.hLG.echo("{}.) {}".format( i, msg ),{'debugOnly':self.handle.Options['QUIET']})
+			i+=1
+		return 2
+	#
+	def CMD_PREVIEW_MEMORY(self, inp=""):
+		self.handle.hLG.echo("Handle.Commands.CMD_PREVIEW_MEMORY START!, memory.len: {}".format( len(self.handle.msgs) ))
+		i=0
+		for msg in self.handle.msgs:
+			self.handle.hLG.echo("{}.) {}".format( i, msg ),{'debugOnly':self.handle.Options['QUIET']})
+			i+=1
+		return 2
+	#
+	def CMD_MEMORY_ALL_HISTORY(self,inp=""):
+		self.handle.hLG.echo("Handle.Commands.CMD_MEMORY_ALL_HISTORY() START")
+		#
+		for msg in self.handle.hHM.msgs:
+			self.handle.msgs.append( msg )
+		#
+		if self.handle.Options['QUIET']==False:
+			self.handle.SaveMemory()
+		self.handle.hLG.echo("Handle.Commands().CMD_MEMORY_ALL_HISTORY() DONE, mem.len: {}".format( len(self.handle.msgs) ))
+		return 2
+	#
+	def CMD_MEMORY_SPECIFIC(self, inp):
+		self.handle.hLG.echo("Handle.Commands.CMD_MEMORY_SPECIFIC() START, response: {}".format(inp))
+		a = inp.split(" ")
+		if len(self.handle.hHM.msgs)<int(a[1]):
+			self.handle.hLG.echo("This position {} don't exists!".format(int(a[1])),{'color':True,'colorValue':'orange','debugOnly':False})
+			return 2
+		msg = self.handle.hHM.msgs[ int(a[1]) ]
+		self.handle.hLG.echo("Handle.You() act !MC adding msg: {}".format( msg ))
+		self.handle.msgs.append( msg )
+		self.handle.SaveMemory()
+		return 2
+	#
+	def CMD_MEMORY_LAST(self, inp=""):
+		self.handle.hLG.echo("MEMORY_LAST response!")
+		if len(self.handle.hHM.msgs)<=0:
+			print("No responses yet in history!")
+			return 2
+		tmp = self.handle.hHM.msgs[ len(self.handle.hHM.msgs)-1 ]
+		self.handle.hLG.echo("Handle.You() act !ML adding msg: {}".format( tmp ))
+		self.handle.msgs.append( tmp )
+		self.handle.SaveMemory()
+		return 2
+	#
+	def CMD_MEMORY_DEL_ROW(self, inp):
+		self.handle.hLG.echo("Handle().CMD_MEMORY_DEL_ROW() START, inp: {}".format(inp))
+		a = inp.split(" ")
+		self.handle.hLG.echo("Handle().CMD_MEMORY_DEL_ROW() DEBUG num: {} vs self.msgs.len: {}".format( a[1], len(self.handle.msgs) ))
+		if len(self.handle.msgs)<int(a[1]):
+			print("This position dont exists!",int(a[1]))
+			return 2
+		del( self.handle.msgs[int(a[1])] )
+		self.handle.SaveMemory()
+		return 2
+	#
+	def CMD_MEMORY_DEL_ALL(self, inp=""):
+		self.handle.hLG.echo("Handle().CMD_MEMORY_DEL_ROW() START!")
+		self.handle.msgs     = []
+		self.handle.lastMsgs = []
+		return 2
+	#
+	def CMD_UPDATE_HANDLE(self, inp):
+		return 4 # update class Handle()
+	#
+	def CMD_QUIT(self, inp):
+		self.handle.Options['AI_LIVE']=False
+		return 3 # as break
+	#
+	def CMD_LOAD(self, inp):
+		self.handle.hLG.echo("DEBUG LOAD FILE...")
+		a = pmatch(inp,"^!LOAD\x20([a-zA-Z0-9\/\_\-\.]+)[\x20]?(.*)?")
+		try:
+			filedata = fread(a[0])
+			print("DEBUG filedata({}): {}".format(len(filedata),filedata))
+			inp = "{}\n\nData: \n\n{}".format(a[1],filedata)
+		except Exception as E:
+			print("ERROR LOAD File {}".format(E))
+			return 2 # as continue
 	
-	# ... (other command methods will be added here)
+	#
+	def Test(self):
+		print("Handle.Commands.__init__() START")
+	
+	#
+	def CMD_MODE(self, inp=""):
+		print("CMD_MODE() START, inp: {}".format(inp))
+		#
+		a = inp.split(" ")
+		if len(a) < 2:
+			# Show current mode
+			mode = self.handle.Options.get('MODE', 'build')
+			print("Current mode: {} (0=plan, 1=build)".format(mode))
+			return 2
+		#
+		new_mode = a[1].strip()
+		if new_mode not in ['0', '1']:
+			print("Invalid mode: {}. Use 0 (plan) or 1 (build)".format(new_mode))
+			return 2
+		#
+		if new_mode == '0':
+			self.handle.Options['MODE'] = 'plan'
+			print("Mode changed to PLAN. You are now in read-only mode.")
+		else:
+			self.handle.Options['MODE'] = 'build'
+			print("Mode changed to BUILD. You can now make changes.")
+		#
+		# Update system message with new mode
+		for i, msg_obj in enumerate(self.handle.msgs):
+			if msg_obj.get('role') == 'system':
+				# Replace old system message with updated one
+				old_content = msg_obj.get('content', '')
+				new_content = old_content.replace('MODE: plan', 'MODE: {}'.format(self.handle.Options['MODE']))
+				new_content = new_content.replace('MODE: build', 'MODE: {}'.format(self.handle.Options['MODE']))
+				self.handle.msgs[i]['content'] = new_content
+				break
+		#
+		return 2

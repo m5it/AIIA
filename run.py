@@ -1,7 +1,9 @@
 #!/usr/bin/python
 from ollama import ChatResponse, chat
 #import select
-import signal, getopt, os
+import getopt, os
+import signal
+import atexit, traceback
 #
 from src.functions import *
 #--
@@ -39,10 +41,34 @@ Options         = {
 hHA = None # handle to class Handle()
 #--
 #
-def signal_handler(sig, frame):
-	Run()
+#def signal_handler(sig, frame):
+#	Run()
 #
-signal.signal(signal.SIGINT, signal_handler)
+#signal.signal(signal.SIGINT, signal_handler)
+
+#--
+#
+def cleanup():
+	global Options,Stats
+	print("cleanup() START")
+	return True
+#
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        # Let KeyboardInterrupt propagate
+        print("Exception: Keyboard Interrupt: {}".format(exc_type),{'verbose':True})
+        return
+    # Extract traceback info
+    tb = traceback.extract_tb(exc_traceback)
+    # Get the last frame (most recent error)
+    frame = tb[-1]
+    filename, line, func, text = frame
+    print(f"Exception: {exc_type.__name__}: {exc_value} (line {line} in {filename})",{'verbose':True,})
+    # Optionally print full traceback
+    traceback.print_exception(exc_type, exc_value, exc_traceback)
+#
+atexit.register(cleanup)
+sys.excepthook = handle_exception
 
 #
 def Help():
@@ -124,7 +150,7 @@ def Main(argv):
 	#--
 	while Options['AI_LIVE']:
 		# Prepare actions, history, tools, system message
-		hHA.Prepare()
+		hHA.hPP.Prepare()
 		#
 		Run()
 
