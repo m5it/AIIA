@@ -2,6 +2,7 @@
 ToolParser - Handles parsing of XML tool invocations and job completion detection
 """
 import re
+import os
 from src.functions import initmodule,importmodule,splitFileNameExtension
 
 class ToolParser:
@@ -9,9 +10,9 @@ class ToolParser:
 	Parses AI responses for XML tool invocations and job_done tags
 	"""
 	#--
-	def __init__(self, logger=None, handle=None):
-		self.logger = logger
-		self.handle = handle
+	def __init__(self, opts={}):
+		self.logger = opts['logger'] if 'logger' in opts else None
+		self.handle = opts['handle'] if 'handle' in opts else None # to master class / Handle()
 	#--
 	def ParseTextToolInvocation(self, text):
 		print("ToolParser().ParseTextToolInvocation() START! text.len: {}".format( len(text) ))
@@ -160,13 +161,13 @@ class ToolParser:
 				params = terminal_args
 		#
 		# Load tool dynamically if not already loaded
-		if toolName not in self.hTC.handles:
+		if toolName not in self.handle.hTC.handles:
 			self.handle.hLG.echo("Tool {} not loaded, loading dynamically...".format(toolName), {'color':True, 'colorValue':'orange'})
 			#
 			try:
 				# Find tool file by name
 				tool_file = None
-				for f in os.listdir(self.Options['tools_path']):
+				for f in os.listdir(self.handle.Options['tools_path']):
 					# Check if file matches tool_XXX.py pattern
 					if f.startswith("tool_") and f.endswith(".py"):
 						file_tool_name = f[5:-3]  # Extract name from tool_XXX.py

@@ -7,7 +7,7 @@ class Find():
 		print("Find() STARTING")
 		self.info = {
 			"name":"Find",
-			"description":"Find files by name pattern. Searches in work/ directory.",
+			"description":"Find files by name pattern. Searches in  directory.",
 			"parameters":{
 				"returnType":"string",
 				"required":["pattern"],
@@ -18,7 +18,7 @@ class Find():
 					},
 					"path":{
 						"type":"string", 
-						"description":"(Optional) Specific path to search. Default: work/."
+						"description":"(Optional) Specific path to search. Default: ."
 					},
 				},
 			},
@@ -33,14 +33,11 @@ class Find():
 		# Determine search paths
 		search_paths = []
 		if path:
-			# Remove work/ prefix if already present to avoid double prefix
-			if path.startswith("work/"):
-				full_path = path
-			else:
-				full_path = "work/{}".format(path)
+			# Remove  prefix if already present to avoid double prefix
+			full_path = "{}".format(path)
 			search_paths.append(full_path)
 		else:
-			search_paths = ["work/"]
+			search_paths = [""]
 		#
 		# Use find command
 		for sp in search_paths:

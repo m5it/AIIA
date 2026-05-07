@@ -28,8 +28,8 @@ class AppendFile():
 		print("AppendFile.run() STARTING, {}, len: {}".format( fileName, len(contentOfFile)))
 		ret=""
 		try:
-			# Use work/ directory
-			file_path = "work/{}".format(fileName)
+			# Use  directory
+			file_path = "{}".format(fileName)
 			
 			# Create parent directories if they don't exist
 			parent_dir = os.path.dirname(file_path)

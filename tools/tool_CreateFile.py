@@ -13,7 +13,7 @@ class CreateFile():
 				"properties":{
 					"fileName":{
 						"type":"string", 
-						"description":"Name of the file to create (in work/ folder)."
+						"description":"Name of the file to create (in  folder)."
 					},
 					"content":{
 						"type":"string", 
@@ -25,7 +25,7 @@ class CreateFile():
 	#
 	def run(self, fileName, content, opts={}):
 		print("CreateFile.run() STARTING, fileName: {}, content length: {}".format(fileName, len(content)))
-		dest_path = Path("work/{}".format(fileName))
+		dest_path = Path("{}".format(fileName))
 		if dest_path.exists():
 			return "Error: File {} already exists.".format(fileName)
 		try:

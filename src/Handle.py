@@ -99,6 +99,7 @@ class Handle():
 		#self.hLG.echo("Handle.One() START, data.len: {}, opts: {}, hHM.msgs.len: {}".format( len(data), opts, len(hHM.msgs) ))
 		opt_history_num    = opts['history_num'] if 'history_num' in opts else None
 		opts['skip_color'] = True
+		self.Init()
 		#
 		if opt_history_num!=None:
 			# load specific history
@@ -319,7 +320,7 @@ AVAILABLE TOOLS (use exact names):
 					return result['response']
 				return True
 			#
-			self.hLG.echo("Iteration {}: Found {} more tool call(s), continuing...".format(iteration, len(tool_invocations)), {'color':True, 'colorValue':'orange'})
+			self.hLG.echo("Iteration {}: Found {} more tool call(s), continuing...".format(iteration, len(result['invocations'])), {'color':True, 'colorValue':'orange'})
 			# Continue loop - don't return to user yet
 		#
 		# Max iterations reached

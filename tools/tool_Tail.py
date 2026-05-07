@@ -6,7 +6,7 @@ class Tail():
 		print("Tail() STARTING")
 		self.info = {
 			"name":"Tail",
-			"description":"Show the last N lines of a file. Reads from work/ directory.",
+			"description":"Show the last N lines of a file. Reads from  directory.",
 			"parameters":{
 				"returnType":"string",
 				"required":["fileName"],
@@ -26,10 +26,10 @@ class Tail():
 	def run(self, fileName, lines=10, opts={}):
 		print("Tail.run() STARTING, fileName: {}, lines: {}".format(fileName, lines))
 		#
-		# Find file in work/
+		# Find file in 
 		file_path = self._find_file(fileName)
 		if not file_path:
-			return "Error: File {} not found in work/".format(fileName)
+			return "Error: File {} not found in ".format(fileName)
 		#
 		try:
 			with open(file_path, 'r') as f:
@@ -42,7 +42,7 @@ class Tail():
 			return "Error reading file: {}".format(E)
 	#
 	def _find_file(self, fileName):
-		full_path = "work/{}".format(fileName)
+		full_path = "{}".format(fileName)
 		if os.path.exists(full_path):
 			return full_path
 		return None

@@ -31,7 +31,7 @@ class WriteFile():
 		try:
 			# Create parent directories if they don't exist
 			import os
-			full_path = "work/{}".format(fileName)
+			full_path = "{}".format(fileName)
 			parent_dir = os.path.dirname(full_path)
 			if parent_dir and not os.path.exists(parent_dir):
 				os.makedirs(parent_dir, exist_ok=True)

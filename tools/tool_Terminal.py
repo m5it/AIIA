@@ -56,7 +56,7 @@ class Terminal():
 			log_entry = "[{}] CMD: {} | SUCCESS: {} | OUTPUT_LEN: {}\n".format(
 				timestamp, ' '.join(cmd), success, len(output)
 			)
-			with open('work/terminal_audit.log', 'a') as f:
+			with open('terminal_audit.log', 'a') as f:
 				f.write(log_entry)
 		except Exception as E:
 			print("Terminal.log_command() ERROR: {}".format(E))

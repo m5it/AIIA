@@ -22,10 +22,10 @@ class ReadFile():
 	#
 	def run(self, fileName, opts={}):
 		print("ReadFile.run() STARTING on name: {}".format(fileName))
-		# Try work/ only
-		path = "work/{}".format(fileName)
+		# Try  only
+		path = "{}".format(fileName)
 		if not os.path.exists(path):
-			return "Error: File `{}` not found in work/".format(fileName)
+			return "Error: File `{}` not found in ".format(fileName)
 		
 		data = fread(path)
 		if data==False:

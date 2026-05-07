@@ -8,7 +8,7 @@ class Sed():
 		print("Sed() STARTING")
 		self.info = {
 			"name":"Sed",
-			"description":"Stream editor - find and replace text in files using regex. Works on files in work/ directory.",
+			"description":"Stream editor - find and replace text in files using regex. Works on files in  directory.",
 			"parameters":{
 				"returnType":"string",
 				"required":["pattern","replacement","fileName"],
@@ -23,7 +23,7 @@ class Sed():
 					},
 					"fileName":{
 						"type":"string", 
-						"description":"File to edit (in work/)."
+						"description":"File to edit (in )."
 					},
 					"inplace":{
 						"type":"boolean", 
@@ -39,7 +39,7 @@ class Sed():
 		# Find file
 		file_path = self._find_file(fileName)
 		if not file_path:
-			return "Error: File {} not found in work/".format(fileName)
+			return "Error: File {} not found in ".format(fileName)
 		#
 		# Build sed command
 		# Escape special characters for sed
@@ -60,8 +60,8 @@ class Sed():
 				)
 				return "File {} edited in-place".format(fileName)
 			else:
-				# Write to new file in work/
-				output_file = "work/{}_sed".format(fileName)
+				# Write to new file in 
+				output_file = "{}_sed".format(fileName)
 				with open(output_file, 'w') as f:
 					result = subprocess.run(
 						cmd,
@@ -78,8 +78,8 @@ class Sed():
 			return "Error executing sed: {}".format(E)
 	#
 	def _find_file(self, fileName):
-		# Check work/ only
-		full_path = "work/{}".format(fileName)
+		# Check  only
+		full_path = "{}".format(fileName)
 		if os.path.exists(full_path):
 			return full_path
 		return None

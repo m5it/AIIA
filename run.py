@@ -12,8 +12,8 @@ Options         = {
 	#
 	"DEBUG"               :False, # print A lot of Additional informations
 	"QUIET"               :False, # quite all prints and show only result. (used with -Y)
-	"VERSION"             :0.1,
-	"VERSION_NAME"        :"AiiA",
+	"VERSION"             :0.2,
+	"VERSION_NAME"        :"OurAI",
 	#
 	"SPEAK"               :True,
 	#
