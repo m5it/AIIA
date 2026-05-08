@@ -157,27 +157,22 @@ AVAILABLE TOOLS (use exact names):
 	def Chat(self):
 		self.hLG.echo("Handle.Chat() STARTING!",{'color':True})
 		#
-		#self.lastMsgs = [] # clear lastMsgs
 		while True:
 			#
 			x = self.You() # return: 0, 1, 2=continue, 3=break
-			#self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False,'debugOnly':False})
 			self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False})
 			#
-			#if x!=None and x>=2:
 			if x>=3:
 				return x # return 2=continue or 3=break, 4=update handle
 			elif x==2:
 				continue
 			
 			#
-			# AI() now loops internally to handle multiple tool calls
-			# Returns True when done (no more tool calls)
+			# AI()
 			x = self.AI()
 			self.hLG.echo("Handle.Chat() AI() response: {}".format(x),{'color':False})
 			#
 			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
-			#return x
 	
 	#
 	def Parse(self, res, opts={}):

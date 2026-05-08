@@ -30,7 +30,7 @@ Options         = {
 	#
 	"MODE"                :"build",  # "plan" or "build" mode
 	#
-	"path"                :"{}/".format(os.path.dirname(__file__)),
+	"path"                :"{}/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),
 	"tools_path"          :"tools",
 	"actions_path"        :"actions",
 	"history_path"        :"history",

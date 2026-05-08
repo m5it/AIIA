@@ -3,29 +3,21 @@
 # Script used to start OurAI 
 #
 
-# Get the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Get the current directory (where user is running from)
+USER_DIR="$(pwd)"
 
-# Change to the script's directory (ensures we're in the program's main directory)
-cd "$SCRIPT_DIR" || exit 1
-
-# Verify we're in the correct directory by checking for run.py
-if [[ ! -f "run.py" ]]; then
-    echo "ERROR: run.py not found in $(pwd)"
-    echo "Please ensure you're running from the OurAI project directory"
-    echo "or that start.sh is in the correct location."
+# Check if current directory is a git repository
+if [[ ! -d "$USER_DIR/.git" ]]; then
+    echo "ERROR: we run only with git project initialized."
     exit 1
 fi
 
-# Check if directory is a git repository (required for OurAI to start)
-if [[ ! -d ".git" ]]; then
-    echo "ERROR: Not a git repository. OurAI requires git initialization."
-    echo "Please initialize with: git init"
-    exit 1
-fi
+# Get the directory where this script is located (resolve symbolic links)
+SCRIPT_PATH="$( readlink -f "${BASH_SOURCE[0]}" )"
+SCRIPT_DIR="$( dirname "$SCRIPT_PATH" )"
 
 # Parse arguments
-VENV_PATH=".venv"
+VENV_PATH="$SCRIPT_DIR/.venv"
 ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -45,7 +37,6 @@ done
 if [[ ! -f "$VENV_PATH/bin/python3" && ! -f "$VENV_PATH/bin/python" ]]; then
     echo "ERROR: Virtual environment not found at $VENV_PATH/bin/python"
     echo "Please create one with: python3 -m venv $VENV_PATH"
-    echo "Or specify path with: $0 --venv /path/to/venv"
     exit 1
 fi
 
@@ -62,5 +53,12 @@ if ! "$PYTHON" -c "import ollama" 2>/dev/null; then
     echo "Please install it with: $PYTHON -m pip install ollama"
 fi
 
-# Run the program
-"$PYTHON" run.py "${ARGS[@]}"
+# Export the PROJECT directory so tools know where the project is
+export OURAI_PROJECT_DIR="$SCRIPT_DIR"
+
+# Add project directories to PYTHONPATH so run.py can find modules
+export PYTHONPATH="$SCRIPT_DIR:$SCRIPT_DIR/src:$SCRIPT_DIR/tools:$PYTHONPATH"
+
+# Run the program from current directory
+cd "$USER_DIR" || exit 1
+"$PYTHON" "$SCRIPT_DIR/run.py" "${ARGS[@]}"

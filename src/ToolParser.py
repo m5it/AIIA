@@ -98,7 +98,6 @@ class ToolParser:
 		return text.strip()
 	
 	#
-	#
 	def ExecuteTextTool(self, toolName, params):
 		print("DEBUG ExecuteTextTool START, toolName: {}".format( toolName ))
 		# Execute a tool based on XML invocation
