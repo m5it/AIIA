@@ -251,10 +251,9 @@ class ToolParser:
 		plans_path = self.handle.Options.get('plans_path', 'plans')
 
 		if toolName == 'createTask':
-			title = params.get('title', '')
 			instruction = params.get('instruction', '')
 			if not PlanBase.draft:
-				plan = PlanBase.Create(title, instruction, plans_path)
+				return "No active plan. Use createPlan first to create a new plan."
 			else:
 				task = PlanBase.draft.createTask(instruction)
 				PlanBase.draft.save(plans_path)
@@ -296,7 +295,7 @@ class ToolParser:
 
 		elif toolName == 'nextTask':
 			if not PlanBase.draft:
-				return "No active plan"
+				return "No active plan. Use createPlan first to create a new plan."
 			status = params.get('status', 'completed')
 			result = PlanBase.draft.nextTask(self.handle, status)
 			if result.get('done'):
@@ -311,7 +310,7 @@ class ToolParser:
 		elif toolName == 'jobDone':
 			if PlanBase.draft:
 				return str(PlanBase.draft.jobDone(self.handle))
-			return "No active plan"
+			return "No active plan. Use createPlan first to create a new plan."
 
 		elif toolName == 'LogProgress':
 			task_id = params.get('taskId')
