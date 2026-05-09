@@ -202,10 +202,7 @@ class Commands():
 	def CMD_STATS(self, inp):
 		print("Stats            :")
 		print("-----------------")
-		print("mem.msgs.len     : {}".format( len(self.handle.msgs) ))
 		print("history.msgs.len : {}".format( len(self.handle.hHM.msgs) ))
-		print("last.msgs.len    : {}".format( len(self.handle.lastMsgs) ))
-		print(self.handle.lastMsgs)
 		print("row_id           : {}".format( self.handle.Options['AI_ROW_ID'] ))
 		print("sess_id          : {}".format( self.handle.Options['AI_SESS_ID'] ))
 		print("history          : {} / {}".format( self.handle.Options['AI_FILE_HISTORY'], self.handle.hHM.history ))
@@ -430,13 +427,13 @@ class Commands():
 			print("Mode changed to BUILD. You can now make changes.")
 		#
 		# Update system message with new mode
-		for i, msg_obj in enumerate(self.handle.msgs):
+		for i, msg_obj in enumerate(self.handle.hHM.msgs):
 			if msg_obj.get('role') == 'system':
 				# Replace old system message with updated one
 				old_content = msg_obj.get('content', '')
 				new_content = old_content.replace('MODE: plan', 'MODE: {}'.format(self.handle.Options['MODE']))
 				new_content = new_content.replace('MODE: build', 'MODE: {}'.format(self.handle.Options['MODE']))
-				self.handle.msgs[i]['content'] = new_content
+				self.handle.hHM.msgs[i]['content'] = new_content
 				break
 		#
 		return 2
