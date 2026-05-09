@@ -12,6 +12,7 @@ class Actions():
 		self.imported  = {}
 	#
 	def Available(self):
+		#print("DEBUG Actions.Available() path: {}".format(self.handle.Options['actions_path']))
 		n=0
 		for tmp in os.listdir("{}/".format(self.handle.Options['actions_path'])):
 			if rmatch(tmp,r"^[a-zA-Z].*"):

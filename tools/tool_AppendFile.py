@@ -1,5 +1,5 @@
 import os
-from src.functions import fwrite
+from src.functions import fread, fwrite
 #
 class AppendFile():
 	#
@@ -7,7 +7,7 @@ class AppendFile():
 		print("AppendFile() STARTING")
 		self.info = {
 			"name":"AppendFile",
-			"description":"Create if missing and Append text to a file.",
+			"description":"Create if missing and Append text to a file, or insert at specific line.",
 			"parameters":{
 				"returnType":"string",
 				"required":["fileName","contentOfFile"],
@@ -20,24 +20,57 @@ class AppendFile():
 						"type":"string", 
 						"description":"Content that we have generated and will save into file with specific filename."
 					},
+					"fromLineNumber":{
+						"type":"integer", 
+						"description":"Line number to insert at. 0=prepend at start, -1 or omitted=append at end, positive=insert at that line."
+					},
 				},
 			},
 		}
 	#
-	def run(self, fileName, contentOfFile):
-		print("AppendFile.run() STARTING, {}, len: {}".format( fileName, len(contentOfFile)))
-		ret=""
+	def run(self, fileName, contentOfFile, fromLineNumber=None):
+		print("AppendFile.run() STARTING, {}, len: {}, fromLineNumber: {}".format(fileName, len(contentOfFile), fromLineNumber))
 		try:
-			# Use  directory
-			file_path = "{}".format(fileName)
+			if fromLineNumber is not None:
+				try:
+					fromLineNumber = int(fromLineNumber)
+				except (ValueError, TypeError):
+					fromLineNumber = -1
+		try:
+			file_path = fileName
 			
-			# Create parent directories if they don't exist
 			parent_dir = os.path.dirname(file_path)
 			if parent_dir and not os.path.exists(parent_dir):
 				os.makedirs(parent_dir, exist_ok=True)
 			
-			x = fwrite(file_path, contentOfFile, False)  # False = append mode
+			lines = []
+			if os.path.exists(file_path):
+				lines = fread(file_path).split('\n')
+			
+			if fromLineNumber is None or fromLineNumber == -1:
+				if lines:
+					if lines[-1] == '':
+						lines.append(contentOfFile)
+					else:
+						lines.append(contentOfFile)
+				else:
+					lines.append(contentOfFile)
+			elif fromLineNumber == 0:
+				if lines and lines[-1] == '':
+					pass
+				else:
+					lines.append('')
+				lines.insert(0, contentOfFile)
+			else:
+				pos = max(0, min(fromLineNumber, len(lines)))
+				lines.insert(pos, contentOfFile)
+			
+			content = '\n'.join(lines)
+			if not content.endswith('\n') and (lines and lines[-1] != ''):
+				content += '\n'
+			
+			fwrite(file_path, content, False)
 		except Exception as E:
 			print("AppendFile.run() ERROR: {}".format(E))
 			return "Error occured: {}".format(E)
-		return "{} was appended with length {}".format( fileName, len(contentOfFile) )
+		return "{} was updated with length {} at position {}".format(fileName, len(contentOfFile), fromLineNumber)

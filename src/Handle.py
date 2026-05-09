@@ -5,6 +5,7 @@ from src.functions import *
 from src.ToolChooser import ToolChooser
 from src.HistoryManager import HistoryManager
 from src.Log import Log
+from src.PlanManager import PlanBase, Plan, PlanTask
 #
 class Handle():
 	#
@@ -24,6 +25,7 @@ class Handle():
 		self.hTP     = initmodule(importmodule("ToolParser",True,{'path':'src'}),"ToolParser",{'logger':None,'handle':self,})
 		self.hPP     = initmodule(importmodule("Prepare",True,{'path':'src'}),"Prepare",{'handle':self,})
 		self.hHM     = initmodule(importmodule("HistoryManager",True,{'path':'src'}),"HistoryManager",{'handle':self,'quiet':self.Options['QUIET'],'path':self.Options['path']})
+		self.hPM     = PlanBase
 	#
 	def Init(self):
 		#
@@ -102,7 +104,7 @@ class Handle():
 		#
 		if opt_history_num!=None:
 			# load specific history
-			self.hHM.Available()
+			self.hHM.Update()
 			self.hHM.history = self.hHM.available[opt_history_num]
 			self.hHM.Get()
 		#
@@ -153,7 +155,10 @@ AVAILABLE TOOLS (use exact names):
 	
 	#
 	def Chat(self):
-		self.hLG.echo("Handle.Chat() STARTING!",{'color':True})
+		self.hLG.echo("Handle.Chat() STARTING! MODE: {}".format(self.Options.get('MODE', 'build')),{'color':True})
+		#
+		# Load all existing plans on start
+		PlanBase.LoadAll(self.Options.get('plans_path', 'plans'))
 		#
 		while True:
 			#
@@ -221,7 +226,20 @@ AVAILABLE TOOLS (use exact names):
 		if tool_invocations:
 			self.hLG.echo("Parse() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
 			#
-			self.hTP.FireToolInvocation(tool_invocations)
+			result = self.hTP.FireToolInvocation(tool_invocations)
+			#
+			# Handle nextTask response in build mode - auto-add next task to history
+			if self.Options.get('MODE') == 'build':
+				for inv in tool_invocations:
+					if inv['name'] == 'nextTask':
+						result_str = str(result) if result else ""
+						if result_str.startswith("NEXT_TASK:"):
+							next_instruction = result_str[10:]
+							self.Response('user', {'content': "<nextTask>\n\nYour task:\n{}".format(next_instruction)})
+						elif result_str.startswith("ALL_COMPLETED:"):
+							self.hLG.echo("Plan completed! All tasks finished.", {'color':True, 'colorValue':'green'})
+						elif result_str.startswith("DONE_WITH_BLOCKED:"):
+							self.hLG.echo("Plan has blocked tasks. Consider switching to PLAN mode to resolve.", {'color':True, 'colorValue':'orange'})
 			#
 			# Return the original response so caller knows tools were executed
 			#return response
@@ -319,7 +337,7 @@ AVAILABLE TOOLS (use exact names):
 				messages=msgs,
 				stream=True,
 				#temperature=self.Options['AI_TEMPERATURE'],
-				options={'temperature':self.Options['AI_TEMPERATURE']}
+				options={'temperature':self.Options['AI_TEMPERATURE'], 'think': self.Options.get('MODE') == 'plan'} # thinking enabled only in plan mode
 			)
 			#
 			# Parse result (handles XML tool calls)

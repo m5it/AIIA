@@ -213,6 +213,10 @@ class ToolParser:
 	def FireToolInvocation(self, tool_invocations):
 		print("DEBUG FireToolInvocation() START, tool_invocations: {}".format(tool_invocations))
 		#
+		is_plan_mode = self.handle.Options.get('MODE') == 'plan'
+		plan_tools = ['createTask', 'deleteTask', 'updateTask', 'viewTask', 'listTasks', 'jobDone']
+		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks']
+		#
 		for inv in tool_invocations:
 			print("DEBUG FireToolInvocation() name: {}".format(inv['name']))
 			toolName = inv['name']
@@ -222,7 +226,11 @@ class ToolParser:
 			params_str = ', '.join(['{}={}'.format(k, v) for k, v in params.items()])
 			self.handle.hLG.echo("🔧 Executing: {} ({})".format(toolName, params_str if params_str else 'no params'), {'color':True, 'colorValue':'cyan'})
 			#
-			result = self.ExecuteTextTool(toolName, params)
+			# Route to plan tools if in plan mode, or build tools (like LogProgress)
+			if (is_plan_mode and toolName in plan_tools) or (toolName in build_tools):
+				result = self.HandlePlanTool(toolName, params)
+			else:
+				result = self.ExecuteTextTool(toolName, params)
 			print("DEBUG FireToolInvocation() result: ",result)
 			#
 			# Truncate result if too long
@@ -234,3 +242,71 @@ class ToolParser:
 			self.handle.hLG.echo("✓ Result: {}".format(result_str), {'color':True, 'colorValue':'green'})
 			#
 			self.handle.Response('tool',{'content':str(result),'name':toolName})
+			return result
+	#
+	def HandlePlanTool(self, toolName, params):
+		print("DEBUG HandlePlanTool() START, toolName: {}, params: {}".format(toolName, params))
+		from src.PlanManager import PlanBase, Plan, PlanTask
+
+		plans_path = self.handle.Options.get('plans_path', 'plans')
+
+		if toolName == 'createTask':
+			title = params.get('title', '')
+			instruction = params.get('instruction', '')
+			if not PlanBase.draft:
+				plan = PlanBase.Create(title, instruction, plans_path)
+			else:
+				task = PlanBase.draft.createTask(instruction)
+				PlanBase.draft.save(plans_path)
+				return "Task created in plan. Task ID: {}".format(task.id)
+			return "Plan created. Plan ID: {}".format(plan.id)
+
+		elif toolName == 'deleteTask':
+			plan_id = params.get('id')
+			if plan_id:
+				return str(PlanBase.Delete(plan_id, plans_path))
+			return "Error: plan id required"
+
+		elif toolName == 'updateTask':
+			task_id = params.get('id')
+			status = params.get('status')
+			if PlanBase.draft and task_id in PlanBase.draft.tasks:
+				task = PlanBase.draft.tasks[task_id]
+				if status:
+					task.status = status
+					PlanBase.draft.save(plans_path)
+				return str(task.view())
+			return "Task not found"
+
+		elif toolName == 'viewTask':
+			plan_id = params.get('id')
+			return str(PlanBase.View(plan_id, plans_path))
+
+		elif toolName == 'listTasks':
+			return str(PlanBase.List(plans_path))
+
+		elif toolName == 'nextTask':
+			if not PlanBase.draft:
+				return "No active plan"
+			status = params.get('status', 'completed')
+			result = PlanBase.draft.nextTask(self.handle, status)
+			if result.get('done'):
+				blocked_count = result.get('blocked_count', 0)
+				if blocked_count > 0:
+					return "DONE_WITH_BLOCKED:{}".format(result.get('message', 'Some tasks were blocked'))
+				else:
+					PlanBase.draft.jobDone(self.handle)
+					return "ALL_COMPLETED:Plan finished successfully"
+			return "NEXT_TASK:{}".format(result.get('next_task_instruction', ''))
+
+		elif toolName == 'jobDone':
+			if PlanBase.draft:
+				return str(PlanBase.draft.jobDone(self.handle))
+			return "No active plan"
+
+		elif toolName == 'LogProgress':
+			task_id = params.get('taskId')
+			what_was_done = params.get('whatWasDone', '')
+			return str(PlanBase.LogProgress(task_id, what_was_done, plans_path))
+
+		return "Unknown plan tool: {}".format(toolName)
