@@ -214,7 +214,7 @@ class ToolParser:
 		print("DEBUG FireToolInvocation() START, tool_invocations: {}".format(tool_invocations))
 		#
 		is_plan_mode = self.handle.Options.get('MODE') == 'plan'
-		plan_tools = ['createTask', 'deleteTask', 'updateTask', 'viewTask', 'listTasks', 'jobDone']
+		plan_tools = ['createTask', 'createPlan', 'deleteTask', 'updateTask', 'viewTask', 'listTasks', 'jobDone']
 		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks']
 		#
 		for inv in tool_invocations:
@@ -260,6 +260,15 @@ class ToolParser:
 				PlanBase.draft.save(plans_path)
 				return "Task created in plan. Task ID: {}".format(task.id)
 			return "Plan created. Plan ID: {}".format(plan.id)
+
+		elif toolName == 'createPlan':
+			title = params.get('title', '')
+			instructions = params.get('instructions', '')
+			if not PlanBase.draft:
+				plan = PlanBase.Create(title, instructions, plans_path)
+				return "Plan created. Plan ID: {}".format(plan.id)
+			else:
+				return str(PlanBase.draft.createPlan(title, instructions))
 
 		elif toolName == 'deleteTask':
 			plan_id = params.get('id')

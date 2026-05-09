@@ -62,7 +62,7 @@ class Plan:
 		self.endTimestamp = None
 		self.tasks = {}
 
-	def configurePlan(self, title=None, instructions=None):
+	def createPlan(self, title=None, instructions=None):
 		if title:
 			self.title = title
 		if instructions:
