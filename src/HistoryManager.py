@@ -48,6 +48,14 @@ class HistoryManager():
 		self.choosed = True
 	
 	#
+	def CheckDraft(self):
+		if self.handle.Options['DRAFT_CONTENT'] is not None:
+			print("HistoryManager.CheckDraft() Appending to chat history! draft.len: ",len(self.handle.Options['DRAFT_CONTENT']))
+			response = self.handle.Stream( self.handle.Options['DRAFT_CONTENT'] )
+			print("DEBUG HistoryManager.CheckDraft() ",response)
+			self.handle.Options['DRAFT_CONTENT'] = None
+	
+	#
 	def Available(self):
 		#print("HistoryManager.Available() STARTED!")
 		#

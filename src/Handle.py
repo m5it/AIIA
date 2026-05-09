@@ -187,41 +187,45 @@ AVAILABLE TOOLS (use exact names):
 		color             = True
 		if opt_skip_color:
 			color=False
-		response         = "" # speaking data
-		thinking         = "" # thinking data
-		if_thinking      = False
-		if_speaking      = False
+		# response         = "" # speaking data
+		# thinking         = "" # thinking data
+		# if_thinking      = False
+		# if_speaking      = False
+		# #
+		# for chunk in res:
+			# # thinking
+			# if chunk.message.thinking:
+				# if not if_thinking:
+					# if_thinking = True
+					# print('Thinking:\n', end='')
+				# part = chunk.message.thinking
+				# print(part, end='', flush=True)
+				# thinking += part
+			# # speaking
+			# elif chunk.message.content:
+				# if not if_speaking:
+					# print('\n\nAnswer:\n', end='')
+					# if_thinking = False
+					# if_speaking = True
+				# part = chunk['message']['content']
+				# self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
+				# #
+				# response += part
+				# #
+				# self.handle.Options['DRAFT_CONTENT'] += part
+		response = self.Stream( res, color )
 		#
-		for chunk in res:
-			# thinking
-			if chunk.message.thinking:
-				if not if_thinking:
-					if_thinking = True
-					print('Thinking:\n', end='')
-				part = chunk.message.thinking
-				print(part, end='', flush=True)
-				thinking += part
-			# speaking
-			elif chunk.message.content:
-				if not if_speaking:
-					print('\n\nAnswer:\n', end='')
-					if_thinking = False
-					if_speaking = True
-				part = chunk['message']['content']
-				self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
-				response = response+part
-			
-			# speaking
-			#part = chunk['message']['content']
-			#self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
-		print("Debug response.len: ",len(response))
+		#print("Debug response.len: ",len(response))
+		print("Debug response.len: ",len(response['content']))
 		#
-		self.Response('assistant',{'content':response,'thinking':thinking,'skip_history':opt_skip_history,})
+		#self.Response('assistant',{'content':response,'thinking':thinking,'skip_history':opt_skip_history,})
+		self.Response('assistant',{'content':response['content'],'thinking':response['thinking'],'skip_history':opt_skip_history,})
 		#
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
 		#
 		# Check for XML tool invocations
-		tool_invocations = self.hTP.ParseTextToolInvocation(response)
+		#tool_invocations = self.hTP.ParseTextToolInvocation(response)
+		tool_invocations = self.hTP.ParseTextToolInvocation( response['content'] )
 		#
 		if tool_invocations:
 			self.hLG.echo("Parse() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
@@ -243,12 +247,45 @@ AVAILABLE TOOLS (use exact names):
 			#
 			# Return the original response so caller knows tools were executed
 			#return response
-			return {'invocations': tool_invocations, 'response': response }
+			#return {'invocations': tool_invocations, 'response': response }
+			return {'invocations': tool_invocations, 'response': response['content'] }
 		#
 		if opt_return_object:
 			#return response
-			return {'invocations': tool_invocations, 'response': response }
+			#return {'invocations': tool_invocations, 'response': response }
+			return {'invocations': tool_invocations, 'response': response['content'] }
 		return True
+	
+	#
+	def Stream(self, res, color):
+		response         = "" # speaking data
+		thinking         = "" # thinking data
+		if_thinking      = False
+		if_speaking      = False
+		#
+		for chunk in res:
+			# thinking
+			if chunk.message.thinking:
+				#
+				if not if_thinking:
+					if_thinking = True
+					print('Thinking:\n', end='')
+				#
+				part = chunk.message.thinking
+				thinking += part
+				print(part, end='', flush=True)
+			# speaking
+			elif chunk.message.content:
+				#
+				if not if_speaking:
+					print('\n\nAnswer:\n', end='')
+					if_thinking = False
+					if_speaking = True
+				#
+				part = chunk['message']['content']
+				response += part
+				self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
+		return {'content':response, 'thinking':thinking}
 	
 	#
 	def You(self, data=None, opts={}):
@@ -332,7 +369,8 @@ AVAILABLE TOOLS (use exact names):
 				#temperature=self.Options['AI_TEMPERATURE'],
 				options={'temperature':self.Options['AI_TEMPERATURE']}
 			)
-			#
+			# Used if CTRL+C to save last/draft content to chat history
+			self.Options['DRAFT_RESPONSE'] = res
 			# Parse result (handles XML tool calls)
 			result = self.Parse(res,{'return_object':True})
 			#
@@ -344,7 +382,9 @@ AVAILABLE TOOLS (use exact names):
 				return True
 			#
 			self.hLG.echo("Iteration {}: Found {} more tool call(s), continuing...".format(iteration, len(result['invocations'])), {'color':True, 'colorValue':'orange'})
-			# Continue loop - don't return to user yet
+			#
+			self.Options['DRAFT_RESPONSE'] = None
+			# Continue loop - don't return to user yet. while iteration < max_iterations
 		#
 		# Max iterations reached
 		self.hLG.echo("WARNING: Max tool iterations ({}) reached".format(max_iterations), {'color':True, 'colorValue':'red'})

@@ -122,6 +122,8 @@ Options         = {
 	#
 	"MODE"                :"build",  # "plan" or "build" mode
 	#
+	"DRAFT_CONTENT"       : None,    # Used on CTRL+C to save draft to chat history
+	#
 	"path"                :"{}/".format(os.path.dirname(os.path.abspath(__file__))),
 	"tools_path"          :"{}/tools/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),
 	"actions_path"        :"{}/actions/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),

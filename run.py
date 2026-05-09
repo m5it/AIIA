@@ -51,6 +51,8 @@ def cleanup():
 	# Set current chat history back.
 	hHA.hHM.Update()
 	hHA.hHM.GetLast()
+	# Append `failed` response from assistant
+	hHA.hHM.CheckDraft()
 	#
 	Run(True)
 	return False
