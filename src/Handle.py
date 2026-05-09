@@ -164,8 +164,10 @@ AVAILABLE TOOLS (use exact names):
 			#
 			x = self.You() # return: 0, 1, 2=continue, 3=break
 			self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False})
-			#
-			if x>=3:
+			# 2=continue or 3=break, 4=update handle, 5=start build
+			if x==5:
+				print("Start Build!")
+			elif x>=3:
 				return x # return 2=continue or 3=break, 4=update handle
 			elif x==2:
 				continue
@@ -187,44 +189,15 @@ AVAILABLE TOOLS (use exact names):
 		color             = True
 		if opt_skip_color:
 			color=False
-		# response         = "" # speaking data
-		# thinking         = "" # thinking data
-		# if_thinking      = False
-		# if_speaking      = False
-		# #
-		# for chunk in res:
-			# # thinking
-			# if chunk.message.thinking:
-				# if not if_thinking:
-					# if_thinking = True
-					# print('Thinking:\n', end='')
-				# part = chunk.message.thinking
-				# print(part, end='', flush=True)
-				# thinking += part
-			# # speaking
-			# elif chunk.message.content:
-				# if not if_speaking:
-					# print('\n\nAnswer:\n', end='')
-					# if_thinking = False
-					# if_speaking = True
-				# part = chunk['message']['content']
-				# self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
-				# #
-				# response += part
-				# #
-				# self.handle.Options['DRAFT_CONTENT'] += part
-		response = self.Stream( res, color )
 		#
-		#print("Debug response.len: ",len(response))
+		response = self.Stream( res, color )
 		print("Debug response.len: ",len(response['content']))
 		#
-		#self.Response('assistant',{'content':response,'thinking':thinking,'skip_history':opt_skip_history,})
 		self.Response('assistant',{'content':response['content'],'thinking':response['thinking'],'skip_history':opt_skip_history,})
 		#
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
 		#
 		# Check for XML tool invocations
-		#tool_invocations = self.hTP.ParseTextToolInvocation(response)
 		tool_invocations = self.hTP.ParseTextToolInvocation( response['content'] )
 		#
 		if tool_invocations:
@@ -246,13 +219,9 @@ AVAILABLE TOOLS (use exact names):
 							self.hLG.echo("Plan has blocked tasks. Consider switching to PLAN mode to resolve.", {'color':True, 'colorValue':'orange'})
 			#
 			# Return the original response so caller knows tools were executed
-			#return response
-			#return {'invocations': tool_invocations, 'response': response }
 			return {'invocations': tool_invocations, 'response': response['content'] }
 		#
 		if opt_return_object:
-			#return response
-			#return {'invocations': tool_invocations, 'response': response }
 			return {'invocations': tool_invocations, 'response': response['content'] }
 		return True
 	

@@ -414,41 +414,38 @@ class Commands():
 	def CMD_MODE(self, inp=""):
 		print("CMD_MODE() START, inp: {}".format(inp))
 		#
+		ret = 2 # 2=repeat You(), 5=Start Build
 		a = inp.split(" ")
 		if len(a) < 2:
 			# Show current mode
 			mode = self.handle.Options.get('MODE', 'build')
 			print("Current mode: {} (0=plan, 1=build)".format(mode))
-			return 2
+			return ret
 		#
 		new_mode = a[1].strip()
 		if new_mode not in ['0', '1']:
 			print("Invalid mode: {}. Use 0 (plan) or 1 (build)".format(new_mode))
-			return 2
+			return ret
 		#
 		if new_mode == '0':
 			if self.handle.Options['MODE']=='plan':
 				print("ERROR: Already in plan mode. Skip.")
-				return 2
+				return ret
 			self.handle.Options['MODE'] = 'plan'
 			print("Mode changed to PLAN. You are now in read-only mode.")
 		else:
 			if self.handle.Options['MODE']=='build':
 				print("ERROR: Already in build mode. Skip.")
-				return 2
+				return ret
 			self.handle.Options['MODE'] = 'build'
 			print("Mode changed to BUILD. You can now make changes.")
-			#--
-			# START StartBuild() If model prepare tasks for plan
-			#
 			
 		#--
-		# Update 2. System message with new mode!
+		# Update System message with new mode!
 		# Check if last history msgs is role:system then replace it.
 		#       else append as new msg. Ollama support multiple system prompts in one chat history!
 		# Prepare()._get_mode_instructions( 'build' )
 		#--
-		print("DEBUG Commands.CMD_MODE( {} ) hHM.msgs[-1]: {}".format( self.handle.Options['MODE'], self.handle.hHM.msgs[-1] ))
 		# Replace current system prompt because is last in chat history
 		if self.handle.hHM.msgs[-1]['role'] == 'system':
 			print("DEBUG Commands.CMD_MODE( {} ) replacing system prompt".format( self.handle.Options['MODE'] ))
@@ -459,7 +456,7 @@ class Commands():
 			self.handle.Response('system',{ 'content':"{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) ), })
 		#--
 		# Depend if plan contain tasks then StartBuild() || <startBuild/> and auto continue to AI
-		return 2
+		return ret
 
 	def CMD_PLAN(self, inp=""):
 		import re
