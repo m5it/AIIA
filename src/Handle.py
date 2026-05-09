@@ -263,14 +263,6 @@ AVAILABLE TOOLS (use exact names):
 			except Exception as E:
 				print("Handle.You() Failed! E: ",E)
 				sys.exit(1)
-		#
-		if inp==None:
-			self.hLG.echo("You: ",{ 'end':'', 'flush':True, 'color':True, 'colorValue':'green', 'debugOnly':False, 'streamDone':True})
-			try:
-				inp = user_input({'quit_with_ctrlx':True})
-			except Exception as E:
-				print("Handle.You() Failed! E: ",E)
-				sys.exit(1)
 		
 		# Handle user commands
 		if rmatch(inp,"^!.*"):
@@ -282,21 +274,24 @@ AVAILABLE TOOLS (use exact names):
 					return cmds[k]['func'](inp)
 			print("no match, repeat..., debug({}): {}".format(len(inp),inp))
 			return 2 # as continue
+		# Repeat user input. Content too large
 		if len(inp)>self.Options['AI_MAX_CONTENT_LEN']:
-			print("FAILED: content length {} / {}".format( len(inp), self.Options['AI_MAX_CONTENT_LEN'] ))
-			return 2 # as continue
+			print("FAILED: content length too large. ( {} / {} )".format( len(inp), self.Options['AI_MAX_CONTENT_LEN'] ))
+			return 2 # as continue / repeat
+		
+		# Append user content
+		if inp != None:
+			self.Response('user',{'content':inp})
 		
 		# Handle model tool calls
 		tool_invocations = self.hTP.ParseTextToolInvocation(inp)
 		print("DEBUG You() tool_invocations: {}".format(tool_invocations))
 		if tool_invocations:
-			self.hLG.echo("Parse() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
+			self.hLG.echo("Handle.You() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
 			#
 			self.hTP.FireToolInvocation(tool_invocations)
-		
-		# Append user content
-		if inp != None:
-			self.Response('user',{'content':inp})
+			#
+			return 2 # just to debug tool calls with user input
 		return 0 # Input without command or successed command with input data
 	
 	#
@@ -318,13 +313,10 @@ AVAILABLE TOOLS (use exact names):
 			res           = {}
 			msgs          = [] # temporary array of messages to send to AIIA
 			#
-			for msg in self.hHM.msgs: # loop trough array of history messages that you wish to include for AIIA
+			for msg in self.hHM.msgs: # loop trough array of current history messages that you wish to include for AIIA
 				msgs.append( msg )
-			# append last user message
-			#if len(self.hHM.msgs)>0:
-			#	msgs.append( self.hHM.msgs[ len(self.hHM.msgs)-1 ] )
 			#
-			# Nothing to send to AIIA, continue to repeat input!
+			# Nothing to send to AIIA, continue to user input!
 			if len(msgs)<=0:
 				print("WARNING: msgs len is 0, Repeating user_input!")
 				return 2 # as continue
@@ -336,12 +328,13 @@ AVAILABLE TOOLS (use exact names):
 				self.Options['AI_MODEL'],
 				messages=msgs,
 				stream=True,
+				think=self.Options.get('MODE') == 'plan', # thinking enabled only in plan mode
 				#temperature=self.Options['AI_TEMPERATURE'],
-				options={'temperature':self.Options['AI_TEMPERATURE'], 'think': self.Options.get('MODE') == 'plan'} # thinking enabled only in plan mode
+				options={'temperature':self.Options['AI_TEMPERATURE']}
 			)
 			#
 			# Parse result (handles XML tool calls)
-			result = self.Parse(res,{'return_object':True, 'skip_history':True})
+			result = self.Parse(res,{'return_object':True})
 			#
 			# Check if tools were executed by looking for tool invocations in result
 			if not result['invocations']:

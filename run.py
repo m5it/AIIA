@@ -8,34 +8,6 @@ from src.functions import *
 #--
 #
 #os.environ["OLLAMA_HOST"] = "192.168.1.63:11434"
-# #
-# Options         = {
-	# #
-	# "DEBUG"               :False, # print A lot of Additional informations
-	# "QUIET"               :False, # quite all prints and show only result. (used with -Y)
-	# "VERSION"             :0.2,
-	# "VERSION_NAME"        :"OurAI",
-	# #
-	# "SPEAK"               :True,
-	# #
-	# "AI_MODEL"            :"gemma4:26b",
-	# "AI_FILE_SESSID"      :"sessid.aiia",
-	# "AI_USER_HISTORY"     :"huser.aiia",
-	# "AI_FILE_HISTORY"     :"history.aiia",
-	# "AI_FILE_LOAD_HISTORY":False,
-	# "AI_SESS_ID"          :0,
-	# "AI_ROW_ID"           :0,
-	# "AI_MAX_CONTENT_LEN"  :20000,
-	# "AI_LIVE"             :True,
-	# "AI_TEMPERATURE"      :0.7,
-	# #
-	# "MODE"                :"build",  # "plan" or "build" mode
-	# #
-	# "path"                :"{}/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),
-	# "tools_path"          :"{}/tools/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),
-	# "actions_path"        :"{}/actions/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),
-	# "history_path"        :"history",
-# }
 #
 hHA = None # handle to class Handle()
 #--
@@ -45,6 +17,7 @@ def Help():
 	print("Help for AIIA...: ")
 	print("-h                         # Help")
 	print("-v                         # Version")
+	print("-d                         # Debug")
 	print("-m [model_name]            # Choose model")
 	print("-M [history_num]           # Memorize specific history")
 	print("-Y [content_data]          # Set data / content to send as request to AIIA.")

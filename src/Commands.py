@@ -107,6 +107,13 @@ class Commands():
 			"usage"      :"!MODE [0|1]",
 			"func"       :self.CMD_MODE,
 		},
+		"PLAN":{
+			"name"       :"Plan",
+			"description":"View current plan status, tasks, and progress.",
+			"regex"      :r"^!PLAN(\s+[A-Z]+)?(\s+[\d]+)?$",
+			"usage"      :"!PLAN [PREVIEW|VIEW|TASKS|STATUS] [task_id]",
+			"func"       :self.CMD_PLAN,
+		},
 			"MEMORY_SPECIFIC":{
 				"name"       :"Memory Specific",
 				"description":"Memory specific message from history.",
@@ -420,20 +427,116 @@ class Commands():
 			return 2
 		#
 		if new_mode == '0':
+			if self.handle.Options['MODE']=='plan':
+				print("ERROR: Already in plan mode. Skip.")
+				return 2
 			self.handle.Options['MODE'] = 'plan'
 			print("Mode changed to PLAN. You are now in read-only mode.")
 		else:
+			if self.handle.Options['MODE']=='build':
+				print("ERROR: Already in build mode. Skip.")
+				return 2
 			self.handle.Options['MODE'] = 'build'
 			print("Mode changed to BUILD. You can now make changes.")
-		#
-		# Update system message with new mode
-		for i, msg_obj in enumerate(self.handle.hHM.msgs):
-			if msg_obj.get('role') == 'system':
-				# Replace old system message with updated one
-				old_content = msg_obj.get('content', '')
-				new_content = old_content.replace('MODE: plan', 'MODE: {}'.format(self.handle.Options['MODE']))
-				new_content = new_content.replace('MODE: build', 'MODE: {}'.format(self.handle.Options['MODE']))
-				self.handle.hHM.msgs[i]['content'] = new_content
-				break
-		#
+			#--
+			# START StartBuild() If model prepare tasks for plan
+			#
+			
+		#--
+		# Update 2. System message with new mode!
+		# Check if last history msgs is role:system then replace it.
+		#       else append as new msg. Ollama support multiple system prompts in one chat history!
+		# Prepare()._get_mode_instructions( 'build' )
+		#--
+		print("DEBUG Commands.CMD_MODE( {} ) hHM.msgs[-1]: {}".format( self.handle.Options['MODE'], self.handle.hHM.msgs[-1] ))
+		# Replace current system prompt because is last in chat history
+		if self.handle.hHM.msgs[-1]['role'] == 'system':
+			print("DEBUG Commands.CMD_MODE( {} ) replacing system prompt".format( self.handle.Options['MODE'] ))
+			self.handle.hHM.msgs[-1]['content'] = "{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) )
+		# Append new system prompt
+		else:
+			print("DEBUG Commands.CMD_MODE( {} ) appending new system prompt".format( self.handle.Options['MODE'] ))
+			self.handle.Response('system',{ 'content':"{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) ), })
+		#--
+		# Depend if plan contain tasks then StartBuild() || <startBuild/> and auto continue to AI
+		return 2
+
+	def CMD_PLAN(self, inp=""):
+		import re
+		from src.PlanManager import PlanBase, Plan, PlanTask
+
+		plans_path = self.handle.Options.get('plans_path', 'plans')
+
+		# Parse command
+		parts = inp.strip().split()
+		action = parts[0] if len(parts) > 0 else 'PREVIEW'
+		task_id = parts[1] if len(parts) > 1 else None
+
+		action = action.upper()
+
+		if action == 'PREVIEW' or action == '':
+			# Show current plan overview
+			if PlanBase.draft:
+				plan = PlanBase.draft
+				print("\n=== CURRENT PLAN ===")
+				print("Plan ID: {}".format(plan.id))
+				print("Title: {}".format(plan.title))
+				print("Status: {}".format("DRAFT (in progress)" if plan.endTimestamp is None else "COMPLETED"))
+				print("\n--- TASKS ---")
+				pending = completed = blocked = 0
+				for tid, task in plan.tasks.items():
+					status = task.status
+					if status == 'pending': pending += 1
+					elif status == 'completed': completed += 1
+					elif status == 'blocked': blocked += 1
+				print("Pending: {} | Completed: {} | Blocked: {}".format(pending, completed, blocked))
+				if pending > 0:
+					for tid, task in plan.tasks.items():
+						if task.status == 'pending':
+							print("\nNEXT TASK:")
+							print("  ID: {}".format(tid))
+							print("  Instruction: {}".format(task.instruction[:100] + "..." if len(task.instruction) > 100 else task.instruction))
+							break
+			else:
+				print("\nNo active plan.")
+				print("Plans in history: {}".format(len(PlanBase.done)))
+
+		elif action == 'VIEW' or action == 'TASKS':
+			if PlanBase.draft:
+				plan = PlanBase.draft
+				print("\n=== PLAN TASKS ===")
+				for tid, task in plan.tasks.items():
+					status_icon = {'pending': '⏳', 'completed': '✓', 'blocked': '✗'}.get(task.status, '?')
+					print("\n{} Task ID: {}".format(status_icon, tid))
+					print("   Status: {}".format(task.status))
+					print("   Instruction: {}".format(task.instruction[:80] + "..." if len(task.instruction) > 80 else task.instruction))
+					if task.log:
+						print("   Log entries: {}".format(len(task.log)))
+			else:
+				print("\nNo active plan.")
+
+		elif action == 'STATUS':
+			if PlanBase.draft:
+				plan = PlanBase.draft
+				print("\n=== PLAN STATUS ===")
+				print("MODE: {}".format(self.handle.Options.get('MODE', 'build')))
+				print("Plan ID: {}".format(plan.id))
+				print("Tasks: {} total".format(len(plan.tasks)))
+				for tid, task in plan.tasks.items():
+					if task.status == 'pending':
+						print("- [PENDING] {}".format(tid))
+					elif task.status == 'completed':
+						print("- [DONE] {}".format(tid))
+					elif task.status == 'blocked':
+						print("- [BLOCKED] {}".format(tid))
+			else:
+				print("\nNo active plan.")
+
+		else:
+			print("\nUsage: !PLAN [PREVIEW|VIEW|TASKS|STATUS]")
+			print("  PREVIEW  - Show plan overview (default)")
+			print("  VIEW     - Show all tasks with details")
+			print("  TASKS    - Same as VIEW")
+			print("  STATUS   - Show quick status")
+
 		return 2
