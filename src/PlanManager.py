@@ -7,8 +7,9 @@ class TaskLog:
 		self.text = text
 
 class PlanTask:
-	def __init__(self, task_id, instruction):
+	def __init__(self, task_id, instruction, title=""):
 		self.id = task_id
+		self.title = title
 		self.status = "pending"
 		self.instruction = instruction
 		self.startTimestamp = None
@@ -69,9 +70,9 @@ class Plan:
 			self.instructions = instructions
 		return {"id": self.id, "title": self.title, "instructions": self.instructions}
 
-	def createTask(self, instruction):
+	def createTask(self, instruction, title=""):
 		task_id = str(time.time())
-		task = PlanTask(task_id, instruction)
+		task = PlanTask(task_id, instruction, title)
 		self.tasks[task_id] = task
 		return task
 

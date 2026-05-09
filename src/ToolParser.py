@@ -217,6 +217,16 @@ class ToolParser:
 		plan_tools = ['createTask', 'createPlan', 'deleteTask', 'updateTask', 'viewTask', 'listTasks', 'jobDone']
 		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks']
 		#
+		# Sort to process createTask before jobDone
+		def sort_key(inv):
+			name = inv['name']
+			if name == 'jobDone':
+				return 1
+			elif name == 'createTask':
+				return -1
+			return 0
+		tool_invocations = sorted(tool_invocations, key=sort_key)
+		#
 		for inv in tool_invocations:
 			print("DEBUG FireToolInvocation() name: {}".format(inv['name']))
 			toolName = inv['name']
@@ -251,13 +261,14 @@ class ToolParser:
 		plans_path = self.handle.Options.get('plans_path', 'plans')
 
 		if toolName == 'createTask':
+			title = params.get('title', '')
 			instruction = params.get('instruction', '')
 			if not PlanBase.draft:
 				return "No active plan. Use createPlan first to create a new plan."
 			else:
-				task = PlanBase.draft.createTask(instruction)
+				task = PlanBase.draft.createTask(instruction, title)
 				PlanBase.draft.save(plans_path)
-				return "Task created in plan. Task ID: {}".format(task.id)
+				return "Task created: {} | ID: {}".format(title if title else instruction[:50], task.id)
 			return "Plan created. Plan ID: {}".format(plan.id)
 
 		elif toolName == 'createPlan':
