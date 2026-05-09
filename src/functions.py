@@ -18,7 +18,11 @@ def splitFileNameExtension(text):
 def importmodule(text, rel=True, opts={}):
 	path = opts["path"] if "path" in opts else ""
 	#
-	name   = "{}{}".format("{}.".format(path) if path!="" else "", text)
+	# If path is absolute (starts with /), don't prefix with dot
+	if path.startswith('/'):
+		name = text
+	else:
+		name = "{}{}".format("{}.".format(path) if path!="" else "", text)
 	exists = False
 	mod    = None
 	#

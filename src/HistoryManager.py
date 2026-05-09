@@ -15,6 +15,15 @@ class HistoryManager():
 		self.available = []
 		self.msgs      = []
 	
+	# update self.available
+	def Update(self):
+		#
+		self.available = []
+		#
+		for tmp in os.listdir("{}{}/".format( self.opt_path, self.handle.Options['history_path'])):
+			if rmatch(tmp,"^\d+\..*"):
+				self.available.append(tmp)
+	
 	# method get() - load chat history from history/ some file 
 	def Get(self):
 		#print("HistoryManager.get() START on history: {}".format( self.history ))
@@ -31,13 +40,18 @@ class HistoryManager():
 						continue
 		#			print("HistoryManager.get() Loading history line: {}".format(line))
 					self.msgs.append( json.loads(line) )
+	
+	#
+	def GetLast(self):
+		self.history = self.available[ len(self.available)-1 ]
+		self.Get()
+		self.choosed = True
+	
 	#
 	def Available(self):
 		#print("HistoryManager.Available() STARTED!")
 		#
-		for tmp in os.listdir("{}{}/".format( self.opt_path, self.handle.Options['history_path'])):
-			if rmatch(tmp,"^\d+\..*"):
-				self.available.append(tmp)
+		self.Update()
 		#
 		self.available.sort(key=lambda x: int(x.split('.')[0]), reverse=False)
 		cnt=0

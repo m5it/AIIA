@@ -24,7 +24,7 @@ class AppendFile():
 			},
 		}
 	#
-	def run(self, fileName, contentOfFile, opts={}):
+	def run(self, fileName, contentOfFile):
 		print("AppendFile.run() STARTING, {}, len: {}".format( fileName, len(contentOfFile)))
 		ret=""
 		try:

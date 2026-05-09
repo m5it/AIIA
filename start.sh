@@ -56,6 +56,13 @@ fi
 # Export the PROJECT directory so tools know where the project is
 export OURAI_PROJECT_DIR="$SCRIPT_DIR"
 
+# Create required directories and files in project directory
+mkdir -p "$SCRIPT_DIR/history" 2>/dev/null
+mkdir -p "$SCRIPT_DIR/.session" 2>/dev/null
+if [[ ! -f "$SCRIPT_DIR/sessid.aiia" ]]; then
+    echo "1" > "$SCRIPT_DIR/sessid.aiia"
+fi
+
 # Add project directories to PYTHONPATH so run.py can find modules
 export PYTHONPATH="$SCRIPT_DIR:$SCRIPT_DIR/src:$SCRIPT_DIR/tools:$PYTHONPATH"
 

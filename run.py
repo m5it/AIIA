@@ -31,8 +31,8 @@ Options         = {
 	"MODE"                :"build",  # "plan" or "build" mode
 	#
 	"path"                :"{}/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),
-	"tools_path"          :"tools",
-	"actions_path"        :"actions",
+	"tools_path"          :"{}/tools/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),
+	"actions_path"        :"{}/actions/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),
 	"history_path"        :"history",
 }
 #
@@ -70,10 +70,12 @@ def cleanup():
 	global Options,Stats
 	print("cleanup() START")
 	#
+	hHA = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", Options)
+	hHA.hHM.GetLast()
 	#hHA.hPP.SaveMemory()
 	#
-	#Run(True)
-	return True
+	Run(True)
+	return False
 #
 def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):

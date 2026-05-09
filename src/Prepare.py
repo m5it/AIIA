@@ -30,11 +30,12 @@ class Prepare():
 	def SaveMemory(self):
 		self.hLG.echo("Prepare.SaveMemory() START, length: {}. history.file: {} vs {} vs {}. DEBUG AI_FILE_LOAD_HISTORY: {}".format( len(self.msgs), self.hHM.history, self.Options['AI_FILE_HISTORY'], self.Options['AI_USER_HISTORY'], self.Options['AI_FILE_LOAD_HISTORY'] ),{'color':False})
 		#
-		if os.path.exists("history/{}".format(self.Options['AI_USER_HISTORY'])):
-			os.remove("history/{}".format(self.Options['AI_USER_HISTORY']))
+		history_path = "{}/history/{}".format(self.Options.get('path', ''), self.Options['AI_USER_HISTORY'])
+		if os.path.exists(history_path):
+			os.remove(history_path)
 		# write history here
 		for obj in self.msgs:
-			fwrite("history/{}".format(self.Options['AI_USER_HISTORY']),"{}\n".format(json.dumps(obj)),False)
+			fwrite(history_path,"{}\n".format(json.dumps(obj)),False)
 	
 	#
 	def Prepare(self):
@@ -88,12 +89,12 @@ AVAILABLE TOOLS (use exact names):
 			system_content = "{}\n\n{}".format(tmp, tool_instructions.format(mode=self.handle.Options.get('MODE', 'build')))
 			self.handle.Response('system',{'content':system_content,})
 			# append to chat memory
-			self.handle.msgs.append( self.handle.Response('system',{'content':system_content, 'return_object':True}) )
+			#self.handle.msgs.append( self.handle.Response('system',{'content':system_content, 'return_object':True}) )
 		else:
 			# Use default tool instructions as system message
 			system_content = tool_instructions.format(mode=self.handle.Options.get('MODE', 'build'))
 			self.handle.Response('system',{'content':system_content,})
-			self.handle.msgs.append( self.handle.Response('system',{'content':system_content, 'return_object':True}) )
+			#self.handle.msgs.append( self.handle.Response('system',{'content':system_content, 'return_object':True}) )
 		# Choose actions
 		self.handle.hAC.Choose()
 		# Choose history

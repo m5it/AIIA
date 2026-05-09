@@ -15,9 +15,6 @@ class Handle():
 		#
 		self.Options  = Options
 		#
-		self.msgs     = [] # (MEMORY) Integers from history. Ex: 5, 13, 22. Later is appended last user msg tempolary!
-		self.lastMsgs = [] # user,assistant | sys,user,assistant | userTool,assistantTool,
-		#
 		#self.cmds    = self.Commands(self)
 		self.cmds    = initmodule(importmodule("Commands",True,{'path':'src'}),"Commands",{'handle':self,})
 		#
@@ -42,6 +39,7 @@ class Handle():
 		global AI_FILE_HISTORY
 		#
 		opt_content       = opts['content']
+		opt_thinking      = opts['thinking'] if 'thinking' in opts else None
 		opt_name          = opts['name'] if 'name' in opts else None
 		opt_parse         = opts['parse'] if 'parse' in opts else False # True | False (default)
 		opt_return_object = opts['return_object'] if 'return_object' in opts else False
@@ -74,7 +72,9 @@ class Handle():
 			'timestamp':time.time(),
 			'date'     :"{}".format(date.today()),
 		}
-		
+		# append thinking
+		if opt_thinking != None:
+			obj['thinking'] = opt_thinking
 		#
 		if opt_name != None:
 			obj["name"] = opt_name
@@ -86,12 +86,11 @@ class Handle():
 		# Write history here. (similar to save memory just here we save all chat history)
 		# Used messages are saved with SaveMemory()
 		if opt_skip_history==False:
-			fwrite("history/{}".format(self.Options['AI_FILE_HISTORY']),"{}\n".format(json.dumps(obj)),False)
+			history_path = "{}/history/{}".format(self.Options.get('path', ''), self.Options['AI_FILE_HISTORY'])
+			fwrite(history_path,"{}\n".format(json.dumps(obj)),False)
 		
 		# Append to chat history. (All data of session)
 		self.hHM.msgs.append( obj )
-		# Current user request and responses only
-		self.lastMsgs.append( obj )
 		return True
 	
 	#
@@ -112,7 +111,7 @@ class Handle():
 		#
 		# Add system message if not already present (for -Y flag mode)
 		system_exists = False
-		for msg in self.msgs:
+		for msg in self.hHM.msgs:
 			if msg['role'] == 'system':
 				system_exists = True
 				break
@@ -147,7 +146,6 @@ AVAILABLE TOOLS (use exact names):
 - Sort: Sort lines in file. Params: <fileName>, [<numeric>  [<reverse>], [<unique>]
 """
 			self.Response('system',{'content':system_msg})
-			self.msgs.append( self.Response('system',{'content':system_msg, 'return_object':True}) )
 		#
 		self.You( data, opts )
 		#
@@ -176,7 +174,7 @@ AVAILABLE TOOLS (use exact names):
 	
 	#
 	def Parse(self, res, opts={}):
-		print("Handle.Parse() START, lastMsgs.len: {}, opts: {}".format( len(self.lastMsgs), opts ))
+		print("Handle.Parse() START, opts: {}".format( opts ))
 		#
 		opt_skip_history  = opts['skip_history'] if 'skip_history' in opts else False
 		opt_skip_color    = opts['skip_color'] if 'skip_color' in opts else False
@@ -184,15 +182,36 @@ AVAILABLE TOOLS (use exact names):
 		color             = True
 		if opt_skip_color:
 			color=False
-		response         = ""
+		response         = "" # speaking data
+		thinking         = "" # thinking data
+		if_thinking      = False
+		if_speaking      = False
 		#
 		for chunk in res:
-			part = chunk['message']['content']
-			#tmp  = self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True})
-			self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
-			response = response+part
+			# thinking
+			if chunk.message.thinking:
+				if not if_thinking:
+					if_thinking = True
+					print('Thinking:\n', end='')
+				part = chunk.message.thinking
+				print(part, end='', flush=True)
+				thinking += part
+			# speaking
+			elif chunk.message.content:
+				if not if_speaking:
+					print('\n\nAnswer:\n', end='')
+					if_thinking = False
+					if_speaking = True
+				part = chunk['message']['content']
+				self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
+				response = response+part
+			
+			# speaking
+			#part = chunk['message']['content']
+			#self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
+		print("Debug response.len: ",len(response))
 		#
-		self.Response('assistant',{'content':response,'skip_history':opt_skip_history,})
+		self.Response('assistant',{'content':response,'thinking':thinking,'skip_history':opt_skip_history,})
 		#
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
 		#
@@ -280,15 +299,12 @@ AVAILABLE TOOLS (use exact names):
 			result        = ""
 			res           = {}
 			msgs          = [] # temporary array of messages to send to AIIA
-			self.lastMsgs = [] # clear lastMsgs
 			#
-			for msg in self.msgs: # loop trough array of history messages that you wish to include for AIIA
+			for msg in self.hHM.msgs: # loop trough array of history messages that you wish to include for AIIA
 				msgs.append( msg )
-				self.lastMsgs.append( msg )
 			# append last user message
-			if len(self.hHM.msgs)>0:
-				msgs.append( self.hHM.msgs[ len(self.hHM.msgs)-1 ] )
-				self.lastMsgs.append( self.hHM.msgs[ len(self.hHM.msgs)-1 ] )
+			#if len(self.hHM.msgs)>0:
+			#	msgs.append( self.hHM.msgs[ len(self.hHM.msgs)-1 ] )
 			#
 			# Nothing to send to AIIA, continue to repeat input!
 			if len(msgs)<=0:
@@ -297,6 +313,7 @@ AVAILABLE TOOLS (use exact names):
 			#
 			# Chat without tools, normal chat (XML tools handle themselves)
 			self.hLG.echo("DEBUG preparing chat (iteration {})".format(iteration),{'color':False})
+			print("DEBUG before chat() num msgs.len: {}".format( len(msgs) ))
 			res: ChatResponse = chat(
 				self.Options['AI_MODEL'],
 				messages=msgs,
