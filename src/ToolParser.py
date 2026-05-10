@@ -215,7 +215,7 @@ class ToolParser:
 		#
 		is_plan_mode = self.handle.Options.get('MODE') == 'plan'
 		plan_tools = ['createTask', 'createPlan', 'deleteTask', 'updateTask', 'viewTask', 'listTasks']
-		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks', 'jobDone', 'startBuild']
+		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks', 'jobDone', 'startBuild', 'createTask', 'createPlan', 'deleteTask', 'updateTask']
 		#
 		# Sort to process createTask before other tools
 		def sort_key(inv):
@@ -243,16 +243,16 @@ class ToolParser:
 				result = self.ExecuteTextTool(toolName, params)
 			print("DEBUG FireToolInvocation() result: ",result)
 			#
-			# Truncate result if too long
+			self.handle.Response('tool',{'content':str(result),'name':toolName})
+			#
+			# (Just on print to console. Chat History should have always original data!) Truncate result if too long
 			MAX_PREVIEW = 500
 			result_str = str(result)
 			if len(result_str) > MAX_PREVIEW:
 				result_str = result_str[:MAX_PREVIEW] + "... (truncated, {} chars total)".format(len(str(result)))
 			#
 			self.handle.hLG.echo("✓ Result: {}".format(result_str), {'color':True, 'colorValue':'green'})
-			#
-			self.handle.Response('tool',{'content':str(result),'name':toolName})
-			return result
+		return result
 	#
 	def HandlePlanTool(self, toolName, params):
 		print("DEBUG HandlePlanTool() START, toolName: {}, params: {}".format(toolName, params))
