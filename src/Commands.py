@@ -439,6 +439,11 @@ class Commands():
 				return ret
 			self.handle.Options['MODE'] = 'build'
 			print("Mode changed to BUILD. You can now make changes.")
+			# Check if plan has tasks - if yes, return 5 to trigger startBuild
+			from src.PlanManager import PlanBase
+			if PlanBase.draft and len(PlanBase.draft.tasks) > 0:
+				ret = 5  # startBuild signal
+				print("Plan has {} tasks. Starting build...".format(len(PlanBase.draft.tasks)))
 			
 		#--
 		# Update System message with new mode!

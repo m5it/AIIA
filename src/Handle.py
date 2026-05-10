@@ -162,11 +162,10 @@ AVAILABLE TOOLS (use exact names):
 		#
 		while True:
 			#
-			x = self.You() # return: 0, 1, 2=continue, 3=break
+			x = self.You() # return: 0, 1, 2=continue, 3=break, 5=start build
 			self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False})
-			# 2=continue or 3=break, 4=update handle, 5=start build
 			if x==5:
-				print("Start Build!")
+				self.StartBuild()
 			elif x>=3:
 				return x # return 2=continue or 3=break, 4=update handle
 			elif x==2:
@@ -217,6 +216,14 @@ AVAILABLE TOOLS (use exact names):
 							self.hLG.echo("Plan completed! All tasks finished.", {'color':True, 'colorValue':'green'})
 						elif result_str.startswith("DONE_WITH_BLOCKED:"):
 							self.hLG.echo("Plan has blocked tasks. Consider switching to PLAN mode to resolve.", {'color':True, 'colorValue':'orange'})
+					elif inv['name'] == 'startBuild':
+						result_str = str(result) if result else ""
+						if result_str.startswith("START_BUILD|"):
+							parts = result_str.split("|", 2)
+							task_info = parts[1]
+							instruction = parts[2]
+							self.Response('system', {'content': 'Mode changed to BUILD. You can now make changes.'})
+							self.Response('user', {'content': "{} - {}".format(task_info, instruction)})
 			#
 			# Return the original response so caller knows tools were executed
 			return {'invocations': tool_invocations, 'response': response['content'] }
@@ -342,19 +349,37 @@ AVAILABLE TOOLS (use exact names):
 			self.Options['DRAFT_RESPONSE'] = res
 			# Parse result (handles XML tool calls)
 			result = self.Parse(res,{'return_object':True})
-			#
+#
 			# Check if tools were executed by looking for tool invocations in result
 			if not result['invocations']:
 				# No more tool calls - return final response
 				if opt_return_object:
 					return result['response']
 				return True
-			#
-			self.hLG.echo("Iteration {}: Found {} more tool call(s), continuing...".format(iteration, len(result['invocations'])), {'color':True, 'colorValue':'orange'})
-			#
-			self.Options['DRAFT_RESPONSE'] = None
-			# Continue loop - don't return to user yet. while iteration < max_iterations
-		#
+
+	def StartBuild(self):
+		print("Handle.StartBuild() START")
+		if not PlanBase.draft:
+			self.hLG.echo("No active plan. Use createPlan first.", {'color':True, 'colorValue':'red'})
+			return
+		first_task = None
+		for tid, task in PlanBase.draft.tasks.items():
+			if task.status == "pending":
+				first_task = task
+				task.status = "in_progress"
+				task.startTimestamp = time.time()
+				break
+		if first_task:
+			PlanBase.draft.save(self.Options.get('plans_path', 'plans'))
+			PlanBase.LogProgress(first_task.id, "Build started", self.Options.get('plans_path', 'plans'))
+			task_number = sum(1 for t in PlanBase.draft.tasks.values() if t.status in ["completed", "in_progress"])
+			total_tasks = len(PlanBase.draft.tasks)
+			self.Response('system', {'content': 'Mode changed to BUILD. You can now make changes.'})
+			self.Response('user', {'content': "Task {}/{} - {}".format(task_number, total_tasks, first_task.instruction)})
+			self.hLG.echo("Started build: Task {}/{}".format(task_number, total_tasks), {'color':True, 'colorValue':'green'})
+		else:
+			self.hLG.echo("No pending tasks in plan!", {'color':True, 'colorValue':'orange'})
+
 		# Max iterations reached
 		self.hLG.echo("WARNING: Max tool iterations ({}) reached".format(max_iterations), {'color':True, 'colorValue':'red'})
 		return True

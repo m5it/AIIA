@@ -214,16 +214,16 @@ class ToolParser:
 		print("DEBUG FireToolInvocation() START, tool_invocations: {}".format(tool_invocations))
 		#
 		is_plan_mode = self.handle.Options.get('MODE') == 'plan'
-		plan_tools = ['createTask', 'createPlan', 'deleteTask', 'updateTask', 'viewTask', 'listTasks', 'jobDone']
-		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks']
+		plan_tools = ['createTask', 'createPlan', 'deleteTask', 'updateTask', 'viewTask', 'listTasks']
+		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks', 'jobDone', 'startBuild']
 		#
-		# Sort to process createTask before jobDone
+		# Sort to process createTask before other tools
 		def sort_key(inv):
 			name = inv['name']
-			if name == 'jobDone':
-				return 1
-			elif name == 'createTask':
+			if name == 'createTask':
 				return -1
+			elif name == 'createPlan':
+				return -2
 			return 0
 		tool_invocations = sorted(tool_invocations, key=sort_key)
 		#
@@ -322,6 +322,24 @@ class ToolParser:
 			if PlanBase.draft:
 				return str(PlanBase.draft.jobDone(self.handle))
 			return "No active plan. Use createPlan first to create a new plan."
+
+		elif toolName == 'startBuild':
+			if not PlanBase.draft:
+				return "No active plan. Use createPlan first."
+			first_task = None
+			for tid, task in PlanBase.draft.tasks.items():
+				if task.status == "pending":
+					first_task = task
+					task.status = "in_progress"
+					task.startTimestamp = time.time()
+					break
+			if first_task:
+				PlanBase.draft.save(plans_path)
+				PlanBase.LogProgress(first_task.id, "Build started", plans_path)
+				task_number = sum(1 for t in PlanBase.draft.tasks.values() if t.status in ["completed", "in_progress"])
+				total_tasks = len(PlanBase.draft.tasks)
+				return "START_BUILD|Task {}/{}|{}".format(task_number, total_tasks, first_task.instruction)
+			return "No pending tasks in plan"
 
 		elif toolName == 'LogProgress':
 			task_id = params.get('taskId')
