@@ -102,9 +102,9 @@ class Commands():
 		},
 		"MODE":{
 			"name"       :"Mode",
-			"description":"Switch between plan (0) and build (1) mode. Shows current mode if no argument given.",
-			"regex"      :r"^!MODE(\s+[01])?$",
-			"usage"      :"!MODE [0|1]",
+			"description":"Switch between plan and build mode. Shows current mode if no argument given.",
+			"regex"      :r"^!MODE(\s+(plan|build))?$",
+			"usage"      :"!MODE [plan|build]",
 			"func"       :self.CMD_MODE,
 		},
 		"PLAN":{
@@ -419,21 +419,21 @@ class Commands():
 		if len(a) < 2:
 			# Show current mode
 			mode = self.handle.Options.get('MODE', 'build')
-			print("Current mode: {} (0=plan, 1=build)".format(mode))
+			print("Current mode: {}".format(mode))
 			return ret
 		#
-		new_mode = a[1].strip()
-		if new_mode not in ['0', '1']:
-			print("Invalid mode: {}. Use 0 (plan) or 1 (build)".format(new_mode))
+		new_mode = a[1].strip().lower()
+		if new_mode not in ['plan', 'build']:
+			print("Invalid mode: {}. Use 'plan' or 'build'".format(new_mode))
 			return ret
 		#
-		if new_mode == '0':
+		if new_mode == 'plan':
 			if self.handle.Options['MODE']=='plan':
 				print("ERROR: Already in plan mode. Skip.")
 				return ret
 			self.handle.Options['MODE'] = 'plan'
 			print("Mode changed to PLAN. You are now in read-only mode.")
-		else:
+		else:  # build
 			if self.handle.Options['MODE']=='build':
 				print("ERROR: Already in build mode. Skip.")
 				return ret
