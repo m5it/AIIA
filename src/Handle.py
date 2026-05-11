@@ -116,10 +116,9 @@ class Handle():
 			history_path = "{}/history/{}".format(self.Options.get('path', ''), self.Options['AI_FILE_HISTORY'])
 			fwrite(history_path,"{}\n".format(json.dumps(obj)),False)
 		
-		# Save to HISTORY.md (working dir + framework dir)
+		# Save to HISTORY.md (working dir only)
 		working_dir = self.Options.get('working_dir')
-		framework_dir = self.Options.get('path', '').rstrip('/')
-		PlanSaver.save_history(obj, working_dir, framework_dir)
+		PlanSaver.save_history(obj, working_dir)
 		
 		# Append to chat history. (All data of session)
 		self.hHM.msgs.append( obj )

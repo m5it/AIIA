@@ -64,33 +64,23 @@ class PlanSaver:
 			f.write(entry)
 	
 	@staticmethod
-	def save_plan(plan, working_dir=None, framework_dir=None):
+	def save_plan(plan, working_dir=None):
 		if not plan:
 			return
 		
-		# Save to working directory if specified
+		# Save to working directory only
 		if working_dir:
 			plan_file = os.path.join(working_dir, 'PLAN.md')
 			PlanSaver.save_plan_to_file(plan, plan_file)
-		
-		# Save to framework directory if specified
-		if framework_dir:
-			plan_file = os.path.join(framework_dir, 'PLAN.md')
-			PlanSaver.save_plan_to_file(plan, plan_file)
 	
 	@staticmethod
-	def save_history(msg, working_dir=None, framework_dir=None):
+	def save_history(msg, working_dir=None):
 		if not msg:
 			return
 		
-		# Save to working directory if specified
+		# Save to working directory only
 		if working_dir:
 			history_file = os.path.join(working_dir, 'HISTORY.md')
-			PlanSaver.save_history_to_file(msg, history_file)
-		
-		# Save to framework directory if specified
-		if framework_dir:
-			history_file = os.path.join(framework_dir, 'HISTORY.md')
 			PlanSaver.save_history_to_file(msg, history_file)
 	
 	@staticmethod

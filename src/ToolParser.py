@@ -268,11 +268,10 @@ class ToolParser:
 			else:
 				task = PlanBase.draft.createTask(instruction, title)
 				PlanBase.draft.save(plans_path)
-				# Save plan to PLAN.md (working dir + framework dir)
+				# Save plan to PLAN.md (working dir only)
 				working_dir = self.handle.Options.get('working_dir')
-				framework_dir = self.handle.Options.get('path', '').rstrip('/')
 				from src.PlanSaver import PlanSaver
-				PlanSaver.save_plan(PlanBase.draft, working_dir, framework_dir)
+				PlanSaver.save_plan(PlanBase.draft, working_dir)
 				return "Task created: {} | ID: {}".format(title if title else instruction[:50], task.id)
 			return "Plan created. Plan ID: {}".format(plan.id)
 
@@ -281,11 +280,10 @@ class ToolParser:
 			instructions = params.get('instructions', '')
 			if not PlanBase.draft:
 				plan = PlanBase.Create(title, instructions, plans_path)
-				# Save plan to PLAN.md (working dir + framework dir)
+				# Save plan to PLAN.md (working dir only)
 				working_dir = self.handle.Options.get('working_dir')
-				framework_dir = self.handle.Options.get('path', '').rstrip('/')
 				from src.PlanSaver import PlanSaver
-				PlanSaver.save_plan(plan, working_dir, framework_dir)
+				PlanSaver.save_plan(plan, working_dir)
 				return "Plan created. Plan ID: {}".format(plan.id)
 			else:
 				return str(PlanBase.draft.createPlan(title, instructions))
