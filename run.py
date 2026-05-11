@@ -82,14 +82,17 @@ def Main(argv):
 	opt_one  = None # Send one request and exit
 	oneOpt   = {} # options for one request from terminal
 	#
-	try:
-		opts, args = getopt.getopt(argv,"dvhm:M:Y:T:",["--model", "--memory_specific", "--you", "--temperature"])
+try:
+		opts, args = getopt.getopt(argv,"dchm:M:Y:T:",["--debug", "--continue", "--model", "--memory_specific", "--you", "--temperature"])
 	except getopt.GetoptError:
 		opt_help = True
+	
 	#
 	for opt, arg in opts:
-		if opt=="-d":
+		if opt=="-d" or opt=="--debug":
 			Options['DEBUG'] = True
+		elif opt=="-c" or opt=="--continue":
+			Options['CONTINUE'] = True
 		elif opt=="-h":
 			opt_help = True
 		elif opt=="-v":

@@ -214,8 +214,8 @@ class ToolParser:
 		print("DEBUG FireToolInvocation() START, tool_invocations: {}".format(tool_invocations))
 		#
 		is_plan_mode = self.handle.Options.get('MODE') == 'plan'
-		plan_tools = ['createTask', 'createPlan', 'deleteTask', 'updateTask', 'viewTask', 'listTasks']
-		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks', 'jobDone', 'startBuild', 'createTask', 'createPlan', 'deleteTask', 'updateTask']
+		plan_tools = ['createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks']
+		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks', 'jobDone', 'startBuild', 'createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask']
 		#
 		# Sort to process createTask before other tools
 		def sort_key(inv):
@@ -268,6 +268,11 @@ class ToolParser:
 			else:
 				task = PlanBase.draft.createTask(instruction, title)
 				PlanBase.draft.save(plans_path)
+				# Save plan to PLAN.md (working dir + framework dir)
+				working_dir = self.handle.Options.get('working_dir')
+				framework_dir = self.handle.Options.get('path', '').rstrip('/')
+				from src.PlanSaver import PlanSaver
+				PlanSaver.save_plan(PlanBase.draft, working_dir, framework_dir)
 				return "Task created: {} | ID: {}".format(title if title else instruction[:50], task.id)
 			return "Plan created. Plan ID: {}".format(plan.id)
 
@@ -276,6 +281,11 @@ class ToolParser:
 			instructions = params.get('instructions', '')
 			if not PlanBase.draft:
 				plan = PlanBase.Create(title, instructions, plans_path)
+				# Save plan to PLAN.md (working dir + framework dir)
+				working_dir = self.handle.Options.get('working_dir')
+				framework_dir = self.handle.Options.get('path', '').rstrip('/')
+				from src.PlanSaver import PlanSaver
+				PlanSaver.save_plan(plan, working_dir, framework_dir)
 				return "Plan created. Plan ID: {}".format(plan.id)
 			else:
 				return str(PlanBase.draft.createPlan(title, instructions))
@@ -285,6 +295,48 @@ class ToolParser:
 			if plan_id:
 				return str(PlanBase.Delete(plan_id, plans_path))
 			return "Error: plan id required"
+
+		elif toolName == 'deletePlan':
+			plan_id = params.get('id')
+			if plan_id:
+				# Delete specific plan by ID
+				if PlanBase.draft and PlanBase.draft.id == plan_id:
+					PlanBase.draft = None
+				if plan_id in PlanBase.done:
+					del PlanBase.done[plan_id]
+				PlanBase.Delete(plan_id, plans_path)
+				return "Plan {} deleted".format(plan_id)
+			elif PlanBase.draft:
+				# Delete current draft
+				plan_id = PlanBase.draft.id
+				if plan_id in PlanBase.done:
+					del PlanBase.done[plan_id]
+				PlanBase.draft = None
+				PlanBase.Delete(plan_id, plans_path)
+				return "Draft plan {} deleted".format(plan_id)
+			return "No active plan to delete"
+
+		elif toolName == 'deleteDraft':
+			if not PlanBase.draft:
+				return "No draft plan to delete"
+			plan_id = PlanBase.draft.id
+			if plan_id in PlanBase.done:
+				del PlanBase.done[plan_id]
+			PlanBase.draft = None
+			PlanBase.Delete(plan_id, plans_path)
+			return "Draft plan {} deleted".format(plan_id)
+
+		elif toolName == 'deleteAllPlans':
+			import os
+			deleted = 0
+			if os.path.exists(plans_path):
+				for f in os.listdir(plans_path):
+					if f.endswith('.json'):
+						os.remove(os.path.join(plans_path, f))
+						deleted += 1
+			PlanBase.done = {}
+			PlanBase.draft = None
+			return "Deleted {} plan files".format(deleted)
 
 		elif toolName == 'updateTask':
 			task_id = params.get('id')
@@ -324,8 +376,16 @@ class ToolParser:
 			return "No active plan. Use createPlan first to create a new plan."
 
 		elif toolName == 'startBuild':
+			plan_id = params.get('planId')
 			if not PlanBase.draft:
-				return "No active plan. Use createPlan first."
+				if plan_id:
+					plan = Plan.load(plan_id, plans_path)
+					if plan:
+						PlanBase.draft = plan
+					else:
+						return "Plan {} not found".format(plan_id)
+				else:
+					return "No active plan. Use createPlan first."
 			first_task = None
 			for tid, task in PlanBase.draft.tasks.items():
 				if task.status == "pending":

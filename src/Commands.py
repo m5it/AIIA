@@ -114,6 +114,13 @@ class Commands():
 			"usage"      :"!PLAN [PREVIEW|VIEW|TASKS|STATUS] [task_id]",
 			"func"       :self.CMD_PLAN,
 		},
+		"START_BUILD":{
+			"name"       :"Start Build",
+			"description":"Start building from current draft or specific plan by ID.",
+			"regex"      :r"^!START_BUILD(\s+[\d\.]+)?$",
+			"usage"      :"!START_BUILD [planId]",
+			"func"       :self.CMD_START_BUILD,
+		},
 			"MEMORY_SPECIFIC":{
 				"name"       :"Memory Specific",
 				"description":"Memory specific message from history.",
@@ -462,6 +469,15 @@ class Commands():
 		#--
 		# Depend if plan contain tasks then StartBuild() || <startBuild/> and auto continue to AI
 		return ret
+
+	def CMD_START_BUILD(self, inp=""):
+		from src.PlanManager import PlanBase, Plan
+		parts = inp.strip().split()
+		plan_id = parts[1] if len(parts) > 1 else None
+		if plan_id:
+			self.handle.hLG.echo("Loading plan {} and starting build...".format(plan_id), {'color':True, 'colorValue':'cyan'})
+		self.handle.StartBuild(plan_id)
+		return 2
 
 	def CMD_PLAN(self, inp=""):
 		import re

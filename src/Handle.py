@@ -6,6 +6,7 @@ from src.ToolChooser import ToolChooser
 from src.HistoryManager import HistoryManager
 from src.Log import Log
 from src.PlanManager import PlanBase, Plan, PlanTask
+from src.PlanSaver import PlanSaver
 #
 class Handle():
 	#
@@ -35,6 +36,30 @@ class Handle():
 		self.Options['handle_tools']  = {}
 		self.Options['current_tools'] = []
 		self.Options['AI_ROW_ID']     = 0
+		
+		# Handle -c / --continue flag
+		if self.Options.get('CONTINUE'):
+			self._load_continue_session()
+	
+	def _load_continue_session(self):
+		working_dir = self.Options.get('working_dir')
+		framework_dir = self.Options.get('path', '').rstrip('/')
+		
+		if not working_dir or working_dir == framework_dir:
+			working_dir = None
+		
+		# Load plan from PLAN.md
+		plan_data = PlanSaver.load_plan(working_dir, framework_dir)
+		if plan_data and plan_data.get('id'):
+			# Load the plan from JSON
+			loaded_plan = Plan.load(plan_data['id'], self.Options.get('plans_path', 'plans'))
+			if loaded_plan:
+				PlanBase.draft = loaded_plan
+				PlanBase.LoadAll(self.Options.get('plans_path', 'plans'))
+				self.hLG.echo("Loaded plan: {} ({} tasks)".format(loaded_plan.title, len(loaded_plan.tasks)), {'color':True, 'colorValue':'green'})
+		
+		# TODO: Load history from HISTORY.md if needed
+		# This would require parsing HISTORY.md back to msg objects
 	
 	#
 	def Response(self,role='user',opts=[]):
@@ -90,6 +115,11 @@ class Handle():
 		if opt_skip_history==False:
 			history_path = "{}/history/{}".format(self.Options.get('path', ''), self.Options['AI_FILE_HISTORY'])
 			fwrite(history_path,"{}\n".format(json.dumps(obj)),False)
+		
+		# Save to HISTORY.md (working dir + framework dir)
+		working_dir = self.Options.get('working_dir')
+		framework_dir = self.Options.get('path', '').rstrip('/')
+		PlanSaver.save_history(obj, working_dir, framework_dir)
 		
 		# Append to chat history. (All data of session)
 		self.hHM.msgs.append( obj )
@@ -265,7 +295,6 @@ AVAILABLE TOOLS (use exact names):
 	
 	#
 	def You(self, data=None, opts={}):
-		#print("DEBUG You() START, data(): {}".format( data ))
 		# Prepare user content
 		inp = data
 		#
@@ -342,8 +371,10 @@ AVAILABLE TOOLS (use exact names):
 				messages=msgs,
 				stream=True,
 				think=self.Options.get('MODE') == 'plan', # thinking enabled only in plan mode
-				#temperature=self.Options['AI_TEMPERATURE'],
-				options={'temperature':self.Options['AI_TEMPERATURE']}
+				# Available options keys:
+				# mirostat, mirostat_eta, mirostat_tau, num_ctx, repeat_last_n, repeat_penalty, temperature, seed, stop, num_predict, top_k, top_p, min_p
+				#options={'temperature':self.Options['AI_TEMPERATURE']}
+				options=self.Options['AI_OPTIONS'],
 			)
 			# Used if CTRL+C to save last/draft content to chat history
 			self.Options['DRAFT_RESPONSE'] = res
@@ -357,11 +388,19 @@ AVAILABLE TOOLS (use exact names):
 					return result['response']
 				return True
 
-	def StartBuild(self):
-		print("Handle.StartBuild() START")
+	def StartBuild(self, plan_id=None):
+		print("Handle.StartBuild() START, plan_id: {}".format(plan_id))
 		if not PlanBase.draft:
-			self.hLG.echo("No active plan. Use createPlan first.", {'color':True, 'colorValue':'red'})
-			return
+			if plan_id:
+				plan = Plan.load(plan_id, self.Options.get('plans_path', 'plans'))
+				if plan:
+					PlanBase.draft = plan
+				else:
+					self.hLG.echo("Plan {} not found".format(plan_id), {'color':True, 'colorValue':'red'})
+					return
+			else:
+				self.hLG.echo("No active plan. Use createPlan first.", {'color':True, 'colorValue':'red'})
+				return
 		first_task = None
 		for tid, task in PlanBase.draft.tasks.items():
 			if task.status == "pending":

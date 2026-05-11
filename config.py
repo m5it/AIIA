@@ -58,7 +58,7 @@ When all tasks are created, tell the user "Plan is ready! Type !MODE build to st
 
 # MODE: Build system prompt instructions
 mode_instructions_build = """
-You are in BUILD MODE. You are coding agent. Your role is to execute the tasks created in plan mode.
+You are in BUILD MODE. You are code agent. Your role is to execute the tasks created in plan mode.
 
 MODE: BUILD (Thinking DISABLED - be concise and direct)
 
@@ -131,9 +131,14 @@ Options         = {
 	"AI_MAX_CONTENT_LEN"  :20000,  # response content. if exceed, cancel response, append to chat history and append warning as role:user
 	"AI_MAX_SESSION_LEN"  :200000, # whole session content
 	"AI_LIVE"             :True,
-	"AI_TEMPERATURE"      :0.7,
+	# Available options keys:
+	# mirostat, mirostat_eta, mirostat_tau, num_ctx, repeat_last_n, repeat_penalty, temperature, seed, stop, num_predict, top_k, top_p, min_p
+	"AI_OPTIONS"          : {
+		"temperature" : 0.7,
+	},
 	#
 	"MODE"                :"build",  # "plan" or "build" mode
+	"CONTINUE"            :False,    # Continue from last session when True
 	#
 	"DRAFT_CONTENT"       : None,    # Used on CTRL+C to save draft to chat history
 	#
@@ -142,6 +147,7 @@ Options         = {
 	"actions_path"        :"{}/actions/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),
 	"history_path"        :"history",
 	"plans_path"         :"plans",
+	"working_dir"        :os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(os.path.abspath(__file__))),
 	#
 	"MODE_INSTRUCTIONS_PLAN":mode_instructions_plan,
 	"MODE_INSTRUCTIONS_BUILD":mode_instructions_build,
