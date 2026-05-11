@@ -58,18 +58,18 @@ def cleanup():
 	return False
 #
 def handle_exception(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, KeyboardInterrupt):
-        # Let KeyboardInterrupt propagate
-        print("Exception: Keyboard Interrupt: {}".format(exc_type),{'verbose':True})
-        return
-    # Extract traceback info
-    tb = traceback.extract_tb(exc_traceback)
-    # Get the last frame (most recent error)
-    frame = tb[-1]
-    filename, line, func, text = frame
-    print(f"Exception: {exc_type.__name__}: {exc_value} (line {line} in {filename})",{'verbose':True,})
-    # Optionally print full traceback
-    traceback.print_exception(exc_type, exc_value, exc_traceback)
+	if issubclass(exc_type, KeyboardInterrupt):
+		# Let KeyboardInterrupt propagate
+		print("Exception: Keyboard Interrupt: {}".format(exc_type),{'verbose':True})
+		return
+	# Extract traceback info
+	tb = traceback.extract_tb(exc_traceback)
+	# Get the last frame (most recent error)
+	frame = tb[-1]
+	filename, line, func, text = frame
+	print(f"Exception: {exc_type.__name__}: {exc_value} (line {line} in {filename})",{'verbose':True,})
+	# Optionally print full traceback
+	traceback.print_exception(exc_type, exc_value, exc_traceback)
 #
 atexit.register(cleanup)
 sys.excepthook = handle_exception
@@ -82,7 +82,7 @@ def Main(argv):
 	opt_one  = None # Send one request and exit
 	oneOpt   = {} # options for one request from terminal
 	#
-try:
+	try:
 		opts, args = getopt.getopt(argv,"dchm:M:Y:T:",["--debug", "--continue", "--model", "--memory_specific", "--you", "--temperature"])
 	except getopt.GetoptError:
 		opt_help = True

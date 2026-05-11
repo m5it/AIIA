@@ -365,7 +365,7 @@ AVAILABLE TOOLS (use exact names):
 			#
 			# Chat without tools, normal chat (XML tools handle themselves)
 			self.hLG.echo("DEBUG preparing chat (iteration {})".format(iteration),{'color':False})
-			print("DEBUG before chat() num msgs.len: {}".format( len(msgs) ))
+			print("DEBUG before chat() num msgs.len: {}, mode: {}".format( len(msgs), self.Options.get('MODE') ))
 			res: ChatResponse = chat(
 				self.Options['AI_MODEL'],
 				messages=msgs,
