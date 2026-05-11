@@ -152,9 +152,11 @@ All configuration lives in `config.py`:
 
 ```
 OurAI/
-├── run.py                        # Entry point — CLI flag parsing, main loop
-├── config.py                     # All configuration & system prompts
-├── start.sh                      # Startup script (auto-setup, path resolution)
+├── OurAI                          # Install script — sudo ./OurAI -l to install globally
+├── run.py                         # Entry point — CLI flag parsing, main loop
+├── config.py                      # All configuration & system prompts
+├── start.sh                       # Startup script (auto-setup, path resolution)
+├── exports.sh                     # Ollama env vars (OLLAMA_KEEP_ALIVE, OLLAMA_HOST)
 ├── AGENTS.md                     # Development notes & conventions
 ├── PLAN.md                       # Current/active plan (working dir only)
 ├── HISTORY.md                    # Session transcript (working dir only)
