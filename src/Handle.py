@@ -165,7 +165,7 @@ AVAILABLE TOOLS (use exact names):
 - ReadFile: Read file from work/. Params: <fileName>
 - WriteFile: Write file to work/. Params: <fileName>, <contentOfFile>
 - AppendFile: Append to file in work/. Params: <fileName>, <contentOfFile>
-- CreateFile: Create new file in work/ (fails if exists). Params: <fileName>, <content>
+- CreateFile: Create new file in work/ (fails if exists). Params: <fileName>, <contentOfFile>
 - List: List files in a path. Params: [<path>] (optional)
 - listTools: Show all available tools. No params.
 - ExecuteScript: Run script (.py, .sh, .js, etc). Params: <fileName>, [<args>]
@@ -380,7 +380,6 @@ AVAILABLE TOOLS (use exact names):
 			self.Options['DRAFT_RESPONSE'] = res
 			# Parse result (handles XML tool calls)
 			result = self.Parse(res,{'return_object':True})
-#
 			# Check if tools were executed by looking for tool invocations in result
 			if not result['invocations']:
 				# No more tool calls - return final response
@@ -418,7 +417,3 @@ AVAILABLE TOOLS (use exact names):
 			self.hLG.echo("Started build: Task {}/{}".format(task_number, total_tasks), {'color':True, 'colorValue':'green'})
 		else:
 			self.hLG.echo("No pending tasks in plan!", {'color':True, 'colorValue':'orange'})
-
-		# Max iterations reached
-		self.hLG.echo("WARNING: Max tool iterations ({}) reached".format(max_iterations), {'color':True, 'colorValue':'red'})
-		return True

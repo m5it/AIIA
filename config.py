@@ -69,21 +69,21 @@ IMPORTANT WORKFLOW:
 4. When all tasks are done, call <jobDone/> to finish the plan
 
 AVAILABLE TOOLS (use exact XML format):
-- Terminal: Execute terminal commands. Use ONLY for one-liner commands. For scripts or data processing, use WriteFile/CreateFile. Params: <arg1>, [<arg2>], ... (dynamic args)
-- ReadFile: Read file. Params: <fileName>
-- WriteFile: Write file. Use for content < 2048 bytes. For larger content, use WriteFile for first chunk then AppendFile. Params: <fileName>, <contentOfFile>
-- AppendFile: Append to file. Use for content > 2048 bytes or adding to existing files. Params: <fileName>, <contentOfFile>, [<fromLineNumber>]
-- CreateFile: Create new file (fails if exists). If file exists and you want to overwrite, use WriteFile instead. Params: <fileName>, <content>
-- List: List files. Prefer this over Terminal ls. Params: [<path>] (optional)
-- listTools: Show all tools. No params.
-- ExecuteScript: Run script (.py, .sh, .js, etc). Params: <fileName>, [<args>]
-- Grep: Search by regex. Prefer this over Terminal grep. Params: <pattern>, [<fileName>], [<recursive>]
-- Diff: Compare files. Params: <file1>, <file2>, [<unified>]
-- Sed: Find/replace. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
-- Find: Find by name. Prefer this over Terminal find. Params: <pattern>, [<path>]
-- Head: First N lines. Params: <fileName>, [<lines>]
-- Tail: Last N lines. Params: <fileName>, [<lines>]
-- Sort: Sort lines. Params: <fileName>, [<numeric>], [<reverse>], [<unique>]
+- <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Use ONLY for one-liner commands. For scripts or data processing, use WriteFile/CreateFile. Params: <arg1>, [<arg2>], ... (dynamic args)
+- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Params: <fileName>
+- <WriteFile><fileName>README.md</fileName><contentOfFile># Simple hello world app.</contentOfFile></WriteFile>: Write file. Use for content < 4096 bytes. For larger content, use WriteFile for first chunk then AppendFile. Params: <fileName>, <contentOfFile>
+- <AppendFile><fileName>README.md</fileName><contentOfFile># Second line</contentOfFile><fromLineNumber>1</fromLineNumber></AppendFile>: Append to file. Use for content > 4096 bytes or adding to existing files. Params: <fileName>, <contentOfFile>, [<fromLineNumber>]
+- <CreateFile><fileName>testfile.sh</fileName><contentOfFile># new content</contentOfFile></CreateFile>: Create new file (fails if exists). If file exists and you want to overwrite, use WriteFile instead. Params: <fileName>, <contentOfFile>
+- <List><path>.</path></List>: List files. Prefer this over Terminal ls. Params: [<path>] (optional)
+- <listTools/>: Show all tools. No params.
+- <ExecuteScript><fileName>ls</fileName><args>-l</args></ExecuteScript>: Run script (.py, .sh, .js, etc). Params: <fileName>, [<args>]
+- <Grep><pattern>search_term</pattern><fileName>file.txt</fileName><recursive>true</recursive></Grep>: Search by regex. Prefer this over Terminal grep. Params: <pattern>, [<fileName>], [<recursive>]
+- <Diff><file1>file1.txt</file1><file2>file2.txt</file2><unified>3</unified></Diff>: Compare files. Params: <file1>, <file2>, [<unified>]
+- <Sed><pattern>old_text</pattern><replacement>new_text</replacement><fileName>file.txt</fileName><inplace>true</inplace></Sed>: Find/replace. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
+- <Find><pattern>*.py</pattern><path>.</path></Find>: Find by name. Prefer this over Terminal find. Params: <pattern>, [<path>]
+- <Head><fileName>file.txt</fileName><lines>10</lines></Head>: First N lines. Params: <fileName>, [<lines>]
+- <Tail><fileName>file.txt</fileName><lines>10</lines></Tail>: Last N lines. Params: <fileName>, [<lines>]
+- <Sort><fileName>file.txt</fileName><numeric>true</numeric></Sort>: Sort lines. Params: <fileName>, [<numeric>], [<reverse>], [<unique>]
 
 PLAN MANAGEMENT TOOLS (use these to track progress):
 - <nextTask>completed</nextTask> - Mark current task completed, get next task
