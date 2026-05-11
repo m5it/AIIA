@@ -52,43 +52,37 @@ source .venv/bin/activate
 pip install ollama
 ```
 
-### Run
+### Run (from any directory)
 
+**Install globally (one-time):**
 ```bash
-# Activate environment (always needed)
+sudo ./OurAI -l    # Creates /usr/local/bin/ourai → start.sh
+```
+
+Now run `ourai` from **any** directory:
+```bash
+ourai                    # Start interactive session
+ourai -m gemma3:12b      # Use specific model
+ourai -c                 # Continue last unfinished plan
+ourai -Y "List all Python files"  # Single request
+ourai -d                 # Enable debug output
+ourai -T 0.8             # Set temperature
+ourai -h                 # Show help
+```
+
+**Uninstall:**
+```bash
+sudo ./OurAI -u    # Removes /usr/local/bin/ourai
+```
+
+**Without installing**, run directly:
+```bash
 source .venv/bin/activate
-
-# Start interactive session
-python run.py
-
-# Use a specific model
-python run.py -m gemma3:12b
-
-# Continue last unfinished plan
-python run.py -c
-
-# Single request, non-interactive
-python run.py -Y "List all Python files in this project"
-
-# Enable debug output
-python run.py -d
-
-# Set temperature
-python run.py -T 0.8
-
-# Show help
-python run.py -h
+python run.py              # or ./start.sh
+python run.py -m gemma3:12b -c
 ```
 
-### Using the Startup Script
-
-```bash
-# The start.sh script auto-detects project root, sets up environment, and runs
-./start.sh
-./start.sh -m gemma3:12b -c   # with flags
-```
-
-The script exports `OURAI_PROJECT_DIR` so tools and modules resolve paths correctly.
+The `start.sh`/`ourai` script auto-detects the project root, sets `OURAI_PROJECT_DIR`, creates required directories, activates the venv, and passes all flags to `run.py`.
 
 ---
 
