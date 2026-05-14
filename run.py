@@ -40,6 +40,7 @@ def Run(prepared=False):
 			hHA.hHM.GetLast()
 		elif x==3: # Break
 			#print("DEBUG run() in loop, break...")
+			Options['AI_LIVE'] = False
 			break
 #--
 #
@@ -47,15 +48,19 @@ def cleanup():
 	global Options,Stats
 	print("cleanup() START")
 	#
-	hHA = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", Options)
-	# Set current chat history back.
-	hHA.hHM.Update()
-	hHA.hHM.GetLast()
-	# Append `failed` response from assistant
-	hHA.hHM.CheckDraft()
-	#
-	Run(True)
-	return False
+	if Options['AI_LIVE']:
+		print("cleanup() REPEATING")
+		hHA = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", Options)
+		# Set current chat history back.
+		hHA.hHM.Update()
+		hHA.hHM.GetLast()
+		# Append `failed` response from assistant
+		hHA.hHM.CheckDraft()
+		#
+		Run(True)
+		return False
+	print("cleanup() QUITING")
+	return True
 #
 def handle_exception(exc_type, exc_value, exc_traceback):
 	if issubclass(exc_type, KeyboardInterrupt):
