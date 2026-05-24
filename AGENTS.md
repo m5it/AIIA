@@ -32,7 +32,7 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 </ToolName>
 ```
 
-**Available tools (14 total):**
+**Available tools (15 total):**
 - `ReadFile` — Read from `workin/` (params: `<fileName>`)
 - `WriteFile` — Write to `workout/` (params: `<fileName>`, `<contentOfFile>`)
 - `AppendFile` — Append in `workout/` (params: `<fileName>`, `<contentOfFile>`)
@@ -47,6 +47,7 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 - `Head` — First N lines (params: `<fileName>`, `<lines>` optional)
 - `Tail` — Last N lines (params: `<fileName>`, `<lines>` optional)
 - `Sort` — Sort lines (params: `<fileName>`, `<numeric>/<reverse>/<unique>` optional)
+- `WWW` — Fetch a web page via the Java web client (params: `<url>`) — also invocable as `<www>`
 
 **Example model output:**
 ```xml

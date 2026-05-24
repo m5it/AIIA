@@ -201,13 +201,32 @@ class ToolParser:
 			except Exception as E:
 				return "Error loading tool {}: {}".format(toolName, E)
 		#
-		# Execute the tool
+		# Validate and execute the tool
+		h = None
 		try:
 			h = self.handle.hTC.handles[toolName]['handle']
+			info = getattr(h, 'info', {})
+			required = info.get('parameters', {}).get('required', [])
+			missing = [r for r in required if r not in params or params[r] in (None, '')]
+			if missing:
+				return "Error: Missing required parameter(s): {}{}".format(
+					', '.join(missing), self._tool_usage(info))
 			result = h.run(**params)
 			return result
 		except Exception as E:
-			return "Error executing {}: {}".format(toolName, E)
+			info = getattr(h, 'info', {}) if h else {}
+			return "Error executing {}: {}{}".format(toolName, E, self._tool_usage(info))
+
+	def _tool_usage(self, info):
+		name = info.get('name', 'Tool')
+		params = info.get('parameters', {})
+		props = params.get('properties', {})
+		required = params.get('required', [])
+		parts = []
+		for pname, pinfo in props.items():
+			parts.append("<{pname}>{type_hint}</{pname}>".format(pname=pname, type_hint=pinfo.get('type', 'value')))
+		usage = "\nUsage:\n<{name}>\n{params}\n</{name}>".format(name=name, params='\n'.join(parts))
+		return usage
 	
 	#
 	def FireToolInvocation(self, tool_invocations):

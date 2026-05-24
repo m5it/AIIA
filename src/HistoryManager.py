@@ -31,8 +31,8 @@ class HistoryManager():
 		#
 		self.msgs = []
 		#
-		if os.path.exists( "{}/{}".format( self.opt_path, self.history )):
-			with open ( "{}/{}".format( self.opt_path, self.history) ) as tmp:
+		if os.path.exists( "{}{}/{}".format( self.opt_path, self.handle.Options['history_path'], self.history )):
+			with open ( "{}{}/{}".format( self.opt_path, self.handle.Options['history_path'], self.history) ) as tmp:
 				for line in tmp:
 					line = line.strip()
 					if line=="" or line==None or line=="\n":

@@ -177,7 +177,14 @@ class Commands():
 				"usage"      :"!LOAD textfile.txt Text of textfile.txt will be loaded with this text and sent to AIIA. This is example.",
 				"func"       :self.CMD_LOAD,
 			},
-			"HELP":{
+			"BUILD_THINK":{
+				"name"       :"Build Think",
+				"description":"Enable or disable thinking in build mode.",
+				"regex"      :r"^!BUILD_THINK(\s+(true|false))?$",
+				"usage"      :"!BUILD_THINK [true|false]",
+				"func"       :self.CMD_BUILD_THINK,
+			},
+		"HELP":{
 				"name"       :"Help",
 				"description":"Display of available actions.",
 				"regex"      :r"^!HELP+$",
@@ -470,6 +477,31 @@ class Commands():
 		# Depend if plan contain tasks then StartBuild() || <startBuild/> and auto continue to AI
 		return ret
 
+	def CMD_BUILD_THINK(self, inp=""):
+		parts = inp.strip().split()
+		if len(parts) < 2:
+			current = self.handle.Options.get('BUILD_THINKING_DISABLED', True)
+			print("Build thinking disabled: {}".format(current))
+			print("Usage: !BUILD_THINK true  (disable thinking)")
+			print("       !BUILD_THINK false (enable thinking)")
+			return 2
+		val = parts[1].strip().lower()
+		if val == 'true':
+			self.handle.Options['BUILD_THINKING_DISABLED'] = True
+			print("Build thinking DISABLED. Model will be concise and direct.")
+		elif val == 'false':
+			self.handle.Options['BUILD_THINKING_DISABLED'] = False
+			print("Build thinking ENABLED. Model can reason step by step.")
+		else:
+			print("Invalid value: {}. Use true or false.".format(val))
+			return 2
+		# Update system prompt with new thinking setting
+		if self.handle.hHM.msgs and self.handle.hHM.msgs[-1]['role'] == 'system':
+			self.handle.hHM.msgs[-1]['content'] = "{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) )
+		else:
+			self.handle.Response('system',{ 'content':"{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) ), })
+		return 2
+
 	def CMD_START_BUILD(self, inp=""):
 		from src.PlanManager import PlanBase, Plan
 		parts = inp.strip().split()
@@ -487,10 +519,8 @@ class Commands():
 
 		# Parse command
 		parts = inp.strip().split()
-		action = parts[0] if len(parts) > 0 else 'PREVIEW'
-		task_id = parts[1] if len(parts) > 1 else None
-
-		action = action.upper()
+		action = parts[1].upper() if len(parts) > 1 else 'PREVIEW'
+		task_id = parts[2] if len(parts) > 2 else None
 
 		if action == 'PREVIEW' or action == '':
 			# Show current plan overview

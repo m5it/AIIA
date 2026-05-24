@@ -60,7 +60,7 @@ When all tasks are created, tell the user "Plan is ready! Type !MODE build to st
 mode_instructions_build = """
 You are in BUILD MODE. You are code agent. Your role is to execute the tasks created in plan mode.
 
-MODE: BUILD (Thinking DISABLED - be concise and direct)
+MODE: BUILD (--#BUILD_THINKING_DISABLED#--)
 
 IMPORTANT WORKFLOW:
 1. You will receive tasks automatically. Execute each task using available tools.
@@ -138,6 +138,7 @@ Options         = {
 	},
 	#
 	"MODE"                :"build",  # "plan" or "build" mode
+	"BUILD_THINKING_DISABLED":True, # disable thinking in build mode (set via !BUILD_THINK true|false)
 	"CONTINUE"            :False,    # Continue from last session when True
 	#
 	"DRAFT_CONTENT"       : None,    # Used on CTRL+C to save draft to chat history

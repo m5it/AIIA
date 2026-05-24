@@ -30,12 +30,11 @@ class AppendFile():
 	#
 	def run(self, fileName, contentOfFile, fromLineNumber=None):
 		print("AppendFile.run() STARTING, {}, len: {}, fromLineNumber: {}".format(fileName, len(contentOfFile), fromLineNumber))
-		try:
-			if fromLineNumber is not None:
-				try:
-					fromLineNumber = int(fromLineNumber)
-				except (ValueError, TypeError):
-					fromLineNumber = -1
+		if fromLineNumber is not None:
+			try:
+				fromLineNumber = int(fromLineNumber)
+			except (ValueError, TypeError):
+				fromLineNumber = -1
 		try:
 			file_path = fileName
 			

@@ -69,5 +69,11 @@ class Prepare():
 		if mode == 'plan':
 			return self.handle.Options['MODE_INSTRUCTIONS_PLAN']
 		else:  # build mode
-			return self.handle.Options['MODE_INSTRUCTIONS_BUILD']
+			text = self.handle.Options['MODE_INSTRUCTIONS_BUILD']
+			disabled = self.handle.Options.get('BUILD_THINKING_DISABLED', True)
+			if disabled:
+				text = text.replace('--#BUILD_THINKING_DISABLED#--', 'Thinking DISABLED - be concise and direct')
+			else:
+				text = text.replace('--#BUILD_THINKING_DISABLED#--', 'Thinking ENABLED - you can reason step by step')
+			return text
 
