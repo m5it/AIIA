@@ -209,11 +209,13 @@ class ToolParser:
 			required = info.get('parameters', {}).get('required', [])
 			missing = [r for r in required if r not in params or params[r] in (None, '')]
 			if missing:
+				self.handle.tool_errors += 1
 				return "Error: Missing required parameter(s): {}{}".format(
 					', '.join(missing), self._tool_usage(info))
 			result = h.run(**params)
 			return result
 		except Exception as E:
+			self.handle.tool_errors += 1
 			info = getattr(h, 'info', {}) if h else {}
 			return "Error executing {}: {}{}".format(toolName, E, self._tool_usage(info))
 
@@ -246,10 +248,13 @@ class ToolParser:
 			return 0
 		tool_invocations = sorted(tool_invocations, key=sort_key)
 		#
+		job_done = False
 		for inv in tool_invocations:
 			print("DEBUG FireToolInvocation() name: {}".format(inv['name']))
 			toolName = inv['name']
 			params   = inv['parameters']
+			#
+			self.handle.tool_iteration += 1
 			#
 			# Show user what tool is being called (preview)
 			params_str = ', '.join(['{}={}'.format(k, v) for k, v in params.items()])
@@ -271,6 +276,14 @@ class ToolParser:
 				result_str = result_str[:MAX_PREVIEW] + "... (truncated, {} chars total)".format(len(str(result)))
 			#
 			self.handle.hLG.echo("✓ Result: {}".format(result_str), {'color':True, 'colorValue':'green'})
+			#
+			# Track jobDone to signal Parse/AI loop
+			if toolName == 'jobDone':
+				job_done = True
+			# Reset error counter on success
+			if not str(result).startswith('Error'):
+				self.handle.tool_errors = 0
+		self.handle.hLG.echo("--- Tool iterations: {} | errors: {}".format(self.handle.tool_iteration, self.handle.tool_errors), {'color':True, 'colorValue':'cyan'})
 		return result
 	#
 	def HandlePlanTool(self, toolName, params):

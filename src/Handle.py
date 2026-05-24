@@ -27,6 +27,8 @@ class Handle():
 		self.hPP     = initmodule(importmodule("Prepare",True,{'path':'src'}),"Prepare",{'handle':self,})
 		self.hHM     = initmodule(importmodule("HistoryManager",True,{'path':'src'}),"HistoryManager",{'handle':self,'quiet':self.Options['QUIET'],'path':self.Options['path']})
 		self.hPM     = PlanBase
+		self.tool_iteration = 0
+		self.tool_errors    = 0
 	
 	#
 	def Init(self):
@@ -151,35 +153,9 @@ class Handle():
 				system_exists = True
 				break
 		if not system_exists:
-			# Add default system message without prompting user
-			system_msg = """You are code agent and my best friend.
-
-CRITICAL INSTRUCTION: When user asks you to do something, you MUST USE XML TOOLS to do it.
-
-NEVER write bash scripts that mention tools as strings. ALWAYS USE XML TOOLS DIRECTLY.
-
-EXAMPLES OF XML TOOL USAGE:
-- <ReadFile><fileName>test.txt</fileName></ReadFile>
-- <WriteFile><fileName>output.txt</fileName><contentOfFile>Hello</contentOfFile></WriteFile>
-- <List></List>
-- <Grep><pattern>TODO</pattern></Grep>
-
-AVAILABLE TOOLS (use exact names):
-- ReadFile: Read file from work/. Params: <fileName>
-- WriteFile: Write file to work/. Params: <fileName>, <contentOfFile>
-- AppendFile: Append to file in work/. Params: <fileName>, <contentOfFile>
-- CreateFile: Create new file in work/ (fails if exists). Params: <fileName>, <contentOfFile>
-- List: List files in a path. Params: [<path>] (optional)
-- listTools: Show all available tools. No params.
-- ExecuteScript: Run script (.py, .sh, .js, etc). Params: <fileName>, [<args>]
-- Grep: Search files by regex pattern. Params: <pattern>, [<fileName>], [<recursive>]
-- Diff: Compare two files. Params: <file1>, <file2>, [<unified>]
-- Sed: Find/replace in files. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
-- Find: Find files by name pattern. Params: <pattern>, [<path>]
-- Head: Show first N lines of file. Params: <fileName>, [<lines>]
-- Tail: Show last N lines of file. Params: <fileName>, [<lines>]
-- Sort: Sort lines in file. Params: <fileName>, [<numeric>  [<reverse>], [<unique>]
-"""
+			# Add mode instructions from config
+			mode = self.Options.get('MODE', 'build')
+			system_msg = self.hPP._get_mode_instructions(mode)
 			self.Response('system',{'content':system_msg})
 		#
 		self.You( data, opts )
@@ -235,6 +211,8 @@ AVAILABLE TOOLS (use exact names):
 		if tool_invocations:
 			self.hLG.echo("Parse() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
 			#
+			job_done = any(inv['name'] == 'jobDone' for inv in tool_invocations)
+			#
 			result = self.hTP.FireToolInvocation(tool_invocations)
 			#
 			# Handle nextTask response in build mode - auto-add next task to history
@@ -259,7 +237,7 @@ AVAILABLE TOOLS (use exact names):
 							self.Response('user', {'content': "{} - {}".format(task_info, instruction)})
 			#
 			# Return the original response so caller knows tools were executed
-			return {'invocations': tool_invocations, 'response': response['content'] }
+			return {'invocations': tool_invocations, 'response': response['content'], 'job_done': job_done }
 		#
 		if opt_return_object:
 			return {'invocations': tool_invocations, 'response': response['content'] }
@@ -347,25 +325,25 @@ AVAILABLE TOOLS (use exact names):
 		opt_return_object = opts['return_object'] if 'return_object' in opts else False
 		#
 		# Loop to handle multiple rounds of tool calls
-		max_iterations = 5  # Prevent infinite loops
+		max_iterations = 10
 		iteration = 0
-		#
+
 		while iteration < max_iterations:
 			print("DEBUG AI Iteration {}".format( iteration ))
 			iteration += 1
-			#
+
 			result        = ""
 			res           = {}
 			msgs          = [] # temporary array of messages to send to AIIA
-			#
+
 			for msg in self.hHM.msgs: # loop trough array of current history messages that you wish to include for AIIA
 				msgs.append( msg )
-			#
+
 			# Nothing to send to AIIA, continue to user input!
 			if len(msgs)<=0:
 				print("WARNING: msgs len is 0, Repeating user_input!")
 				return 2 # as continue
-			#
+
 			# Chat without tools, normal chat (XML tools handle themselves)
 			self.hLG.echo("DEBUG preparing chat (iteration {})".format(iteration),{'color':False})
 			print("DEBUG before chat() num msgs.len: {}, mode: {}".format( len(msgs), self.Options.get('MODE') ))
@@ -383,6 +361,17 @@ AVAILABLE TOOLS (use exact names):
 			self.Options['DRAFT_RESPONSE'] = res
 			# Parse result (handles XML tool calls)
 			result = self.Parse(res,{'return_object':True})
+
+			# Stop if model response is empty (no content, no tools)
+			if not result.get('response', '').strip() and not result.get('invocations'):
+				print("DEBUG AI empty response, stopping iteration")
+				return True
+
+			# Stop if jobDone was called
+			if result.get('job_done'):
+				print("DEBUG AI jobDone detected, stopping iteration")
+				return True
+
 			# Check if tools were executed by looking for tool invocations in result
 			if not result['invocations']:
 				# No more tool calls - return final response
