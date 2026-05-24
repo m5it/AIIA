@@ -63,9 +63,11 @@ class Prepare():
 		self.handle.hHM.Choose()
 		# Tools will be loaded dynamically when model invokes them via XML
 		return True
-
+	
+	#
 	def _get_mode_instructions(self, mode):
 		if mode == 'plan':
 			return self.handle.Options['MODE_INSTRUCTIONS_PLAN']
 		else:  # build mode
 			return self.handle.Options['MODE_INSTRUCTIONS_BUILD']
+

@@ -459,7 +459,7 @@ class Commands():
 		# Prepare()._get_mode_instructions( 'build' )
 		#--
 		# Replace current system prompt because is last in chat history
-		if self.handle.hHM.msgs[-1]['role'] == 'system':
+		if self.handle.hHM.msgs and self.handle.hHM.msgs[-1]['role'] == 'system':
 			print("DEBUG Commands.CMD_MODE( {} ) replacing system prompt".format( self.handle.Options['MODE'] ))
 			self.handle.hHM.msgs[-1]['content'] = "{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) )
 		# Append new system prompt

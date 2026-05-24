@@ -7,15 +7,17 @@ class HistoryManager():
 		#print("HistoryManager.__init__() START, DEBUG, opts: ",opts)
 		self.handle    = opts['handle'] if 'handle' in opts else False
 		self.opt_quiet = opts['quiet'] if 'quiet' in opts else False
-		self.opt_path  = opts['path'] if 'path' in opts else ""
+		self.opt_path  = opts['path'] if 'path' in opts else self.handle.Options['history_path']
 		self.handle.hLG.echo("HistoryManager.__init__() STARTED!",{'color':True})
 		
-		self.choosed   = False
 		self.history   = "" # name of choosed history file
 		self.available = []
 		self.msgs      = []
+		# count tokens
+		self.token_prompt   = 0
+		self.token_response = 0
 	
-	# update self.available
+	# update self.available (list history files)
 	def Update(self):
 		#
 		self.available = []
@@ -24,21 +26,17 @@ class HistoryManager():
 			if rmatch(tmp,"^\d+\..*"):
 				self.available.append(tmp)
 	
-	# method get() - load chat history from history/ some file 
+	# method get() - load chat history from history/ some file (append to self.msgs)
 	def Get(self):
-		#print("HistoryManager.get() START on history: {}".format( self.history ))
 		#
 		self.msgs = []
 		#
-		#if os.path.exists( "{}/{}".format( self.handle.Options['history_path'], self.history )):
-		if os.path.exists( "{}{}/{}".format( self.opt_path, self.handle.Options['history_path'], self.history )):
-		#	print("HistoryManager.get() loading history from: {}".format( self.history ))
-			with open ( "{}{}/{}".format( self.opt_path, self.handle.Options['history_path'], self.history) ) as tmp:
+		if os.path.exists( "{}/{}".format( self.opt_path, self.history )):
+			with open ( "{}/{}".format( self.opt_path, self.history) ) as tmp:
 				for line in tmp:
 					line = line.strip()
 					if line=="" or line==None or line=="\n":
 						continue
-		#			print("HistoryManager.get() Loading history line: {}".format(line))
 					self.msgs.append( json.loads(line) )
 	
 	#
@@ -71,17 +69,17 @@ class HistoryManager():
 	#
 	def Choose(self):
 		self.handle.hLG.echo("Choose history START...: ",{'color':True,'colorValue':'orange','debugOnly':False})
-		self.choosed = False
+		choosed = False
 		self.available    = []
 		#
 		self.Available()
 		#
-		while self.choosed==False and len(self.available):
+		while choosed==False and len(self.available):
 			self.handle.hLG.echo("Choose available number (x to cancel): ",{'color':True,'colorValue':'orange','debugOnly':False})
 			tmp = user_input()
 			if tmp == 'x':
 				self.handle.hLG.echo("Canceling...",{'color':True,'colorValue':'red','debugOnly':False})
-				self.choosed = True
+				choosed = True
 				break
 			elif tmp[0] == 'v':
 				print("Viewing history {}".format(tmp))
@@ -98,7 +96,7 @@ class HistoryManager():
 				print("Loading history, loading file: {}".format(self.history))
 				self.Get()
 				print("Loading history, self.msgs.len: {}".format( len(self.msgs) ))
-				self.choosed = True
+				choosed = True
 			except Exception as E:
 				print("Choosing history failed, error: {}".format(E))
 	

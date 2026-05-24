@@ -27,6 +27,7 @@ class Handle():
 		self.hPP     = initmodule(importmodule("Prepare",True,{'path':'src'}),"Prepare",{'handle':self,})
 		self.hHM     = initmodule(importmodule("HistoryManager",True,{'path':'src'}),"HistoryManager",{'handle':self,'quiet':self.Options['QUIET'],'path':self.Options['path']})
 		self.hPM     = PlanBase
+	
 	#
 	def Init(self):
 		#
@@ -41,6 +42,7 @@ class Handle():
 		if self.Options.get('CONTINUE'):
 			self._load_continue_session()
 	
+	#
 	def _load_continue_session(self):
 		working_dir = self.Options.get('working_dir')
 		framework_dir = self.Options.get('path', '').rstrip('/')
@@ -57,9 +59,11 @@ class Handle():
 				PlanBase.draft = loaded_plan
 				PlanBase.LoadAll(self.Options.get('plans_path', 'plans'))
 				self.hLG.echo("Loaded plan: {} ({} tasks)".format(loaded_plan.title, len(loaded_plan.tasks)), {'color':True, 'colorValue':'green'})
-		
 		# TODO: Load history from HISTORY.md if needed
 		# This would require parsing HISTORY.md back to msg objects
+		print("DEBUG Handle._load_continue_session() history: {}".format( "{}/HISTORY.md".format(working_dir) ))
+		if working_dir is not None and os.path.exists("{}/HISTORY.md".format(working_dir)):
+			self.hHM.Get({"path":"{}/HISTORY.md".format(working_dir),})
 	
 	#
 	def Response(self,role='user',opts=[]):
@@ -385,7 +389,8 @@ AVAILABLE TOOLS (use exact names):
 				if opt_return_object:
 					return result['response']
 				return True
-
+	
+	#
 	def StartBuild(self, plan_id=None):
 		print("Handle.StartBuild() START, plan_id: {}".format(plan_id))
 		if not PlanBase.draft:
