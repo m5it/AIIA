@@ -1,9 +1,17 @@
 package com.example.wwwjs;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,6 +42,8 @@ public class wwwjs {
 		String screenshotPath = null;
 		String cookieFile = null;
 		String outputFile = null;
+		boolean serverMode = false;
+		int serverPort = 0;
 
 		int i = 0;
 		while (i < args.length) {
@@ -85,6 +95,18 @@ public class wwwjs {
 					if (i + 1 < args.length) outputFile = args[++i];
 					else { System.err.println("Error: -o requires a file path"); System.exit(1); }
 					break;
+				case "--server":
+					serverMode = true;
+					break;
+				case "--port":
+					if (i + 1 < args.length) {
+						try { serverPort = Integer.parseInt(args[++i]); }
+						catch (NumberFormatException e) {
+							System.err.println("Error: --port requires a number");
+							System.exit(1);
+						}
+					} else { System.err.println("Error: --port requires a value"); System.exit(1); }
+					break;
 				case "-h":
 				case "--help":
 					printUsage();
@@ -109,13 +131,22 @@ public class wwwjs {
 		if (waitSelector == null) waitSelector = loadConfigValue(configPath, "selector", null);
 		if (cookieFile == null) cookieFile = loadConfigValue(configPath, "cookieFile", null);
 
+		int timeoutSec = loadTimeout(configPath);
+
+		// --- Server mode: start socket server and loop ---
+
+		if (serverMode) {
+			runServer(serverPort, browserMode, cookieFile, timeoutSec);
+			return;
+		}
+
+		// --- One-shot mode (original behavior) ---
+
 		if (url == null) {
 			System.err.println("Error: URL is required");
 			printUsage();
 			System.exit(1);
 		}
-
-		int timeoutSec = loadTimeout(configPath);
 
 		// Screenshot mode
 		if (screenshotPath != null) {
@@ -180,6 +211,75 @@ public class wwwjs {
 		} else {
 			System.out.print(output);
 		}
+	}
+
+	// --- Socket server ---
+
+	static void runServer(int port, boolean browserMode, String cookieFile, int timeoutSec) throws Exception {
+		HeadlessWebRender.init();
+
+		CountDownLatch shutdownLatch = new CountDownLatch(1);
+
+		// If browser mode, make an initial blank load so the window appears
+		if (browserMode) {
+			System.err.println("Starting browser server mode (window will appear)...");
+			// Trigger browser window creation by loading a blank page
+			HeadlessWebRender.renderBrowser("about:blank", 0, null, 5, cookieFile, shutdownLatch);
+		}
+
+		try (ServerSocket ss = new ServerSocket(port)) {
+			System.out.println("SERVER_PORT=" + ss.getLocalPort());
+			System.err.println("wwwjs server listening on port " + ss.getLocalPort());
+
+			while (true) {
+				// Check for shutdown (e.g., browser window closed)
+				if (shutdownLatch.getCount() == 0) {
+					System.err.println("Browser window closed, shutting down...");
+					break;
+				}
+
+				// Accept with timeout so we can check shutdownLatch periodically
+				ss.setSoTimeout(1000);
+				Socket s;
+				try {
+					s = ss.accept();
+				} catch (java.net.SocketTimeoutException e) {
+					continue;
+				}
+
+				try {
+					BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
+					PrintWriter writer = new PrintWriter(new OutputStreamWriter(s.getOutputStream()), true);
+
+					String jsonCmd = reader.readLine();
+					if (jsonCmd == null || jsonCmd.isEmpty()) {
+						writer.println("{\"status\":\"error\",\"data\":\"Empty command\"}");
+						s.close();
+						continue;
+					}
+
+					// Check for server-level shutdown
+					JSONObject cmd = new JSONObject(jsonCmd);
+					if (cmd.optBoolean("shutdown", false) || cmd.optBoolean("quit", false)) {
+						writer.println("{\"status\":\"ok\",\"data\":\"shutting down\"}");
+						s.close();
+						break;
+					}
+
+					String result = HeadlessWebRender.fetch(jsonCmd, shutdownLatch);
+					writer.println(result);
+				} catch (Exception e) {
+					System.err.println("Server request error: " + e.getMessage());
+					PrintWriter w = new PrintWriter(new OutputStreamWriter(s.getOutputStream()), true);
+					w.println("{\"status\":\"error\",\"data\":\"Server error: " + e.getMessage() + "\"}");
+				} finally {
+					try { s.close(); } catch (Exception ignored) {}
+				}
+			}
+		}
+
+		HeadlessWebRender.shutdown();
+		System.err.println("wwwjs server stopped.");
 	}
 
 	// --- Output formatting ---
@@ -349,7 +449,18 @@ public class wwwjs {
 		System.out.println("  --cookie-file <path>         Cookie store file (saves cookies in browser mode)");
 		System.out.println("  --screenshot <file>          Save rendered page as PNG screenshot");
 		System.out.println("  -o <file>                    Save output to file (instead of stdout)");
+		System.out.println("  --server                     Run in server mode (socket server, one-shot by default)");
+		System.out.println("  --port <num>                 Server port (default: 0 = random, printed to stdout)");
 		System.out.println("  -h, --help                   Show this help");
+		System.out.println();
+		System.out.println("Server mode:");
+		System.out.println("  First stdout line: SERVER_PORT=<port>");
+		System.out.println("  Send JSON commands over TCP socket, one per connection:");
+		System.out.println("    {\"url\":\"...\", \"text\":true, \"wait\":2000}");
+		System.out.println("    {\"show\":true} / {\"hide\":true}  (show/hide browser window)");
+		System.out.println("    {\"shutdown\":true}              (stop server)");
+		System.out.println("  Response JSON:");
+		System.out.println("    {\"status\":\"ok\",\"data\":\"...\"}");
 		System.out.println();
 		System.out.println("Config file (config.json):");
 		System.out.println("  {");
