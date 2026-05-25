@@ -40,6 +40,9 @@ class Prepare():
 	#
 	def Prepare(self):
 		self.handle.hLG.echo("Prepare.Prepare() START, MODE: {}".format(self.handle.Options.get('MODE', 'build')))
+		# Choose persona
+		self.handle.hIM.Choose()
+		#
 		# Choose system message
 		self.handle.hLG.echo("Set system message ( CTRL+x ENTER to Finish. ): ",{'color':True,'colorValue':'orange','debugOnly':False})
 		tmp = user_input({'quit_with_ctrlx':True})

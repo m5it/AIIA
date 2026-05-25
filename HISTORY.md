@@ -5825,3 +5825,155 @@ this was just a test for you. now we are going to install it on stronger machine
 
 ---
 
+## [04:09] SYSTEM
+testing tools, plannings, framework to know better how to continue with updates
+> 
+> 
+> You are in BUILD MODE. You are code agent. Your role is to execute the tasks created in plan mode.
+> 
+> MODE: BUILD (Thinking ENABLED - you can reason step by step)
+> 
+> IMPORTANT WORKFLOW:
+> 1. You will receive tasks automatically. Execute each task using available tools.
+> 2. When a task is completed, call <nextTask>completed</nextTask>
+> 3. If blocked, call <nextTask>blocked</nextTask> with explanation
+> 4. When all tasks are d...
+> (truncated, 4249 chars total)
+
+---
+
+## [04:09] USER
+<www><url>https://www.lokkal.com</url></www>
+> 
+
+---
+
+## [04:09] tool: www
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+> <html>
+>   <head>
+> 	<title>
+> 		Lokkal: La Plaza Digital / Digital Town Square
+> 	</title>
+>     <meta property="og:title" content="Lokkal: La Plaza Digital / Digital Town Square"/>
+>     <meta property="og:image" content="https://www.lokkal.com/img/og2.jpg" />
+>     <meta property="og:site_name" content="Lokkal"/>
+>     <meta property="og:description" content="Lokkal is the Digital Town Sq...
+> (truncated, 13568 chars total)
+
+---
+
+## [04:10] USER
+cool. we can access web as well.. what you say? :)
+
+---
+
+## [04:13] SYSTEM
+
+> You are in BUILD MODE. You are code agent. Your role is to execute the tasks created in plan mode.
+> 
+> MODE: BUILD (Thinking ENABLED - you can reason step by step)
+> 
+> IMPORTANT WORKFLOW:
+> 1. You will receive tasks automatically. Execute each task using available tools.
+> 2. When a task is completed, call <nextTask>completed</nextTask>
+> 3. If blocked, call <nextTask>blocked</nextTask> with explanation
+> 4. When all tasks are done, call <jobDone/> to finish the plan
+> 
+> AVAILABLE TOOLS (use exact XML format):
+> ...
+> (truncated, 4168 chars total)
+
+---
+
+## [04:14] USER
+<www><url>http://localhost:1337/index.html</url></www> works?
+
+---
+
+## [05:52] SYSTEM
+
+> You are in BUILD MODE. You are code agent. Your role is to execute the tasks created in plan mode.
+> 
+> MODE: BUILD (Thinking ENABLED - you can reason step by step)
+> 
+> IMPORTANT WORKFLOW:
+> 1. You will receive tasks automatically. Execute each task using available tools.
+> 2. When a task is completed, call <nextTask>completed</nextTask>
+> 3. If blocked, call <nextTask>blocked</nextTask> with explanation
+> 4. When all tasks are done, call <jobDone/> to finish the plan
+> 
+> AVAILABLE TOOLS (use exact XML format):
+> ...
+> (truncated, 4168 chars total)
+
+---
+
+## [05:56] SYSTEM
+
+> You are in BUILD MODE. You are code agent. Your role is to execute the tasks created in plan mode.
+> 
+> MODE: BUILD (Thinking ENABLED - you can reason step by step)
+> 
+> IMPORTANT WORKFLOW:
+> 1. You will receive tasks automatically. Execute each task using available tools.
+> 2. When a task is completed, call <nextTask>completed</nextTask>
+> 3. If blocked, call <nextTask>blocked</nextTask> with explanation
+> 4. When all tasks are done, call <jobDone/> to finish the plan
+> 
+> AVAILABLE TOOLS (use exact XML format):
+> ...
+> (truncated, 4168 chars total)
+
+---
+
+## [05:57] SYSTEM
+
+> You are in BUILD MODE. You are code agent. Your role is to execute the tasks created in plan mode.
+> 
+> MODE: BUILD (Thinking ENABLED - you can reason step by step)
+> 
+> IMPORTANT WORKFLOW:
+> 1. You will receive tasks automatically. Execute each task using available tools.
+> 2. When a task is completed, call <nextTask>completed</nextTask>
+> 3. If blocked, call <nextTask>blocked</nextTask> with explanation
+> 4. When all tasks are done, call <jobDone/> to finish the plan
+> 
+> AVAILABLE TOOLS (use exact XML format):
+> ...
+> (truncated, 4168 chars total)
+
+---
+
+## [05:58] USER
+<www><url>https://www.lokkal.com</url></www>  test www...
+> 
+
+---
+
+## [05:58] tool: www
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+> <html>
+>   <head>
+> 	<title>
+> 		Lokkal: La Plaza Digital / Digital Town Square
+> 	</title>
+>     <meta property="og:title" content="Lokkal: La Plaza Digital / Digital Town Square"/>
+>     <meta property="og:image" content="https://www.lokkal.com/img/og2.jpg" />
+>     <meta property="og:site_name" content="Lokkal"/>
+>     <meta property="og:description" content="Lokkal is the Digital Town Sq...
+> (truncated, 13567 chars total)
+
+---
+
+## [06:21] SYSTEM
+Thinking ENABLED - you can reason step by step
+> You are a friendly chat companion. Be warm, casual, and conversational. Keep responses natural and engaging. Listen actively, ask follow-up questions, and maintain a relaxed tone.
+
+---
+
+## [06:21] USER
+hello
+
+---
+

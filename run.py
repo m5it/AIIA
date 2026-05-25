@@ -20,6 +20,7 @@ def Help():
 	print("-d                         # Debug")
 	print("-m [model_name]            # Choose model")
 	print("-M [history_num]           # Memorize specific history")
+	print("-p [persona_name]          # Choose persona (e.g. Developer, Friend, SysAdmin)")
 	print("-Y [content_data]          # Set data / content to send as request to AIIA.")
 	print()
 #
@@ -88,7 +89,7 @@ def Main(argv):
 	oneOpt   = {} # options for one request from terminal
 	#
 	try:
-		opts, args = getopt.getopt(argv,"dchm:M:Y:T:",["--debug", "--continue", "--model", "--memory_specific", "--you", "--temperature"])
+		opts, args = getopt.getopt(argv,"dchm:M:Y:T:p:",["--debug", "--continue", "--model", "--memory_specific", "--you", "--temperature", "--persona"])
 	except getopt.GetoptError:
 		opt_help = True
 	
@@ -115,6 +116,9 @@ def Main(argv):
 		elif opt=="-T":
 			print("AIIA => Setting temperature: {}".format( float(arg) ))
 			Options['AI_TEMPERATURE'] = float(arg)
+		elif opt=="-p" or opt=="--persona":
+			Options['INSTRUCT_CLASS'] = arg
+			Options['INSTRUCT_CLASS_OVERRIDE'] = True
 	#
 	hHA      = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", Options)
 	hHA.Init()

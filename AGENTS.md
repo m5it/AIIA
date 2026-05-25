@@ -83,6 +83,43 @@ Mode instructions (system prompts for plan/build modes) live in `instruct/` as p
 - Default model: `gemma3:12b` — change with `-m` flag
 - LM Studio SDK in `package.json` but not used by Python code (Node deps appear unused)
 
+## Cookie Sharing
+
+The model can use a shared cookie file so `WWW` and `WWWJS` tools stay logged in across calls.
+
+**Setup in `config.py`:**
+```python
+"COOKIE_FILE" : "tools/cookies.json",  # relative to project root, or absolute path
+```
+
+**Usage flow:**
+
+1. Prepare cookies once (solve captcha / accept consent):
+   ```xml
+   <WWWJS>
+   <url>https://google.com</url>
+   <browser>true</browser>
+   </WWWJS>
+   ```
+   Close the browser window when done — cookies auto-save to `COOKIE_FILE`.
+
+2. Both tools now reuse those cookies automatically:
+   ```xml
+   <WWW>
+   <url>https://google.com/search?q=test</url>
+   <text>true</text>
+   </WWW>
+   ```
+   Or with JS rendering:
+   ```xml
+   <WWWJS>
+   <url>https://google.com/search?q=test</url>
+   <text>true</text>
+   </WWWJS>
+   ```
+
+When `COOKIE_FILE` is `None` (default), the tools work as before without cookies.
+
 ## Quirks
 
 - **Indentation**: code uses tabs (not spaces) despite being Python

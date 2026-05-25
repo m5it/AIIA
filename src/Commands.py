@@ -235,6 +235,12 @@ class Commands():
 		print("available tools  : {}".format( len(self.handle.hTC.available) ))
 		print("imported tools   : {}".format( len(self.handle.hTC.prepared) ))
 		print("-----------------")
+		print("Tokens          :")
+		print("  last_prompt    : {}".format( self.handle.Options['NUM_LAST_PROMPT_TOKENS'] ))
+		print("  last_response  : {}".format( self.handle.Options['NUM_LAST_RESPONSE_TOKENS'] ))
+		print("  total_prompt   : {}".format( self.handle.Options['NUM_PROMPT_TOKENS'] ))
+		print("  total_response : {}".format( self.handle.Options['NUM_RESPONSE_TOKENS'] ))
+		print("-----------------")
 		print("Options         :")
 		print("-----------------")
 		for k in self.handle.Options:

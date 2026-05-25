@@ -23,7 +23,7 @@ class HistoryManager():
 		#
 		self.available = []
 		#
-		for tmp in os.listdir("{}/".format( self.opt_path )):
+		for tmp in os.listdir("{}/history/".format( self.opt_path )):
 			if rmatch(tmp,"^\d+\..*"):
 				self.available.append(tmp)
 	

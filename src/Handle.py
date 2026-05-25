@@ -26,6 +26,7 @@ class Handle():
 		self.hTP     = initmodule(importmodule("ToolParser",True,{'path':'src'}),"ToolParser",{'logger':None,'handle':self,})
 		self.hPP     = initmodule(importmodule("Prepare",True,{'path':'src'}),"Prepare",{'handle':self,})
 		self.hHM     = initmodule(importmodule("HistoryManager",True,{'path':'src'}),"HistoryManager",{'handle':self,'quiet':self.Options['QUIET'],'path':self.Options['path']})
+		self.hIM     = initmodule(importmodule("InstructManager",True,{'path':'src'}),"InstructManager",{'handle':self,})
 		self.hPM     = PlanBase
 		self.tool_iteration = 0
 		self.tool_errors    = 0
@@ -128,6 +129,14 @@ class Handle():
 		
 		# Append to chat history. (All data of session)
 		self.hHM.msgs.append( obj )
+		# Track token counts (only for 'assistant' responses)
+		if role == 'assistant':
+			prompt_tokens = opts.get('prompt_tokens', 0)
+			response_tokens = opts.get('response_tokens', 0)
+			self.Options['NUM_LAST_PROMPT_TOKENS'] = prompt_tokens
+			self.Options['NUM_LAST_RESPONSE_TOKENS'] = response_tokens
+			self.Options['NUM_PROMPT_TOKENS'] = self.Options.get('NUM_PROMPT_TOKENS', 0) + prompt_tokens
+			self.Options['NUM_RESPONSE_TOKENS'] = self.Options.get('NUM_RESPONSE_TOKENS', 0) + response_tokens
 		return True
 	
 	#
@@ -201,7 +210,13 @@ class Handle():
 		response = self.Stream( res, color )
 		print("Debug response.len: ",len(response['content']))
 		#
-		self.Response('assistant',{'content':response['content'],'thinking':response['thinking'],'skip_history':opt_skip_history,})
+		self.Response('assistant',{
+			'content':response['content'],
+			'thinking':response['thinking'],
+			'skip_history':opt_skip_history,
+			'prompt_tokens':response.get('prompt_tokens', 0),
+			'response_tokens':response.get('response_tokens', 0),
+		})
 		#
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
 		#
@@ -249,8 +264,10 @@ class Handle():
 		thinking         = "" # thinking data
 		if_thinking      = False
 		if_speaking      = False
+		last_chunk       = None
 		#
 		for chunk in res:
+			last_chunk = chunk
 			# thinking
 			if chunk.message.thinking:
 				#
@@ -272,7 +289,13 @@ class Handle():
 				part = chunk['message']['content']
 				response += part
 				self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
-		return {'content':response, 'thinking':thinking}
+		# Extract token counts from final chunk (done=True)
+		prompt_tokens = 0
+		response_tokens = 0
+		if last_chunk and hasattr(last_chunk, 'done') and last_chunk.done:
+			prompt_tokens = last_chunk.prompt_eval_count or 0
+			response_tokens = last_chunk.eval_count or 0
+		return {'content':response, 'thinking':thinking, 'prompt_tokens':prompt_tokens, 'response_tokens':response_tokens}
 	
 	#
 	def You(self, data=None, opts={}):

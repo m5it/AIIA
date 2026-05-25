@@ -43,4 +43,12 @@ Options         = {
 	"history_path"        :"history",
 	"plans_path"         :"plans",
 	"working_dir"        :os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(os.path.abspath(__file__))),
+	#
+	"COOKIE_FILE"        : None,    # Path to shared cookie file for www/wwwjs web tools (e.g., "tools/cookies.json")
+	#
+	# Token counting (populated dynamically by Handle.py on each response)
+	"NUM_PROMPT_TOKENS"       :0,  # cumulative prompt tokens across session
+	"NUM_RESPONSE_TOKENS"     :0,  # cumulative response tokens across session
+	"NUM_LAST_PROMPT_TOKENS"  :0,  # last request's prompt token count
+	"NUM_LAST_RESPONSE_TOKENS":0,  # last request's response token count
 }
