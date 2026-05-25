@@ -19,10 +19,11 @@ class HistoryManager():
 	
 	# update self.available (list history files)
 	def Update(self):
+		print("HistoryManager.Update() opt_path: {}".format( self.opt_path ))
 		#
 		self.available = []
 		#
-		for tmp in os.listdir("{}{}/".format( self.opt_path, self.handle.Options['history_path'])):
+		for tmp in os.listdir("{}/".format( self.opt_path )):
 			if rmatch(tmp,"^\d+\..*"):
 				self.available.append(tmp)
 	
