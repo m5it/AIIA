@@ -93,12 +93,54 @@ class Commands():
 				"usage"      :"!PH",
 				"func"       :self.CMD_PREVIEW_HISTORY,
 			},
-		"PREVIEW_MEMORY":{
-			"name"       :"Preview Memory",
-			"description":"Preview current chat memorized messages.",
-			"regex"      :r"^!PM+$",
-			"usage"      :"!PM",
-			"func"       :self.CMD_PREVIEW_MEMORY,
+		"TIP_LIST":{
+			"name"       :"Tip List",
+			"description":"List all saved tip titles with entry counts.",
+			"regex"      :r"^!TL(\s+(user|model))?$",
+			"usage"      :"!TL [user|model]",
+			"func"       :self.CMD_TIP_LIST,
+		},
+		"TIP_SAVE":{
+			"name"       :"Tip Save",
+			"description":"Save the last exchange or a specific history row as a tip under a title.",
+			"regex"      :r"^!TS(\s+\d+)?\s+\S+$",
+			"usage"      :"!TS [history_num] <title>",
+			"func"       :self.CMD_TIP_SAVE,
+		},
+		"TIP_VIEW":{
+			"name"       :"Tip View",
+			"description":"View saved tip entries under a title.",
+			"regex"      :r"^!TV\s+\S+$",
+			"usage"      :"!TV <title>",
+			"func"       :self.CMD_TIP_VIEW,
+		},
+		"TIP_REINSERT":{
+			"name"       :"Tip Reinsert",
+			"description":"Reinsert saved tip entries into current chat history.",
+			"regex"      :r"^!TR\s+\S+$",
+			"usage"      :"!TR <title>",
+			"func"       :self.CMD_TIP_REINSERT,
+		},
+		"TIP_DELETE":{
+			"name"       :"Tip Delete",
+			"description":"Delete all entries under a tip title.",
+			"regex"      :r"^!TD\s+\S+$",
+			"usage"      :"!TD <title>",
+			"func"       :self.CMD_TIP_DELETE,
+		},
+		"TIP_DELETE_ENTRY":{
+			"name"       :"Tip Delete Entry",
+			"description":"Delete a specific tip entry by number under a title.",
+			"regex"      :r"^!TDR\s+\S+\s+\d+$",
+			"usage"      :"!TDR <title> <entry_num>",
+			"func"       :self.CMD_TIP_DELETE_ENTRY,
+		},
+		"TIP_DELETE_ALL":{
+			"name"       :"Tip Delete All",
+			"description":"Delete all saved tips (optionally by source).",
+			"regex"      :r"^!TDA(\s+(user|model))?$",
+			"usage"      :"!TDA [user|model]",
+			"func"       :self.CMD_TIP_DELETE_ALL,
 		},
 		"MODE":{
 			"name"       :"Mode",
@@ -121,41 +163,7 @@ class Commands():
 			"usage"      :"!START_BUILD [planId]",
 			"func"       :self.CMD_START_BUILD,
 		},
-			"MEMORY_SPECIFIC":{
-				"name"       :"Memory Specific",
-				"description":"Memory specific message from history.",
-				"regex"      :r"^!MS.[\d+]+$",
-				"usage"      :"!MS [history_num]",
-				"func"       :self.CMD_MEMORY_SPECIFIC,
-			},
-			"MEMORY_ALL_HISTORY":{
-				"name"       :"Memory all history",
-				"description":"Memory all rows from history.",
-				"regex"      :r"^!MAH+$",
-				"usage"      :"!MAH",
-				"func"       :self.CMD_MEMORY_ALL_HISTORY,
-			},
-			"MEMORY_LAST":{
-				"name"       :"Memory Last",
-				"description":"Memory last message from assistant.",
-				"regex"      :r"^!ML+$",
-				"usage"      :"!ML",
-				"func"       :self.CMD_MEMORY_LAST,
-			},
-			"MEMORY_DEL_ROW":{
-				"name"       :"Memory Delete Row",
-				"description":"Delete specific row from memory in use.",
-				"regex"      :r"^!MDR.[\d+]+$",
-				"usage"      :"!MDR [memory_num]",
-				"func"       :self.CMD_MEMORY_DEL_ROW,
-			},
-			"MEMORY_DEL_ALL":{
-				"name"       :"Memory Delete All",
-				"description":"Delete all rows from memory in use.",
-				"regex"      :r"^!MDA+$",
-				"usage"      :"!MDA",
-				"func"       :self.CMD_MEMORY_DEL_ALL,
-			},
+
 			"UPDATE_HANDLE":{
 				"name"       :"Update Handle",
 				"description":"Reinit code of program. Used after program update so there is no need to stop the program.",
@@ -349,63 +357,108 @@ class Commands():
 			i+=1
 		return 2
 	#
-	def CMD_PREVIEW_MEMORY(self, inp=""):
-		self.handle.hLG.echo("Handle.Commands.CMD_PREVIEW_MEMORY START!, memory.len: {}".format( len(self.handle.msgs) ))
-		i=0
-		for msg in self.handle.msgs:
-			self.handle.hLG.echo("{}.) {}".format( i, msg ),{'debugOnly':self.handle.Options['QUIET']})
-			i+=1
-		return 2
-	#
-	def CMD_MEMORY_ALL_HISTORY(self,inp=""):
-		self.handle.hLG.echo("Handle.Commands.CMD_MEMORY_ALL_HISTORY() START")
-		#
-		for msg in self.handle.hHM.msgs:
-			self.handle.msgs.append( msg )
-		#
-		if self.handle.Options['QUIET']==False:
-			self.handle.SaveMemory()
-		self.handle.hLG.echo("Handle.Commands().CMD_MEMORY_ALL_HISTORY() DONE, mem.len: {}".format( len(self.handle.msgs) ))
-		return 2
-	#
-	def CMD_MEMORY_SPECIFIC(self, inp):
-		self.handle.hLG.echo("Handle.Commands.CMD_MEMORY_SPECIFIC() START, response: {}".format(inp))
-		a = inp.split(" ")
-		if len(self.handle.hHM.msgs)<int(a[1]):
-			self.handle.hLG.echo("This position {} don't exists!".format(int(a[1])),{'color':True,'colorValue':'orange','debugOnly':False})
+	def CMD_TIP_LIST(self, inp=""):
+		a = inp.split()
+		source = a[1].strip().lower() if len(a) > 1 and a[1].strip().lower() in ('user','model') else None
+		tips = self.handle.hTM.list(source)
+		if not tips:
+			print("No tips saved.")
 			return 2
-		msg = self.handle.hHM.msgs[ int(a[1]) ]
-		self.handle.hLG.echo("Handle.You() act !MC adding msg: {}".format( msg ))
-		self.handle.msgs.append( msg )
-		self.handle.SaveMemory()
+		print("Tips:")
+		for key, info in sorted(tips.items()):
+			print("  {}/{} -> {} entries".format(info['source'], info['title'], info['count']))
 		return 2
 	#
-	def CMD_MEMORY_LAST(self, inp=""):
-		self.handle.hLG.echo("MEMORY_LAST response!")
-		if len(self.handle.hHM.msgs)<=0:
-			print("No responses yet in history!")
+	def CMD_TIP_SAVE(self, inp):
+		a = inp.split()
+		if len(a) < 2:
+			print("Usage: !TS [history_num] <title>")
 			return 2
-		tmp = self.handle.hHM.msgs[ len(self.handle.hHM.msgs)-1 ]
-		self.handle.hLG.echo("Handle.You() act !ML adding msg: {}".format( tmp ))
-		self.handle.msgs.append( tmp )
-		self.handle.SaveMemory()
+		title = a[-1]
+		if len(a) == 2:
+			entries = self.handle.hTM.get_last_exchange()
+			if entries is None:
+				print("No exchange found to save.")
+				return 2
+		else:
+			try:
+				num = int(a[1])
+			except ValueError:
+				print("Usage: !TS [history_num] <title>")
+				return 2
+			entries = self.handle.hTM.get_exchange_at(num)
+			if entries is None:
+				print("Invalid history row number.")
+				return 2
+		self.handle.hTM.save(title, 'user', entries)
+		self.handle.hLG.echo("Saved {} message(s) as tip '{}'".format(len(entries), title),{'color':True,'colorValue':'green'})
 		return 2
 	#
-	def CMD_MEMORY_DEL_ROW(self, inp):
-		self.handle.hLG.echo("Handle().CMD_MEMORY_DEL_ROW() START, inp: {}".format(inp))
-		a = inp.split(" ")
-		self.handle.hLG.echo("Handle().CMD_MEMORY_DEL_ROW() DEBUG num: {} vs self.msgs.len: {}".format( a[1], len(self.handle.msgs) ))
-		if len(self.handle.msgs)<int(a[1]):
-			print("This position dont exists!",int(a[1]))
+	def CMD_TIP_VIEW(self, inp):
+		a = inp.split()
+		if len(a) < 2:
+			print("Usage: !TV <title>")
 			return 2
-		del( self.handle.msgs[int(a[1])] )
-		self.handle.SaveMemory()
+		title = a[1]
+		entries = self.handle.hTM.get(title)
+		if not entries:
+			print("No tips found for title '{}'".format(title))
+			return 2
+		print("Tips for '{}':".format(title))
+		for i, data in enumerate(entries):
+			print("\n--- Entry {} ({} source, session {}) ---".format(i, data.get('source','?'), data.get('sessionId','?')))
+			for msg in data.get('entries', []):
+				role = msg.get('role','?')
+				content = msg.get('content','')
+				trunc = content[:200].replace('\n',' ') + ('...' if len(content)>200 else '')
+				print("  [{}] {}".format(role, trunc))
 		return 2
 	#
-	def CMD_MEMORY_DEL_ALL(self, inp=""):
-		self.handle.hLG.echo("Handle().CMD_MEMORY_DEL_ROW() START!")
-		self.handle.msgs     = []
-		self.handle.lastMsgs = []
+	def CMD_TIP_REINSERT(self, inp):
+		a = inp.split()
+		if len(a) < 2:
+			print("Usage: !TR <title>")
+			return 2
+		title = a[1]
+		count = self.handle.hTM.reinsert(title)
+		self.handle.hLG.echo("Reinserted {} message(s) from tip '{}'".format(count, title),{'color':True,'colorValue':'green'})
+		return 2
+	#
+	def CMD_TIP_DELETE(self, inp):
+		a = inp.split()
+		if len(a) < 2:
+			print("Usage: !TD <title>")
+			return 2
+		title = a[1]
+		removed = self.handle.hTM.delete(title)
+		if removed:
+			self.handle.hLG.echo("Deleted tip '{}'".format(title),{'color':True,'colorValue':'orange'})
+		else:
+			print("No tip titled '{}' found.".format(title))
+		return 2
+	#
+	def CMD_TIP_DELETE_ENTRY(self, inp):
+		a = inp.split()
+		if len(a) < 3:
+			print("Usage: !TDR <title> <entry_num>")
+			return 2
+		title = a[1]
+		try:
+			num = int(a[2])
+		except ValueError:
+			print("Entry number must be an integer.")
+			return 2
+		if self.handle.hTM.delete_entry(title, num):
+			self.handle.hLG.echo("Deleted entry {} from tip '{}'".format(num, title),{'color':True,'colorValue':'orange'})
+		else:
+			print("Entry not found.")
+		return 2
+	#
+	def CMD_TIP_DELETE_ALL(self, inp=""):
+		a = inp.split()
+		source = a[1].strip().lower() if len(a) > 1 and a[1].strip().lower() in ('user','model') else None
+		removed = self.handle.hTM.delete_all(source)
+		self.handle.hLG.echo("Deleted {} tip title(s)".format(removed),{'color':True,'colorValue':'orange'})
 		return 2
 	#
 	def CMD_UPDATE_HANDLE(self, inp):

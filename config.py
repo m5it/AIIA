@@ -46,6 +46,8 @@ Options         = {
 	#
 	"COOKIE_FILE"        : None,    # Path to shared cookie file for www/wwwjs web tools (e.g., "tools/cookies.json")
 	#
+	"TIPS_PATH"           :"{}/tips".format(os.path.expanduser("~/.config/ourai")),
+	#
 	# Token counting (populated dynamically by Handle.py on each response)
 	"NUM_PROMPT_TOKENS"       :0,  # cumulative prompt tokens across session
 	"NUM_RESPONSE_TOKENS"     :0,  # cumulative response tokens across session
