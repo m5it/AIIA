@@ -351,7 +351,7 @@ class Handle():
 				self.Options['AI_MODEL'],
 				messages=msgs,
 				stream=True,
-				think=self.Options.get('MODE') == 'plan', # thinking enabled only in plan mode
+				think=self.Options.get('MODE') == 'plan' or not self.Options.get('BUILD_THINKING_DISABLED', True),
 				# Available options keys:
 				# mirostat, mirostat_eta, mirostat_tau, num_ctx, repeat_last_n, repeat_penalty, temperature, seed, stop, num_predict, top_k, top_p, min_p
 				#options={'temperature':self.Options['AI_TEMPERATURE']}

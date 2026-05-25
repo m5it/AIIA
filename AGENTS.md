@@ -68,6 +68,14 @@ The project uses a custom module loader (`src/functions.py`):
 - `initmodule(imported, "ClassName", opts)` — instantiates classes with options
 - `functions.py` exists in both root and `src/` — `src/functions.py` is the canonical version used by core modules
 
+## Instructions System
+
+Mode instructions (system prompts for plan/build modes) live in `instruct/` as persona classes:
+- `instruct/Developer.py` — default persona, provides `plan()` and `build()` methods
+- Switch persona via `config.py`: `INSTRUCT_CLASS` option (e.g., `"Developer"`)
+- The `--#BUILD_THINKING_DISABLED#--` placeholder in build text is replaced at runtime based on `BUILD_THINKING_DISABLED` option
+- Create new personas by adding files to `instruct/` with the same `plan()`/`build()` interface
+
 ## Runtime Requirements
 
 - Ollama server running (default: `localhost:11434`, override via `OLLAMA_HOST` env var)

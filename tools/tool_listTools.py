@@ -15,7 +15,7 @@ class listTools():
 	
 	def run(self, opts={}):
 		print("listTools.run() STARTING")
-		tools_dir = "tools/"
+		tools_dir = os.path.dirname(os.path.abspath(__file__))
 		tool_list = []
 		
 		# Get all tool files
@@ -44,10 +44,10 @@ class listTools():
 		
 		# Add usage examples
 		output += "\n\nUsage examples:"
-	output += "\n- <List></List>  # List files in a path"
-	output += "\n- <ReadFile><fileName>test.txt</fileName></ReadFile>  # Read file"
-	output += "\n- <WriteFile><fileName>output.txt</fileName><contentOfFile>Hello</contentOfFile></WriteFile>  # Write file"
-	output += "\n- <Find><pattern>*.py</pattern></Find>  # Find files"
+		output += "\n- <List></List>  # List files in a path"
+		output += "\n- <ReadFile><fileName>test.txt</fileName></ReadFile>  # Read file"
+		output += "\n- <WriteFile><fileName>output.txt</fileName><contentOfFile>Hello</contentOfFile></WriteFile>  # Write file"
+		output += "\n- <Find><pattern>*.py</pattern></Find>  # Find files"
 		output += "\n- <Grep><pattern>def </pattern><fileName>test.py</fileName></Grep>  # Search in file"
 		
 		return output

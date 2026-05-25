@@ -18,9 +18,10 @@ class WWW():
 		}
 
 	def run(self, url, opts={}):
-		jars = glob.glob("tools/wwwcli/target/wwwcli*.jar")
+		tool_dir = os.path.dirname(os.path.abspath(__file__))
+		jars = glob.glob(os.path.join(tool_dir, "wwwcli", "target", "wwwcli*.jar"))
 		if not jars:
-			return "Error: wwwcli jar not found in tools/wwwcli/target/"
+			return "Error: wwwcli jar not found in {}/wwwcli/target/".format(tool_dir)
 		jar = jars[0]
 		cmd = ["java", "-jar", jar, url]
 		try:

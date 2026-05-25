@@ -1,4 +1,4 @@
-from src.functions import fread,fwrite,user_input
+from src.functions import fread,fwrite,user_input,importmodule,initmodule
 #
 class Prepare():
 	def __init__(self,opts={}):
@@ -66,14 +66,29 @@ class Prepare():
 	
 	#
 	def _get_mode_instructions(self, mode):
+		cls_name = self.handle.Options.get('INSTRUCT_CLASS', 'Developer')
+		cls_path = self.handle.Options.get('INSTRUCT_PATH', 'instruct')
+		mod = importmodule(cls_name, True, {'path': cls_path})
+		if not mod:
+			return "Error: instruct class {} not found in {}".format(cls_name, cls_path)
+		cls = None
+		for n in [cls_name, cls_name.lower(), cls_name.upper()]:
+			try:
+				cls = initmodule(mod, n)
+				if cls:
+					break
+			except:
+				continue
+		if not cls:
+			return "Error: could not initialize instruct class {}".format(cls_name)
 		if mode == 'plan':
-			return self.handle.Options['MODE_INSTRUCTIONS_PLAN']
-		else:  # build mode
-			text = self.handle.Options['MODE_INSTRUCTIONS_BUILD']
+			text = cls.plan()
+		else:
+			text = cls.build()
 			disabled = self.handle.Options.get('BUILD_THINKING_DISABLED', True)
 			if disabled:
 				text = text.replace('--#BUILD_THINKING_DISABLED#--', 'Thinking DISABLED - be concise and direct')
 			else:
 				text = text.replace('--#BUILD_THINKING_DISABLED#--', 'Thinking ENABLED - you can reason step by step')
-			return text
+		return text
 
