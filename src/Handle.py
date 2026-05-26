@@ -1,4 +1,4 @@
-import json, sys, time, os
+import json, sys, time, os, copy
 from datetime import date
 from ollama import ChatResponse, chat
 from src.functions import *
@@ -89,27 +89,17 @@ class Handle():
 					self.Options['AI_ROW_ID'] = last_row + 1
 	
 	#
-	def Response(self,role='user',opts=[]):
-		global AI_FILE_HISTORY
+	def Response(self,role='user',opts=None):
+		if opts is None:
+			opts = {}
 		#
-		opt_content       = opts['content']
-		opt_thinking      = opts['thinking'] if 'thinking' in opts else None
-		opt_name          = opts['name'] if 'name' in opts else None
-		opt_parse         = opts['parse'] if 'parse' in opts else False # True | False (default)
-		opt_return_object = opts['return_object'] if 'return_object' in opts else False
-		opt_log_options   = opts['log_options'] if 'log_options' in opts else {'color':True,}
-		opt_skip_history  = opts['skip_history'] if 'skip_history' in opts else False
-		
-		# (Deprecated) was used as test when content was json object
-		if opt_parse and rmatch(opt_content,r"^\{.*"):
-			print("Handle.Response() PARSING JSON STARTED")
-			try:
-				opt_content  = opt_content.replace("\\\\\\","\\")
-				content = json.loads( opt_content )
-				if 'text' in content:
-					opt_content = content['text']
-			except Exception as E:
-				print("Handle.Response() PARSING ERROR: {} on content: {}".format(E,opt_content))
+		opt_content       = opts.get('content', '')
+		opt_thinking      = opts.get('thinking')
+		opt_name          = opts.get('name')
+		opt_parse         = opts.get('parse', False)
+		opt_return_object = opts.get('return_object', False)
+		opt_log_options   = opts.get('log_options', {'color':True})
+		opt_skip_history  = opts.get('skip_history', False)
 		
 		# Print response
 		#if role!='user':
@@ -160,10 +150,11 @@ class Handle():
 		return True
 	
 	#
-	def One(self,data, opts={}):
+	def One(self,data, opts=None):
+		if opts is None:
+			opts = {}
 		#self.hLG.echo("Handle.One() START, data.len: {}, opts: {}, hHM.msgs.len: {}".format( len(data), opts, len(hHM.msgs) ))
-		opt_history_num    = opts['history_num'] if 'history_num' in opts else None
-		opts['skip_color'] = True
+		opt_history_num    = opts.get('history_num')
 		self.Init()
 		#
 		if opt_history_num!=None:
@@ -171,9 +162,6 @@ class Handle():
 			self.hHM.Update()
 			self.hHM.history = self.hHM.available[opt_history_num]
 			self.hHM.Get()
-		#
-		self.cmds.CMD_MEMORY_DEL_ALL()
-		self.cmds.CMD_MEMORY_ALL_HISTORY()
 		#
 		# Add system message if not already present (for -Y flag mode)
 		system_exists = False
@@ -220,7 +208,9 @@ class Handle():
 			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
 	
 	#
-	def Parse(self, res, opts={}):
+	def Parse(self, res, opts=None):
+		if opts is None:
+			opts = {}
 		print("Handle.Parse() START, opts: {}".format( opts ))
 		#
 		opt_skip_history  = opts['skip_history'] if 'skip_history' in opts else False
@@ -309,7 +299,7 @@ class Handle():
 					if_thinking = False
 					if_speaking = True
 				#
-				part = chunk['message']['content']
+				part = chunk.message.content
 				response += part
 				self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
 		# Extract token counts from final chunk (done=True)
@@ -321,7 +311,9 @@ class Handle():
 		return {'content':response, 'thinking':thinking, 'prompt_tokens':prompt_tokens, 'response_tokens':response_tokens}
 	
 	#
-	def You(self, data=None, opts={}):
+	def You(self, data=None, opts=None):
+		if opts is None:
+			opts = {}
 		# Prepare user content
 		inp = data
 		#
@@ -377,10 +369,12 @@ class Handle():
 			if not parts:
 				return ""
 			return "[Tips: {} — use <GetTip> to retrieve, <ReinsertTip> to bring into context]".format(', '.join(parts))
-		except:
+		except Exception:
 			return ""
 	#
-	def AI(self,opts={}):
+	def AI(self,opts=None):
+		if opts is None:
+			opts = {}
 		#
 		self.hLG.echo("Handle.AI() STARTING, opts: {}".format(opts),{'color':False})
 		#
@@ -396,10 +390,7 @@ class Handle():
 
 			result        = ""
 			res           = {}
-			msgs          = [] # temporary array of messages to send to AIIA
-
-			for msg in self.hHM.msgs: # loop trough array of current history messages that you wish to include for AIIA
-				msgs.append( msg )
+			msgs = copy.deepcopy(self.hHM.msgs)
 
 			# Auto-inject tip availability into last user message
 			tip_summary = self._get_tip_summary()
@@ -417,16 +408,17 @@ class Handle():
 			# Chat without tools, normal chat (XML tools handle themselves)
 			self.hLG.echo("DEBUG preparing chat (iteration {})".format(iteration),{'color':False})
 			print("DEBUG before chat() num msgs.len: {}, mode: {}".format( len(msgs), self.Options.get('MODE') ))
-			res: ChatResponse = chat(
-				self.Options['AI_MODEL'],
-				messages=msgs,
-				stream=True,
-				think=self.Options.get('MODE') == 'plan' or not self.Options.get('BUILD_THINKING_DISABLED', True),
-				# Available options keys:
-				# mirostat, mirostat_eta, mirostat_tau, num_ctx, repeat_last_n, repeat_penalty, temperature, seed, stop, num_predict, top_k, top_p, min_p
-				#options={'temperature':self.Options['AI_TEMPERATURE']}
-				options=self.Options['AI_OPTIONS'],
-			)
+			try:
+				res: ChatResponse = chat(
+					self.Options['AI_MODEL'],
+					messages=msgs,
+					stream=True,
+					think=self.Options.get('MODE') == 'plan' or not self.Options.get('BUILD_THINKING_DISABLED', True),
+					options=self.Options['AI_OPTIONS'],
+				)
+			except Exception as e:
+				self.hLG.echo("AI connection error: {}".format(str(e)), {'color':True, 'colorValue':'red'})
+				return 2
 			# Used if CTRL+C to save last/draft content to chat history
 			self.Options['DRAFT_RESPONSE'] = res
 			# Parse result (handles XML tool calls)

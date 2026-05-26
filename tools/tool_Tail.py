@@ -26,10 +26,15 @@ class Tail():
 	def run(self, fileName, lines=10, opts={}):
 		print("Tail.run() STARTING, fileName: {}, lines: {}".format(fileName, lines))
 		#
+		try:
+			lines = int(lines)
+		except (ValueError, TypeError):
+			lines = 10
+		#
 		# Find file in 
 		file_path = self._find_file(fileName)
 		if not file_path:
-			return "Error: File {} not found in ".format(fileName)
+			return "Error: File {} not found".format(fileName)
 		#
 		try:
 			with open(file_path, 'r') as f:

@@ -25,7 +25,7 @@ class OrchestraDirector():
 		if self.server_sock:
 			try:
 				self.server_sock.close()
-			except:
+			except Exception:
 				pass
 
 	def _server_loop(self):
@@ -97,7 +97,7 @@ class OrchestraDirector():
 						break
 			try:
 				sock.close()
-			except:
+			except Exception:
 				pass
 
 	def set_plan_worker(self, name):

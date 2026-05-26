@@ -300,7 +300,7 @@ OurAI/
 │   ├── Researcher.py             # Web research and data extraction persona
 │   └── __init__.py
 │
-├── tools/                        # XML-invokable tool modules (23+ files)
+├── tools/                        # XML-invokable tool modules (23 files)
 │   ├── tool_Terminal.py          # Secure terminal execution
 │   ├── tool_ReadFile.py          # Read file content
 │   ├── tool_WriteFile.py         # Write/overwrite files
@@ -324,7 +324,6 @@ OurAI/
 │   ├── tool_ListTips.py          # List all saved tips
 │   ├── tool_DeleteTip.py         # Delete a tip
 │   ├── tool_ReinsertTip.py       # Reinsert tip into chat
-│   └── create_file.py            # Utility function
 │
 ├── actions/                      # Reusable action modules
 │   ├── example_rest.py           # REST API example action

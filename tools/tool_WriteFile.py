@@ -40,5 +40,5 @@ class WriteFile():
 			x = fwrite(full_path, contentOfFile, True)
 		except Exception as E:
 			print("WriteFile.run() ERROR: {}".format(E))
-			return "Error occured: {}".format(E)
+			return "Error occurred: {}".format(E)
 		return "{} was created with length {}".format( fileName, len(contentOfFile) )

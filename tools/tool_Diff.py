@@ -31,14 +31,16 @@ class Diff():
 	def run(self, file1, file2, unified=False, opts={}):
 		print("Diff.run() STARTING, file1: {}, file2: {}, unified: {}".format(file1, file2, unified))
 		#
+		unified = str(unified).lower() == 'true'
+		#
 		# Find files in 
 		path1 = self._find_file(file1)
 		path2 = self._find_file(file2)
 		#
 		if not path1:
-			return "Error: File {} not found in ".format(file1)
+			return "Error: File {} not found".format(file1)
 		if not path2:
-			return "Error: File {} not found in ".format(file2)
+			return "Error: File {} not found".format(file2)
 		#
 		# Build diff command
 		cmd = ["diff"]

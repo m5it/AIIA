@@ -73,7 +73,7 @@ class OrchestraWorker():
 		try:
 			if self.handle.hPM.draft:
 				self.handle.hPM.LogProgress(task_id, "Task started by worker '{}'".format(self.name))
-		except:
+		except Exception:
 			pass
 
 		self.send({'type': 'progress', 'taskId': task_id, 'log': 'Starting task...'})
@@ -88,7 +88,7 @@ class OrchestraWorker():
 			try:
 				if self.handle.hPM.draft:
 					self.handle.hPM.LogProgress(task_id, "Completed by worker '{}': {}".format(self.name, response_text[:100]))
-			except:
+			except Exception:
 				pass
 
 			self.handle.hLG.echo("Task {} completed".format(task_id[:8]), {'color':True, 'colorValue':'green', 'debugOnly':False})
@@ -99,7 +99,7 @@ class OrchestraWorker():
 			try:
 				if self.handle.hPM.draft:
 					self.handle.hPM.LogProgress(task_id, "Blocked: {}".format(error[:100]))
-			except:
+			except Exception:
 				pass
 			self.send({'type': 'blocked', 'taskId': task_id, 'error': error})
 
@@ -145,5 +145,5 @@ class OrchestraWorker():
 		self.running = False
 		try:
 			self.sock.close()
-		except:
+		except Exception:
 			pass

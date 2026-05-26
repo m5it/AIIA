@@ -31,6 +31,8 @@ class Grep():
 	def run(self, pattern, fileName="", recursive=False, opts={}):
 		print("Grep.run() STARTING, pattern: {}, fileName: {}, recursive: {}".format(pattern, fileName, recursive))
 		#
+		recursive = str(recursive).lower() == 'true'
+		#
 		# Build the grep command
 		cmd = ["grep", "-n"]  # -n for line numbers
 		#
@@ -50,7 +52,7 @@ class Grep():
 					search_paths.append(full_path)
 					break
 			if not search_paths:
-				return "Error: File {} not found in ".format(fileName)
+				return "Error: File {} not found".format(fileName)
 		else:
 			# Search all files in 
 			search_paths = [""]

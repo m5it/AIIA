@@ -14,20 +14,20 @@ def _read_port_file():
 		if os.path.exists(_PORT_FILE):
 			with open(_PORT_FILE) as f:
 				return int(f.read().strip())
-	except: pass
+	except Exception: pass
 	return None
 
 def _write_port_file(port):
 	try:
 		with open(_PORT_FILE, 'w') as f:
 			f.write(str(port))
-	except: pass
+	except Exception: pass
 
 def _remove_port_file():
 	try:
 		if os.path.exists(_PORT_FILE):
 			os.remove(_PORT_FILE)
-	except: pass
+	except Exception: pass
 
 def _start_server():
 	tool_dir = os.path.dirname(os.path.abspath(__file__))
@@ -69,7 +69,7 @@ def _cleanup_server():
 		try:
 			_server_state['proc'].terminate()
 			_server_state['proc'].wait(timeout=3)
-		except: pass
+		except Exception: pass
 	_server_state['started'] = False
 	_server_state['port'] = None
 	_server_state['proc'] = None
@@ -110,5 +110,5 @@ def send(port, cmd_dict, timeout=120):
 			return resp.get('data', '')
 		else:
 			return resp.get('data', None)
-	except:
+	except Exception:
 		return None

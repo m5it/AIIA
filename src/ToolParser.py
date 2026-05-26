@@ -3,6 +3,7 @@ ToolParser - Handles parsing of XML tool invocations and job completion detectio
 """
 import re
 import os
+import time
 from src.functions import initmodule,importmodule,splitFileNameExtension
 
 class ToolParser:
@@ -93,8 +94,10 @@ class ToolParser:
 		# Remove self-closing tags
 		text = re.sub(r'<\w+\s*/>', '', text)
 		#
-		# Remove opening and closing tags with content
-		text = re.sub(r'<\w+>.*?</\w+>', '', text, flags=re.DOTALL | re.IGNORECASE)
+		# Remove opening and closing tags with content (greedy match to handle nested same-name tags)
+		text = re.sub(r'<(\w+)>.*?</\1>', '', text, flags=re.DOTALL | re.IGNORECASE)
+		# Remove any remaining orphaned closing tags
+		text = re.sub(r'</\w+>', '', text)
 		#
 		return text.strip()
 	
@@ -129,7 +132,7 @@ class ToolParser:
 								for i, arg in enumerate(parsed_args, start=2):
 									terminal_args['arg{}'.format(i)] = str(arg)
 								args = None  # Mark as processed
-						except:
+						except (ValueError, TypeError):
 							pass
 						#
 						if args:  # Not JSON, try other formats
@@ -151,7 +154,7 @@ class ToolParser:
 								parsed_args = shlex.split(args)
 								for i, arg in enumerate(parsed_args, start=2):
 									terminal_args['arg{}'.format(i)] = arg
-							except:
+							except (ValueError, TypeError):
 								terminal_args['arg2'] = args
 					elif isinstance(args, list):
 						for i, arg in enumerate(args, start=2):
@@ -190,7 +193,7 @@ class ToolParser:
 						h = initmodule(mod, cls_name)
 						if h:
 							break
-					except:
+					except Exception:
 						continue
 				#
 				if h is None:
@@ -350,10 +353,12 @@ class ToolParser:
 				return str(PlanBase.draft.createPlan(title, instructions))
 
 		elif toolName == 'deleteTask':
-			plan_id = params.get('id')
-			if plan_id:
-				return str(PlanBase.Delete(plan_id, plans_path))
-			return "Error: plan id required"
+			task_id = params.get('id')
+			if task_id and PlanBase.draft:
+				task = PlanBase.draft.tasks.get(task_id)
+				if task:
+					return str(task.delete())
+			return "Error: task id required or no active plan"
 
 		elif toolName == 'deletePlan':
 			plan_id = params.get('id')

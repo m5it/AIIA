@@ -34,13 +34,13 @@ class ReplaceLine():
 			return "Error: fileName and fromLine are required.\nUsage: <ReplaceLine><fileName>path</fileName><fromLine>10</fromLine><replacement>new text</replacement></ReplaceLine>"
 		try:
 			fl = int(fromLine)
-		except:
+		except Exception:
 			return "Error: fromLine must be a number."
 		tl = fl
 		if toLine is not None:
 			try:
 				tl = int(toLine)
-			except:
+			except Exception:
 				return "Error: toLine must be a number."
 		if fl < 1 or tl < fl:
 			return "Error: invalid range — fromLine must be >= 1 and toLine >= fromLine."

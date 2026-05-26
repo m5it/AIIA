@@ -7,7 +7,7 @@ class PlanSaver:
 		"""Rewrite HISTORY.md from scratch with given messages."""
 		try:
 			os.remove(file_path)
-		except:
+		except Exception:
 			pass
 		for msg in msgs:
 			PlanSaver.save_history_to_file(msg, file_path)

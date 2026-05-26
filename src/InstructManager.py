@@ -3,7 +3,7 @@ from src.functions import *
 #
 class InstructManager():
 	def __init__(self, opts):
-		self.handle = opts['handle'] if 'handle' in opts else False
+		self.handle = opts.get('handle')
 		self.handle.hLG.echo("InstructManager.__init__() STARTED!",{'color':True})
 		self.available = []
 		self.choosed = False
@@ -85,7 +85,7 @@ class InstructManager():
 				cls = getattr(mod, n)
 				if cls:
 					break
-			except:
+			except Exception:
 				continue
 		if not cls:
 			return

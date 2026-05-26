@@ -1,5 +1,7 @@
 #--
 # class Commands
+import os, json
+from src.functions import fread, fwrite, pmatch
 class Commands():
 	#
 	def __init__(self, opts={}):
@@ -11,7 +13,7 @@ class Commands():
 			"NEW_SESSION":{
 				"name"       :"New Session",
 				"description":"Reset everything and start fresh with Prepare().",
-				"regex"      :r"^!NEW.SESSION+$",
+				"regex"      :r"^!NEW_SESSION$",
 				"usage"      :"!NEW SESSION",
 				"func"       :self.CMD_NEW_SESSION,
 			},
@@ -32,42 +34,42 @@ class Commands():
 			"STATS":{
 				"name"       :"Stats",
 				"description":"Display statistics for program",
-				"regex"      :r"^!STATS+$",
+				"regex"      :r"^!STATS$",
 				"usage"      :"!STATS",
 				"func"       :self.CMD_STATS,
 			},
 			"ACTION_OPTION_SAVE":{
 				"name"       :"Save action options",
 				"description":"Save specific action options",
-				"regex"      :r"^!AOS.[\d+]+$",
+				"regex"      :r"^!AOS\s+\d+$",
 				"usage"      :"!AOS [action_option_num]",
 				"func"       :self.CMD_ACTION_OPTION_SAVE,
 			},
 			"ACTION_OPTIONS_LIST":{
 				"name"       :"List action options",
 				"description":"List saved action options",
-				"regex"      :r"^!AOL+$",
+				"regex"      :r"^!AOL$",
 				"usage"      :"!AOL",
 				"func"       :self.CMD_ACTION_OPTIONS_LIST,
 			},
 			"ACTION_OPTIONS":{
 				"name"       :"Action Options",
 				"description":"LIST, SET, GET action options",
-				"regex"      :r"^(!AO)|(!AO.[\d+])|(!AO.[\d+].SET.[a-z]\=[\"\/a-zA-Z0-9])|(!AO.[\d+].GET.[a-z])+$",
+				"regex"      :r"^!AO(\s+\d+)?(\s+SET\s+\w+=\S+)?(\s+GET\s+\w+)?$",
 				"usage"      :"\nLIST Ex.: !AO [action_num]\nGET Ex.: !AO [action_num] GET path\nSET Ex.: AO [action_num] SET path=/Memorize\n",
 				"func"       :self.CMD_ACTION_OPTIONS,
 			},
 			"IMPORT_ACTIONS":{
 				"name"       :"Import Actions",
 				"description":"Import actions from classes/code",
-				"regex"      :r"^!IA+$",
+				"regex"      :r"^!IA$",
 				"usage"      :"!IA",
 				"func"       :self.CMD_IMPORT_ACTIONS,
 			},
 			"PREVIEW_ACTIONS":{
 				"name"       :"Preview Imported Actions",
 				"description":"Preview imported actions that are ready to get executed.",
-				"regex"      :r"^!PA+$",
+				"regex"      :r"^!PA$",
 				"usage"      :"!PA",
 				"func"       :self.CMD_PREVIEW_ACTIONS,
 			},
@@ -75,28 +77,28 @@ class Commands():
 				"name"       :"Execute Action",
 				"description":"Execute specific action...",
 				#"regex"      :r"^(!EA.[\d+])|(!EA.[\d+].DATA.[\d+])+$",
-				"regex"      :r"^!EA.[\d+]+$",
+				"regex"      :r"^!EA\s+\d+$",
 				"usage"      :"!EA",
 				"func"       :self.CMD_EXEC_ACTION,
 			},
 			"CLEAR_TOOLS":{
 				"name"       :"Clear Tools",
 				"description":"Clear loaded tools to start fresh chat or load new tools.",
-				"regex"      :r"^!CT+$",
+				"regex"      :r"^!CT$",
 				"usage"      :"!CT",
 				"func"       :self.CMD_CLEAR_TOOLS,
 			},
 			"TOOLS":{
 				"name"       :"Tools",
 				"description":"Choose tools to use with AIIA.",
-				"regex"      :r"^!TOOLS+$",
+				"regex"      :r"^!TOOLS$",
 				"usage"      :"!TOOLS",
 				"func"       :self.CMD_TOOLS,
 			},
 			"PREVIEW_HISTORY":{
 				"name"       :"Preview History",
 				"description":"Preview current chat history",
-				"regex"      :r"^!PH+$",
+				"regex"      :r"^!PH$",
 				"usage"      :"!PH",
 				"func"       :self.CMD_PREVIEW_HISTORY,
 			},
@@ -174,28 +176,21 @@ class Commands():
 			"UPDATE_HANDLE":{
 				"name"       :"Update Handle",
 				"description":"Reinit code of program. Used after program update so there is no need to stop the program.",
-				"regex"      :r"^!UPDATE.HANDLE+$",
+				"regex"      :r"^!UPDATE_HANDLE$",
 				"usage"      :"!UPDATE HANDLE",
 				"func"       :self.CMD_UPDATE_HANDLE,
 			},
-			"QUIT":{
+"QUIT":{
 				"name"       :"Quit",
-				"description":"Stop the program",
-				"regex"      :r"^!QUIT+$",
+				"description":"Quit the program.",
+				"regex"      :r"^!QUIT$",
 				"usage"      :"!QUIT",
 				"func"       :self.CMD_QUIT,
-			},
-			"LOAD":{
-				"name"       :"Load",
-				"description":"Load text file as input to send to AIIA.",
-				"regex"      :r"^!QUIT+$",
-				"usage"      :"!LOAD textfile.txt Text of textfile.txt will be loaded with this text and sent to AIIA. This is example.",
-				"func"       :self.CMD_LOAD,
 			},
 		"INSTRUCT_LIST":{
 			"name"       :"Instruct List",
 			"description":"List available instruct personas.",
-			"regex"      :r"^!INSTRUCT_LIST+$",
+			"regex"      :r"^!INSTRUCT_LIST$",
 			"usage"      :"!INSTRUCT_LIST",
 			"func"       :self.CMD_INSTRUCT_LIST,
 		},
@@ -209,14 +204,14 @@ class Commands():
 		"WORKERS":{
 			"name"       :"Workers",
 			"description":"List connected orchestra workers and their status.",
-			"regex"      :r"^!WORKERS+$",
+			"regex"      :r"^!WORKERS$",
 			"usage"      :"!WORKERS",
 			"func"       :self.CMD_WORKERS,
 		},
 		"DISPATCH":{
 			"name"       :"Dispatch",
 			"description":"Dispatch pending tasks to orchestra workers.",
-			"regex"      :r"^!DISPATCH+$",
+			"regex"      :r"^!DISPATCH$",
 			"usage"      :"!DISPATCH",
 			"func"       :self.CMD_DISPATCH,
 		},
@@ -237,14 +232,14 @@ class Commands():
 		"CACHE_CLEAR":{
 			"name"       :"Cache Clear",
 			"description":"Clear all cached tool results.",
-			"regex"      :r"^!CACHE_CLEAR+$",
+			"regex"      :r"^!CACHE_CLEAR$",
 			"usage"      :"!CACHE_CLEAR",
 			"func"       :self.CMD_CACHE_CLEAR,
 		},
 		"HELP":{
 				"name"       :"Help",
 				"description":"Display of available actions.",
-				"regex"      :r"^!HELP+$",
+				"regex"      :r"^!HELP$",
 				"usage"      :"!HELP",
 				"func"       :self.CMD_HELP,
 			},
@@ -261,23 +256,22 @@ class Commands():
 		return 2
 	#
 	def CMD_NEW_SESSION(self, inp):
-		import os as _os
 		# Clear in-memory history
 		self.handle.hHM.msgs = []
 		# Clear main history file on disk
 		history_path = "{}/history/{}".format(self.handle.Options.get('path', ''), self.handle.Options['AI_FILE_HISTORY'])
 		try:
-			_os.remove(history_path)
-		except:
+			os.remove(history_path)
+		except Exception:
 			pass
 		# Clear project HISTORY.md
 		proj_dir = self.handle.Options.get('working_dir')
 		framework_dir = self.handle.Options.get('path', '').rstrip('/')
 		if proj_dir and proj_dir != framework_dir:
-			proj_history = _os.path.join(proj_dir, 'HISTORY.md')
+			proj_history = os.path.join(proj_dir, 'HISTORY.md')
 			try:
-				_os.remove(proj_history)
-			except:
+				os.remove(proj_history)
+			except Exception:
 				pass
 		# Reset counters
 		self.handle.Options['AI_ROW_ID'] = 0
@@ -293,7 +287,7 @@ class Commands():
 		# Clear plan state
 		from src.PlanManager import PlanBase
 		PlanBase.draft = None
-		PlanBase.done = []
+		PlanBase.done = {}
 		# Reset draft response
 		self.handle.Options['DRAFT_CONTENT'] = None
 		self.handle.Options['DRAFT_RESPONSE'] = None
@@ -306,7 +300,6 @@ class Commands():
 		return 6
 	#
 	def CMD_CLEAR(self, inp):
-		import os as _os, json
 		from src.PlanSaver import PlanSaver
 		# Keep system message(s), clear everything else
 		system_msgs = [m for m in self.handle.hHM.msgs if m['role'] == 'system']
@@ -314,8 +307,8 @@ class Commands():
 		# Clear main history file on disk and rewrite system msgs
 		main_path = "{}/history/{}".format(self.handle.Options.get('path', ''), self.handle.Options['AI_FILE_HISTORY'])
 		try:
-			_os.remove(main_path)
-		except:
+			os.remove(main_path)
+		except Exception:
 			pass
 		for m in system_msgs:
 			fwrite(main_path, "{}\n".format(json.dumps(m)), False)
@@ -323,7 +316,7 @@ class Commands():
 		proj_dir = self.handle.Options.get('working_dir')
 		framework_dir = self.handle.Options.get('path', '').rstrip('/')
 		if proj_dir and proj_dir != framework_dir:
-			proj_history = _os.path.join(proj_dir, 'HISTORY.md')
+			proj_history = os.path.join(proj_dir, 'HISTORY.md')
 			PlanSaver.rebuild_history(proj_history, system_msgs)
 		# Reset row ID and tokens
 		self.handle.Options['AI_ROW_ID'] = 0
@@ -335,7 +328,6 @@ class Commands():
 		return 2
 	#
 	def CMD_REMOVE(self, inp):
-		import os as _os, json
 		from src.PlanSaver import PlanSaver
 		a = inp.strip().split()
 		if len(a) < 2:
@@ -354,8 +346,8 @@ class Commands():
 		# Rebuild main history file on disk
 		main_path = "{}/history/{}".format(self.handle.Options.get('path', ''), self.handle.Options['AI_FILE_HISTORY'])
 		try:
-			_os.remove(main_path)
-		except:
+			os.remove(main_path)
+		except Exception:
 			pass
 		for m in self.handle.hHM.msgs:
 			fwrite(main_path, "{}\n".format(json.dumps(m)), False)
@@ -363,7 +355,7 @@ class Commands():
 		proj_dir = self.handle.Options.get('working_dir')
 		framework_dir = self.handle.Options.get('path', '').rstrip('/')
 		if proj_dir and proj_dir != framework_dir:
-			proj_history = _os.path.join(proj_dir, 'HISTORY.md')
+			proj_history = os.path.join(proj_dir, 'HISTORY.md')
 			PlanSaver.rebuild_history(proj_history, self.handle.hHM.msgs)
 		return 2
 	#
@@ -407,9 +399,11 @@ class Commands():
 	#
 	def CMD_ACTION_OPTION_SAVE(self,inp=""):
 		print("CMD_ACTION_OPTION_SAVE() START!")
+		return 2
 	#
 	def CMD_ACTION_OPTIONS_LIST(self,inp=""):
 		print("CMD_ACTION_OPTIONS_LIST() START!")
+		return 2
 	#
 	def CMD_ACTION_OPTIONS(self,inp):
 		self.handle.hLG.echo("CMD_ACTION_OPTIONS START")
@@ -420,7 +414,11 @@ class Commands():
 			self.CMD_HELP()
 			return 2
 		self.handle.hLG.echo("CMD_ACTION_OPTIONS a({}): {}".format( len(a), a))
-		p = int(a[1])
+		try:
+			p = int(a[1])
+		except (ValueError, TypeError):
+			print("CMD_ACTION_OPTIONS: action number must be an integer")
+			return 2
 		# Check if action is imported and ready to use, if not get back to You: ...
 		if p not in self.handle.hAC.imported:
 			print("CMD_ACTION_OPTIONS position {} don't exists!".format( p ))
@@ -434,14 +432,16 @@ class Commands():
 			#
 			a1 = a[3].split("=")
 			if a1[0] not in h['handle'].options:
-				print("CMD_ACTION_OPTIONS SET {} Failed, key dont exists!".format( a1[0] ))
+				print("CMD_ACTION_OPTIONS SET {} — key does not exist yet, creating it.".format( a1[0] ))
 			#
-			h['handle'].options[ a1[0] ] = a1[1]
+			h['handle'].options[ a1[0] ] = a1[1] if len(a1) > 1 else ""
 		elif len(a)>=3 and a[2]=="GET":
-			print("CMD_ACTION_OPTIONS GET {}".format( a[3] ))
-			if a[3] not in h['handle'].options:
-				print("CMD_ACTION_OPTIONS GET {} Failed, key dont exists!".format( a[3] ))
-			print("CMD_ACTION_OPTIONS GET {} = {}".format( a[3], h['handle'].options[ a[3] ] ))
+			print("CMD_ACTION_OPTIONS GET {}".format( a[3] if len(a) > 3 else "" ))
+			key = a[3] if len(a) > 3 else ""
+			if key not in h['handle'].options:
+				print("CMD_ACTION_OPTIONS GET {} — key does not exist!".format( key ))
+			else:
+				print("CMD_ACTION_OPTIONS GET {} = {}".format( key, h['handle'].options[ key ] ))
 		else:
 			#
 			self.handle.hLG.echo( "USAGE: ", { 'color':True, 'colorValue':'orange', 'debugOnly':False} )
@@ -458,6 +458,7 @@ class Commands():
 	def CMD_IMPORT_ACTIONS(self,inp):
 		print("CMD_IMPORT_ACTIONS START")
 		self.handle.hAC.Choose()
+		return 2
 	#
 	def CMD_PREVIEW_ACTIONS(self,inp):
 		#print("CMD_PREVIEW_ACTIONS START")
@@ -490,11 +491,17 @@ class Commands():
 			print("CMD_EXEC_ACTION Failed length: {}. (D1)".format( len(a) ))
 			return 2
 		#
-		if int(a[1]) not in self.handle.hAC.imported:
+		try:
+			action_num = int(a[1])
+		except (ValueError, TypeError):
+			print("CMD_EXEC_ACTION: action number must be an integer")
+			return 2
+		#
+		if action_num not in self.handle.hAC.imported:
 			print("CMD_EXEC_ACTION Failed position: {}. (D2)".format( a[1] ))
 			return 2
 		#
-		h = self.handle.hAC.imported[ int(a[1]) ]['handle']
+		h = self.handle.hAC.imported[action_num]['handle']
 		print("CMD_EXEC_ACTION executing {}".format( h ))
 		h.Exec()
 		return 2
@@ -631,18 +638,6 @@ class Commands():
 	def CMD_QUIT(self, inp):
 		self.handle.Options['AI_LIVE']=False
 		return 3 # as break
-	#
-	def CMD_LOAD(self, inp):
-		self.handle.hLG.echo("DEBUG LOAD FILE...")
-		a = pmatch(inp,"^!LOAD\x20([a-zA-Z0-9\/\_\-\.]+)[\x20]?(.*)?")
-		try:
-			filedata = fread(a[0])
-			print("DEBUG filedata({}): {}".format(len(filedata),filedata))
-			inp = "{}\n\nData: \n\n{}".format(a[1],filedata)
-		except Exception as E:
-			print("ERROR LOAD File {}".format(E))
-			return 2 # as continue
-	
 	#
 	def Test(self):
 		print("Handle.Commands.__init__() START")

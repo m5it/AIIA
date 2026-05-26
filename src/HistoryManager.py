@@ -5,7 +5,7 @@ class HistoryManager():
 	#
 	def __init__(self,opts):
 		#print("HistoryManager.__init__() START, DEBUG, opts: ",opts)
-		self.handle    = opts['handle'] if 'handle' in opts else False
+		self.handle    = opts.get('handle')
 		self.opt_quiet = opts['quiet'] if 'quiet' in opts else False
 		self.opt_path  = opts['path'] if 'path' in opts else self.handle.Options['history_path']
 		self.handle.hLG.echo("HistoryManager.__init__() STARTED!",{'color':True})
@@ -23,7 +23,7 @@ class HistoryManager():
 		#
 		self.available = []
 		#
-		for tmp in os.listdir("{}/history/".format( self.opt_path )):
+		for tmp in os.listdir("{}/history/".format( self.handle.Options.get('path', '').rstrip('/') )):
 			if rmatch(tmp,"^\d+\..*"):
 				self.available.append(tmp)
 	
@@ -37,7 +37,7 @@ class HistoryManager():
 		if path:
 			file_path = path
 		else:
-			file_path = "{}{}/{}".format( self.opt_path, self.handle.Options['history_path'], self.history )
+			file_path = "{}/{}".format(self.handle.Options.get('path', '').rstrip('/'), self.history)
 		#
 		if not os.path.exists(file_path):
 			return
@@ -52,13 +52,13 @@ class HistoryManager():
 					json_str = line[4:-3].strip()
 					try:
 						self.msgs.append(json.loads(json_str))
-					except:
+					except Exception:
 						continue
 				# Also support plain JSON-lines (backward compat with .dbk files)
 				elif line.startswith('{'):
 					try:
 						self.msgs.append(json.loads(line))
-					except:
+					except Exception:
 						continue
 	
 	#
@@ -85,7 +85,7 @@ class HistoryManager():
 		cnt=0
 		for history in self.available:
 			if self.opt_quiet==False:
-				print("{}.) {}, len: {}".format( cnt, history, len(fread("{}{}/{}".format( self.opt_path, self.handle.Options['history_path'], history))) ))
+				print("{}.) {}, len: {}".format( cnt, history, len(fread("{}/history/{}".format( self.handle.Options.get('path', '').rstrip('/'), history))) ))
 			cnt = cnt+1
 	
 	#
@@ -103,15 +103,16 @@ class HistoryManager():
 				self.handle.hLG.echo("Canceling...",{'color':True,'colorValue':'red','debugOnly':False})
 				choosed = True
 				break
-			elif tmp[0] == 'v':
+			elif tmp and tmp[0] == 'v':
 				print("Viewing history {}".format(tmp))
 				a=tmp.split(" ")
-				print("Viewing history debug a[0]: {}, a[1]: {}".format(a[0],a[1]))
-				tmpname = self.available[int(a[1])]
-				print("Viewing history debug fileName: {}".format(tmpname))
-				tmpdata = fread( "{}{}/{}".format( self.opt_path, self.handle.Options['history_path'], tmpname) )
-				print("Viewing history debug tmpdata len: {}".format( len(tmpdata) ))
-				print(tmpdata)
+				if len(a) > 1:
+					print("Viewing history debug a[0]: {}, a[1]: {}".format(a[0],a[1]))
+					tmpname = self.available[int(a[1])]
+					print("Viewing history debug fileName: {}".format(tmpname))
+					tmpdata = fread( "{}{}/{}".format( self.handle.Options.get('path', '').rstrip('/'), self.handle.Options['history_path'], tmpname) )
+					print("Viewing history debug tmpdata len: {}".format( len(tmpdata) ))
+					print(tmpdata)
 			try:
 				print("Loading history, debug number: {}".format(tmp))
 				self.history = self.available[int(tmp)] # filename for history

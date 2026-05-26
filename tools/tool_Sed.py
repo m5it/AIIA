@@ -36,14 +36,16 @@ class Sed():
 	def run(self, pattern, replacement, fileName, inplace=False, opts={}):
 		print("Sed.run() STARTING, pattern: {}, replacement: {}, fileName: {}, inplace: {}".format(pattern, replacement, fileName, inplace))
 		#
+		inplace = str(inplace).lower() == 'true'
+		#
 		# Find file
 		file_path = self._find_file(fileName)
 		if not file_path:
-			return "Error: File {} not found in ".format(fileName)
+			return "Error: File {} not found".format(fileName)
 		#
 		# Build sed command
 		# Escape special characters for sed
-		sed_pattern = "s/{}/{}/g".format(pattern, replacement)
+		sed_pattern = "s|{}|{}|g".format(pattern.replace('|', '\\|'), replacement.replace('|', '\\|'))
 		cmd = ["sed", sed_pattern, file_path]
 		#
 		print("Sed.run() executing: {}".format(cmd))

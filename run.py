@@ -1,6 +1,6 @@
 #!/usr/bin/python
-from ollama import ChatResponse, chat
-import getopt, os, shutil
+from ollama import chat
+import getopt, os, shutil, sys
 import atexit, traceback
 #
 from config import Options
@@ -164,7 +164,7 @@ def Run(prepared=False):
 #--
 #
 def cleanup():
-	global Options,Stats
+	global Options, hHA
 	print("cleanup() START")
 	#
 	if Options['AI_LIVE']:
@@ -183,9 +183,9 @@ def cleanup():
 #
 def handle_exception(exc_type, exc_value, exc_traceback):
 	if issubclass(exc_type, KeyboardInterrupt):
-		# Let KeyboardInterrupt propagate
-		print("Exception: Keyboard Interrupt: {}".format(exc_type),{'verbose':True})
-		return
+		print("Keyboard Interrupt received. Exiting.")
+		Options['AI_LIVE'] = False
+		sys.exit(1)
 	# Extract traceback info
 	tb = traceback.extract_tb(exc_traceback)
 	# Get the last frame (most recent error)
@@ -223,7 +223,7 @@ def Main(argv):
 	args     = []
 	#
 	try:
-		opts, args = getopt.getopt(argv,"vdchm:M:Y:T:p:R",["--debug", "--continue", "--model", "--memory_specific", "--you", "--temperature", "--persona", "--reset"])
+		opts, args = getopt.getopt(argv,"vdchm:M:Y:T:p:R",["debug", "continue", "model=", "memory_specific=", "you=", "temperature=", "persona=", "reset"])
 	except getopt.GetoptError:
 		opt_help = True
 	
@@ -250,7 +250,7 @@ def Main(argv):
 			Options['QUIET'] = True
 		elif opt=="-T":
 			print("AIIA => Setting temperature: {}".format( float(arg) ))
-			Options['AI_TEMPERATURE'] = float(arg)
+			Options['AI_OPTIONS']['temperature'] = float(arg)
 		elif opt=="-R" or opt=="--reset":
 			if not _confirm_factory_reset():
 				sys.exit(0)
@@ -267,16 +267,17 @@ def Main(argv):
 	if cwd != framework_dir:
 		Options['working_dir'] = cwd
 	#
+	# Show help before initializing Handle (no need to load AI system just for --help)
+	if opt_help:
+		Help()
+		sys.exit(0)
+	#
 	hHA      = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", Options)
 	hHA.Init()
 	
 	#
-	if opt_help:
-		Options['AI_LIVE'] = False
-		Help()
-		sys.exit(0)
 	# One request / response and exit
-	elif opt_one!=None:
+	if opt_one!=None:
 		hHA.One(opt_one,oneOpt)
 		Options['AI_LIVE'] = False
 		sys.exit(0)

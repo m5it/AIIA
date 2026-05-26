@@ -25,10 +25,10 @@ class ReadFile():
 		# Try  only
 		path = "{}".format(fileName)
 		if not os.path.exists(path):
-			return "Error: File `{}` not found in ".format(fileName)
+			return "Error: File `{}` not found".format(fileName)
 		
 		data = fread(path)
 		if data==False:
-			return "Failed retrieving content of file {}".format(fileName)
+			return "Error: Failed to read file {}".format(fileName)
 		return data
 		

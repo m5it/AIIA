@@ -35,10 +35,14 @@ class Sort():
 	def run(self, fileName, numeric=False, reverse=False, unique=False, opts={}):
 		print("Sort.run() STARTING, fileName: {}, numeric: {}, reverse: {}, unique: {}".format(fileName, numeric, reverse, unique))
 		#
+		numeric = str(numeric).lower() == 'true'
+		reverse = str(reverse).lower() == 'true'
+		unique = str(unique).lower() == 'true'
+		#
 		# Find file
 		file_path = self._find_file(fileName)
 		if not file_path:
-			return "Error: File {} not found in ".format(fileName)
+			return "Error: File {} not found".format(fileName)
 		#
 		# Build sort command
 		cmd = ["sort"]

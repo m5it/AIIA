@@ -1,3 +1,4 @@
+import os, json
 from src.functions import fread,fwrite,user_input,importmodule,initmodule
 #
 class Prepare():
@@ -19,8 +20,8 @@ class Prepare():
 		self.handle.hLG.echo("Prepare.UpdateFileNames() START")
 		# generate history file name depend on session and system message
 		if self.handle.Options['AI_FILE_LOAD_HISTORY']==False:
-			self.handle.Options['AI_FILE_HISTORY'] = "{}.dbk".format(self.handle.Options['AI_SESS_ID'], self.handle.Options['AI_FILE_HISTORY'])
-			self.handle.Options['AI_USER_HISTORY'] = "{}.user.dbk".format(self.handle.Options['AI_SESS_ID'], self.handle.Options['AI_FILE_HISTORY'])
+			self.handle.Options['AI_FILE_HISTORY'] = "{}.dbk".format(self.handle.Options['AI_SESS_ID'])
+			self.handle.Options['AI_USER_HISTORY'] = "{}.user.dbk".format(self.handle.Options['AI_SESS_ID'])
 			self.handle.hLG.echo("DEBUG generating new history name: {}".format(self.handle.Options['AI_FILE_HISTORY']),{'color':False})
 			#self.handle.hHM.history = self.handle.Options['AI_FILE_HISTORY']
 		else:
@@ -28,13 +29,13 @@ class Prepare():
 	
 	#
 	def SaveMemory(self):
-		self.hLG.echo("Prepare.SaveMemory() START, length: {}. history.file: {} vs {} vs {}. DEBUG AI_FILE_LOAD_HISTORY: {}".format( len(self.msgs), self.hHM.history, self.Options['AI_FILE_HISTORY'], self.Options['AI_USER_HISTORY'], self.Options['AI_FILE_LOAD_HISTORY'] ),{'color':False})
+		self.handle.hLG.echo("Prepare.SaveMemory() START, length: {}. history.file: {} vs {} vs {}. DEBUG AI_FILE_LOAD_HISTORY: {}".format( len(self.handle.hHM.msgs), self.handle.hHM.history, self.handle.Options['AI_FILE_HISTORY'], self.handle.Options['AI_USER_HISTORY'], self.handle.Options['AI_FILE_LOAD_HISTORY'] ),{'color':False})
 		#
-		history_path = "{}/history/{}".format(self.Options.get('path', ''), self.Options['AI_USER_HISTORY'])
+		history_path = "{}/history/{}".format(self.handle.Options.get('path', ''), self.handle.Options['AI_USER_HISTORY'])
 		if os.path.exists(history_path):
 			os.remove(history_path)
 		# write history here
-		for obj in self.msgs:
+		for obj in self.handle.hHM.msgs:
 			fwrite(history_path,"{}\n".format(json.dumps(obj)),False)
 	
 	#
@@ -85,7 +86,7 @@ class Prepare():
 				cls = initmodule(mod, n)
 				if cls:
 					break
-			except:
+			except Exception:
 				continue
 		if not cls:
 			return "Error: could not initialize instruct class {}".format(cls_name)

@@ -42,7 +42,7 @@ class TreeView():
 			return "Error: path '{}' is not a directory.".format(root)
 		try:
 			max_depth = int(depth)
-		except:
+		except Exception:
 			return "Error: depth must be a number."
 		if max_depth < 0:
 			max_depth = 0

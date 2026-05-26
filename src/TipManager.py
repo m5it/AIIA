@@ -4,7 +4,7 @@ from src.functions import fwrite
 class TipManager():
 	#
 	def __init__(self, opts):
-		self.handle = opts['handle'] if 'handle' in opts else False
+		self.handle = opts.get('handle')
 		self.handle.hLG.echo("TipManager.__init__() STARTED!",{'color':True})
 		self.base_path = self.handle.Options.get('TIPS_PATH', os.path.expanduser('~/.config/ourai/tips'))
 	#
@@ -195,7 +195,7 @@ class TipManager():
 		try:
 			with open(path) as fp:
 				data = json.load(fp)
-		except:
+		except Exception:
 			return None
 		now = int(time.time())
 		saved_at = data.get('saved_at', 0)
@@ -232,7 +232,7 @@ class TipManager():
 				count += 1
 		try:
 			os.rmdir(path)
-		except:
+		except Exception:
 			pass
 		return count
 	#
@@ -250,6 +250,6 @@ class TipManager():
 						count += 1
 				try:
 					os.rmdir(tpath)
-				except:
+				except Exception:
 					pass
 		return count
