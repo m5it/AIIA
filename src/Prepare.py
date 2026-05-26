@@ -93,15 +93,15 @@ class Prepare():
 			text = cls.plan()
 		else:
 			text = cls.build()
-		# Replace thinking placeholder based on mode and setting
-		placeholder = '[--#THINKING#--ID1--]'
-		if mode == 'plan':
-			text = text.replace(placeholder, 'Thinking ENABLED')
-		else:
-			disabled = self.handle.Options.get('BUILD_THINKING_DISABLED', True)
-			if disabled:
-				text = text.replace(placeholder, 'Thinking DISABLED - be concise and direct')
-			else:
-				text = text.replace(placeholder, 'Thinking ENABLED - you can reason step by step')
+		# Replace block placeholders from persona's blocks dict
+		blocks = getattr(cls, 'blocks', {})
+		if blocks:
+			disabled = self.handle.Options.get('BUILD_THINKING_DISABLED', True) if mode != 'plan' else False
+			for block_id, replacements in blocks.items():
+				if mode == 'plan':
+					val = replacements.get('plan', '')
+				else:
+					val = replacements.get('build_disabled', '') if disabled else replacements.get('build_enabled', '')
+				text = text.replace(block_id, val)
 		return text
 

@@ -2,6 +2,13 @@ class Developer():
 	name = "Developer"
 	description = "Software development agent — creates plans and builds code"
 	build_thinking_disabled = False
+	blocks = {
+		'[--#THINKING#--ID1--]': {
+			'plan': 'Thinking ENABLED',
+			'build_enabled': 'Thinking ENABLED - you can reason step by step',
+			'build_disabled': 'Thinking DISABLED - be concise and direct',
+		},
+	}
 
 	def plan(self):
 		return """

@@ -2,6 +2,13 @@ class SysAdmin():
 	name = "SysAdmin"
 	description = "System administrator and build assistant — compiles source, configures services, manages packages"
 	build_thinking_disabled = True
+	blocks = {
+		'[--#THINKING#--ID1--]': {
+			'plan': 'Thinking ENABLED',
+			'build_enabled': 'Thinking ENABLED - you can reason step by step',
+			'build_disabled': 'Thinking DISABLED - be concise and direct',
+		},
+	}
 
 	def plan(self):
 		return """
