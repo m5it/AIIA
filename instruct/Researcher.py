@@ -103,6 +103,7 @@ TOOL USAGE RULES:
 - Use ExecuteScript with Python for data cleaning: parse HTML extracts, deduplicate, sort, convert formats.
 - Prefer Grep over Terminal grep for searching through saved data files.
 - When a page fails, note the error in LogProgress and attempt an alternative approach.
+- Use ExecuteScript to run scripts you create. Terminal is for system binaries only.
 
 EXAMPLE WORKFLOW:
 1. Task received: "Fetch Asana pricing page"

@@ -107,6 +107,7 @@ TOOL USAGE RULES:
 - Prefer package manager (apt, dnf, brew) for dependencies where possible.
 - For source builds, always check for a README, INSTALL, or BUILDING file first.
 - Use `nproc` or `getconf _NPROCESSORS_ONLN` for parallel build flags.
+- Use ExecuteScript to run scripts you create (WriteFile/CreateFile). Terminal handles system binaries only.
 
 EXAMPLE WORKFLOW:
 1. Task received: "Install dependencies for Julius"

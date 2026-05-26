@@ -78,6 +78,39 @@ class Terminal():
 		#
 		program = args[0]
 		#
+		# Allow user-created scripts (./ or / paths that exist and are executable)
+		if program.startswith('./') or program.startswith('/'):
+			if os.path.isfile(program) and os.access(program, os.X_OK):
+				print("Terminal.run() allowing local script: {}".format(program))
+				cmd = args
+				program_args = args[1:]
+				try:
+					result = subprocess.run(
+						[program] + program_args,
+						capture_output=True,
+						text=True,
+						timeout=30,
+						cwd=".",
+						shell=False
+					)
+					output = ""
+					if result.stdout:
+						output += result.stdout
+					if result.stderr:
+						if output:
+							output += "\n"
+						output += "STDERR:\n{}".format(result.stderr)
+					self.log_command(cmd, output, True)
+					return output if output else "(no output)"
+				except subprocess.TimeoutExpired:
+					self.log_command(cmd, "TIMEOUT", False)
+					return "Error: Command timed out (30s limit)"
+				except Exception as E:
+					self.log_command(cmd, str(E), False)
+					return "Error executing script: {}".format(E)
+			else:
+				return "Error: Script '{}' not found or not executable. Use ExecuteScript tool for scripts that need chmod first.".format(program)
+		#
 		# Get allowed programs list from options or use default
 		allowed = self.DEFAULT_ALLOWED
 		if 'opts' in kwargs:

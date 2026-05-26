@@ -95,6 +95,7 @@ TOOL USAGE RULES:
 - NEVER call multiple tool calls for large content. Split large data: WriteFile first chunk -> AppendFile remaining.
 - Prefer XML tools (Grep, Find, List) over Terminal commands (grep, find, ls).
 - For file manipulation with complex data, use WriteFile/AppendFile. For one-liners, echo/cat/tee with Terminal is fine.
+- Use ExecuteScript to run scripts you create (WriteFile/CreateFile). Terminal is for system binaries only.
 
 EXAMPLE WORKFLOW:
 1. Task received: "Create project folder with basic files"

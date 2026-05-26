@@ -115,49 +115,49 @@ class ToolParser:
 				terminal_args = {}
 				terminal_args['arg1'] = fileName
 				#
-			# Add additional args if provided
-			if 'args' in params:
-				args = params['args']
-				# Handle if args is a string (could be JSON array, Python list repr, or space-separated)
-				if isinstance(args, str):
-					import json
-					# Try to parse as JSON array first
-					try:
-						parsed_args = json.loads(args)
-						if isinstance(parsed_args, list):
-							for i, arg in enumerate(parsed_args, start=2):
-								terminal_args['arg{}'.format(i)] = str(arg)
-							args = None  # Mark as processed
-					except:
-						pass
-					#
-					if args:  # Not JSON, try other formats
-						# Check if it looks like a Python list representation: [item1, item2, ...]
-						if args.strip().startswith('[') and args.strip().endswith(']'):
-							# Strip brackets and split by comma
-							inner = args.strip()[1:-1].strip()
-							if inner:  # Not empty
-								# Split by comma and clean up
-								parts = [p.strip().strip('"\'') for p in inner.split(',')]
-								for i, arg in enumerate(parts, start=2):
-									if arg:  # Skip empty parts
-										terminal_args['arg{}'.format(i)] = arg
-							args = None
-					#
-					if args:  # Still not processed, treat as space-separated
-						import shlex
+				# Add additional args if provided
+				if 'args' in params:
+					args = params['args']
+					# Handle if args is a string (could be JSON array, Python list repr, or space-separated)
+					if isinstance(args, str):
+						import json
+						# Try to parse as JSON array first
 						try:
-							parsed_args = shlex.split(args)
-							for i, arg in enumerate(parsed_args, start=2):
-								terminal_args['arg{}'.format(i)] = arg
+							parsed_args = json.loads(args)
+							if isinstance(parsed_args, list):
+								for i, arg in enumerate(parsed_args, start=2):
+									terminal_args['arg{}'.format(i)] = str(arg)
+								args = None  # Mark as processed
 						except:
-							terminal_args['arg2'] = args
-				elif isinstance(args, list):
-					for i, arg in enumerate(args, start=2):
-						terminal_args['arg{}'.format(i)] = str(arg)
-				#
-				toolName = 'Terminal'
-				params = terminal_args
+							pass
+						#
+						if args:  # Not JSON, try other formats
+							# Check if it looks like a Python list representation: [item1, item2, ...]
+							if args.strip().startswith('[') and args.strip().endswith(']'):
+								# Strip brackets and split by comma
+								inner = args.strip()[1:-1].strip()
+								if inner:  # Not empty
+									# Split by comma and clean up
+									parts = [p.strip().strip('"\'') for p in inner.split(',')]
+									for i, arg in enumerate(parts, start=2):
+										if arg:  # Skip empty parts
+											terminal_args['arg{}'.format(i)] = arg
+								args = None
+						#
+						if args:  # Still not processed, treat as space-separated
+							import shlex
+							try:
+								parsed_args = shlex.split(args)
+								for i, arg in enumerate(parsed_args, start=2):
+									terminal_args['arg{}'.format(i)] = arg
+							except:
+								terminal_args['arg2'] = args
+					elif isinstance(args, list):
+						for i, arg in enumerate(args, start=2):
+							terminal_args['arg{}'.format(i)] = str(arg)
+					#
+					toolName = 'Terminal'
+					params = terminal_args
 		#
 		# Load tool dynamically if not already loaded
 		if toolName not in self.handle.hTC.handles:

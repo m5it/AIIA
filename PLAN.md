@@ -1,3 +1,87 @@
+# Plan: Echo Partition UUID Script
+## ID: 1779756872.7537236
+## Created: 2026-05-26 01:54:32
+## Status: in_progress
+
+### Goal:
+Create a bash script that accepts one argument (a partition name such as /dev/sda4), runs blkid on that partition, extracts the UUID, and prints it to stdout. Include basic error handling for missing arguments or partitions without a UUID.
+
+### Tasks (4):
+1. [pending] Create script file
+   ID: 1779756872.7584043
+
+2. [pending] Write script content
+   ID: 1779756872.762371
+
+3. [pending] Make script executable
+   ID: 1779756872.7821257
+
+4. [pending] Verify script functionality
+   ID: 1779756872.78529
+
+---
+
+# Plan: Echo Partition UUID Script
+## ID: 1779756872.7537236
+## Created: 2026-05-26 01:54:32
+## Status: in_progress
+
+### Goal:
+Create a bash script that accepts one argument (a partition name such as /dev/sda4), runs blkid on that partition, extracts the UUID, and prints it to stdout. Include basic error handling for missing arguments or partitions without a UUID.
+
+### Tasks (3):
+1. [pending] Create script file
+   ID: 1779756872.7584043
+
+2. [pending] Write script content
+   ID: 1779756872.762371
+
+3. [pending] Make script executable
+   ID: 1779756872.7821257
+
+---
+
+# Plan: Echo Partition UUID Script
+## ID: 1779756872.7537236
+## Created: 2026-05-26 01:54:32
+## Status: in_progress
+
+### Goal:
+Create a bash script that accepts one argument (a partition name such as /dev/sda4), runs blkid on that partition, extracts the UUID, and prints it to stdout. Include basic error handling for missing arguments or partitions without a UUID.
+
+### Tasks (2):
+1. [pending] Create script file
+   ID: 1779756872.7584043
+
+2. [pending] Write script content
+   ID: 1779756872.762371
+
+---
+
+# Plan: Echo Partition UUID Script
+## ID: 1779756872.7537236
+## Created: 2026-05-26 01:54:32
+## Status: in_progress
+
+### Goal:
+Create a bash script that accepts one argument (a partition name such as /dev/sda4), runs blkid on that partition, extracts the UUID, and prints it to stdout. Include basic error handling for missing arguments or partitions without a UUID.
+
+### Tasks (1):
+1. [pending] Create script file
+   ID: 1779756872.7584043
+
+---
+
+# Plan: Echo Partition UUID Script
+## ID: 1779756872.7537236
+## Created: 2026-05-26 01:54:32
+## Status: in_progress
+
+### Goal:
+Create a bash script that accepts one argument (a partition name such as /dev/sda4), runs blkid on that partition, extracts the UUID, and prints it to stdout. Include basic error handling for missing arguments or partitions without a UUID.
+
+---
+
 # Plan: Configure Julius Speech Engine
 ## ID: 1779600044.9960642
 ## Created: 2026-05-24 06:20:44
