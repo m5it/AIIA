@@ -93,10 +93,15 @@ class Prepare():
 			text = cls.plan()
 		else:
 			text = cls.build()
+		# Replace thinking placeholder based on mode and setting
+		placeholder = '[--#THINKING#--ID1--]'
+		if mode == 'plan':
+			text = text.replace(placeholder, 'Thinking ENABLED')
+		else:
 			disabled = self.handle.Options.get('BUILD_THINKING_DISABLED', True)
 			if disabled:
-				text = text.replace('--#BUILD_THINKING_DISABLED#--', 'Thinking DISABLED - be concise and direct')
+				text = text.replace(placeholder, 'Thinking DISABLED - be concise and direct')
 			else:
-				text = text.replace('--#BUILD_THINKING_DISABLED#--', 'Thinking ENABLED - you can reason step by step')
+				text = text.replace(placeholder, 'Thinking ENABLED - you can reason step by step')
 		return text
 

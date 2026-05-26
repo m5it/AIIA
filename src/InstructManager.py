@@ -94,6 +94,11 @@ class InstructManager():
 			old = self.handle.Options.get('AI_MODEL', '')
 			self.handle.Options['AI_MODEL'] = model.strip()
 			self.handle.hLG.echo("Persona '{}' sets model: {} (was: {})".format(name, model.strip(), old), {'color':True, 'colorValue':'cyan'})
+		# Read optional build_thinking_disabled attribute
+		thinking_attr = getattr(cls, 'build_thinking_disabled', None)
+		if thinking_attr is not None:
+			self.handle.Options['BUILD_THINKING_DISABLED'] = bool(thinking_attr)
+			self.handle.hLG.echo("Persona '{}' sets build_thinking_disabled: {}".format(name, bool(thinking_attr)), {'color':True, 'colorValue':'cyan'})
 	#
 	def test(self):
 		print("InstructManager.test() STARTED!")

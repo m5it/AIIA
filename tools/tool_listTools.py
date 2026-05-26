@@ -49,5 +49,7 @@ class listTools():
 		output += "\n- <WriteFile><fileName>output.txt</fileName><contentOfFile>Hello</contentOfFile></WriteFile>  # Write file"
 		output += "\n- <Find><pattern>*.py</pattern></Find>  # Find files"
 		output += "\n- <Grep><pattern>def </pattern><fileName>test.py</fileName></Grep>  # Search in file"
+		output += "\n- <SaveTip><title>debug_command</title><content>strace -p PID -f -e trace=open,read</content></SaveTip>  # Save a tip"
+		output += "\n- <GetTip><title>debug_command</title></GetTip>  # Retrieve a tip"
 		
 		return output

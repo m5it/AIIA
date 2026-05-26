@@ -9,6 +9,7 @@ class ToolParser:
 	"""
 	Parses AI responses for XML tool invocations and job_done tags
 	"""
+	_current_handle = None  # Set before tool.run() for tools that need handle access
 	#--
 	def __init__(self, opts={}):
 		self.logger = opts['logger'] if 'logger' in opts else None
@@ -212,7 +213,11 @@ class ToolParser:
 				self.handle.tool_errors += 1
 				return "Error: Missing required parameter(s): {}{}".format(
 					', '.join(missing), self._tool_usage(info))
-			result = h.run(**params)
+			ToolParser._current_handle = self.handle
+			try:
+				result = h.run(**params)
+			finally:
+				ToolParser._current_handle = None
 			return result
 		except Exception as E:
 			self.handle.tool_errors += 1

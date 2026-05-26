@@ -37,7 +37,7 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 </ToolName>
 ```
 
-**Available tools (15 total):**
+**Available tools (20 total):**
 - `ReadFile` — Read from `workin/` (params: `<fileName>`)
 - `WriteFile` — Write to `workout/` (params: `<fileName>`, `<contentOfFile>`)
 - `AppendFile` — Append in `workout/` (params: `<fileName>`, `<contentOfFile>`)
@@ -53,6 +53,11 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 - `Tail` — Last N lines (params: `<fileName>`, `<lines>` optional)
 - `Sort` — Sort lines (params: `<fileName>`, `<numeric>/<reverse>/<unique>` optional)
 - `WWW` — Fetch a web page via the Java web client (params: `<url>`) — also invocable as `<www>`
+- `SaveTip` — Save a tip with title and content to model storage (params: `<title>`, `<content>`)
+- `GetTip` — Retrieve a saved tip by title (params: `<title>`, `<source>` optional)
+- `ListTips` — List all saved tips (params: `<source>` optional)
+- `DeleteTip` — Delete a tip by title (params: `<title>`, `<source>` optional)
+- `ReinsertTip` — Reinsert a saved tip's entries into current chat history (params: `<title>`)
 
 **Example model output:**
 ```xml
@@ -64,6 +69,22 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 <ExecuteScript>
 <fileName>hello.sh</fileName>
 </ExecuteScript>
+```
+
+**Tip tool examples:**
+```xml
+<SaveTip>
+<title>debug_command</title>
+<content>strace -p PID -f -e trace=open,read</content>
+</SaveTip>
+
+<GetTip>
+<title>debug_command</title>
+</GetTip>
+
+<ReinsertTip>
+<title>debug_command</title>
+</ReinsertTip>
 ```
 
 ## Module System
@@ -78,7 +99,7 @@ The project uses a custom module loader (`src/functions.py`):
 Mode instructions (system prompts for plan/build modes) live in `instruct/` as persona classes:
 - `instruct/Developer.py` — default persona, provides `plan()` and `build()` methods
 - Switch persona via `config.py`: `INSTRUCT_CLASS` option (e.g., `"Developer"`)
-- The `--#BUILD_THINKING_DISABLED#--` placeholder in build text is replaced at runtime based on `BUILD_THINKING_DISABLED` option
+- The `[--#THINKING#--ID1--]` placeholder in both plan and build text is replaced at runtime based on mode and `BUILD_THINKING_DISABLED` option
 - Create new personas by adding files to `instruct/` with the same `plan()`/`build()` interface
 
 ## Runtime Requirements
