@@ -203,9 +203,11 @@ def Main(argv):
 	opt_help = False
 	opt_one  = None # Send one request and exit
 	oneOpt   = {} # options for one request from terminal
+	opts     = [] # default to empty (avoids UnboundLocalError if getopt fails)
+	args     = []
 	#
 	try:
-		opts, args = getopt.getopt(argv,"dchm:M:Y:T:p:R",["--debug", "--continue", "--model", "--memory_specific", "--you", "--temperature", "--persona", "--reset"])
+		opts, args = getopt.getopt(argv,"vdchm:M:Y:T:p:R",["--debug", "--continue", "--model", "--memory_specific", "--you", "--temperature", "--persona", "--reset"])
 	except getopt.GetoptError:
 		opt_help = True
 	
@@ -219,7 +221,8 @@ def Main(argv):
 			opt_help = True
 		elif opt=="-v":
 			print("{} {}".format( Options['VERSION_NAME'], Options['VERSION'] ))
-			sys.exit(1)
+			Options['AI_LIVE'] = False
+			sys.exit(0)
 		elif opt=="-m":
 			Options['AI_MODEL'] = arg
 		elif opt=="-M":
@@ -247,12 +250,14 @@ def Main(argv):
 	
 	#
 	if opt_help:
+		Options['AI_LIVE'] = False
 		Help()
-		sys.exit(1)
+		sys.exit(0)
 	# One request / response and exit
 	elif opt_one!=None:
 		hHA.One(opt_one,oneOpt)
-		sys.exit(1)
+		Options['AI_LIVE'] = False
+		sys.exit(0)
 	#--
 	print("Welcome to AIIA.")
 	print("  * AIIA is like LM Studio for `Large language models` just running in terminal and in python.")
