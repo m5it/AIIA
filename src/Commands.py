@@ -639,9 +639,6 @@ class Commands():
 		self.handle.Options['AI_LIVE']=False
 		return 3 # as break
 	#
-	def Test(self):
-		print("Handle.Commands.__init__() START")
-	
 	#
 	def CMD_MODE(self, inp=""):
 		print("CMD_MODE() START, inp: {}".format(inp))
@@ -685,11 +682,9 @@ class Commands():
 		#--
 		# Replace current system prompt because is last in chat history
 		if self.handle.hHM.msgs and self.handle.hHM.msgs[-1]['role'] == 'system':
-			print("DEBUG Commands.CMD_MODE( {} ) replacing system prompt".format( self.handle.Options['MODE'] ))
 			self.handle.hHM.msgs[-1]['content'] = "{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) )
 		# Append new system prompt
 		else:
-			print("DEBUG Commands.CMD_MODE( {} ) appending new system prompt".format( self.handle.Options['MODE'] ))
 			self.handle.Response('system',{ 'content':"{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) ), })
 		#--
 		# Depend if plan contain tasks then StartBuild() || <startBuild/> and auto continue to AI

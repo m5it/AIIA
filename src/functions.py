@@ -71,9 +71,6 @@ def user_input( opts={} ):
 		if char=="":
 			continue
 		#
-		if opt_debug:
-			print("DEBUG user_input() char: {}, ord: {}".format( char, ord(char) ))
-		#
 		if opt_quitWithCTRLX==False and ord(char)==10:
 			#print("DEBUG quit by ENTER!!!")
 			break

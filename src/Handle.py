@@ -102,10 +102,6 @@ class Handle():
 		opt_skip_history  = opts.get('skip_history', False)
 		
 		# Print response
-		#if role!='user':
-		#	#print("{} => {}".format( role, opt_content ))
-		#	self.hLG.echo("{} => {}".format(role.upper(),opt_content), log_options)
-		
 		# Generate response object
 		obj = {
 			'role'     :role,
@@ -153,7 +149,7 @@ class Handle():
 	def One(self,data, opts=None):
 		if opts is None:
 			opts = {}
-		#self.hLG.echo("Handle.One() START, data.len: {}, opts: {}, hHM.msgs.len: {}".format( len(data), opts, len(hHM.msgs) ))
+		
 		opt_history_num    = opts.get('history_num')
 		self.Init()
 		#
@@ -211,7 +207,7 @@ class Handle():
 	def Parse(self, res, opts=None):
 		if opts is None:
 			opts = {}
-		print("Handle.Parse() START, opts: {}".format( opts ))
+		
 		#
 		opt_skip_history  = opts['skip_history'] if 'skip_history' in opts else False
 		opt_skip_color    = opts['skip_color'] if 'skip_color' in opts else False
@@ -221,7 +217,7 @@ class Handle():
 			color=False
 		#
 		response = self.Stream( res, color )
-		print("Debug response.len: ",len(response['content']))
+		
 		#
 		self.Response('assistant',{
 			'content':response['content'],
@@ -322,7 +318,6 @@ class Handle():
 			try:
 				inp = user_input({'quit_with_ctrlx':True})
 			except Exception as E:
-				print("Handle.You() Failed! E: ",E)
 				sys.exit(1)
 		
 		# Handle user commands
@@ -346,7 +341,7 @@ class Handle():
 		
 		# Handle model tool calls
 		tool_invocations = self.hTP.ParseTextToolInvocation(inp)
-		print("DEBUG You() tool_invocations: {}".format(tool_invocations))
+		
 		if tool_invocations:
 			self.hLG.echo("Handle.You() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
 			#
@@ -385,7 +380,6 @@ class Handle():
 		iteration = 0
 
 		while iteration < max_iterations:
-			print("DEBUG AI Iteration {}".format( iteration ))
 			iteration += 1
 
 			result        = ""
@@ -407,7 +401,6 @@ class Handle():
 
 			# Chat without tools, normal chat (XML tools handle themselves)
 			self.hLG.echo("DEBUG preparing chat (iteration {})".format(iteration),{'color':False})
-			print("DEBUG before chat() num msgs.len: {}, mode: {}".format( len(msgs), self.Options.get('MODE') ))
 			try:
 				res: ChatResponse = chat(
 					self.Options['AI_MODEL'],
@@ -426,12 +419,10 @@ class Handle():
 
 			# Stop if model response is empty (no content, no tools)
 			if not result.get('response', '').strip() and not result.get('invocations'):
-				print("DEBUG AI empty response, stopping iteration")
 				return True
 
 			# Stop if jobDone was called
 			if result.get('job_done'):
-				print("DEBUG AI jobDone detected, stopping iteration")
 				return True
 
 			# Check if tools were executed by looking for tool invocations in result
@@ -443,7 +434,6 @@ class Handle():
 	
 	#
 	def StartBuild(self, plan_id=None):
-		print("Handle.StartBuild() START, plan_id: {}".format(plan_id))
 		if not PlanBase.draft:
 			if plan_id:
 				plan = Plan.load(plan_id, self.Options.get('plans_path', 'plans'))

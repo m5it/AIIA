@@ -17,7 +17,6 @@ class ToolParser:
 		self.handle = opts['handle'] if 'handle' in opts else None # to master class / Handle()
 	#--
 	def ParseTextToolInvocation(self, text):
-		print("ToolParser().ParseTextToolInvocation() START! text.len: {}".format( len(text) ))
 		# Parse XML-style tool invocations like: <ReadFile><fileName>test.txt</fileName></ReadFile>
 		# Also handles self-closing tags: <listTools/>
 		# Returns: [{'name':'ReadFile', 'parameters':{'fileName':'test.txt'}}, ...]
@@ -75,7 +74,6 @@ class ToolParser:
 	
 	#
 	def CheckJobDone(self, text):
-		print("ToolParser().CheckJobDone() START!")
 		# Check if response contains <job_done/> or <job_done></job_done>
 		pattern1 = r'<job_done\s*/?>'
 		pattern2 = r'<job_done>.*?</job_done>'
@@ -86,7 +84,6 @@ class ToolParser:
 	
 	#
 	def ExtractToolResult(self, text):
-		print("ToolParser().ExtractToolResult() START! text.len: {}".format( len(text) ))
 		# Remove all tool invocations from text, return clean text
 		# Used to get the actual response without XML tool calls
 		#import re
@@ -103,7 +100,6 @@ class ToolParser:
 	
 	#
 	def ExecuteTextTool(self, toolName, params):
-		print("DEBUG ExecuteTextTool START, toolName: {}".format( toolName ))
 		# Execute a tool based on XML invocation
 		#
 		# ROUTING: If ExecuteScript is called with a non-script file, route to Terminal
@@ -264,7 +260,6 @@ class ToolParser:
 	
 	#
 	def FireToolInvocation(self, tool_invocations):
-		print("DEBUG FireToolInvocation() START, tool_invocations: {}".format(tool_invocations))
 		#
 		is_plan_mode = self.handle.Options.get('MODE') == 'plan'
 		plan_tools = ['createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks']
@@ -282,7 +277,6 @@ class ToolParser:
 		#
 		job_done = False
 		for inv in tool_invocations:
-			print("DEBUG FireToolInvocation() name: {}".format(inv['name']))
 			toolName = inv['name']
 			params   = inv['parameters']
 			#
@@ -297,7 +291,6 @@ class ToolParser:
 				result = self.HandlePlanTool(toolName, params)
 			else:
 				result = self.ExecuteTextTool(toolName, params)
-			print("DEBUG FireToolInvocation() result: ",result)
 			#
 			self.handle.Response('tool',{'content':str(result),'name':toolName})
 			#
@@ -319,7 +312,6 @@ class ToolParser:
 		return result
 	#
 	def HandlePlanTool(self, toolName, params):
-		print("DEBUG HandlePlanTool() START, toolName: {}, params: {}".format(toolName, params))
 		from src.PlanManager import PlanBase, Plan, PlanTask
 
 		plans_path = self.handle.Options.get('plans_path', 'plans')

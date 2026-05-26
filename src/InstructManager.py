@@ -100,5 +100,5 @@ class InstructManager():
 			self.handle.Options['BUILD_THINKING_DISABLED'] = bool(thinking_attr)
 			self.handle.hLG.echo("Persona '{}' sets build_thinking_disabled: {}".format(name, bool(thinking_attr)), {'color':True, 'colorValue':'cyan'})
 	#
-	def test(self):
-		print("InstructManager.test() STARTED!")
+	#
+		

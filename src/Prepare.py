@@ -12,7 +12,6 @@ class Prepare():
 		if tmp!=False:
 			self.handle.Options['AI_SESS_ID'] = int(tmp)
 		self.handle.Options['AI_SESS_ID'] = self.handle.Options['AI_SESS_ID']+1
-		self.handle.hLG.echo("DEBUG AI_SESS_ID: {}".format( self.handle.Options['AI_SESS_ID'] ))
 		fwrite(self.handle.Options['AI_FILE_SESSID'],self.handle.Options['AI_SESS_ID'],True)
 	
 	#
@@ -22,14 +21,13 @@ class Prepare():
 		if self.handle.Options['AI_FILE_LOAD_HISTORY']==False:
 			self.handle.Options['AI_FILE_HISTORY'] = "{}.dbk".format(self.handle.Options['AI_SESS_ID'])
 			self.handle.Options['AI_USER_HISTORY'] = "{}.user.dbk".format(self.handle.Options['AI_SESS_ID'])
-			self.handle.hLG.echo("DEBUG generating new history name: {}".format(self.handle.Options['AI_FILE_HISTORY']),{'color':False})
 			#self.handle.hHM.history = self.handle.Options['AI_FILE_HISTORY']
 		else:
-			print("DEBUG using old history name: {}".format(self.handle.Options['AI_FILE_HISTORY']))
+			self.handle.hLG.echo("Loading existing history: {}".format(self.handle.Options['AI_FILE_HISTORY']),{'color':False})
 	
 	#
 	def SaveMemory(self):
-		self.handle.hLG.echo("Prepare.SaveMemory() START, length: {}. history.file: {} vs {} vs {}. DEBUG AI_FILE_LOAD_HISTORY: {}".format( len(self.handle.hHM.msgs), self.handle.hHM.history, self.handle.Options['AI_FILE_HISTORY'], self.handle.Options['AI_USER_HISTORY'], self.handle.Options['AI_FILE_LOAD_HISTORY'] ),{'color':False})
+		self.handle.hLG.echo("Prepare.SaveMemory() START, length: {}. history: {}".format( len(self.handle.hHM.msgs), self.handle.hHM.history ),{'color':False})
 		#
 		history_path = "{}/history/{}".format(self.handle.Options.get('path', ''), self.handle.Options['AI_USER_HISTORY'])
 		if os.path.exists(history_path):
@@ -54,7 +52,6 @@ class Prepare():
 		tmp = user_input({'quit_with_ctrlx':True})
 		#
 		mode = self.handle.Options.get('MODE', 'build')
-		print("DEBUG Prepare.Prepare() mode: ",mode)
 		#
 		tool_instructions = self._get_mode_instructions(mode)
 		#

@@ -19,7 +19,6 @@ class HistoryManager():
 	
 	# update self.available (list history files)
 	def Update(self):
-		print("HistoryManager.Update() opt_path: {}".format( self.opt_path ))
 		#
 		self.available = []
 		#
@@ -70,9 +69,7 @@ class HistoryManager():
 	#
 	def CheckDraft(self):
 		if self.handle.Options['DRAFT_CONTENT'] is not None:
-			print("HistoryManager.CheckDraft() Appending to chat history! draft.len: ",len(self.handle.Options['DRAFT_CONTENT']))
 			response = self.handle.Stream( self.handle.Options['DRAFT_CONTENT'] )
-			print("DEBUG HistoryManager.CheckDraft() ",response)
 			self.handle.Options['DRAFT_CONTENT'] = None
 	
 	#
@@ -123,7 +120,6 @@ class HistoryManager():
 			except Exception as E:
 				print("Choosing history failed, error: {}".format(E))
 	
-	# this is ok for any class.. it is just a test! *** love it or remove it.
-	def test(self):
-		print("HistoryManager.test() STARTED!")
+	#
+		
 	
