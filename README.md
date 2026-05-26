@@ -1,15 +1,16 @@
 # OurAI — AI Interactive Agent
 
-**Version 0.4** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
+**Version 0.5** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
 
 ## Features
 
 - **Interactive AI Chat** — Terminal-based interface for conversing with local LLMs via Ollama (streaming response with thinking support)
-- **XML Tool System** — AI invokes tools by writing XML blocks; tools are dynamically loaded Python classes with hot-reload
+- **XML Tool System** — AI invokes tools by writing XML blocks; tools are dynamically loaded Python classes with hot-reload; 22 tools including file I/O, search, processing, terminal, and tips
 - **Plan / Build Modes** — structured workflow: plan mode for architecting tasks, build mode for executing them
 - **Plan Manager** — Create plans, split into tasks, track progress, auto-continue on restart (`-c` flag)
 - **Secure Terminal Tool** — Allowlist-based command execution with audit logging and 30s timeout; also allows user-created scripts via `./` or `/` paths
 - **Persistent Sessions** — Chat history saved per session in `history/`; session ID tracked in `sessid.aiia`
+- **ReplaceLine Tool** — Targeted line edits without rewriting entire files; supports single line or range replacement; pairs with AppendFile for precise, surgical file modifications
 - **Actions System** — Dynamically loaded action modules for reusable task sequences
 - **Continue Support** — `-c` flag loads last session's `HISTORY.md` and `PLAN.md` from working directory, resumes chat and plan where you left off
 - **Project History** — Each project directory gets a `HISTORY.md` with human-readable markdown + embedded JSON for machine parsing; fully round-trip compatible
@@ -293,12 +294,13 @@ OurAI/
 │   ├── Researcher.py             # Web research and data extraction persona
 │   └── __init__.py
 │
-├── tools/                        # XML-invokable tool modules (17 files)
+├── tools/                        # XML-invokable tool modules (22+ files)
 │   ├── tool_Terminal.py          # Secure terminal execution
 │   ├── tool_ReadFile.py          # Read file content
 │   ├── tool_WriteFile.py         # Write/overwrite files
 │   ├── tool_AppendFile.py        # Append or insert at line
 │   ├── tool_CreateFile.py        # Create file (fails if exists)
+│   ├── tool_ReplaceLine.py       # Replace specific line(s) in a file
 │   ├── tool_List.py              # List directory contents
 │   ├── tool_listTools.py         # List all available tools
 │   ├── tool_ExecuteScript.py     # Run scripts (.py/.sh/.js...)
@@ -309,6 +311,12 @@ OurAI/
 │   ├── tool_Head.py              # First N lines of file
 │   ├── tool_Tail.py              # Last N lines of file
 │   ├── tool_Sort.py              # Sort file lines
+│   ├── tool_WWW.py               # Web fetcher (JS/no-JS, browser, cookies)
+│   ├── tool_SaveTip.py           # Save conversation tip
+│   ├── tool_GetTip.py            # Retrieve saved tip
+│   ├── tool_ListTips.py          # List all saved tips
+│   ├── tool_DeleteTip.py         # Delete a tip
+│   ├── tool_ReinsertTip.py       # Reinsert tip into chat
 │   └── create_file.py            # Utility function
 │
 ├── actions/                      # Reusable action modules
@@ -468,7 +476,7 @@ TaskLog
 
 ## XML Tools Reference
 
-The AI invokes tools by writing XML blocks in its response. All 15 tools are auto-discovered and loaded on first use.
+The AI invokes tools by writing XML blocks in its response. All tools are auto-discovered and loaded on first use.
 
 ### File Tools
 
@@ -569,6 +577,24 @@ Fails if file already exists (use WriteFile to overwrite).
 | `replacement` | string | yes | Replacement text |
 | `fileName` | string | yes | File to edit |
 | `inplace` | string | no | "true" to edit in place |
+
+#### ReplaceLine
+```xml
+<ReplaceLine>
+<fileName>file.txt</fileName>
+<fromLine>10</fromLine>
+<toLine>20</toLine>
+<replacement>new content</replacement>
+</ReplaceLine>
+```
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fileName` | string | yes | File to edit |
+| `fromLine` | number | yes | Starting line number (1-indexed) |
+| `toLine` | number | no | Ending line number (defaults to fromLine) |
+| `replacement` | string | yes | New content for the specified line(s). Multi-line supported. |
+
+**Use case:** ReplaceLine is for surgical edits — change a config value, fix a bug in one function, update a specific line. Prefer this over rewriting the entire file with WriteFile.
 
 #### Find
 ```xml
@@ -998,4 +1024,4 @@ See [LICENSE](LICENSE) for full terms including notification and payment obligat
 
 ## Project Status
 
-**Version 0.4** — Active development. The core architecture is stable. New features include the plan/build mode system, plan management, and continue support.
+**Version 0.5** — Active development. The core architecture is stable. New features include ReplaceLine tool for surgical file edits, expanded persona instructions teaching targeted-editing mindset, and enhanced tool count.

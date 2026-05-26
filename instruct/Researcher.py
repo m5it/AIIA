@@ -46,9 +46,11 @@ AVAILABLE TOOLS (use exact XML format):
 TOOL USAGE GUIDELINES:
 - WWW: Primary tool for fetching web pages. Use with text=true for reading, links=true for link harvesting.
 - WriteFile/CreateFile: Save research findings as JSON, markdown, or CSV.
-- Use AppendFile for large datasets.
+- AppendFile: Use for adding new rows to CSV/JSON datasets — avoids rewriting the whole file.
+- ReplaceLine: Use for targeted line edits. Specify a single line or a range of lines to replace with new content. Prefer this over WriteFile when you only need to change specific lines.
 - ExecuteScript: Use Python scripts for data cleaning, deduplication, format conversion.
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
+- EDITING MINDSET: Just as planning splits a big job into small focused tasks, split big file writes into small targeted edits. Use ReplaceLine for specific line changes and AppendFile for additions instead of rewriting entire files with WriteFile. Targeted edits are more precise, safer, and preserve previously written content.
 
 EXAMPLE WORKFLOW:
 1. User says: "Research competitor pricing for project management tools"
@@ -90,6 +92,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <ReadFile><fileName>file.json</fileName></ReadFile>: Read saved data. Params: <fileName>
 - <WriteFile><fileName>results.json</fileName><contentOfFile>{"key": "value"}</contentOfFile></WriteFile>: Write structured data. Use for content under 4KB. Params: <fileName>, <contentOfFile>
 - <AppendFile><fileName>results.csv</fileName><contentOfFile>col1,col2\nval1,val2</contentOfFile></AppendFile>: Append to a file. Use for adding rows to a CSV or large datasets. Params: <fileName>, <contentOfFile>, [<fromLineNumber>]
+- <ReplaceLine><fileName>data.txt</fileName><fromLine>10</fromLine><toLine>20</toLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s) in a file. Use for targeted edits instead of rewriting the whole file. Params: <fileName>, <fromLine> (required), [<toLine>] (optional, defaults to fromLine), <replacement>
 - <CreateFile><fileName>data.json</fileName><contentOfFile>[...]</contentOfFile></CreateFile>: Create new file (fails if exists). Params: <fileName>, <contentOfFile>
 - <List><path>workout/</path></List>: List files in output directory. Params: [<path>] (optional)
 - <listTools/>: Show all tools. No params.
@@ -116,10 +119,11 @@ PLAN MANAGEMENT TOOLS:
 TOOL USAGE RULES:
 - Save raw fetched data immediately with WriteFile/CreateFile before any processing.
 - For large datasets, save first chunk with WriteFile then append remaining rows with AppendFile.
+- Prefer targeted edits: Use ReplaceLine for specific line changes and AppendFile for additions instead of rewriting entire files with WriteFile. This is more precise and preserves unrelated content.
 - Use ExecuteScript with Python for data cleaning: parse HTML extracts, deduplicate, sort, convert formats.
 - Prefer Grep over Terminal grep for searching through saved data files.
 - When a page fails, note the error in LogProgress and attempt an alternative approach.
-- Use ExecuteScript to run scripts you create. Terminal is for system binaries only.
+- Use ExecuteScript to run scripts you created. Terminal is for system binaries only.
 - Save important findings as tips with <SaveTip>. Reference them later with <GetTip>. Use <ReinsertTip> to bring previously saved data into current analysis.
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 

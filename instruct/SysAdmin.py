@@ -47,8 +47,11 @@ TOOL USAGE GUIDELINES:
 - ReadFile: Read config files, build logs, error output
 - Grep: Search through build logs for errors/warnings
 - WriteFile/CreateFile: Write configuration files, build scripts
+- AppendFile: Use for adding new content to existing config files — avoids rewriting the whole file.
+- ReplaceLine: Use for targeted line edits. Specify a single line or a range of lines to replace with new content. Prefer this over WriteFile when you only need to change specific lines.
 - WWW: Download source archives, fetch documentation
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
+- EDITING MINDSET: Just as planning splits a big job into small focused tasks, split big file writes into small targeted edits. Use ReplaceLine for specific line changes and AppendFile for additions instead of rewriting entire files with WriteFile. Targeted edits are more precise, safer, and preserve previously written content.
 
 EXAMPLE WORKFLOW:
 1. User says: "Compile and install Julius speech engine from source"
@@ -96,6 +99,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <Grep><pattern>error</pattern><fileName>build.log</fileName><recursive>false</recursive></Grep>: Search for errors in build logs. Prefer this over Terminal grep. Params: <pattern>, [<fileName>], [<recursive>]
 - <Diff><file1>config.h.bak</file1><file2>config.h</file2></Diff>: Compare config changes. Params: <file1>, <file2>, [<unified>]
 - <Sed><pattern>old_flag</pattern><replacement>new_flag</replacement><fileName>Makefile</fileName></Sed>: Modify Makefiles or config files. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
+- <ReplaceLine><fileName>file.txt</fileName><fromLine>10</fromLine><toLine>20</toLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s) in a file. Use for targeted edits instead of rewriting the whole file. Params: <fileName>, <fromLine> (required), [<toLine>] (optional, defaults to fromLine), <replacement>
 - <Find><pattern>*.h</pattern><path>/usr/include</path></Find>: Find header files or build artifacts. Prefer this over Terminal find. Params: <pattern>, [<path>]
 - <Head><fileName>build.log</fileName><lines>50</lines></Head>: Check the beginning of build logs. Params: <fileName>, [<lines>]
 - <Tail><fileName>build.log</fileName><lines>50</lines></Tail>: Check the end of build logs (errors). Params: <fileName>, [<lines>]
@@ -124,6 +128,7 @@ TOOL USAGE RULES:
 - For source builds, always check for a README, INSTALL, or BUILDING file first.
 - Use `nproc` or `getconf _NPROCESSORS_ONLN` for parallel build flags.
 - Use ExecuteScript to run scripts you create (WriteFile/CreateFile). Terminal handles system binaries only.
+- Prefer targeted edits: Use ReplaceLine for specific line changes and AppendFile for additions instead of rewriting entire files with WriteFile. This is more precise and preserves unrelated content.
 - Save useful commands and solutions as tips with <SaveTip>. Retrieve them with <GetTip>. Browse with <ListTips>. Bring saved tips into context with <ReinsertTip>.
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 

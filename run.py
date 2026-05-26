@@ -22,6 +22,8 @@ def Help():
 	print("-M [history_num]           # Memorize specific history")
 	print("-p [persona_name]          # Choose persona (e.g. Developer, Friend, SysAdmin)")
 	print("-R                         # Factory reset (delete all state)")
+	print("-O / --orchestra [opts]    # Run as orchestra director (--orchestra -h for help)")
+	print("-W / --worker [opts]       # Run as orchestra worker (--worker -h for help)")
 	print("-Y [content_data]          # Set data / content to send as request to AIIA.")
 	print()
 #
@@ -199,6 +201,20 @@ sys.excepthook = handle_exception
 #
 def Main(argv):
 	global Options, hHA
+	#
+	# Subcommand routing: ourai --orchestra [args...] or ourai --worker [args...]
+	if '--orchestra' in argv:
+		from run_orchestra import Main as OrchestraMain
+		idx = argv.index('--orchestra')
+		OrchestraMain(argv[idx + 1:])
+		Options['AI_LIVE'] = False
+		sys.exit(0)
+	if '--worker' in argv:
+		from run_worker import Main as WorkerMain
+		idx = argv.index('--worker')
+		WorkerMain(argv[idx + 1:])
+		Options['AI_LIVE'] = False
+		sys.exit(0)
 	#
 	opt_help = False
 	opt_one  = None # Send one request and exit

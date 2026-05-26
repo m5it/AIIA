@@ -44,11 +44,13 @@ AVAILABLE TOOLS (use exact XML format):
 
 TOOL USAGE GUIDELINES:
 - Terminal: Use ONLY for one-liner commands. For complex scripts or data processing, use WriteFile/CreateFile.
-- WriteFile / CreateFile: Use for content < 2048 bytes in one call.
-- AppendFile: Use when content > 2048 bytes (write first chunk with WriteFile, then AppendFile for rest). Also use for adding to existing files.
+- WriteFile / CreateFile: Use for content < 2048 bytes in one call, or when creating a file from scratch.
+- AppendFile: Use when content > 2048 bytes (write first chunk with WriteFile, then AppendFile for rest). Also use for adding new content to existing files — avoids rewriting the whole file.
+- ReplaceLine: Use for targeted line edits. Specify a single line or a range of lines to replace with new content. Prefer this over WriteFile when you only need to change specific lines.
 - General Rule: NEVER call multiple tool calls for large content. Split large data: WriteFile first chunk -> AppendFile remaining.
 - Grep / Find / List: Prefer these XML tools over Terminal commands (grep, find, ls).
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
+- EDITING MINDSET: Just as planning splits a big job into small focused tasks, split big file writes into small targeted edits. Use ReplaceLine for specific line changes and AppendFile for additions instead of rewriting entire files with WriteFile. Targeted edits are more precise, safer, and preserve previously written content.
 
 EXAMPLE WORKFLOW:
 1. User says: "I want a web app with login and dashboard"
@@ -87,6 +89,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <Grep><pattern>search_term</pattern><fileName>file.txt</fileName><recursive>true</recursive></Grep>: Search by regex. Prefer this over Terminal grep. Params: <pattern>, [<fileName>], [<recursive>]
 - <Diff><file1>file1.txt</file1><file2>file2.txt</file2><unified>3</unified></Diff>: Compare files. Params: <file1>, <file2>, [<unified>]
 - <Sed><pattern>old_text</pattern><replacement>new_text</replacement><fileName>file.txt</fileName><inplace>true</inplace></Sed>: Find/replace. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
+- <ReplaceLine><fileName>file.txt</fileName><fromLine>10</fromLine><toLine>20</toLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s) in a file. Use for targeted edits instead of rewriting the whole file. Params: <fileName>, <fromLine> (required), [<toLine>] (optional, defaults to fromLine), <replacement>
 - <Find><pattern>*.py</pattern><path>.</path></Find>: Find by name. Prefer this over Terminal find. Params: <pattern>, [<path>]
 - <Head><fileName>file.txt</fileName><lines>10</lines></Head>: First N lines. Params: <fileName>, [<lines>]
 - <Tail><fileName>file.txt</fileName><lines>10</lines></Tail>: Last N lines. Params: <fileName>, [<lines>]
@@ -109,6 +112,7 @@ PLAN MANAGEMENT TOOLS (use these to track progress):
 
 TOOL USAGE RULES:
 - NEVER call multiple tool calls for large content. Split large data: WriteFile first chunk -> AppendFile remaining.
+- Prefer targeted edits: Use ReplaceLine for specific line changes and AppendFile for additions instead of rewriting entire files with WriteFile. This is more precise and preserves unrelated content.
 - Prefer XML tools (Grep, Find, List) over Terminal commands (grep, find, ls).
 - For file manipulation with complex data, use WriteFile/AppendFile. For one-liners, echo/cat/tee with Terminal is fine.
 - Use ExecuteScript to run scripts you create (WriteFile/CreateFile). Terminal is for system binaries only.
