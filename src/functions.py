@@ -58,9 +58,13 @@ def user_input( opts={} ):
 	#
 	opt_debug         = opts["debug"] if "debug" in opts else False
 	opt_quitWithCTRLX = opts["quit_with_ctrlx"] if "quit_with_ctrlx" in opts else False
+	poll_callback     = opts.get("poll_callback", None)
 	ret=""
 	#
 	while True:
+		#
+		if poll_callback:
+			poll_callback()
 		#
 		char = sys.stdin.read(1)
 		#

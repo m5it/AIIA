@@ -9,13 +9,18 @@ python run.py -m gemma3:12b     # specify model (default: gemma3:12b)
 python run.py -Y "prompt"        # single request, no interactive session
 python run.py -d                 # enable debug output
 python run.py -T 0.8             # set temperature
+
+python run_orchestra.py --port 9876        # start orchestra director
+python run_worker.py --connect localhost:9876 --name w1 -m gemma3:12b  # start worker
 ```
 
 ## Architecture
 
 - **Entry point**: `run.py` → initializes `Handle` class from `src/Handle.py`
+- **Orchestra entry points**: `run_orchestra.py` (director), `run_worker.py` (worker)
 - **Core modules**: all in `src/` — `Handle.py` orchestrates chat, tools, actions, history
-- **Tools**: `tools/` directory — dynamically loaded Python classes that the AI can call via `!TOOL` syntax
+- **Personas**: `instruct/` directory — personality classes with plan/build system prompts, optional model override
+- **Tools**: `tools/` directory — dynamically loaded Python classes that the AI invokes via `<ToolName>` XML syntax
 - **Actions**: `actions/` directory — dynamically loaded action modules for specific tasks
 - **History**: `history/` (gitignored) — session-based chat history, session ID tracked in `sessid.aiia`
 - **Working dirs**: `workin/` (input for tools), `workout/` (output) — both gitignored

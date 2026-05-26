@@ -12,6 +12,10 @@
 - **Persistent Sessions** — Chat history saved per session in `history/`; session ID tracked in `sessid.aiia`
 - **Actions System** — Dynamically loaded action modules for reusable task sequences
 - **Continue Support** — `-c` flag loads last unfinished plan from `PLAN.md` and resumes where you left off
+- **Instruct Persona System** — Dynamic persona classes in `instruct/` (Developer, Friend, SysAdmin, Researcher); switch mid-session with `!INSTRUCT_SWITCH`; each persona specifies its own model, system prompt, and toolset
+- **Token Tracking** — Per-turn and cumulative token counts displayed in `!STATS`
+- **Tips System** — Save, view, reinsert, and manage conversation snippets as JSON tips (`!TS`, `!TL`, `!TV`, `!TR`, `!TD`, `!TDR`, `!TDA`)
+- **Orchestra System** — Multi-agent task distribution: one director process dispatches tasks to any number of worker processes over TCP; each worker has its own model, persona, and tools; planning can be delegated to a designated worker
 
 ---
 
@@ -117,6 +121,92 @@ Phase 2: BUILD MODE →  Execute tasks step by step (builder)
 
 See [Plan & Build System](#plan--build-system) for full details.
 
+### Instruct Personas
+
+Switch between specialized personas that define the AI's system prompt, toolset, and model:
+
+```
+1. !INSTRUCT_LIST               → See available personas
+2. !INSTRUCT_SWITCH Researcher   → Switch to Researcher persona
+3. !INSTRUCT_SWITCH off         → (future)
+```
+
+Personas live in `instruct/` as Python classes. Each can specify a `model` attribute to override `AI_MODEL`:
+
+```python
+class Friend():
+    name = "Friend"
+    description = "Friendly chat companion — casual, warm, conversational"
+    model = "llama3.2:3b"   # optional, overrides AI_MODEL when selected
+```
+
+Use `-p` flag to set persona on startup:
+```bash
+python run.py -p Friend
+python run.py -p Researcher -m gemma3:12b
+```
+
+### Tips System
+
+Save and replay useful conversation exchanges:
+
+```
+!TS setup_guide           → Save the last exchange as tip "setup_guide"
+!TS 3 install_deps        → Save history row #3 as tip "install_deps"
+!TL                        → List all tips
+!TV setup_guide           → View saved tip entries
+!TR setup_guide           → Reinsert saved messages into current chat
+!TD setup_guide           → Delete tip
+!TDA                       → Delete all tips
+```
+
+### Orchestra — Multi-Agent Task Distribution
+
+Run a director that distributes plan tasks to worker agents over TCP:
+
+```
+Terminal 1 (Director):
+  python run_orchestra.py --port 9876
+
+Terminal 2 (Worker — planning):
+  python run_worker.py --connect localhost:9876 --name big-worker -m gemma3:12b -p Developer
+
+Terminal 3 (Worker — execution):
+  python run_worker.py --connect localhost:9876 --name fast-worker -m nemotron-3-nano:latest -p Developer
+```
+
+**Workflow:**
+
+```
+1. !PLAN_WORKER big-worker     → Set big-worker as planner
+2. "Build a CLI calculator"    → Director routes plan request to big-worker
+   big-worker creates plan with tasks via its AI
+   Plan data sent back, loaded into director
+3. !MODE build                  → Switch to build mode
+4. Tasks auto-dispatch to idle workers
+   Each worker executes using its own model + tools
+   Progress displayed in real-time
+5. All tasks complete → back to normal prompt
+```
+
+**Worker flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--connect HOST:PORT` | Director address (required) |
+| `--name NAME` | Worker name (default: hostname) |
+| `-m MODEL` | Worker's model |
+| `-p PERSONA` | Worker's persona |
+| `-d` | Debug output |
+
+**Director flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--port PORT` | Listen port (default: 9876) |
+| `-m MODEL` | Director's own model (for local planning) |
+| `-p PERSONA` | Director's own persona |
+
 ---
 
 ## Configuration
@@ -133,6 +223,16 @@ All configuration lives in `config.py`:
 | `AI_TEMPERATURE` | float | `0.7` | Model temperature |
 | `AI_MAX_CONTENT_LEN` | int | `20000` | Max chars per response |
 | `AI_MAX_SESSION_LEN` | int | `200000` | Max total session context |
+| `INSTRUCT_CLASS` | str | `Developer` | Default persona class |
+| `INSTRUCT_PATH` | str | `instruct/` | Persona class directory |
+| `BUILD_THINKING_DISABLED` | bool | `false` | Disable thinking in build mode |
+| `PLAN_WORKER` | str/None | `None` | Worker name for delegated planning |
+| `NUM_PROMPT_TOKENS` | int | `0` | Cumulative prompt tokens |
+| `NUM_RESPONSE_TOKENS` | int | `0` | Cumulative response tokens |
+| `NUM_LAST_PROMPT_TOKENS` | int | `0` | Last-turn prompt tokens |
+| `NUM_LAST_RESPONSE_TOKENS` | int | `0` | Last-turn response tokens |
+| `TIPS_PATH` | str | `~/.config/ourai/tips` | Tips storage directory |
+| `COOKIE_FILE` | str/None | `None` | Shared cookie file for WWW tools |
 | `working_dir` | str | `$OURAI_PROJECT_DIR` | Project working directory |
 | `plans_path` | str | `plans/` | Directory for JSON plan files |
 | `history_path` | str | `history/` | Directory for session history |
@@ -154,6 +254,8 @@ All configuration lives in `config.py`:
 OurAI/
 ├── OurAI                          # Install script — sudo ./OurAI -l to install globally
 ├── run.py                         # Entry point — CLI flag parsing, main loop
+├── run_orchestra.py               # Orchestra director — multi-agent task dispatcher
+├── run_worker.py                  # Orchestra worker — connects to director, executes tasks
 ├── config.py                      # All configuration & system prompts
 ├── start.sh                       # Startup script (auto-setup, path resolution)
 ├── exports.sh                     # Ollama env vars (OLLAMA_KEEP_ALIVE, OLLAMA_HOST)
@@ -174,7 +276,18 @@ OurAI/
 │   ├── ToolChooser.py            # Tool management & selection
 │   ├── Actions.py                # Action module management
 │   ├── Log.py                    # Terminal output logging
-│   └── Speak.py                  # Text-to-speech (experimental)
+│   ├── Speak.py                  # Text-to-speech (experimental)
+│   ├── InstructManager.py        # Persona discovery and selection
+│   ├── TipManager.py             # Conversation tip save/replay
+│   ├── OrchestraDirector.py      # Orchestra TCP server, worker registry, task dispatch
+│   └── OrchestraWorker.py        # Orchestra TCP client, headless task execution
+│
+├── instruct/                     # Persona classes (plan/build system prompts)
+│   ├── Developer.py              # Software development persona
+│   ├── Friend.py                 # Casual chat persona
+│   ├── SysAdmin.py               # System administration persona
+│   ├── Researcher.py             # Web research and data extraction persona
+│   └── __init__.py
 │
 ├── tools/                        # XML-invokable tool modules (17 files)
 │   ├── tool_Terminal.py          # Secure terminal execution
@@ -224,6 +337,10 @@ OurAI/
 | **HistoryManager** | `src/HistoryManager.py` | Manages session history files (`history/` directory) |
 | **functions** | `src/functions.py` | Custom module loader (`importmodule`, `initmodule`), file I/O, regex helpers |
 | **Prepare** | `src/Prepare.py` | Session ID generation, file name updates, mode instruction injection |
+| **InstructManager** | `src/InstructManager.py` | Persona discovery, interactive chooser, persona model override |
+| **TipManager** | `src/TipManager.py` | Save/view/reinsert/delete conversation tips as JSON files |
+| **OrchestraDirector** | `src/OrchestraDirector.py` | TCP server thread, worker registry, task dispatch, plan routing |
+| **OrchestraWorker** | `src/OrchestraWorker.py` | TCP client, register with director, headless task execution via Handle.AI() |
 
 ---
 
@@ -577,24 +694,40 @@ All commands start with `!` (case-sensitive). The following are available:
 |---------|-------------|
 | `!PLAN [PREVIEW\|VIEW\|TASKS\|STATUS] [task_id]` | View plan status, tasks, and progress. |
 | `!START_BUILD [planId]` | Start build mode from current draft or specific plan by ID. |
+| `!BUILD_THINK [true\|false]` | Enable or disable thinking in build mode. |
 
-### Memory & History Commands
+### Instruct / Persona Commands
 
 | Command | Description |
 |---------|-------------|
-| `!PH` | Preview current chat history. |
-| `!PM` | Preview memorized messages. |
-| `!MAH` | Load all history into memory. |
-| `!MS [num]` | Load specific history file. |
-| `!ML` | Load last assistant message from memory. |
-| `!MDR [num]` | Delete specific memory row. |
-| `!MDA` | Delete all memory rows. |
+| `!INSTRUCT_LIST` | List available instruct personas (Developer, Friend, SysAdmin, Researcher). |
+| `!INSTRUCT_SWITCH <name>` | Switch persona mid-session without clearing history. Appends new persona's system prompt. |
+
+### Tips Commands
+
+| Command | Description |
+|---------|-------------|
+| `!TS [history_num] <title>` | Save a history exchange as a tip under the given title. |
+| `!TL [user\|model]` | List all saved tip titles with entry counts. |
+| `!TV <title>` | View saved tip entries for a title. |
+| `!TR <title>` | Reinsert saved tip entries into current chat history. |
+| `!TD <title>` | Delete all entries under a tip title. |
+| `!TDR <title> <entry_num>` | Delete a specific tip entry by number. |
+| `!TDA [user\|model]` | Delete all saved tips (optionally filter by source). |
+
+### Orchestra Commands
+
+| Command | Description |
+|---------|-------------|
+| `!WORKERS` | List connected orchestra workers with model, persona, and status. |
+| `!DISPATCH` | Dispatch pending plan tasks to orchestra workers. |
+| `!PLAN_WORKER <name\|off>` | Set which worker handles planning. Use `off` to plan locally (default). |
 
 ### Stats & Tools Commands
 
 | Command | Description |
 |---------|-------------|
-| `!STATS` | Display program statistics. |
+| `!STATS` | Display program statistics including token counts. |
 | `!TOOLS` | List and choose which tools to load. |
 | `!CT` | Clear all loaded tools. |
 
@@ -608,6 +741,12 @@ All commands start with `!` (case-sensitive). The following are available:
 | `!IA` | Import actions from files. |
 | `!PA` | Preview imported actions. |
 | `!EA [num]` | Execute a specific action. |
+
+### History Commands
+
+| Command | Description |
+|---------|-------------|
+| `!PH` | Preview current chat history. |
 
 ### Other Commands
 
