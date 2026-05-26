@@ -1,6 +1,6 @@
 # OurAI — AI Interactive Agent
 
-**Version 0.3** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
+**Version 0.4** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
 
 ## Features
 
@@ -977,4 +977,4 @@ See [LICENSE](LICENSE) for full terms including notification and payment obligat
 
 ## Project Status
 
-**Version 0.3** — Active development. The core architecture is stable. New features include the plan/build mode system, plan management, and continue support.
+**Version 0.4** — Active development. The core architecture is stable. New features include the plan/build mode system, plan management, and continue support.
