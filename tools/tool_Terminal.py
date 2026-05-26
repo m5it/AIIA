@@ -46,7 +46,8 @@ class Terminal():
 			'git', 'make', 'cmake', 'gcc', 'g++',
 			'ping', 'curl', 'wget', 'netstat', 'ss',
 			'ps', 'top', 'df', 'du', 'free',
-			'mkdir', 'cp', 'mv', 'touch', 'chmod', 'chown'
+			'mkdir', 'cp', 'mv', 'touch', 'rm', 'rmdir', 'ln', 'install',
+			'chmod', 'chown'
 		]
 	#
 	def log_command(self, cmd, output, success):
@@ -118,10 +119,36 @@ class Terminal():
 			if isinstance(opts, dict) and 'allowed_programs' in opts:
 				allowed = opts['allowed_programs']
 		#
+		# Detect arguments smashed into arg1 instead of split across argN
+		if ' ' in program.strip():
+			parts = program.split()
+			first_word = parts[0]
+			rest_args = parts[1:]
+			if first_word in allowed:
+				example = "  <arg1>{}</arg1>\n".format(first_word)
+				for i, arg in enumerate(rest_args):
+					example += "  <arg{}>{}</arg{}>\n".format(i+2, arg, i+2)
+				return ("Error: Arguments embedded in <arg1> — each argument needs its own <argN> tag.\n"
+					"Use separate tags:\n"
+					"{}\n"
+					"Instead of:\n"
+					"  <arg1>{} {}</arg1>\n"
+					"'{}' is allowed but arguments must be in their own tags.").format(
+						example.rstrip(), first_word, ' '.join(rest_args), first_word)
+			else:
+				example = "  <arg1>{}</arg1>\n".format(first_word)
+				for i, arg in enumerate(rest_args):
+					example += "  <arg{}>{}</arg{}>\n".format(i+2, arg, i+2)
+				return ("Error: Program '{}' not found in allowed list and contains spaces. "
+					"If you intended '{}', use separate tags:\n"
+					"{}\n"
+					"Allowed: {}").format(program, first_word, example.rstrip(),
+						', '.join(allowed))
+		#
 		# Check if program is allowed
 		if program not in allowed:
 			self.log_command(args, "", False)
-			return "Error: Program '{}' is not in the allowed programs list. Allowed: {}".format(program, ', '.join(allowed))
+			return "Error: Program '{}' is not in the allowed programs list.\nAllowed: {}".format(program, ', '.join(allowed))
 		#
 		# Build command (shell=False for security)
 		cmd = args
