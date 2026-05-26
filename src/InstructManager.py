@@ -35,9 +35,17 @@ class InstructManager():
 			print("{}) {} - {}".format(cnt, p['class_name'], p['description']))
 			cnt = cnt + 1
 	#
+	def Exists(self, name):
+		cls_path = self.handle.Options.get('INSTRUCT_PATH', 'instruct')
+		base_path = self.handle.Options.get('path', '')
+		instruct_dir = "{}{}".format(base_path, cls_path)
+		filepath = "{}/{}.py".format(instruct_dir, name)
+		return os.path.isfile(filepath)
+	#
 	def Choose(self):
 		if self.handle.Options.get('INSTRUCT_CLASS_OVERRIDE', False):
 			self.handle.hLG.echo("Persona set via -p: {}".format(self.handle.Options['INSTRUCT_CLASS']),{'color':True,'colorValue':'green','debugOnly':False})
+			self.ApplyPersonaModel(self.handle.Options['INSTRUCT_CLASS'])
 			self.choosed = True
 			return
 		self.handle.hLG.echo("Choose persona START...: ",{'color':True,'colorValue':'orange','debugOnly':False})
@@ -59,11 +67,33 @@ class InstructManager():
 				cls_name = self.available[choice]['class_name']
 				self.handle.Options['INSTRUCT_CLASS'] = cls_name
 				self.handle.hLG.echo("Chosen persona: {}".format(cls_name),{'color':True,'colorValue':'green'})
+				self.ApplyPersonaModel(cls_name)
 				self.choosed = True
 			except ValueError:
 				print("Invalid input, enter a number or x to cancel")
 			except Exception as E:
 				print("Choosing persona failed, error: {}".format(E))
+	#
+	def ApplyPersonaModel(self, name):
+		cls_path = self.handle.Options.get('INSTRUCT_PATH', 'instruct')
+		mod = importmodule(name, False, {'path': cls_path})
+		if not mod:
+			return
+		cls = None
+		for n in [name, name.lower(), name.upper()]:
+			try:
+				cls = getattr(mod, n)
+				if cls:
+					break
+			except:
+				continue
+		if not cls:
+			return
+		model = getattr(cls, 'model', None)
+		if model and isinstance(model, str) and model.strip():
+			old = self.handle.Options.get('AI_MODEL', '')
+			self.handle.Options['AI_MODEL'] = model.strip()
+			self.handle.hLG.echo("Persona '{}' sets model: {} (was: {})".format(name, model.strip(), old), {'color':True, 'colorValue':'cyan'})
 	#
 	def test(self):
 		print("InstructManager.test() STARTED!")

@@ -185,13 +185,27 @@ class Commands():
 				"usage"      :"!LOAD textfile.txt Text of textfile.txt will be loaded with this text and sent to AIIA. This is example.",
 				"func"       :self.CMD_LOAD,
 			},
-			"BUILD_THINK":{
-				"name"       :"Build Think",
-				"description":"Enable or disable thinking in build mode.",
-				"regex"      :r"^!BUILD_THINK(\s+(true|false))?$",
-				"usage"      :"!BUILD_THINK [true|false]",
-				"func"       :self.CMD_BUILD_THINK,
-			},
+		"INSTRUCT_LIST":{
+			"name"       :"Instruct List",
+			"description":"List available instruct personas.",
+			"regex"      :r"^!INSTRUCT_LIST+$",
+			"usage"      :"!INSTRUCT_LIST",
+			"func"       :self.CMD_INSTRUCT_LIST,
+		},
+		"INSTRUCT_SWITCH":{
+			"name"       :"Instruct Switch",
+			"description":"Switch to a different instruct persona without clearing history.",
+			"regex"      :r"^!INSTRUCT_SWITCH\s+\S+$",
+			"usage"      :"!INSTRUCT_SWITCH <persona_name>",
+			"func"       :self.CMD_INSTRUCT_SWITCH,
+		},
+		"BUILD_THINK":{
+			"name"       :"Build Think",
+			"description":"Enable or disable thinking in build mode.",
+			"regex"      :r"^!BUILD_THINK(\s+(true|false))?$",
+			"usage"      :"!BUILD_THINK [true|false]",
+			"func"       :self.CMD_BUILD_THINK,
+		},
 		"HELP":{
 				"name"       :"Help",
 				"description":"Display of available actions.",
@@ -559,6 +573,31 @@ class Commands():
 			self.handle.hHM.msgs[-1]['content'] = "{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) )
 		else:
 			self.handle.Response('system',{ 'content':"{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) ), })
+		return 2
+
+	def CMD_INSTRUCT_LIST(self, inp=""):
+		print("Available personas:")
+		self.handle.hIM.Available()
+		return 2
+
+	def CMD_INSTRUCT_SWITCH(self, inp=""):
+		parts = inp.strip().split()
+		if len(parts) < 2:
+			print("Usage: !INSTRUCT_SWITCH <persona_name>")
+			return 2
+		name = parts[1]
+		if not self.handle.hIM.Exists(name):
+			print("Persona '{}' not found. Use !INSTRUCT_LIST to see available personas.".format(name))
+			return 2
+		self.handle.Options['INSTRUCT_CLASS'] = name
+		self.handle.hIM.ApplyPersonaModel(name)
+		mode = self.handle.Options.get('MODE', 'build')
+		system_content = self.handle.hPP._get_mode_instructions(mode)
+		if self.handle.hHM.msgs and self.handle.hHM.msgs[-1]['role'] == 'system':
+			self.handle.hHM.msgs[-1]['content'] = system_content
+		else:
+			self.handle.Response('system', {'content': system_content})
+		self.handle.hLG.echo("Switched persona to '{}'".format(name), {'color':True, 'colorValue':'green'})
 		return 2
 
 	def CMD_START_BUILD(self, inp=""):
