@@ -245,6 +245,12 @@ def Main(argv):
 			Options['INSTRUCT_CLASS'] = arg
 			Options['INSTRUCT_CLASS_OVERRIDE'] = True
 	#
+	# Auto-detect project directory from CWD
+	cwd = os.getcwd()
+	framework_dir = os.path.dirname(os.path.abspath(__file__))
+	if cwd != framework_dir:
+		Options['working_dir'] = cwd
+	#
 	hHA      = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", Options)
 	hHA.Init()
 	
