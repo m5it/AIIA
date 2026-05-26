@@ -229,8 +229,20 @@ class Handle():
 		#
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
 		#
-		# Check for XML tool invocations
-		tool_invocations = self.hTP.ParseTextToolInvocation( response['content'] )
+		# First, check for native Ollama tool calls
+		tool_invocations = []
+		native_tool_calls = response.get('native_tool_calls', [])
+		
+		if native_tool_calls:
+			self.hLG.echo("Parse() detected {} native Ollama tool call(s)".format(len(native_tool_calls)), {'color':True, 'colorValue':'cyan'})
+			# Convert native tool calls to our internal format
+			tool_invocations = self._convert_native_tool_calls(native_tool_calls)
+		
+		# If no native tool calls, check for XML tool invocations
+		if not tool_invocations:
+			tool_invocations = self.hTP.ParseTextToolInvocation( response['content'] )
+			if tool_invocations:
+				self.hLG.echo("Parse() detected {} XML tool invocation(s)".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
 		#
 		if tool_invocations:
 			self.hLG.echo("Parse() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
@@ -268,9 +280,55 @@ class Handle():
 		return True
 	
 	#
+	def _convert_native_tool_calls(self, native_tool_calls):
+		"""
+		Convert native Ollama tool calls to internal XML-like tool invocation format
+		Native format: tool_calls = [{'function': {'name': 'tool_name', 'arguments': {...}}}]
+		Internal format: [{'name': 'ToolName', 'params': {...}}]
+		"""
+		converted = []
+		for tool_call in native_tool_calls:
+			try:
+				# Extract function info from native tool call
+				if hasattr(tool_call, 'function'):
+					func = tool_call.function
+					tool_name = func.name if hasattr(func, 'name') else str(func.get('name', ''))
+					
+					# Get arguments - might be dict or JSON string
+					args = {}
+					if hasattr(func, 'arguments'):
+						args = func.arguments if isinstance(func.arguments, dict) else json.loads(func.arguments)
+					
+					# Convert to internal format
+					converted.append({
+						'name': tool_name,
+						'params': args
+					})
+					self.hLG.echo("Converted native tool call: {} with params: {}".format(tool_name, args), {'color':True, 'colorValue':'cyan'})
+				elif isinstance(tool_call, dict):
+					# Handle dict format
+					func = tool_call.get('function', {})
+					tool_name = func.get('name', '')
+					args = func.get('arguments', {})
+					if isinstance(args, str):
+						args = json.loads(args)
+					
+					converted.append({
+						'name': tool_name,
+						'params': args
+					})
+					self.hLG.echo("Converted native tool call (dict): {} with params: {}".format(tool_name, args), {'color':True, 'colorValue':'cyan'})
+			except Exception as e:
+				self.hLG.echo("Error converting native tool call: {}".format(str(e)), {'color':True, 'colorValue':'red'})
+				continue
+		
+		return converted
+	
+	#
 	def Stream(self, res, color):
 		response         = "" # speaking data
 		thinking         = "" # thinking data
+		native_tool_calls = []  # native Ollama tool calls
 		if_thinking      = False
 		if_speaking      = False
 		last_chunk       = None
@@ -287,6 +345,13 @@ class Handle():
 				part = chunk.message.thinking
 				thinking += part
 				print(part, end='', flush=True)
+			# Check for native tool calls
+			elif hasattr(chunk.message, 'tool_calls') and chunk.message.tool_calls:
+				# Collect native Ollama tool calls
+				for tool_call in chunk.message.tool_calls:
+					if tool_call not in native_tool_calls:
+						native_tool_calls.append(tool_call)
+				# Don't print tool calls, just collect them
 			# speaking
 			elif chunk.message.content:
 				#
@@ -304,7 +369,7 @@ class Handle():
 		if last_chunk and hasattr(last_chunk, 'done') and last_chunk.done:
 			prompt_tokens = last_chunk.prompt_eval_count or 0
 			response_tokens = last_chunk.eval_count or 0
-		return {'content':response, 'thinking':thinking, 'prompt_tokens':prompt_tokens, 'response_tokens':response_tokens}
+		return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':prompt_tokens, 'response_tokens':response_tokens}
 	
 	#
 	def You(self, data=None, opts=None):
@@ -398,33 +463,57 @@ class Handle():
 			if len(msgs)<=0:
 				print("WARNING: msgs len is 0, Repeating user_input!")
 				return 2 # as continue
-
+			
 			# Chat without tools, normal chat (XML tools handle themselves)
 			self.hLG.echo("DEBUG preparing chat (iteration {})".format(iteration),{'color':False})
+			
+			# Determine if thinking should be enabled
+			should_think = self.Options.get('MODE') == 'plan' or not self.Options.get('BUILD_THINKING_DISABLED', True)
+			
+			# Build chat parameters - only include 'think' if it should be enabled
+			chat_params = {
+				'model': self.Options['AI_MODEL'],
+				'messages': msgs,
+				'stream': True,
+				'options': self.Options['AI_OPTIONS'],
+			}
+			
+			# Only add 'think' parameter if thinking is enabled
+			if should_think:
+				chat_params['think'] = True
+			
+			# Try the chat call, with fallback if tool parsing fails
 			try:
-				res: ChatResponse = chat(
-					self.Options['AI_MODEL'],
-					messages=msgs,
-					stream=True,
-					think=self.Options.get('MODE') == 'plan' or not self.Options.get('BUILD_THINKING_DISABLED', True),
-					options=self.Options['AI_OPTIONS'],
-				)
+				res: ChatResponse = chat(**chat_params)
 			except Exception as e:
-				self.hLG.echo("AI connection error: {}".format(str(e)), {'color':True, 'colorValue':'red'})
-				return 2
+				error_msg = str(e)
+				# Check if it's a tool parsing error (Ollama trying to parse XML as JSON tools)
+				if "error parsing tool call" in error_msg and "invalid character '<'" in error_msg:
+					self.hLG.echo("Ollama tried to parse XML as native tools. Retrying with format='' to force plain text...", {'color':True, 'colorValue':'yellow'})
+					try:
+						# Retry with format parameter to force plain text output
+						chat_params['format'] = ''
+						res: ChatResponse = chat(**chat_params)
+					except Exception as e2:
+						self.hLG.echo("AI connection error on retry: {}".format(str(e2)), {'color':True, 'colorValue':'red'})
+						return 2
+				else:
+					self.hLG.echo("AI connection error: {}".format(error_msg), {'color':True, 'colorValue':'red'})
+					return 2
+			
 			# Used if CTRL+C to save last/draft content to chat history
 			self.Options['DRAFT_RESPONSE'] = res
 			# Parse result (handles XML tool calls)
 			result = self.Parse(res,{'return_object':True})
-
+			
 			# Stop if model response is empty (no content, no tools)
 			if not result.get('response', '').strip() and not result.get('invocations'):
 				return True
-
+			
 			# Stop if jobDone was called
 			if result.get('job_done'):
 				return True
-
+			
 			# Check if tools were executed by looking for tool invocations in result
 			if not result['invocations']:
 				# No more tool calls - return final response

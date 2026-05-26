@@ -80,7 +80,7 @@ IMPORTANT WORKFLOW:
 4. When all tasks are done, call <jobDone/> to finish the plan
 
 AVAILABLE TOOLS (use exact XML format):
-- <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Use ONLY for one-liner commands. For scripts or data processing, use WriteFile/CreateFile. Params: <arg1>, [<arg2>], ... (dynamic args)
+- <Terminal><arg1>ls</arg1><arg2>-l</arg2></Terminal>: Execute terminal commands. Use ONLY for one-liner commands. Params: <arg1>, [<arg2>], ... (dynamic args)
 - <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Params: <fileName>
 - <WriteFile><fileName>README.md</fileName><contentOfFile># Simple hello world app.</contentOfFile></WriteFile>: Write file. Use for content < 4096 bytes. For larger content, use WriteFile for first chunk then AppendFile. Params: <fileName>, <contentOfFile>
 - <AppendFile><fileName>README.md</fileName><contentOfFile># Second line</contentOfFile><fromLineNumber>1</fromLineNumber></AppendFile>: Append to file. Use for content > 4096 bytes or adding to existing files. Params: <fileName>, <contentOfFile>, [<fromLineNumber>]

@@ -12,8 +12,8 @@ Options         = {
 	#
 	"SPEAK"               :True,
 	#
-	#"AI_MODEL"            :"gemma4:26b",
-	"AI_MODEL"            :"nemotron-3-nano:latest",
+	"AI_MODEL"            :"gpt-oss:latest",
+	#"AI_MODEL"            :"nemotron-3-nano:latest",
 	"AI_FILE_SESSID"      :"{}/sessid.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_HISTORY"     :"history.aiia", # auto generated from AI_SESS_ID
 	"AI_FILE_LOAD_HISTORY":False,
@@ -29,7 +29,7 @@ Options         = {
 	},
 	#
 	"MODE"                :"build",  # "plan" or "build" mode
-	"BUILD_THINKING_DISABLED":False, # disable thinking in build mode (set via !BUILD_THINK true|false)
+	"BUILD_THINKING_DISABLED":True, # disable thinking in build mode (set via !BUILD_THINK true|false)
 	"CONTINUE"            :False,    # Continue from last session when True
 	#
 	"DRAFT_CONTENT"       : None,    # Used on CTRL+C to save draft to chat history
