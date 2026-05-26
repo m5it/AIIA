@@ -236,6 +236,7 @@ def Main(argv):
 			if not _confirm_factory_reset():
 				sys.exit(0)
 			reset_to_factory()
+			Options['AI_LIVE'] = False
 			sys.exit(0)
 		elif opt=="-p" or opt=="--persona":
 			Options['INSTRUCT_CLASS'] = arg
