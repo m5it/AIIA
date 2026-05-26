@@ -48,6 +48,10 @@ Options         = {
 	#
 	"TIPS_PATH"           :"{}/tips".format(os.path.expanduser("~/.config/ourai")),
 	#
+	# Tool result caching (via tips storage)
+	"TOOL_CACHE_ENABLED"  :True,     # Enable tool result caching
+	"TOOL_CACHE_TTL"      :86400,    # Default cache TTL in seconds (1 day)
+	#
 	# Token counting (populated dynamically by Handle.py on each response)
 	"NUM_PROMPT_TOKENS"       :0,  # cumulative prompt tokens across session
 	"NUM_RESPONSE_TOKENS"     :0,  # cumulative response tokens across session

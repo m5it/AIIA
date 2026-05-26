@@ -41,6 +41,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <deleteTask><id>taskId</id></deleteTask> - Remove a task
 - <viewTask/> or <viewTask><id>taskId</id></viewTask> - View plan or specific task
 - <listTasks/> - List all tasks in current plan
+- <TreeView><path>.</path><depth>3</depth></TreeView> - Show directory tree. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
 
 TOOL USAGE GUIDELINES:
 - Terminal: Primary tool for compilation commands (./configure, cmake, make, gcc, etc.)
@@ -49,6 +50,7 @@ TOOL USAGE GUIDELINES:
 - WriteFile/CreateFile: Write configuration files, build scripts
 - AppendFile: Use for adding new content to existing config files — avoids rewriting the whole file.
 - ReplaceLine: Use for targeted line edits. Specify a single line or a range of lines to replace with new content. Prefer this over WriteFile when you only need to change specific lines.
+- TreeView: Use to explore project directory structure. Set depth=0 for unlimited depth.
 - WWW: Download source archives, fetch documentation
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 - EDITING MINDSET: Just as planning splits a big job into small focused tasks, split big file writes into small targeted edits. Use ReplaceLine for specific line changes and AppendFile for additions instead of rewriting entire files with WriteFile. Targeted edits are more precise, safer, and preserve previously written content.
@@ -95,6 +97,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <CreateFile><fileName>test.sh</fileName><contentOfFile>#!/bin/bash</contentOfFile></CreateFile>: Create new file (fails if exists). Params: <fileName>, <contentOfFile>
 - <List><path>.</path></List>: List files. Use to inspect source directories. Params: [<path>] (optional)
 - <listTools/>: Show all tools. No params.
+- <TreeView><path>.</path><depth>3</depth></TreeView>: Show directory tree. Explore project structure, set depth=0 for unlimited. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
 - <ExecuteScript><fileName>build.sh</fileName></ExecuteScript>: Run build scripts. Params: <fileName>, [<args>]
 - <Grep><pattern>error</pattern><fileName>build.log</fileName><recursive>false</recursive></Grep>: Search for errors in build logs. Prefer this over Terminal grep. Params: <pattern>, [<fileName>], [<recursive>]
 - <Diff><file1>config.h.bak</file1><file2>config.h</file2></Diff>: Compare config changes. Params: <file1>, <file2>, [<unified>]

@@ -42,12 +42,14 @@ AVAILABLE TOOLS (use exact XML format):
 - <deleteTask><id>taskId</id></deleteTask> - Remove a task
 - <viewTask/> or <viewTask><id>taskId</id></viewTask> - View plan or specific task
 - <listTasks/> - List all tasks in current plan
+- <TreeView><path>.</path><depth>3</depth></TreeView> - Show directory tree. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
 
 TOOL USAGE GUIDELINES:
 - WWW: Primary tool for fetching web pages. Use with text=true for reading, links=true for link harvesting.
 - WriteFile/CreateFile: Save research findings as JSON, markdown, or CSV.
 - AppendFile: Use for adding new rows to CSV/JSON datasets — avoids rewriting the whole file.
 - ReplaceLine: Use for targeted line edits. Specify a single line or a range of lines to replace with new content. Prefer this over WriteFile when you only need to change specific lines.
+- TreeView: Use to explore project directory structure. Set depth=0 for unlimited depth.
 - ExecuteScript: Use Python scripts for data cleaning, deduplication, format conversion.
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 - EDITING MINDSET: Just as planning splits a big job into small focused tasks, split big file writes into small targeted edits. Use ReplaceLine for specific line changes and AppendFile for additions instead of rewriting entire files with WriteFile. Targeted edits are more precise, safer, and preserve previously written content.
@@ -96,6 +98,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <CreateFile><fileName>data.json</fileName><contentOfFile>[...]</contentOfFile></CreateFile>: Create new file (fails if exists). Params: <fileName>, <contentOfFile>
 - <List><path>workout/</path></List>: List files in output directory. Params: [<path>] (optional)
 - <listTools/>: Show all tools. No params.
+- <TreeView><path>.</path><depth>3</depth></TreeView>: Show directory tree. Explore data directories, set depth=0 for unlimited. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
 - <ExecuteScript><fileName>parse.py</fileName></ExecuteScript>: Run data processing scripts (.py, .sh). Params: <fileName>, [<args>]
 - <Grep><pattern>price</pattern><fileName>raw_data.txt</fileName></Grep>: Search extracted data for specific terms. Prefer this over Terminal grep. Params: <pattern>, [<fileName>], [<recursive>]
 - <Head><fileName>data.json</fileName><lines>10</lines></Head>: Preview the first entries of a dataset. Params: <fileName>, [<lines>]

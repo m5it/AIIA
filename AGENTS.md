@@ -37,13 +37,15 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 </ToolName>
 ```
 
-**Available tools (20 total):**
+**Available tools (23 total):**
 - `ReadFile` — Read from `workin/` (params: `<fileName>`)
 - `WriteFile` — Write to `workout/` (params: `<fileName>`, `<contentOfFile>`)
 - `AppendFile` — Append in `workout/` (params: `<fileName>`, `<contentOfFile>`)
 - `CreateFile` — Create new file in `workout/` (fails if exists) (params: `<fileName>`, `<content>`)
+- `ReplaceLine` — Replace specific line(s) in a file (params: `<fileName>`, `<fromLine>`, `<toLine>` optional, `<replacement>`)
+- `TreeView` — ASCII tree view of directory structure (params: `<path>` optional, `<depth>` default 3, `<pattern>` optional, `<showHidden>` optional)
 - `List` — List files (params: `<path>` optional)
-- `listTools` — Show all tools (no params)
+- `listTools` — Show all tools (no params, cached 10 min)
 - `ExecuteScript` — Run `.py`, `.sh`, `.js` scripts (params: `<fileName>`, `<args>` optional)
 - `Grep` — Regex search (params: `<pattern>`, `<fileName>` optional, `<recursive>` optional)
 - `Diff` — Compare files (params: `<file1>`, `<file2>`, `<unified>` optional)
@@ -58,6 +60,8 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 - `ListTips` — List all saved tips (params: `<source>` optional)
 - `DeleteTip` — Delete a tip by title (params: `<title>`, `<source>` optional)
 - `ReinsertTip` — Reinsert a saved tip's entries into current chat history (params: `<title>`)
+
+**Tool result caching:** Tools with a `cache_ttl` class attribute (e.g., listTools=600s, TreeView=300s) automatically cache results. Cache entries stored under `~/.config/ourai/tips/_cache/{toolname}/{key_hash}.json`. Cache invalidates on TTL expiry, tool file mtime change, `!CACHE_CLEAR`, `!NEW SESSION`, or `!UPDATE HANDLE`. Global default TTL: 86400s (1 day) via `TOOL_CACHE_TTL` in config.
 
 **Example model output:**
 ```xml

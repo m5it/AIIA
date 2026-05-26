@@ -213,16 +213,40 @@ class ToolParser:
 				self.handle.tool_errors += 1
 				return "Error: Missing required parameter(s): {}{}".format(
 					', '.join(missing), self._tool_usage(info))
+			#
+			# Cache check: if tool has cache_ttl and caching enabled, try cache
+			cache_ttl = getattr(h, 'cache_ttl', 0)
+			cache_enabled = self.handle.Options.get('TOOL_CACHE_ENABLED', True)
+			cached = None
+			if cache_ttl > 0 and cache_enabled:
+				key = self._cache_key(toolName, params)
+				cached = self.handle.hTM.get_cache(toolName, key)
+			if cached is not None:
+				self.handle.hLG.echo("Cache HIT for {} — returning cached result".format(toolName), {'color':True, 'colorValue':'cyan'})
+				return cached
+			#
 			ToolParser._current_handle = self.handle
 			try:
 				result = h.run(**params)
 			finally:
 				ToolParser._current_handle = None
+			#
+			# Cache save: if tool has cache_ttl and result is not an error, save it
+			if cache_ttl > 0 and cache_enabled and result and not str(result).startswith('Error'):
+				key = self._cache_key(toolName, params)
+				self.handle.hTM.set_cache(toolName, key, result, cache_ttl)
+				self.handle.hLG.echo("Cached {} result (TTL: {}s)".format(toolName, cache_ttl), {'color':True, 'colorValue':'cyan'})
+			#
 			return result
 		except Exception as E:
 			self.handle.tool_errors += 1
 			info = getattr(h, 'info', {}) if h else {}
 			return "Error executing {}: {}{}".format(toolName, E, self._tool_usage(info))
+	#
+	def _cache_key(self, toolName, params):
+		import hashlib, json
+		raw = "{}:{}".format(toolName, json.dumps(params, sort_keys=True))
+		return hashlib.md5(raw.encode()).hexdigest()[:16]
 
 	def _tool_usage(self, info):
 		name = info.get('name', 'Tool')

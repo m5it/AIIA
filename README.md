@@ -5,7 +5,7 @@
 ## Features
 
 - **Interactive AI Chat** — Terminal-based interface for conversing with local LLMs via Ollama (streaming response with thinking support)
-- **XML Tool System** — AI invokes tools by writing XML blocks; tools are dynamically loaded Python classes with hot-reload; 22 tools including file I/O, search, processing, terminal, and tips
+- **XML Tool System** — AI invokes tools by writing XML blocks; tools are dynamically loaded Python classes with hot-reload; 23+ tools including file I/O, search, processing, terminal, tips, and tree view
 - **Plan / Build Modes** — structured workflow: plan mode for architecting tasks, build mode for executing them
 - **Plan Manager** — Create plans, split into tasks, track progress, auto-continue on restart (`-c` flag)
 - **Secure Terminal Tool** — Allowlist-based command execution with audit logging and 30s timeout; also allows user-created scripts via `./` or `/` paths
@@ -16,7 +16,11 @@
 - **Project History** — Each project directory gets a `HISTORY.md` with human-readable markdown + embedded JSON for machine parsing; fully round-trip compatible
 - **Instruct Persona System** — Dynamic persona classes in `instruct/` (Developer, Friend, SysAdmin, Researcher); switch mid-session with `!INSTRUCT_SWITCH`; each persona specifies its own model, system prompt, and toolset
 - **Token Tracking** — Per-turn and cumulative token counts displayed in `!STATS`
+- **TreeView Tool** — ASCII directory tree visualization with depth control, glob filtering, and hidden-file toggling; cached for 5 minutes
 - **Tips System** — Save, view, reinsert, and manage conversation snippets as JSON tips (`!TS`, `!TL`, `!TV`, `!TR`, `!TD`, `!TDR`, `!TDA`)
+- **Auto Tip Summary** — Every user message gets an automatic summary of available tips injected before sending to the AI
+- **Tool Result Caching** — Tools with `cache_ttl` class attribute (e.g., listTools=600s, TreeView=300s) cache results to files; `!CACHE_CLEAR` to flush all caches; global TTL in config
+- **Terminal Improvements** — `rm`/`rmdir`/`ln`/`install` added to allowlist; `./` and `/` paths bypass allowlist for user scripts; argument-smash detection returns specific XML correction error
 - **Orchestra System** — Multi-agent task distribution: one director process dispatches tasks to any number of worker processes over TCP; each worker has its own model, persona, and tools; planning can be delegated to a designated worker
 - **Session Management** — `!CLEAR` to clear chat history (keep persona), `!RM <num>` to remove specific rows, `!NEW SESSION` for a full reset
 - **Factory Reset** — `-R` flag resets all state (history, plans, session ID, tips, cookies) to factory defaults with confirmation prompt
@@ -236,7 +240,9 @@ All configuration lives in `config.py`:
 | `NUM_RESPONSE_TOKENS` | int | `0` | Cumulative response tokens |
 | `NUM_LAST_PROMPT_TOKENS` | int | `0` | Last-turn prompt tokens |
 | `NUM_LAST_RESPONSE_TOKENS` | int | `0` | Last-turn response tokens |
-| `TIPS_PATH` | str | `~/.config/ourai/tips` | Tips storage directory |
+| `TIPS_PATH` | str | `~/.config/ourai/tips` | Tips storage directory (also used for tool cache) |
+| `TOOL_CACHE_TTL` | int | `86400` | Default cache TTL in seconds (1 day) |
+| `TOOL_CACHE_ENABLED` | bool | `true` | Enable/disable tool result caching globally |
 | `COOKIE_FILE` | str/None | `None` | Shared cookie file for WWW tools |
 | `working_dir` | str | `$OURAI_PROJECT_DIR` | Project working directory |
 | `plans_path` | str | `plans/` | Directory for JSON plan files |
@@ -294,13 +300,14 @@ OurAI/
 │   ├── Researcher.py             # Web research and data extraction persona
 │   └── __init__.py
 │
-├── tools/                        # XML-invokable tool modules (22+ files)
+├── tools/                        # XML-invokable tool modules (23+ files)
 │   ├── tool_Terminal.py          # Secure terminal execution
 │   ├── tool_ReadFile.py          # Read file content
 │   ├── tool_WriteFile.py         # Write/overwrite files
 │   ├── tool_AppendFile.py        # Append or insert at line
 │   ├── tool_CreateFile.py        # Create file (fails if exists)
 │   ├── tool_ReplaceLine.py       # Replace specific line(s) in a file
+│   ├── tool_TreeView.py          # ASCII tree view of directory structure
 │   ├── tool_List.py              # List directory contents
 │   ├── tool_listTools.py         # List all available tools
 │   ├── tool_ExecuteScript.py     # Run scripts (.py/.sh/.js...)
@@ -648,6 +655,23 @@ Fails if file already exists (use WriteFile to overwrite).
 | `reverse` | bool | no | Reverse sort |
 | `unique` | bool | no | Unique lines only |
 
+#### TreeView
+```xml
+<TreeView>
+<path>src/</path>
+<depth>3</depth>
+<pattern>*.py</pattern>
+</TreeView>
+```
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `path` | string | no | Directory to start from (default: `.`) |
+| `depth` | int | no | Max depth to traverse (default: 3, 0=unlimited) |
+| `pattern` | string | no | Glob filter for files (e.g. `*.py`, `*.md`) |
+| `showHidden` | string | no | `"true"` to show hidden files/dirs (default: hidden) |
+
+Displays an ASCII tree view of a directory structure. Automatically excludes `.git`, `.venv`, `node_modules`, `__pycache__`, and similar noise directories. Cached for 5 minutes (`cache_ttl = 300`).
+
 ### Execution Tools
 
 #### Terminal
@@ -760,6 +784,7 @@ All commands start with `!` (case-sensitive). The following are available:
 | Command | Description |
 |---------|-------------|
 | `!STATS` | Display program statistics including token counts. |
+| `!CACHE_CLEAR` | Clear all tool result caches and reset consumed-tip tracking. |
 | `!TOOLS` | List and choose which tools to load. |
 | `!CT` | Clear all loaded tools. |
 
@@ -1024,4 +1049,4 @@ See [LICENSE](LICENSE) for full terms including notification and payment obligat
 
 ## Project Status
 
-**Version 0.5** — Active development. The core architecture is stable. New features include ReplaceLine tool for surgical file edits, expanded persona instructions teaching targeted-editing mindset, and enhanced tool count.
+**Version 0.5** — Active development. The core architecture is stable. Recent additions: ReplaceLine and TreeView tools, tool result caching with per-tool TTL, consumed-once tip reinsertion, auto tip summaries, expanded persona instructions with targeted-editing mindset, terminal improvements (rm/rmdir/ln/install, `./`/`/` path bypass, argument-smash detection), and 23+ tools total.

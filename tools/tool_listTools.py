@@ -2,6 +2,7 @@ import os
 from src.functions import importmodule, splitFileNameExtension
 
 class listTools():
+	cache_ttl = 600  # Cache listTools result for 10 minutes
 	def __init__(self):
 		self.info = {
 			"name": "listTools",

@@ -234,6 +234,13 @@ class Commands():
 			"usage"      :"!BUILD_THINK [true|false]",
 			"func"       :self.CMD_BUILD_THINK,
 		},
+		"CACHE_CLEAR":{
+			"name"       :"Cache Clear",
+			"description":"Clear all cached tool results.",
+			"regex"      :r"^!CACHE_CLEAR+$",
+			"usage"      :"!CACHE_CLEAR",
+			"func"       :self.CMD_CACHE_CLEAR,
+		},
 		"HELP":{
 				"name"       :"Help",
 				"description":"Display of available actions.",
@@ -293,6 +300,9 @@ class Commands():
 		# Reset continuation flags
 		self.handle.Options['CONTINUING'] = False
 		self.handle.Options['AI_FILE_LOAD_HISTORY'] = False
+		# Clear caches and consumed tips
+		self.handle.hTM.clear_all_caches()
+		self.handle._consumed_tips = set()
 		return 6
 	#
 	def CMD_CLEAR(self, inp):
@@ -560,8 +570,14 @@ class Commands():
 			print("Usage: !TR <title>")
 			return 2
 		title = a[1]
+		if title in self.handle._consumed_tips:
+			print("Tip '{}' was already reinserted this session.".format(title))
+			return 2
 		count = self.handle.hTM.reinsert(title)
-		self.handle.hLG.echo("Reinserted {} message(s) from tip '{}'".format(count, title),{'color':True,'colorValue':'green'})
+		if count > 0:
+			self.handle.hLG.echo("Reinserted {} message(s) from tip '{}'".format(count, title),{'color':True,'colorValue':'green'})
+		else:
+			print("No entries found for tip title '{}'.".format(title))
 		return 2
 	#
 	def CMD_TIP_DELETE(self, inp):
@@ -601,7 +617,15 @@ class Commands():
 		self.handle.hLG.echo("Deleted {} tip title(s)".format(removed),{'color':True,'colorValue':'orange'})
 		return 2
 	#
+	def CMD_CACHE_CLEAR(self, inp=""):
+		count = self.handle.hTM.clear_all_caches()
+		self.handle._consumed_tips = set()
+		self.handle.hLG.echo("Cleared {} cached tool result(s) and reset consumed tips.".format(count),{'color':True,'colorValue':'orange'})
+		return 2
+	#
 	def CMD_UPDATE_HANDLE(self, inp):
+		self.handle.hTM.clear_all_caches()
+		self.handle._consumed_tips = set()
 		return 4 # update class Handle()
 	#
 	def CMD_QUIT(self, inp):

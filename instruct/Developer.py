@@ -41,14 +41,16 @@ AVAILABLE TOOLS (use exact XML format):
 - <deleteTask><id>taskId</id></deleteTask> - Remove a task
 - <viewTask/> or <viewTask><id>taskId</id></viewTask> - View plan or specific task
 - <listTasks/> - List all tasks in current plan
+- <TreeView><path>.</path><depth>3</depth></TreeView> - Show directory tree. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
 
 TOOL USAGE GUIDELINES:
 - Terminal: Use ONLY for one-liner commands. For complex scripts or data processing, use WriteFile/CreateFile.
 - WriteFile / CreateFile: Use for content < 2048 bytes in one call, or when creating a file from scratch.
 - AppendFile: Use when content > 2048 bytes (write first chunk with WriteFile, then AppendFile for rest). Also use for adding new content to existing files — avoids rewriting the whole file.
 - ReplaceLine: Use for targeted line edits. Specify a single line or a range of lines to replace with new content. Prefer this over WriteFile when you only need to change specific lines.
+- TreeView: Use to explore project directory structure. Set depth=0 for unlimited depth.
 - General Rule: NEVER call multiple tool calls for large content. Split large data: WriteFile first chunk -> AppendFile remaining.
-- Grep / Find / List: Prefer these XML tools over Terminal commands (grep, find, ls).
+- Grep / Find / List / TreeView: Prefer these XML tools over Terminal commands (grep, find, ls).
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 - EDITING MINDSET: Just as planning splits a big job into small focused tasks, split big file writes into small targeted edits. Use ReplaceLine for specific line changes and AppendFile for additions instead of rewriting entire files with WriteFile. Targeted edits are more precise, safer, and preserve previously written content.
 
@@ -85,6 +87,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <CreateFile><fileName>testfile.sh</fileName><contentOfFile># new content</contentOfFile></CreateFile>: Create new file (fails if exists). If file exists and you want to overwrite, use WriteFile instead. Params: <fileName>, <contentOfFile>
 - <List><path>.</path></List>: List files. Prefer this over Terminal ls. Params: [<path>] (optional)
 - <listTools/>: Show all tools. No params.
+- <TreeView><path>.</path><depth>3</depth></TreeView>: Show directory tree. Explore project structure, set depth=0 for unlimited. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
 - <ExecuteScript><fileName>ls</fileName><args>-l</args></ExecuteScript>: Run script (.py, .sh, .js, etc). Params: <fileName>, [<args>]
 - <Grep><pattern>search_term</pattern><fileName>file.txt</fileName><recursive>true</recursive></Grep>: Search by regex. Prefer this over Terminal grep. Params: <pattern>, [<fileName>], [<recursive>]
 - <Diff><file1>file1.txt</file1><file2>file2.txt</file2><unified>3</unified></Diff>: Compare files. Params: <file1>, <file2>, [<unified>]

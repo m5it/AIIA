@@ -101,9 +101,12 @@ class TipManager():
 		return combined
 	#
 	def reinsert(self, title, source=None):
+		if title in self.handle._consumed_tips:
+			return 0
 		entries = self.get(title, source)
 		if not entries:
 			return 0
+		self.handle._consumed_tips.add(title)
 		count = 0
 		for data in entries:
 			for msg in data.get('entries', []):
@@ -156,3 +159,97 @@ class TipManager():
 					os.rmdir(tpath)
 					removed += 1
 		return removed
+	#
+	# === Tool result caching ===
+	#
+	def _cache_path(self, toolname, key_hash=None):
+		p = os.path.join(self.base_path, '_cache', toolname)
+		if key_hash:
+			p = os.path.join(p, "{}.json".format(key_hash))
+		return p
+	#
+	def set_cache(self, toolname, key_hash, result, ttl=None):
+		if ttl is None:
+			ttl = self.handle.Options.get('TOOL_CACHE_TTL', 86400)
+		path = self._cache_path(toolname, key_hash)
+		os.makedirs(os.path.dirname(path), exist_ok=True)
+		# Get tool file mtime for invalidation on tool update
+		tool_file = os.path.join(self.handle.Options.get('tools_path', 'tools'), "tool_{}.py".format(toolname))
+		tool_mtime = 0
+		if os.path.exists(tool_file):
+			tool_mtime = int(os.path.getmtime(tool_file))
+		data = {
+			'result': result,
+			'saved_at': int(time.time()),
+			'ttl': ttl,
+			'toolname': toolname,
+			'key_hash': key_hash,
+			'tool_mtime': tool_mtime,
+		}
+		fwrite(path, json.dumps(data), True)
+	#
+	def get_cache(self, toolname, key_hash):
+		path = self._cache_path(toolname, key_hash)
+		if not os.path.exists(path):
+			return None
+		try:
+			with open(path) as fp:
+				data = json.load(fp)
+		except:
+			return None
+		now = int(time.time())
+		saved_at = data.get('saved_at', 0)
+		ttl = data.get('ttl', 0)
+		# TTL expiry
+		if ttl > 0 and now - saved_at > ttl:
+			os.remove(path)
+			return None
+		# Tool file mtime change -> cache invalid
+		tool_file = os.path.join(self.handle.Options.get('tools_path', 'tools'), "tool_{}.py".format(toolname))
+		if os.path.exists(tool_file):
+			current_mtime = int(os.path.getmtime(tool_file))
+			if data.get('tool_mtime', 0) != current_mtime:
+				os.remove(path)
+				return None
+		return data.get('result')
+	#
+	def clear_cache(self, toolname=None, key_hash=None):
+		if toolname is None:
+			return self.clear_all_caches()
+		if key_hash:
+			path = self._cache_path(toolname, key_hash)
+			if os.path.exists(path):
+				os.remove(path)
+				return 1
+			return 0
+		path = self._cache_path(toolname)
+		if not os.path.isdir(path):
+			return 0
+		count = 0
+		for f in os.listdir(path):
+			if f.endswith('.json'):
+				os.remove(os.path.join(path, f))
+				count += 1
+		try:
+			os.rmdir(path)
+		except:
+			pass
+		return count
+	#
+	def clear_all_caches(self):
+		path = os.path.join(self.base_path, '_cache')
+		if not os.path.isdir(path):
+			return 0
+		count = 0
+		for toolname in os.listdir(path):
+			tpath = os.path.join(path, toolname)
+			if os.path.isdir(tpath):
+				for f in os.listdir(tpath):
+					if f.endswith('.json'):
+						os.remove(os.path.join(tpath, f))
+						count += 1
+				try:
+					os.rmdir(tpath)
+				except:
+					pass
+		return count

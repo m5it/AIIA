@@ -37,6 +37,7 @@ class Handle():
 		self.hPM     = PlanBase
 		self.tool_iteration = 0
 		self.tool_errors    = 0
+		self._consumed_tips = set()
 	
 	#
 	def Init(self):
@@ -47,6 +48,11 @@ class Handle():
 		self.Options['handle_tools']  = {}
 		self.Options['current_tools'] = []
 		self.Options['AI_ROW_ID']     = 0
+		self._consumed_tips = set()
+		
+		# Clear caches on fresh session (not continue)
+		if not self.Options.get('CONTINUE'):
+			self.hTM.clear_all_caches()
 		
 		# Handle -c / --continue flag
 		if self.Options.get('CONTINUE'):
@@ -358,6 +364,22 @@ class Handle():
 		return 0 # Input without command or successed command with input data
 	
 	#
+	def _get_tip_summary(self):
+		try:
+			tips = self.hTM.list()
+			if not tips:
+				return ""
+			parts = []
+			for key, info in sorted(tips.items()):
+				if key.startswith('_cache/'):
+					continue
+				parts.append("{} ({} entr{})".format(info['title'], info['count'], 'ies' if info['count'] != 1 else 'y'))
+			if not parts:
+				return ""
+			return "[Tips: {} — use <GetTip> to retrieve, <ReinsertTip> to bring into context]".format(', '.join(parts))
+		except:
+			return ""
+	#
 	def AI(self,opts={}):
 		#
 		self.hLG.echo("Handle.AI() STARTING, opts: {}".format(opts),{'color':False})
@@ -378,6 +400,14 @@ class Handle():
 
 			for msg in self.hHM.msgs: # loop trough array of current history messages that you wish to include for AIIA
 				msgs.append( msg )
+
+			# Auto-inject tip availability into last user message
+			tip_summary = self._get_tip_summary()
+			if tip_summary:
+				for i in range(len(msgs) - 1, -1, -1):
+					if msgs[i].get('role') == 'user':
+						msgs[i]['content'] = msgs[i]['content'] + "\n\n" + tip_summary
+						break
 
 			# Nothing to send to AIIA, continue to user input!
 			if len(msgs)<=0:
