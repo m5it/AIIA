@@ -8,14 +8,17 @@
 - **XML Tool System** — AI invokes tools by writing XML blocks; tools are dynamically loaded Python classes with hot-reload
 - **Plan / Build Modes** — structured workflow: plan mode for architecting tasks, build mode for executing them
 - **Plan Manager** — Create plans, split into tasks, track progress, auto-continue on restart (`-c` flag)
-- **Secure Terminal Tool** — Allowlist-based command execution with audit logging and 30s timeout
+- **Secure Terminal Tool** — Allowlist-based command execution with audit logging and 30s timeout; also allows user-created scripts via `./` or `/` paths
 - **Persistent Sessions** — Chat history saved per session in `history/`; session ID tracked in `sessid.aiia`
 - **Actions System** — Dynamically loaded action modules for reusable task sequences
-- **Continue Support** — `-c` flag loads last unfinished plan from `PLAN.md` and resumes where you left off
+- **Continue Support** — `-c` flag loads last session's `HISTORY.md` and `PLAN.md` from working directory, resumes chat and plan where you left off
+- **Project History** — Each project directory gets a `HISTORY.md` with human-readable markdown + embedded JSON for machine parsing; fully round-trip compatible
 - **Instruct Persona System** — Dynamic persona classes in `instruct/` (Developer, Friend, SysAdmin, Researcher); switch mid-session with `!INSTRUCT_SWITCH`; each persona specifies its own model, system prompt, and toolset
 - **Token Tracking** — Per-turn and cumulative token counts displayed in `!STATS`
 - **Tips System** — Save, view, reinsert, and manage conversation snippets as JSON tips (`!TS`, `!TL`, `!TV`, `!TR`, `!TD`, `!TDR`, `!TDA`)
 - **Orchestra System** — Multi-agent task distribution: one director process dispatches tasks to any number of worker processes over TCP; each worker has its own model, persona, and tools; planning can be delegated to a designated worker
+- **Session Management** — `!CLEAR` to clear chat history (keep persona), `!RM <num>` to remove specific rows, `!NEW SESSION` for a full reset
+- **Factory Reset** — `-R` flag resets all state (history, plans, session ID, tips, cookies) to factory defaults with confirmation prompt
 
 ---
 
@@ -67,7 +70,8 @@ Now run `ourai` from **any** directory:
 ```bash
 ourai                    # Start interactive session
 ourai -m gemma3:12b      # Use specific model
-ourai -c                 # Continue last unfinished plan
+ourai -c                 # Continue last session from HISTORY.md
+ourai -R                 # Factory reset (clear all state)
 ourai -Y "List all Python files"  # Single request
 ourai -d                 # Enable debug output
 ourai -T 0.8             # Set temperature
@@ -634,7 +638,8 @@ Fails if file already exists (use WriteFile to overwrite).
 | `arg2`-`arg5` | string | no | Up to 4 additional arguments |
 
 **Security features:**
-- Allowlist of ~40 approved programs only
+- Allowlist of ~40 approved programs for system binaries
+- User-created scripts (`./`, `/` paths) bypass the allowlist if the file exists and is executable
 - `shell=False` prevents command injection
 - 30-second timeout on all executions
 - All commands logged to `terminal_audit.log`
@@ -683,10 +688,11 @@ All commands start with `!` (case-sensitive). The following are available:
 | Command | Description |
 |---------|-------------|
 | `!MODE [plan\|build]` | Switch between plan and build mode. Shows current mode if no argument. |
-| `!NEW_SESSION` | Start a new session (resets context). |
-| `!BREAK_SESSION` | Start a new history file for the session. |
+| `!NEW SESSION` | Full reset — clears history, plans, tools, tokens, and re-runs Prepare() setup. |
+| `!CLEAR` | Clear chat history but keep system prompt and persona. |
+| `!RM <row_num>` | Remove a specific row from chat history by number (use `!PH` to see row numbers). |
 | `!QUIT` | Exit the program. |
-| `!UPDATE_HANDLE` | Reload the Handle class (hot-reload). |
+| `!UPDATE HANDLE` | Reload the Handle class (hot-reload). |
 
 ### Plan Commands
 
@@ -746,7 +752,9 @@ All commands start with `!` (case-sensitive). The following are available:
 
 | Command | Description |
 |---------|-------------|
-| `!PH` | Preview current chat history. |
+| `!PH` | Preview current chat history with row numbers. |
+| `!CLEAR` | Clear all non-system messages from history. |
+| `!RM <row_num>` | Remove a specific row from history. |
 
 ### Other Commands
 
@@ -770,8 +778,21 @@ All commands start with `!` (case-sensitive). The following are available:
 ### History Files
 
 - **`history/*.dbk`** — Full session transcripts (JSON lines, one message per line)
-- **`HISTORY.md`** — Human-readable session log saved to working directory
+- **`HISTORY.md`** (project working directory) — Dual-format session log: human-readable markdown + embedded `<!-- JSON -->` HTML comments for machine parsing. Fully round-trip compatible — messages are restored verbatim on continue.
 - **`PLAN.md`** — Current plan status saved to working directory
+
+### HISTORY.md Format
+
+Each message writes both a readable markdown entry and a JSON comment:
+
+```markdown
+## [14:30] USER
+Hello
+
+---
+
+<!-- {"role": "user", "content": "Hello", "sessionId": 5, "rowId": 12} -->
+```
 
 ### Continue Mode (`-c`)
 
@@ -779,10 +800,10 @@ All commands start with `!` (case-sensitive). The following are available:
 python run.py -c
 ```
 
-1. Reads `PLAN.md` from working directory
-2. Finds the newest unfinished plan
-3. Loads it as the current draft
-4. AI resumes working on the in-progress task
+1. Loads `HISTORY.md` from the working directory — restores full message history (system prompt, user messages, assistant responses) from the embedded JSON comments
+2. Loads `PLAN.md` from the working directory — finds the newest unfinished plan
+3. Loads the plan as the current draft
+4. **Skips** the Prepare() setup (no persona choice, no system message prompt, no history choose) — you resume exactly where you left off
 
 ---
 
