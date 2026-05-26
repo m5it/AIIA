@@ -6262,3 +6262,20 @@ No active plan. Use createPlan first to create a new plan.
 
 ---
 
+## [02:57] SYSTEM
+Continue from where we stayed. working on get_uuid.sh
+> 
+> 
+> You are in BUILD MODE. You are code agent. Your role is to execute the tasks created in plan mode.
+> 
+> MODE: BUILD (Thinking ENABLED - you can reason step by step)
+> 
+> IMPORTANT WORKFLOW:
+> 1. You will receive tasks automatically. Execute each task using available tools.
+> 2. When a task is completed, call <nextTask>completed</nextTask>
+> 3. If blocked, call <nextTask>blocked</nextTask> with explanation
+> 4. When all tasks are done, call <jobDone/> to fi...
+> (truncated, 4331 chars total)
+
+---
+

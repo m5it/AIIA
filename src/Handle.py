@@ -63,11 +63,18 @@ class Handle():
 				PlanBase.draft = loaded_plan
 				PlanBase.LoadAll(self.Options.get('plans_path', 'plans'))
 				self.hLG.echo("Loaded plan: {} ({} tasks)".format(loaded_plan.title, len(loaded_plan.tasks)), {'color':True, 'colorValue':'green'})
-		# TODO: Load history from HISTORY.md if needed
-		# This would require parsing HISTORY.md back to msg objects
-		print("DEBUG Handle._load_continue_session() history: {}".format( "{}/HISTORY.md".format(working_dir) ))
-		if working_dir is not None and os.path.exists("{}/HISTORY.md".format(working_dir)):
-			self.hHM.Get({"path":"{}/HISTORY.md".format(working_dir),})
+		# Load history from HISTORY.md
+		if working_dir is not None:
+			history_md = os.path.join(working_dir, 'HISTORY.md')
+			if os.path.exists(history_md):
+				self.hHM.Get(path=history_md)
+				self.Options['CONTINUING'] = True
+				self.Options['AI_FILE_LOAD_HISTORY'] = True
+				self.hLG.echo("Loaded session history from {}".format(history_md), {'color':True, 'colorValue':'green'})
+				# Sync AI_ROW_ID to last loaded row + 1
+				if self.hHM.msgs:
+					last_row = max((m.get('rowId', 0) for m in self.hHM.msgs), default=0)
+					self.Options['AI_ROW_ID'] = last_row + 1
 	
 	#
 	def Response(self,role='user',opts=[]):
@@ -177,14 +184,17 @@ class Handle():
 		self.hLG.echo("Handle.Chat() STARTING! MODE: {}".format(self.Options.get('MODE', 'build')),{'color':True})
 		#
 		# Load all existing plans on start
+		from src.PlanManager import PlanBase
 		PlanBase.LoadAll(self.Options.get('plans_path', 'plans'))
 		#
 		while True:
 			#
-			x = self.You() # return: 0, 1, 2=continue, 3=break, 5=start build
+			x = self.You() # return: 0, 1, 2=continue, 3=break, 5=start build, 6=new session
 			self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False})
 			if x==5:
 				self.StartBuild()
+			elif x==6:
+				return 6
 			elif x>=3:
 				return x # return 2=continue or 3=break, 4=update handle
 			elif x==2:

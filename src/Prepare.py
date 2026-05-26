@@ -40,6 +40,11 @@ class Prepare():
 	#
 	def Prepare(self):
 		self.handle.hLG.echo("Prepare.Prepare() START, MODE: {}".format(self.handle.Options.get('MODE', 'build')))
+		#
+		if self.handle.Options.get('CONTINUING'):
+			self.handle.hLG.echo("Continuing previous session (history loaded from HISTORY.md)", {'color':True, 'colorValue':'cyan'})
+			return True
+		#
 		# Choose persona
 		self.handle.hIM.Choose()
 		#

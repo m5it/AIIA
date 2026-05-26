@@ -10,17 +10,24 @@ class Commands():
 		self.cmds    = {
 			"NEW_SESSION":{
 				"name"       :"New Session",
-				"description":"Like restarting program.",
+				"description":"Reset everything and start fresh with Prepare().",
 				"regex"      :r"^!NEW.SESSION+$",
 				"usage"      :"!NEW SESSION",
 				"func"       :self.CMD_NEW_SESSION,
 			},
-			"BREAK_SESSION":{
-				"name"       :"Break Session",
-				"description":"Start new history...",
-				"regex"      :r"^!BREAK.SESSION+$",
-				"usage"      :"!BREAK SESSION",
-				"func"       :self.CMD_BREAK_SESSION,
+			"CLEAR":{
+				"name"       :"Clear History",
+				"description":"Clear chat history but keep system prompt and persona.",
+				"regex"      :r"^!CLEAR$",
+				"usage"      :"!CLEAR",
+				"func"       :self.CMD_CLEAR,
+			},
+			"REMOVE":{
+				"name"       :"Remove Row",
+				"description":"Remove a specific row from chat history by number (use !PH to see row numbers).",
+				"regex"      :r"^!RM\s+\d+$",
+				"usage"      :"!RM <row_num>",
+				"func"       :self.CMD_REMOVE,
 			},
 			"STATS":{
 				"name"       :"Stats",
@@ -247,10 +254,108 @@ class Commands():
 		return 2
 	#
 	def CMD_NEW_SESSION(self, inp):
-		return 3 # as break
+		import os as _os
+		# Clear in-memory history
+		self.handle.hHM.msgs = []
+		# Clear main history file on disk
+		history_path = "{}/history/{}".format(self.handle.Options.get('path', ''), self.handle.Options['AI_FILE_HISTORY'])
+		try:
+			_os.remove(history_path)
+		except:
+			pass
+		# Clear project HISTORY.md
+		proj_dir = self.handle.Options.get('working_dir')
+		framework_dir = self.handle.Options.get('path', '').rstrip('/')
+		if proj_dir and proj_dir != framework_dir:
+			proj_history = _os.path.join(proj_dir, 'HISTORY.md')
+			try:
+				_os.remove(proj_history)
+			except:
+				pass
+		# Reset counters
+		self.handle.Options['AI_ROW_ID'] = 0
+		self.handle.Options['NUM_PROMPT_TOKENS'] = 0
+		self.handle.Options['NUM_RESPONSE_TOKENS'] = 0
+		self.handle.Options['NUM_LAST_PROMPT_TOKENS'] = 0
+		self.handle.Options['NUM_LAST_RESPONSE_TOKENS'] = 0
+		# Reset tools
+		self.handle.Options['current_tools'] = []
+		self.handle.Options['handle_tools'] = {}
+		self.handle.hTC.selected = []
+		self.handle.hTC.prepared = []
+		# Clear plan state
+		from src.PlanManager import PlanBase
+		PlanBase.draft = None
+		PlanBase.done = []
+		# Reset draft response
+		self.handle.Options['DRAFT_CONTENT'] = None
+		self.handle.Options['DRAFT_RESPONSE'] = None
+		# Reset continuation flags
+		self.handle.Options['CONTINUING'] = False
+		self.handle.Options['AI_FILE_LOAD_HISTORY'] = False
+		return 6
 	#
-	def CMD_BREAK_SESSION(self, inp):
-		return 3
+	def CMD_CLEAR(self, inp):
+		import os as _os, json
+		from src.PlanSaver import PlanSaver
+		# Keep system message(s), clear everything else
+		system_msgs = [m for m in self.handle.hHM.msgs if m['role'] == 'system']
+		self.handle.hHM.msgs = system_msgs[:]
+		# Clear main history file on disk and rewrite system msgs
+		main_path = "{}/history/{}".format(self.handle.Options.get('path', ''), self.handle.Options['AI_FILE_HISTORY'])
+		try:
+			_os.remove(main_path)
+		except:
+			pass
+		for m in system_msgs:
+			fwrite(main_path, "{}\n".format(json.dumps(m)), False)
+		# Rewrite project HISTORY.md with system msgs only
+		proj_dir = self.handle.Options.get('working_dir')
+		framework_dir = self.handle.Options.get('path', '').rstrip('/')
+		if proj_dir and proj_dir != framework_dir:
+			proj_history = _os.path.join(proj_dir, 'HISTORY.md')
+			PlanSaver.rebuild_history(proj_history, system_msgs)
+		# Reset row ID and tokens
+		self.handle.Options['AI_ROW_ID'] = 0
+		self.handle.Options['NUM_PROMPT_TOKENS'] = 0
+		self.handle.Options['NUM_RESPONSE_TOKENS'] = 0
+		self.handle.Options['NUM_LAST_PROMPT_TOKENS'] = 0
+		self.handle.Options['NUM_LAST_RESPONSE_TOKENS'] = 0
+		print("Chat history cleared. System prompt preserved.")
+		return 2
+	#
+	def CMD_REMOVE(self, inp):
+		import os as _os, json
+		from src.PlanSaver import PlanSaver
+		a = inp.strip().split()
+		if len(a) < 2:
+			print("Usage: !RM <row_num>")
+			return 2
+		try:
+			num = int(a[1])
+		except ValueError:
+			print("Row number must be an integer.")
+			return 2
+		if num < 0 or num >= len(self.handle.hHM.msgs):
+			print("Row {} does not exist. History has {} rows.".format(num, len(self.handle.hHM.msgs)))
+			return 2
+		removed = self.handle.hHM.msgs.pop(num)
+		print("Removed row {}: [{}] {}".format(num, removed.get('role','?'), removed.get('content','')[:80]))
+		# Rebuild main history file on disk
+		main_path = "{}/history/{}".format(self.handle.Options.get('path', ''), self.handle.Options['AI_FILE_HISTORY'])
+		try:
+			_os.remove(main_path)
+		except:
+			pass
+		for m in self.handle.hHM.msgs:
+			fwrite(main_path, "{}\n".format(json.dumps(m)), False)
+		# Rebuild project HISTORY.md
+		proj_dir = self.handle.Options.get('working_dir')
+		framework_dir = self.handle.Options.get('path', '').rstrip('/')
+		if proj_dir and proj_dir != framework_dir:
+			proj_history = _os.path.join(proj_dir, 'HISTORY.md')
+			PlanSaver.rebuild_history(proj_history, self.handle.hHM.msgs)
+		return 2
 	#
 	def CMD_CLEAR_TOOLS(self, inp):
 		print("Clearing tools...")

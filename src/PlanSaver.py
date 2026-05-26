@@ -3,6 +3,16 @@ from datetime import datetime
 
 class PlanSaver:
 	@staticmethod
+	def rebuild_history(file_path, msgs):
+		"""Rewrite HISTORY.md from scratch with given messages."""
+		try:
+			os.remove(file_path)
+		except:
+			pass
+		for msg in msgs:
+			PlanSaver.save_history_to_file(msg, file_path)
+
+	@staticmethod
 	def save_plan_to_file(plan, file_path):
 		timestamp = datetime.fromtimestamp(plan.startTimestamp).strftime('%Y-%m-%d %H:%M:%S')
 		status = "in_progress" if plan.endTimestamp is None else "completed"
@@ -54,14 +64,20 @@ class PlanSaver:
 		
 		# Truncate long content for preview
 		if len(content) > 500:
-			content = content[:500] + "...\n(truncated, {} chars total)".format(len(content))
+			display = content[:500] + "...\n(truncated, {} chars total)".format(len(content))
+		else:
+			display = content
 		
-		entry += content.replace('\n', '\n> ') if '\n' in content else content
+		entry += display.replace('\n', '\n> ') if '\n' in content else display
 		entry += "\n\n---\n\n"
+		
+		# JSON comment for machine parsing (full content, not truncated)
+		json_comment = "<!-- {} -->\n\n".format(json.dumps(msg, default=str))
 		
 		# Append to file
 		with open(file_path, 'a') as f:
 			f.write(entry)
+			f.write(json_comment)
 	
 	@staticmethod
 	def save_plan(plan, working_dir=None):

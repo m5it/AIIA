@@ -27,18 +27,39 @@ class HistoryManager():
 			if rmatch(tmp,"^\d+\..*"):
 				self.available.append(tmp)
 	
-	# method get() - load chat history from history/ some file (append to self.msgs)
-	def Get(self):
+	# method get() - load chat history from a file (append to self.msgs)
+	# If path is provided, loads from that exact file (e.g. HISTORY.md with embedded JSON comments).
+	# Otherwise loads from the standard history/ file path.
+	def Get(self, path=None):
 		#
 		self.msgs = []
 		#
-		if os.path.exists( "{}{}/{}".format( self.opt_path, self.handle.Options['history_path'], self.history )):
-			with open ( "{}{}/{}".format( self.opt_path, self.handle.Options['history_path'], self.history) ) as tmp:
-				for line in tmp:
-					line = line.strip()
-					if line=="" or line==None or line=="\n":
+		if path:
+			file_path = path
+		else:
+			file_path = "{}{}/{}".format( self.opt_path, self.handle.Options['history_path'], self.history )
+		#
+		if not os.path.exists(file_path):
+			return
+		#
+		with open(file_path) as tmp:
+			for line in tmp:
+				line = line.strip()
+				if not line:
+					continue
+				# Parse JSON from HTML comment <!-- {...} -->
+				if line.startswith('<!--') and line.endswith('-->'):
+					json_str = line[4:-3].strip()
+					try:
+						self.msgs.append(json.loads(json_str))
+					except:
 						continue
-					self.msgs.append( json.loads(line) )
+				# Also support plain JSON-lines (backward compat with .dbk files)
+				elif line.startswith('{'):
+					try:
+						self.msgs.append(json.loads(line))
+					except:
+						continue
 	
 	#
 	def GetLast(self):
