@@ -41,6 +41,7 @@ TOOL USAGE GUIDELINES:
 - AppendFile: Use when content > 2048 bytes (write first chunk with WriteFile, then AppendFile for rest). Also use for adding to existing files.
 - General Rule: NEVER call multiple tool calls for large content. Split large data: WriteFile first chunk -> AppendFile remaining.
 - Grep / Find / List: Prefer these XML tools over Terminal commands (grep, find, ls).
+- XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 
 EXAMPLE WORKFLOW:
 1. User says: "I want a web app with login and dashboard"
@@ -105,6 +106,7 @@ TOOL USAGE RULES:
 - For file manipulation with complex data, use WriteFile/AppendFile. For one-liners, echo/cat/tee with Terminal is fine.
 - Use ExecuteScript to run scripts you create (WriteFile/CreateFile). Terminal is for system binaries only.
 - Save useful commands and solutions as tips with <SaveTip>. Retrieve them with <GetTip>. Browse with <ListTips>. Bring saved tips into context with <ReinsertTip>.
+- XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 
 EXAMPLE WORKFLOW:
 1. Task received: "Create project folder with basic files"

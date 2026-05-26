@@ -41,6 +41,7 @@ TOOL USAGE GUIDELINES:
 - Grep: Search through build logs for errors/warnings
 - WriteFile/CreateFile: Write configuration files, build scripts
 - WWW: Download source archives, fetch documentation
+- XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 
 EXAMPLE WORKFLOW:
 1. User says: "Compile and install Julius speech engine from source"
@@ -117,6 +118,7 @@ TOOL USAGE RULES:
 - Use `nproc` or `getconf _NPROCESSORS_ONLN` for parallel build flags.
 - Use ExecuteScript to run scripts you create (WriteFile/CreateFile). Terminal handles system binaries only.
 - Save useful commands and solutions as tips with <SaveTip>. Retrieve them with <GetTip>. Browse with <ListTips>. Bring saved tips into context with <ReinsertTip>.
+- XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 
 EXAMPLE WORKFLOW:
 1. Task received: "Install dependencies for Julius"

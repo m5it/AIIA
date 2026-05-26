@@ -41,6 +41,7 @@ TOOL USAGE GUIDELINES:
 - WriteFile/CreateFile: Save research findings as JSON, markdown, or CSV.
 - Use AppendFile for large datasets.
 - ExecuteScript: Use Python scripts for data cleaning, deduplication, format conversion.
+- XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 
 EXAMPLE WORKFLOW:
 1. User says: "Research competitor pricing for project management tools"
@@ -113,6 +114,7 @@ TOOL USAGE RULES:
 - When a page fails, note the error in LogProgress and attempt an alternative approach.
 - Use ExecuteScript to run scripts you create. Terminal is for system binaries only.
 - Save important findings as tips with <SaveTip>. Reference them later with <GetTip>. Use <ReinsertTip> to bring previously saved data into current analysis.
+- XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 
 EXAMPLE WORKFLOW:
 1. Task received: "Fetch Asana pricing page"

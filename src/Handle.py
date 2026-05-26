@@ -16,6 +16,12 @@ class Handle():
 		self.opt_response_done = None # (optional) To know that response is finished and can be used as print(..) as well
 		#
 		self.Options  = Options
+		# Normalize working_dir — if same as framework path, treat as None
+		# so PLAN.md / HISTORY.md don't get saved in the framework directory
+		framework_dir = self.Options.get('path', '').rstrip('/')
+		wd = self.Options.get('working_dir')
+		if wd and wd == framework_dir:
+			self.Options['working_dir'] = None
 		#
 		#self.cmds    = self.Commands(self)
 		self.cmds    = initmodule(importmodule("Commands",True,{'path':'src'}),"Commands",{'handle':self,})
