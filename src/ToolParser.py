@@ -294,6 +294,8 @@ class ToolParser:
 			#
 			if self.handle.Options.get('TOOL_RESULT_AS_SYSTEM', False):
 				self.handle.Response('system',{'content':"☰ Tool [{}] returned:\n{}".format(toolName, str(result))})
+			elif self.handle.Options.get('TOOL_RESULT_AS_USER', False):
+				self.handle.Response('user',{'content':"☰ Tool [{}] returned:\n{}".format(toolName, str(result))})
 			else:
 				self.handle.Response('tool',{'content':str(result),'name':toolName})
 			#

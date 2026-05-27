@@ -13,7 +13,7 @@ Options         = {
 	"SPEAK"               :True,
 	#
 	#"AI_MODEL"            :"qwen3:latest",
-	"AI_MODEL"            :"gemma4:latest",
+	"AI_MODEL"            :"llama3.2:latest",
 	#"AI_MODEL"            :"qwen3-coder:latest",
 	"AI_FILE_SESSID"      :"{}/sessid.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_HISTORY"     :"history.aiia", # auto generated from AI_SESS_ID
@@ -54,8 +54,9 @@ Options         = {
 	"TOOL_CACHE_ENABLED"  :True,     # Enable tool result caching
 	"TOOL_CACHE_TTL"      :86400,    # Default cache TTL in seconds (1 day)
 	#
-	# Tool result format
-	"TOOL_RESULT_AS_SYSTEM": True, # When True, tool results use role: system instead of role: tool (model sees results clearly)
+	# Tool result format (priority: system > user > tool)
+	"TOOL_RESULT_AS_SYSTEM": False, # When True, tool results use role: system instead of role: tool
+	"TOOL_RESULT_AS_USER": True,   # When True, tool results use role: user instead of role: tool
 
 	# Token counting (populated dynamically by Handle.py on each response)
 	"NUM_PROMPT_TOKENS"       :0,  # cumulative prompt tokens across session

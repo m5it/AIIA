@@ -272,7 +272,7 @@ class Handle():
 		# Clean assistant content: strip XML tags when using system-role results
 		# so the model doesn't see stale tool calls in its own history
 		assistant_content = response['content']
-		if tool_invocations and self.Options.get('TOOL_RESULT_AS_SYSTEM', False):
+		if tool_invocations and (self.Options.get('TOOL_RESULT_AS_SYSTEM', False) or self.Options.get('TOOL_RESULT_AS_USER', False)):
 			assistant_content = self.hTP.ExtractToolResult(response['content'])
 		#
 		self.Response('assistant',{
