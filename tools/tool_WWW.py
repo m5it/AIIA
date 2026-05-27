@@ -1,6 +1,11 @@
-import subprocess, os, glob
+import subprocess, os, glob, sys
 from config import Options
 from tools._wwwjs_server import ensure_server, send
+
+_DEBUG = Options.get("DEBUG", False)
+def _dbg(*a, **kw):
+	if _DEBUG:
+		print("WWW:", *a, file=sys.stderr, **kw)
 
 class WWW():
 	def __init__(self):
@@ -78,13 +83,19 @@ class WWW():
 
 		# Try server if JS needed or if server already running
 		if needs_js:
-			port = ensure_server()
+			port = ensure_server(browser=bool(cmd.get('browser')))
 			if port:
+				_dbg("using server path (port {})".format(port))
 				result = send(port, cmd)
 				if result is not None:
 					return result
+				_dbg("server returned None, falling back to one-shot")
+			else:
+				_dbg("no server port, falling back to one-shot")
 			# Fall back to one-shot wwwjs
 			return self._run_wwwjs(cmd)
+		else:
+			_dbg("no JS needed, using simple path")
 
 		# Try server if already running (fast path even without JS)
 		port = ensure_server()

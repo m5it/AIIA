@@ -1,4 +1,4 @@
-import json, sys, time, os, copy
+import json, sys, time, os, copy, threading
 from datetime import date
 from ollama import ChatResponse, chat
 from src.functions import *
@@ -38,6 +38,14 @@ class Handle():
 		self.tool_iteration = 0
 		self.tool_errors    = 0
 		self._consumed_tips = set()
+
+		# Eager-import _wwwjs_server so its module is cached in sys.modules.
+		# Without this, the dynamic tool reloader may re-execute it, resetting
+		# _server_state and orphaning the background server process.
+		import tools._wwwjs_server
+
+		# Eager start wwwjs server in background (daemon thread, non-blocking)
+		self._start_wwwjs_server_async()
 	
 	#
 	def Init(self):
@@ -58,6 +66,17 @@ class Handle():
 		if self.Options.get('CONTINUE'):
 			self._load_continue_session()
 	
+	#
+	def _start_wwwjs_server_async(self):
+		"""Eager-start the wwwjs server in a background daemon thread."""
+		def _start():
+			try:
+				from tools._wwwjs_server import start_background
+				start_background(browser=False, wait=True)
+			except Exception as e:
+				self.hLG.echo("wwwjs server background start: {}".format(e), {'color':True, 'colorValue':'yellow'})
+		t = threading.Thread(target=_start, daemon=True)
+		t.start()
 	#
 	def _load_continue_session(self):
 		working_dir = self.Options.get('working_dir')
