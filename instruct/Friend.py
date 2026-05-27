@@ -3,6 +3,7 @@ class Friend():
 	description = "Friendly chat companion — casual, warm, conversational"
 	build_thinking_disabled = True
 	max_iterations = 5
+	model = "deepseek-v2:latest"
 	blocks = {
 		'[--#THINKING#--ID1--]': {
 			'plan': 'Thinking ENABLED',

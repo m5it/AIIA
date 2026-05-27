@@ -12,8 +12,9 @@ Options         = {
 	#
 	"SPEAK"               :True,
 	#
+	"AI_MODEL"            :"qwen4:latest",
 	#"AI_MODEL"            :"qwen3:latest",
-	"AI_MODEL"            :"llama3.2:latest",
+	#"AI_MODEL"            :"llama3.2:latest",
 	#"AI_MODEL"            :"qwen3-coder:latest",
 	"AI_FILE_SESSID"      :"{}/sessid.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_HISTORY"     :"history.aiia", # auto generated from AI_SESS_ID

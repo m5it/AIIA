@@ -456,7 +456,7 @@ class Handle():
 			#
 			self.hTP.FireToolInvocation(tool_invocations)
 			#
-			return 2 # just to debug tool calls with user input
+			#return 2 # just to debug tool calls with user input
 		return 0 # Input without command or successed command with input data
 	
 	#

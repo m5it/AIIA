@@ -90,7 +90,7 @@ RESEARCH BEST PRACTICES:
 7. Cross-reference findings across sources before drawing conclusions.
 
 AVAILABLE TOOLS (use exact XML format):
-- <WWW><url>https://example.com</url><text>true</text><links>true</links><js>true</js><browser>true</browser></WWW>: Fetch a web page. Use text=true for readable content, links=true to extract all links. Params: <url>, [<text>], [<links>], [<source>], [<js>], [<browser>]
+- <WWW><url>https://example.com</url><links>true</links><js>true</js><browser>true</browser></WWW>: Fetch a web page. Use text=true for readable content, links=true to extract all links. Params: <url>, [<text>], [<links>], [<source>], [<js>], [<browser>]
 - <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Use for simple file operations or running scripts. Params: <arg1>, [<arg2>], ... (dynamic args)
 - <ReadFile><fileName>file.json</fileName></ReadFile>: Read saved data. Params: <fileName>
 - <WriteFile><fileName>results.json</fileName><contentOfFile>{"key": "value"}</contentOfFile></WriteFile>: Write structured data. Use for content under 4KB. Params: <fileName>, <contentOfFile>
