@@ -292,7 +292,10 @@ class ToolParser:
 			else:
 				result = self.ExecuteTextTool(toolName, params)
 			#
-			self.handle.Response('tool',{'content':str(result),'name':toolName})
+			if self.handle.Options.get('TOOL_RESULT_AS_SYSTEM', False):
+				self.handle.Response('system',{'content':"☰ Tool [{}] returned:\n{}".format(toolName, str(result))})
+			else:
+				self.handle.Response('tool',{'content':str(result),'name':toolName})
 			#
 			# (Just on print to console. Chat History should have always original data!) Truncate result if too long
 			MAX_PREVIEW = 500

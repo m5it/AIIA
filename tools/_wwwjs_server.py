@@ -180,6 +180,38 @@ def send(port, cmd_dict, timeout=120):
 		_dbg("send: unexpected error: {}".format(e))
 		return None
 
+def exec_script(port, script, wait=0, timeout=120):
+	"""Send JavaScript to execute on the current page via the wwwjs server."""
+	try:
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s.settimeout(timeout)
+		s.connect(('127.0.0.1', port))
+		cmd = {'script': script}
+		if wait:
+			cmd['wait'] = wait
+		s.sendall((json.dumps(cmd) + '\n').encode('utf-8'))
+		buf = b''
+		while True:
+			chunk = s.recv(65536)
+			if not chunk:
+				break
+			buf += chunk
+			if b'\n' in chunk:
+				break
+		s.close()
+		line = buf.decode('utf-8').strip()
+		if not line:
+			return None
+		resp = json.loads(line)
+		if resp.get('status') == 'ok':
+			return resp.get('script_result') or resp.get('data', '')
+		else:
+			_dbg("exec_script: server error: {}".format(resp.get('data', 'unknown')))
+			return None
+	except Exception as e:
+		_dbg("exec_script: error: {}".format(e))
+		return None
+
 def start_background(browser=False, wait=True):
 	"""Start the wwwjs server in background. If wait=True, block until ready.
 	   Intended for eager startup at Handle init."""

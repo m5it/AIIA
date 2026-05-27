@@ -1,4 +1,4 @@
-import json, sys, time, os, copy, threading
+import json, sys, time, os, copy, threading, hashlib
 from datetime import date
 from ollama import ChatResponse, chat
 from src.functions import *
@@ -38,6 +38,7 @@ class Handle():
 		self.tool_iteration = 0
 		self.tool_errors    = 0
 		self._consumed_tips = set()
+		self._last_response_hash = None
 
 		# Eager-import _wwwjs_server so its module is cached in sys.modules.
 		# Without this, the dynamic tool reloader may re-execute it, resetting
@@ -242,9 +243,40 @@ class Handle():
 			if stream_error:
 				self.hLG.echo("Stream error: {}".format(stream_error), {'color':True, 'colorValue':'red'})
 		
+		# Detect repeated responses (model looping)
+		current_hash = hashlib.md5(response.get('content', '').strip().encode()).hexdigest()
+		if self._last_response_hash is not None and current_hash == self._last_response_hash:
+			self.hLG.echo("⚠ Model repeated itself — auto-cancelled", {'color':True, 'colorValue':'red'})
+			self._last_response_hash = None
+			self.Response('system', {'content': "⚠ Model response repeated — auto-cancelled."})
+			if opt_return_object:
+				return {'invocations': [], 'response': response.get('content', ''), 'stream_error': stream_error }
+			return True
+		self._last_response_hash = current_hash
+
+		#
+		# Detect tool invocations before adding assistant response
+		# (needs to be first so we can clean XML from assistant content if needed)
+		tool_invocations = []
+		native_tool_calls = response.get('native_tool_calls', [])
+		
+		if native_tool_calls:
+			self.hLG.echo("Parse() detected {} native Ollama tool call(s)".format(len(native_tool_calls)), {'color':True, 'colorValue':'cyan'})
+			tool_invocations = self._convert_native_tool_calls(native_tool_calls)
+		
+		if not tool_invocations:
+			tool_invocations = self.hTP.ParseTextToolInvocation( response['content'] )
+			if tool_invocations:
+				self.hLG.echo("Parse() detected {} XML tool invocation(s)".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
+		
+		# Clean assistant content: strip XML tags when using system-role results
+		# so the model doesn't see stale tool calls in its own history
+		assistant_content = response['content']
+		if tool_invocations and self.Options.get('TOOL_RESULT_AS_SYSTEM', False):
+			assistant_content = self.hTP.ExtractToolResult(response['content'])
 		#
 		self.Response('assistant',{
-			'content':response['content'],
+			'content':assistant_content,
 			'thinking':response['thinking'],
 			'skip_history':opt_skip_history,
 			'prompt_tokens':response.get('prompt_tokens', 0),
@@ -253,23 +285,7 @@ class Handle():
 		#
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
 		#
-		# First, check for native Ollama tool calls
-		tool_invocations = []
-		native_tool_calls = response.get('native_tool_calls', [])
-		
-		if native_tool_calls:
-			self.hLG.echo("Parse() detected {} native Ollama tool call(s)".format(len(native_tool_calls)), {'color':True, 'colorValue':'cyan'})
-			# Convert native tool calls to our internal format
-			tool_invocations = self._convert_native_tool_calls(native_tool_calls)
-		
-		# If no native tool calls, check for XML tool invocations
-		if not tool_invocations:
-			tool_invocations = self.hTP.ParseTextToolInvocation( response['content'] )
-			if tool_invocations:
-				self.hLG.echo("Parse() detected {} XML tool invocation(s)".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
-		#
 		if tool_invocations:
-			self.hLG.echo("Parse() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
 			#
 			job_done = any(inv['name'] == 'jobDone' for inv in tool_invocations)
 			#
@@ -471,6 +487,7 @@ class Handle():
 		# Loop to handle multiple rounds of tool calls
 		max_iterations = self.Options.get('AI_MAX_ITERATIONS', 10)
 		iteration = 0
+		self._last_response_hash = None
 
 		while iteration < max_iterations:
 			iteration += 1
