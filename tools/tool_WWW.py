@@ -64,6 +64,12 @@ class WWW():
 			or (js and str(js).lower() == 'true')
 		)
 
+		# Auto-enable cookies for JS/browser requests
+		if needs_js and not Options.get("COOKIE_FILE"):
+			default_cookie = os.path.expanduser("~/.config/ourai/cookies.json")
+			Options["COOKIE_FILE"] = default_cookie
+			os.makedirs(os.path.dirname(default_cookie), exist_ok=True)
+
 		# Build command dict for server mode
 		cmd = {'url': url}
 		if browser and str(browser).lower() == 'true':
@@ -80,6 +86,13 @@ class WWW():
 			cmd['wait'] = int(wait)
 		if selector:
 			cmd['selector'] = selector
+		cookie_path = Options.get("COOKIE_FILE")
+		if cookie_path:
+			if not os.path.isabs(cookie_path):
+				abs_cookie = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", cookie_path)
+			else:
+				abs_cookie = cookie_path
+			cmd['cookie_file'] = abs_cookie
 
 		# Try server if JS needed or if server already running
 		if needs_js:

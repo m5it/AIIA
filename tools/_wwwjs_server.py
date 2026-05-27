@@ -64,6 +64,9 @@ def _start_server(browser=False):
 	if browser:
 		cmd.append("--browser")
 	cookie_path = Options.get("COOKIE_FILE")
+	if not cookie_path:
+		cookie_path = os.path.expanduser("~/.config/ourai/cookies.json")
+		os.makedirs(os.path.dirname(cookie_path), exist_ok=True)
 	if cookie_path:
 		abs_path = os.path.join(tool_dir, "..", cookie_path) if not os.path.isabs(cookie_path) else cookie_path
 		cmd.extend(["--cookie-file", abs_path])

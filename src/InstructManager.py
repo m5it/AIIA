@@ -99,6 +99,11 @@ class InstructManager():
 		if thinking_attr is not None:
 			self.handle.Options['BUILD_THINKING_DISABLED'] = bool(thinking_attr)
 			self.handle.hLG.echo("Persona '{}' sets build_thinking_disabled: {}".format(name, bool(thinking_attr)), {'color':True, 'colorValue':'cyan'})
+		# Read optional max_iterations attribute
+		max_iter = getattr(cls, 'max_iterations', None)
+		if max_iter is not None:
+			self.handle.Options['AI_MAX_ITERATIONS'] = int(max_iter)
+			self.handle.hLG.echo("Persona '{}' sets max_iterations: {}".format(name, int(max_iter)), {'color':True, 'colorValue':'cyan'})
 	#
 	#
 		

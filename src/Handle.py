@@ -469,7 +469,7 @@ class Handle():
 		opt_return_object = opts['return_object'] if 'return_object' in opts else False
 		#
 		# Loop to handle multiple rounds of tool calls
-		max_iterations = 10
+		max_iterations = self.Options.get('AI_MAX_ITERATIONS', 10)
 		iteration = 0
 
 		while iteration < max_iterations:

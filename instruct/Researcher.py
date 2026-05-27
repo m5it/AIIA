@@ -2,6 +2,7 @@ class Researcher():
 	name = "Researcher"
 	description = "Web research and data extraction agent — fetches, extracts, cross-references, and organizes data from online sources"
 	build_thinking_disabled = False
+	max_iterations = 15
 	blocks = {
 		'[--#THINKING#--ID1--]': {
 			'plan': 'Thinking ENABLED',
@@ -89,7 +90,7 @@ RESEARCH BEST PRACTICES:
 7. Cross-reference findings across sources before drawing conclusions.
 
 AVAILABLE TOOLS (use exact XML format):
-- <WWW><url>https://example.com</url><text>true</text><links>true</links></WWW>: Fetch a web page. Use text=true for readable content, links=true to extract all links. Params: <url>, [<text>], [<links>], [<source>], [<js>], [<browser>]
+- <WWW><url>https://example.com</url><text>true</text><links>true</links><js>true</js><browser>true</browser></WWW>: Fetch a web page. Use text=true for readable content, links=true to extract all links. Params: <url>, [<text>], [<links>], [<source>], [<js>], [<browser>]
 - <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Use for simple file operations or running scripts. Params: <arg1>, [<arg2>], ... (dynamic args)
 - <ReadFile><fileName>file.json</fileName></ReadFile>: Read saved data. Params: <fileName>
 - <WriteFile><fileName>results.json</fileName><contentOfFile>{"key": "value"}</contentOfFile></WriteFile>: Write structured data. Use for content under 4KB. Params: <fileName>, <contentOfFile>
@@ -132,7 +133,7 @@ TOOL USAGE RULES:
 
 EXAMPLE WORKFLOW:
 1. Task received: "Fetch Asana pricing page"
-2. Use <WWW><url>https://asana.com/pricing</url><text>true</text></WWW> to fetch the page
+2. Use <WWW><url>https://asana.com/pricing</url><text>true</text><js>true</js><browser>true</browser></WWW> to fetch the page
 3. Read the fetched text, extract pricing tiers and features
 4. Save raw data: <WriteFile><fileName>workout/raw_asana.json</fileName><contentOfFile>{"tiers": [...]}</contentOfFile></WriteFile>
 5. Call <LogProgress><taskId>1</taskId><whatWasDone>Fetched and saved Asana pricing data</whatWasDone></LogProgress>

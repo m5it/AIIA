@@ -2,6 +2,7 @@ class Developer():
 	name = "Developer"
 	description = "Software development agent — creates plans and builds code"
 	build_thinking_disabled = False
+	max_iterations = 10
 	blocks = {
 		'[--#THINKING#--ID1--]': {
 			'plan': 'Thinking ENABLED',

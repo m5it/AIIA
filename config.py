@@ -12,7 +12,7 @@ Options         = {
 	#
 	"SPEAK"               :True,
 	#
-	"AI_MODEL"            :"qwen3:latest",
+	"AI_MODEL"            :"qwen3:30b",
 	#"AI_MODEL"            :"gpt-oss:latest",
 	#"AI_MODEL"            :"qwen3-coder:latest",
 	"AI_FILE_SESSID"      :"{}/sessid.aiia".format(os.path.dirname(os.path.abspath(__file__))),
@@ -23,6 +23,7 @@ Options         = {
 	"AI_MAX_CONTENT_LEN"  :20000,  # response content. if exceed, cancel response, append to chat history and append warning as role:user
 	"AI_MAX_SESSION_LEN"  :200000, # whole session content
 	"AI_LIVE"             :True,
+	"AI_MAX_ITERATIONS"   :10, # max tool-call rounds per AI() turn (overridable by persona)
 	# Available options keys:
 	# mirostat, mirostat_eta, mirostat_tau, num_ctx, repeat_last_n, repeat_penalty, temperature, seed, stop, num_predict, top_k, top_p, min_p
 	"AI_OPTIONS"          : {
