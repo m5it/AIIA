@@ -50,7 +50,7 @@
 
 - Python 3.10+
 - [Ollama](https://ollama.com) server running (default: `localhost:11434`)
-- A model pulled (tested with `gemma3:12b`, `gemma4:26b`, `qwen3-coder`, `nemotron-3-nano:latest`)
+- A model pulled (tested with `qwen3:latest`, `gemma3:12b`, `gemma4:26b`, `qwen3-coder:latest`, `nemotron-3-nano:latest`)
 
 ### Installation
 

@@ -216,7 +216,12 @@ class Handle():
 		if opt_skip_color:
 			color=False
 		#
+		stream_error = None
 		response = self.Stream( res, color )
+		if 'error' in response:
+			stream_error = response['error']
+			if stream_error:
+				self.hLG.echo("Stream error: {}".format(stream_error), {'color':True, 'colorValue':'red'})
 		
 		#
 		self.Response('assistant',{
@@ -273,10 +278,10 @@ class Handle():
 							self.Response('user', {'content': "{} - {}".format(task_info, instruction)})
 			#
 			# Return the original response so caller knows tools were executed
-			return {'invocations': tool_invocations, 'response': response['content'], 'job_done': job_done }
+			return {'invocations': tool_invocations, 'response': response['content'], 'job_done': job_done, 'stream_error': stream_error }
 		#
 		if opt_return_object:
-			return {'invocations': tool_invocations, 'response': response['content'] }
+			return {'invocations': tool_invocations, 'response': response['content'], 'stream_error': stream_error }
 		return True
 	
 	#
@@ -299,10 +304,10 @@ class Handle():
 					if hasattr(func, 'arguments'):
 						args = func.arguments if isinstance(func.arguments, dict) else json.loads(func.arguments)
 					
-					# Convert to internal format
+					# Convert to internal format (ToolParser expects 'parameters')
 					converted.append({
 						'name': tool_name,
-						'params': args
+						'parameters': args
 					})
 					self.hLG.echo("Converted native tool call: {} with params: {}".format(tool_name, args), {'color':True, 'colorValue':'cyan'})
 				elif isinstance(tool_call, dict):
@@ -315,7 +320,7 @@ class Handle():
 					
 					converted.append({
 						'name': tool_name,
-						'params': args
+						'parameters': args
 					})
 					self.hLG.echo("Converted native tool call (dict): {} with params: {}".format(tool_name, args), {'color':True, 'colorValue':'cyan'})
 			except Exception as e:
@@ -333,42 +338,46 @@ class Handle():
 		if_speaking      = False
 		last_chunk       = None
 		#
-		for chunk in res:
-			last_chunk = chunk
-			# thinking
-			if chunk.message.thinking:
-				#
-				if not if_thinking:
-					if_thinking = True
-					print('Thinking:\n', end='')
-				#
-				part = chunk.message.thinking
-				thinking += part
-				print(part, end='', flush=True)
-			# Check for native tool calls
-			elif hasattr(chunk.message, 'tool_calls') and chunk.message.tool_calls:
-				# Collect native Ollama tool calls
-				for tool_call in chunk.message.tool_calls:
-					if tool_call not in native_tool_calls:
-						native_tool_calls.append(tool_call)
-				# Don't print tool calls, just collect them
-			# speaking
-			elif chunk.message.content:
-				#
-				if not if_speaking:
-					print('\n\nAnswer:\n', end='')
-					if_thinking = False
-					if_speaking = True
-				#
-				part = chunk.message.content
-				response += part
-				self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
-		# Extract token counts from final chunk (done=True)
-		prompt_tokens = 0
-		response_tokens = 0
-		if last_chunk and hasattr(last_chunk, 'done') and last_chunk.done:
-			prompt_tokens = last_chunk.prompt_eval_count or 0
-			response_tokens = last_chunk.eval_count or 0
+		try:
+			for chunk in res:
+				last_chunk = chunk
+				# thinking
+				if chunk.message.thinking:
+					#
+					if not if_thinking:
+						if_thinking = True
+						print('Thinking:\n', end='')
+					#
+					part = chunk.message.thinking
+					thinking += part
+					print(part, end='', flush=True)
+				# Check for native tool calls
+				elif hasattr(chunk.message, 'tool_calls') and chunk.message.tool_calls:
+					# Collect native Ollama tool calls
+					for tool_call in chunk.message.tool_calls:
+						if tool_call not in native_tool_calls:
+							native_tool_calls.append(tool_call)
+					# Don't print tool calls, just collect them
+				# speaking
+				elif chunk.message.content:
+					#
+					if not if_speaking:
+						print('\n\nAnswer:\n', end='')
+						if_thinking = False
+						if_speaking = True
+					#
+					part = chunk.message.content
+					response += part
+					self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
+			# Extract token counts from final chunk (done=True)
+			prompt_tokens = 0
+			response_tokens = 0
+			if last_chunk and hasattr(last_chunk, 'done') and last_chunk.done:
+				prompt_tokens = last_chunk.prompt_eval_count or 0
+				response_tokens = last_chunk.eval_count or 0
+		except Exception as e:
+			self.hLG.echo("Stream error: {}".format(str(e)), {'color':True, 'colorValue':'red'})
+			return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':0, 'response_tokens':0, 'error':str(e)}
 		return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':prompt_tokens, 'response_tokens':response_tokens}
 	
 	#
@@ -478,28 +487,20 @@ class Handle():
 				'options': self.Options['AI_OPTIONS'],
 			}
 			
-			# Only add 'think' parameter if thinking is enabled
 			if should_think:
 				chat_params['think'] = True
+			else:
+				# When thinking is disabled, pass format='' to prevent Ollama from
+				# trying to parse XML tool calls as native JSON tool calls.
+				# This tells Ollama to return plain text without tool post-processing.
+				chat_params['format'] = ''
 			
-			# Try the chat call, with fallback if tool parsing fails
+			# Try the chat call
 			try:
 				res: ChatResponse = chat(**chat_params)
 			except Exception as e:
-				error_msg = str(e)
-				# Check if it's a tool parsing error (Ollama trying to parse XML as JSON tools)
-				if "error parsing tool call" in error_msg and "invalid character '<'" in error_msg:
-					self.hLG.echo("Ollama tried to parse XML as native tools. Retrying with format='' to force plain text...", {'color':True, 'colorValue':'yellow'})
-					try:
-						# Retry with format parameter to force plain text output
-						chat_params['format'] = ''
-						res: ChatResponse = chat(**chat_params)
-					except Exception as e2:
-						self.hLG.echo("AI connection error on retry: {}".format(str(e2)), {'color':True, 'colorValue':'red'})
-						return 2
-				else:
-					self.hLG.echo("AI connection error: {}".format(error_msg), {'color':True, 'colorValue':'red'})
-					return 2
+				self.hLG.echo("AI connection error: {}".format(str(e)), {'color':True, 'colorValue':'red'})
+				return 2
 			
 			# Used if CTRL+C to save last/draft content to chat history
 			self.Options['DRAFT_RESPONSE'] = res
