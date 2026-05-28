@@ -12,7 +12,7 @@ Options         = {
 	#
 	"SPEAK"               :True,
 	#
-	"AI_MODEL"            :"qwen4:latest",
+	"AI_MODEL"            :"qwen3:4b",
 	#"AI_MODEL"            :"qwen3:latest",
 	#"AI_MODEL"            :"llama3.2:latest",
 	#"AI_MODEL"            :"qwen3-coder:latest",
