@@ -34,6 +34,11 @@ class Handle():
 		self.hHM     = initmodule(importmodule("HistoryManager",True,{'path':'src'}),"HistoryManager",{'handle':self,'quiet':self.Options['QUIET'],'path':self.Options['path']})
 		self.hIM     = initmodule(importmodule("InstructManager",True,{'path':'src'}),"InstructManager",{'handle':self,})
 		self.hTM     = initmodule(importmodule("TipManager",True,{'path':'src'}),"TipManager",{'handle':self,})
+		# Add tools directory to sys.path for dynamic tool loading
+		tools_path = self.Options.get('tools_path', '')
+		if tools_path and tools_path not in sys.path:
+			sys.path.append(tools_path.rstrip('/'))
+		
 		self.hPM     = PlanBase
 		self.tool_iteration = 0
 		self.tool_errors    = 0
@@ -179,6 +184,11 @@ class Handle():
 			self.hHM.history = self.hHM.available[opt_history_num]
 			self.hHM.Get()
 		#
+		# Apply persona settings (model override, max_iterations, thinking)
+		# so -Y mode behaves the same as interactive mode
+		if self.Options.get('INSTRUCT_CLASS_OVERRIDE', False):
+			self.hIM.ApplyPersonaModel(self.Options['INSTRUCT_CLASS'])
+		#
 		# Add system message if not already present (for -Y flag mode)
 		system_exists = False
 		for msg in self.hHM.msgs:
@@ -248,7 +258,6 @@ class Handle():
 		if self._last_response_hash is not None and current_hash == self._last_response_hash:
 			self.hLG.echo("⚠ Model repeated itself — auto-cancelled", {'color':True, 'colorValue':'red'})
 			self._last_response_hash = None
-			self.Response('system', {'content': "⚠ Model response repeated — auto-cancelled."})
 			if opt_return_object:
 				return {'invocations': [], 'response': response.get('content', ''), 'stream_error': stream_error }
 			return True
@@ -303,14 +312,20 @@ class Handle():
 							self.hLG.echo("Plan completed! All tasks finished.", {'color':True, 'colorValue':'green'})
 						elif result_str.startswith("DONE_WITH_BLOCKED:"):
 							self.hLG.echo("Plan has blocked tasks. Consider switching to PLAN mode to resolve.", {'color':True, 'colorValue':'orange'})
+					elif inv['name'] == 'planDone':
+						result_str = str(result) if result else ""
+						if result_str.startswith("PLAN_DONE|"):
+							parts = result_str.split("|", 2)
+							task_info = parts[1]
+							instruction = parts[2]
+							self.Response('user', {'content': "Plan is ready! Starting first task.\n\n{} - {}".format(task_info, instruction)})
 					elif inv['name'] == 'startBuild':
 						result_str = str(result) if result else ""
 						if result_str.startswith("START_BUILD|"):
 							parts = result_str.split("|", 2)
 							task_info = parts[1]
 							instruction = parts[2]
-							self.Response('system', {'content': 'Mode changed to BUILD. You can now make changes.'})
-							self.Response('user', {'content': "{} - {}".format(task_info, instruction)})
+							self.Response('user', {'content': "Mode changed to BUILD. You can now make changes.\n\n{} - {}".format(task_info, instruction)})
 			#
 			# Return the original response so caller knows tools were executed
 			return {'invocations': tool_invocations, 'response': response['content'], 'job_done': job_done, 'stream_error': stream_error }
@@ -381,11 +396,13 @@ class Handle():
 					#
 					if not if_thinking:
 						if_thinking = True
-						print('Thinking:\n', end='')
+						if not self.Options.get('BUILD_THINKING_DISABLED', False):
+							print('Thinking:\n', end='')
 					#
 					part = chunk.message.thinking
 					thinking += part
-					print(part, end='', flush=True)
+					if not self.Options.get('BUILD_THINKING_DISABLED', False):
+						print(part, end='', flush=True)
 				# Check for native tool calls
 				elif hasattr(chunk.message, 'tool_calls') and chunk.message.tool_calls:
 					# Collect native Ollama tool calls
@@ -512,10 +529,7 @@ class Handle():
 			# Chat without tools, normal chat (XML tools handle themselves)
 			self.hLG.echo("DEBUG preparing chat (iteration {})".format(iteration),{'color':False})
 			
-			# Determine if thinking should be enabled
-			should_think = self.Options.get('MODE') == 'plan' or not self.Options.get('BUILD_THINKING_DISABLED', True)
-			
-			# Build chat parameters - only include 'think' if it should be enabled
+			# Build chat parameters
 			chat_params = {
 				'model': self.Options['AI_MODEL'],
 				'messages': msgs,
@@ -523,13 +537,10 @@ class Handle():
 				'options': self.Options['AI_OPTIONS'],
 			}
 			
-			if should_think:
-				chat_params['think'] = True
-			else:
-				# When thinking is disabled, pass format='' to prevent Ollama from
-				# trying to parse XML tool calls as native JSON tool calls.
-				# This tells Ollama to return plain text without tool post-processing.
-				chat_params['format'] = ''
+			# Always pass think=True — separates reasoning into thinking field,
+			# keeps content clean for XML tool calls, and disables server-side
+			# tool call post-processing (which would error on XML content).
+			chat_params['think'] = True
 			
 			# Try the chat call
 			try:
@@ -583,8 +594,7 @@ class Handle():
 			PlanBase.LogProgress(first_task.id, "Build started", self.Options.get('plans_path', 'plans'))
 			task_number = sum(1 for t in PlanBase.draft.tasks.values() if t.status in ["completed", "in_progress"])
 			total_tasks = len(PlanBase.draft.tasks)
-			self.Response('system', {'content': 'Mode changed to BUILD. You can now make changes.'})
-			self.Response('user', {'content': "Task {}/{} - {}".format(task_number, total_tasks, first_task.instruction)})
+			self.Response('user', {'content': "Mode changed to BUILD. You can now make changes.\n\nTask {}/{} - {}".format(task_number, total_tasks, first_task.instruction)})
 			self.hLG.echo("Started build: Task {}/{}".format(task_number, total_tasks), {'color':True, 'colorValue':'green'})
 		else:
 			self.hLG.echo("No pending tasks in plan!", {'color':True, 'colorValue':'orange'})

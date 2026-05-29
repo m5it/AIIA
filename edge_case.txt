@@ -1,0 +1,6 @@
+--- START OF FILE ---
+This is line one.
+Special characters: !@#$%^&*()
+An empty line.
+
+--- END OF FILE ---

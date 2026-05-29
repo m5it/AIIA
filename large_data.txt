@@ -1,0 +1,2 @@
+Chunk 1: This is the beginning of the large file content. It needs to be substantial enough to test chunking capability.Chunk 1: This is the beginning of the large file content. It needs to be substantial enough to test chunking capability.
+[CHUNK 2 ADDED] This completes the large file simulation.

@@ -12,7 +12,7 @@ Options         = {
 	#
 	"SPEAK"               :True,
 	#
-	"AI_MODEL"            :"qwen3:4b",
+	"AI_MODEL"            :"gemma4:latest",
 	#"AI_MODEL"            :"qwen3:latest",
 	#"AI_MODEL"            :"llama3.2:latest",
 	#"AI_MODEL"            :"qwen3-coder:latest",
@@ -57,7 +57,7 @@ Options         = {
 	#
 	# Tool result format (priority: system > user > tool)
 	"TOOL_RESULT_AS_SYSTEM": False, # When True, tool results use role: system instead of role: tool
-	"TOOL_RESULT_AS_USER": True,   # When True, tool results use role: user instead of role: tool
+	"TOOL_RESULT_AS_USER": False,   # When True, tool results use role: user instead of role: tool
 
 	# Token counting (populated dynamically by Handle.py on each response)
 	"NUM_PROMPT_TOKENS"       :0,  # cumulative prompt tokens across session

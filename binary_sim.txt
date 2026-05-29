@@ -1,0 +1,1 @@
+Data block start.\x01\x02\x03\xFF\xEE\xDDData block end.
