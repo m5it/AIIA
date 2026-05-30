@@ -251,12 +251,12 @@ class Handle():
 		if 'error' in response:
 			stream_error = response['error']
 			if stream_error:
-				self.hLG.echo("Stream error: {}".format(stream_error), {'color':True, 'colorValue':'red'})
+				self.hLG.echo("Stream error: {}".format(stream_error), {'color':True, 'colorValue':'red','debugOnly':False,})
 		
 		# Detect repeated responses (model looping)
 		current_hash = hashlib.md5(response.get('content', '').strip().encode()).hexdigest()
 		if self._last_response_hash is not None and current_hash == self._last_response_hash:
-			self.hLG.echo("⚠ Model repeated itself — auto-cancelled", {'color':True, 'colorValue':'red'})
+			self.hLG.echo("⚠ Model repeated itself — auto-cancelled", {'color':True, 'colorValue':'red','debugOnly':False,})
 			self._last_response_hash = None
 			if opt_return_object:
 				return {'invocations': [], 'response': response.get('content', ''), 'stream_error': stream_error }
@@ -378,7 +378,7 @@ class Handle():
 					})
 					self.hLG.echo("Converted native tool call (dict): {} with params: {}".format(tool_name, args), {'color':True, 'colorValue':'cyan'})
 			except Exception as e:
-				self.hLG.echo("Error converting native tool call: {}".format(str(e)), {'color':True, 'colorValue':'red'})
+				self.hLG.echo("Error converting native tool call: {}".format(str(e)), {'color':True, 'colorValue':'red','debugOnly':False,})
 				continue
 		
 		return converted
@@ -432,7 +432,7 @@ class Handle():
 				prompt_tokens = last_chunk.prompt_eval_count or 0
 				response_tokens = last_chunk.eval_count or 0
 		except Exception as e:
-			self.hLG.echo("Stream error: {}".format(str(e)), {'color':True, 'colorValue':'red'})
+			self.hLG.echo("Stream error: {}".format(str(e)), {'color':True, 'colorValue':'red','debugOnly':False,})
 			return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':0, 'response_tokens':0, 'error':str(e)}
 		return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':prompt_tokens, 'response_tokens':response_tokens}
 	
@@ -550,7 +550,7 @@ class Handle():
 			try:
 				res: ChatResponse = chat(**chat_params)
 			except Exception as e:
-				self.hLG.echo("AI connection error: {}".format(str(e)), {'color':True, 'colorValue':'red'})
+				self.hLG.echo("AI connection error: {}".format(str(e)), {'color':True, 'colorValue':'red','debugOnly':False,})
 				return 2
 			
 			# Used if CTRL+C to save last/draft content to chat history
