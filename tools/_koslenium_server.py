@@ -1,10 +1,10 @@
-import subprocess, os, socket, json, time, signal, atexit, sys, threading
+import subprocess, os, socket, json, time, signal, atexit, sys, threading, random
 from config import Options
 
 _DEBUG = Options.get("DEBUG", False)
 def _dbg(*a, **kw):
 	if _DEBUG:
-		print("_wwwjs_server:", *a, file=sys.stderr, **kw)
+		print("_koslenium_server:", *a, file=sys.stderr, **kw)
 
 _server_lock = threading.Lock()
 _server_state = {
@@ -15,24 +15,53 @@ _server_state = {
 	'display': None,  # DISPLAY value used at server start
 }
 
-_PORT_FILE = '/tmp/wwwjs.port'
-_SERVER_LOG = '/tmp/wwwjs-server.log'
+_xvfb_proc = None
 
-def _get_display():
-	"""Get DISPLAY from our env, or from parent shell if not set."""
+_PORT_FILE = '/tmp/koslenium.port'
+_SERVER_LOG = '/tmp/koslenium-server.log'
+
+def _ensure_display():
+	"""Return a usable DISPLAY string, starting Xvfb if needed."""
 	d = os.environ.get('DISPLAY')
 	if d:
 		return d
-	# Try parent process environment (may have been set after Python started)
-	try:
-		ppid = os.getppid()
-		with open('/proc/{}/environ'.format(ppid), 'rb') as f:
-			for entry in f.read().split(b'\0'):
-				if entry.startswith(b'DISPLAY='):
-					return entry.split(b'=', 1)[1].decode()
-	except Exception:
-		pass
+	global _xvfb_proc
+	if _xvfb_proc and _xvfb_proc.poll() is None:
+		return os.environ.get('DISPLAY', ':99')
+	# Try a few display numbers to avoid stale locks
+	for disp in [99, 98, 97, 96, 95]:
+		lock = '/tmp/.X{}-lock'.format(disp)
+		sock = '/tmp/.X11-unix/X{}'.format(disp)
+		if os.path.exists(lock) or os.path.exists(sock):
+			continue
+		try:
+			proc = subprocess.Popen(
+				['Xvfb', ':{}'.format(disp), '-screen', '0', '1280x1024x24', '-nolisten', 'tcp'],
+				stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+			)
+			time.sleep(0.5)
+			if proc.poll() is None:
+				_xvfb_proc = proc
+				os.environ['DISPLAY'] = ':{}'.format(disp)
+				return ':{}'.format(disp)
+			proc.wait()
+		except Exception:
+			continue
 	return None
+
+def _cleanup_xvfb():
+	global _xvfb_proc
+	if _xvfb_proc:
+		try:
+			_xvfb_proc.terminate()
+			_xvfb_proc.wait(timeout=3)
+		except Exception:
+			try:
+				_xvfb_proc.kill()
+			except Exception:
+				pass
+		_xvfb_proc = None
+atexit.register(_cleanup_xvfb)
 
 def _read_port_file():
 	try:
@@ -56,7 +85,7 @@ def _remove_port_file():
 
 def _start_server(browser=False):
 	tool_dir = os.path.dirname(os.path.abspath(__file__))
-	run_script = os.path.join(tool_dir, "wwwjs", "run.sh")
+	run_script = os.path.join(tool_dir, "koslenium_driver", "run.sh")
 	if not os.path.exists(run_script):
 		return None
 
@@ -71,12 +100,11 @@ def _start_server(browser=False):
 		abs_path = os.path.join(tool_dir, "..", cookie_path) if not os.path.isabs(cookie_path) else cookie_path
 		cmd.extend(["--cookie-file", abs_path])
 
-	# Explicitly pass DISPLAY to subprocess so it sees the current env
-	display = _get_display()
+	# Ensure we have a display (start Xvfb if needed)
+	display = _ensure_display()
 	proc_env = os.environ.copy()
 	if display:
 		proc_env['DISPLAY'] = display
-
 	try:
 		logfile = open(_SERVER_LOG, 'a')
 		logfile.write("\n--- Server start at {} ---\n".format(time.strftime('%Y-%m-%d %H:%M:%S')))

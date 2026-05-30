@@ -45,13 +45,13 @@ class Handle():
 		self._consumed_tips = set()
 		self._last_response_hash = None
 
-		# Eager-import _wwwjs_server so its module is cached in sys.modules.
+		# Eager-import _koslenium_server so its module is cached in sys.modules.
 		# Without this, the dynamic tool reloader may re-execute it, resetting
 		# _server_state and orphaning the background server process.
-		import tools._wwwjs_server
+		import tools._koslenium_server
 
-		# Eager start wwwjs server in background (daemon thread, non-blocking)
-		self._start_wwwjs_server_async()
+		# Eager start koslenium server in background (daemon thread, non-blocking)
+		self._start_koslenium_server_async()
 	
 	#
 	def Init(self):
@@ -73,14 +73,14 @@ class Handle():
 			self._load_continue_session()
 	
 	#
-	def _start_wwwjs_server_async(self):
-		"""Eager-start the wwwjs server in a background daemon thread."""
+	def _start_koslenium_server_async(self):
+		"""Eager-start the koslenium server in a background daemon thread."""
 		def _start():
 			try:
-				from tools._wwwjs_server import start_background
+				from tools._koslenium_server import start_background
 				start_background(browser=False, wait=True)
 			except Exception as e:
-				self.hLG.echo("wwwjs server background start: {}".format(e), {'color':True, 'colorValue':'yellow'})
+				self.hLG.echo("koslenium server background start: {}".format(e), {'color':True, 'colorValue':'yellow'})
 		t = threading.Thread(target=_start, daemon=True)
 		t.start()
 	#

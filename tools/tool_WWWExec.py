@@ -1,5 +1,5 @@
 from config import Options
-from tools._wwwjs_server import ensure_server, exec_script
+from tools._koslenium_server import ensure_server, exec_script
 
 _DEBUG = Options.get("DEBUG", False)
 def _dbg(*a, **kw):

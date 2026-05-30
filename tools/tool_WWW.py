@@ -1,6 +1,6 @@
 import subprocess, os, glob, sys
 from config import Options
-from tools._wwwjs_server import ensure_server, send
+from tools._koslenium_server import ensure_server, send
 
 _DEBUG = Options.get("DEBUG", False)
 def _dbg(*a, **kw):
@@ -122,7 +122,7 @@ class WWW():
 
 	def _run_www_jar(self, url, text, links):
 		tool_dir = os.path.dirname(os.path.abspath(__file__))
-		jars = glob.glob(os.path.join(tool_dir, "www", "target", "www-*.jar"))
+		jars = glob.glob(os.path.join(tool_dir, "koslenium_driver", "www", "target", "www-*.jar"))
 		if not jars:
 			return "Error: www jar not found"
 		jar = jars[0]
@@ -156,9 +156,9 @@ class WWW():
 
 	def _run_wwwjs(self, cmd_dict):
 		tool_dir = os.path.dirname(os.path.abspath(__file__))
-		run_script = os.path.join(tool_dir, "wwwjs", "run.sh")
+		run_script = os.path.join(tool_dir, "koslenium_driver", "run.sh")
 		if not os.path.exists(run_script):
-			return "Error: wwwjs/run.sh not found"
+			return "Error: koslenium_driver/run.sh not found"
 
 		cli = [run_script]
 		cookie_path = Options.get("COOKIE_FILE")
@@ -182,8 +182,15 @@ class WWW():
 			cli.extend(["--selector", cmd_dict['selector']])
 		cli.append(cmd_dict['url'])
 
+		# Ensure display for headless JavaFX
+		proc_env = os.environ.copy()
+		from tools._koslenium_server import _ensure_display
+		disp = _ensure_display()
+		if disp:
+			proc_env['DISPLAY'] = disp
+
 		try:
-			result = subprocess.run(cli, capture_output=True, text=True, timeout=300, cwd=".")
+			result = subprocess.run(cli, capture_output=True, text=True, timeout=300, cwd=".", env=proc_env)
 			output = ""
 			if result.stdout:
 				output += result.stdout

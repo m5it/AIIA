@@ -110,7 +110,7 @@ def reset_to_factory():
 			print("  Failed to clear tips: {}".format(e))
 	#
 	# 6. Cookie files
-	for cookie_path in ['cookies.json', 'tools/www/cookies.json', 'tools/cookies.json']:
+	for cookie_path in ['cookies.json', 'tools/koslenium_driver/www/cookies.json', 'tools/cookies.json']:
 		fpath = os.path.join(Options.get('path', ''), cookie_path)
 		if os.path.exists(fpath):
 			try:
@@ -121,7 +121,7 @@ def reset_to_factory():
 				print("  Failed to remove {}: {}".format(fpath, e))
 	#
 	# 7. Terminal audit log
-	audit_path = os.path.join(Options.get('path', ''), 'tools/www/terminal_audit.log')
+	audit_path = os.path.join(Options.get('path', ''), 'tools/koslenium_driver/www/terminal_audit.log')
 	if os.path.exists(audit_path):
 		try:
 			os.remove(audit_path)
