@@ -47,7 +47,7 @@ def main():
     parser.add_argument("--merged", help="Path to merged model")
     parser.add_argument("--base-only", action="store_true",
                         help="Test base model without fine-tuning")
-    parser.add_argument("--model", default="meta-llama/Llama-3.2-1B-Instruct",
+    parser.add_argument("--model", default="meta-llama/Llama-3.2-3B-Instruct",
                         help="Base model name")
     parser.add_argument("--prompt", help="Single prompt to test (instead of defaults)")
     parser.add_argument("--max-tokens", type=int, default=300)
@@ -99,15 +99,11 @@ Use these XML tools to accomplish tasks. Always use proper XML syntax."""
     elif args.merged:
         print(f"Loading merged model from: {args.merged}")
 
-    # Load tokenizer
-    if args.merged:
-        tokenizer = AutoTokenizer.from_pretrained(
-            args.merged, trust_remote_code=True
-        )
-    else:
-        tokenizer = AutoTokenizer.from_pretrained(
-            args.model, token=os.environ["HF_TOKEN"], trust_remote_code=True
-        )
+    # Load tokenizer (always from base model, since merged dir doesn't have tokenizer files)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.model, token=os.environ["HF_TOKEN"] if "HF_TOKEN" in os.environ else None,
+        trust_remote_code=True
+    )
     tokenizer.pad_token = tokenizer.eos_token
 
     # Load model

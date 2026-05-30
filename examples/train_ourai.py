@@ -1,11 +1,11 @@
 """
-QLoRA fine-tuning of Llama 3.2 1B Instruct on OurAI framework data.
+QLoRA fine-tuning of Llama 3.2 3B Instruct on OurAI framework data.
 
 Usage:
     python3 train_ourai.py
-    python3 train_ourai.py --model meta-llama/Llama-3.2-1B-Instruct
+    python3 train_ourai.py --model meta-llama/Llama-3.2-3B-Instruct
     python3 train_ourai.py --data ../llmteacher/data/processed_datasets/ourai_train.jsonl
-    python3 train_ourai.py --output-dir ../llmteacher/data/models/ourai_v1
+    python3 train_ourai.py --output-dir ../llmteacher/data/models/ourai_v2
     python3 train_ourai.py --lr 3e-4 --epochs 5 --batch-size 4
 """
 
@@ -31,11 +31,11 @@ from trl import SFTTrainer, SFTConfig
 
 def parse_args():
     parser = argparse.ArgumentParser(description="QLoRA fine-tune Llama 3.2 on OurAI data")
-    parser.add_argument("--model", default="meta-llama/Llama-3.2-1B-Instruct",
-                        help="Base model (default: meta-llama/Llama-3.2-1B-Instruct)")
+    parser.add_argument("--model", default="meta-llama/Llama-3.2-3B-Instruct",
+                        help="Base model (default: meta-llama/Llama-3.2-3B-Instruct)")
     parser.add_argument("--data", default="../llmteacher/data/processed_datasets/ourai_train.jsonl",
                         help="Training data JSONL path")
-    parser.add_argument("--output-dir", default="../llmteacher/data/models/ourai_v1",
+    parser.add_argument("--output-dir", default="../llmteacher/data/models/ourai_v2",
                         help="Output directory for model and adapter")
     parser.add_argument("--lr", type=float, default=2e-4, help="Learning rate")
     parser.add_argument("--epochs", type=int, default=3, help="Number of epochs")
@@ -104,6 +104,8 @@ def main():
         trust_remote_code=True,
     )
     model.config.use_cache = False
+    model.config.gradient_checkpointing = True
+    model.enable_input_require_grads()
 
     # LoRA config
     peft_config = LoraConfig(
@@ -127,6 +129,7 @@ def main():
         num_train_epochs=args.epochs,
         per_device_train_batch_size=args.batch_size,
         gradient_accumulation_steps=args.grad_accum,
+        gradient_checkpointing=True,
         learning_rate=args.lr,
         warmup_steps=10,
         lr_scheduler_type="cosine",
