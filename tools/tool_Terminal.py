@@ -80,13 +80,17 @@ class Terminal():
 		#
 		# Split any arg containing spaces into multiple args (handles model
 		# putting multiple arguments in a single <argN> tag).
-		# Strip matching outer quotes first so shlex can split properly.
+		# If the arg has matching outer quotes, the model intended it as ONE
+		# argument — strip the quotes and keep it whole.  Otherwise use
+		# shlex to split unquoted space-separated values.
 		split_args = []
 		for arg in args:
 			if ' ' in arg:
 				if len(arg) >= 2 and arg[0] == arg[-1] and arg[0] in '\'"':
-					arg = arg[1:-1]
-				split_args.extend(shlex.split(arg))
+					# Model quoted the whole argument — keep as one
+					split_args.append(arg[1:-1])
+				else:
+					split_args.extend(shlex.split(arg))
 			else:
 				split_args.append(arg)
 		args = split_args

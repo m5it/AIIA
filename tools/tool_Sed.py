@@ -64,8 +64,11 @@ class Sed():
 		result = []
 		for tag, i1, i2, j1, j2 in matcher.get_opcodes():
 			if tag == 'replace':
-				result.append("  -{}".format(before_lines[i1].rstrip()))
-				result.append("  +{}".format(after_lines[j1].rstrip()))
+				# Show all replaced lines in the block
+				for i in range(i1, i2):
+					result.append("  -{}".format(before_lines[i].rstrip()))
+				for j in range(j1, j2):
+					result.append("  +{}".format(after_lines[j].rstrip()))
 			elif tag == 'delete':
 				for line in before_lines[i1:i2]:
 					result.append("  -{}".format(line.rstrip()))
@@ -119,6 +122,10 @@ class Sed():
 					text=True,
 					timeout=10
 				)
+				# Check for sed errors
+				if result.returncode != 0:
+					stderr = result.stderr.strip() if result.stderr else 'unknown error'
+					return "Error: sed failed (code {}): {}".format(result.returncode, stderr)
 				# Read after content for diff
 				with open(file_path) as f:
 					after_lines = f.readlines()
@@ -143,6 +150,9 @@ class Sed():
 						text=True,
 						timeout=10
 					)
+				if result.returncode != 0:
+					stderr = result.stderr.strip() if result.stderr else 'unknown error'
+					return "Error: sed failed (code {}): {}".format(result.returncode, stderr)
 				return "Output written to {}".format(output_file)
 			#
 		except subprocess.TimeoutExpired:
