@@ -126,7 +126,7 @@ class Terminal():
 					return "Error: Command timed out (30s limit)"
 				except Exception as E:
 					self.log_command(cmd, str(E), False)
-					return "Error executing script: {}".format(E)
+					return "Error: {}".format(E)
 			else:
 				return "Error: Script '{}' not found or not executable. Use ExecuteScript tool for scripts that need chmod first.".format(program)
 		#
@@ -217,4 +217,4 @@ class Terminal():
 			return "Error: Program '{}' not found in PATH".format(program)
 		except Exception as E:
 			self.log_command(cmd, str(E), False)
-			return "Error executing command: {}".format(E)
+			return "Error: {}".format(E)

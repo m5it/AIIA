@@ -84,4 +84,4 @@ class Grep():
 		except subprocess.TimeoutExpired:
 			return "Error: Grep execution timed out (10s limit)"
 		except Exception as E:
-			return "Error executing grep: {}".format(E)
+			return "Error: {}".format(E)

@@ -40,7 +40,7 @@ class SaveTip():
 				f.write(json.dumps(data))
 			return "Saved tip '{}'".format(title)
 		except Exception as e:
-			return "Error saving tip: {}".format(e)
+			return "Error: {}".format(e)
 	def _validate(self, title, content):
 		if not title or not title.strip():
 			return "Error: <title> is required and cannot be empty."

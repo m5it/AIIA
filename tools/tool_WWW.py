@@ -152,7 +152,7 @@ class WWW():
 		except FileNotFoundError:
 			return "Error: java not found in PATH"
 		except Exception as E:
-			return "Error executing www: {}".format(E)
+			return "Error: {}".format(E)
 
 	def _run_wwwjs(self, cmd_dict):
 		tool_dir = os.path.dirname(os.path.abspath(__file__))
@@ -202,7 +202,7 @@ class WWW():
 		except subprocess.TimeoutExpired:
 			return "Error: wwwjs timed out (300s limit)"
 		except Exception as E:
-			return "Error executing wwwjs: {}".format(E)
+			return "Error: {}".format(E)
 
 class www(WWW):
 	pass

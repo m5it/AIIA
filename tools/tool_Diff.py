@@ -71,7 +71,7 @@ class Diff():
 			return output
 			#
 		except Exception as E:
-			return "Error executing diff: {}".format(E)
+			return "Error: {}".format(E)
 	#
 	def _find_file(self, fileName):
 		# Check  only

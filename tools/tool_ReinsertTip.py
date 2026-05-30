@@ -30,4 +30,4 @@ class ReinsertTip():
 			else:
 				return "No entries found for tip title '{}'.".format(title)
 		except Exception as e:
-			return "Error reinserting tip: {}".format(e)
+			return "Error: {}".format(e)

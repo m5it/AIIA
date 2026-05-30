@@ -52,7 +52,7 @@ class ReplaceLine():
 			with open(full_path, 'r') as f:
 				lines = f.readlines()
 		except Exception as e:
-			return "Error reading file: {}".format(e)
+			return "Error: {}".format(e)
 		#
 		total = len(lines)
 		if fl > total:
@@ -70,7 +70,7 @@ class ReplaceLine():
 			with open(full_path, 'w') as f:
 				f.writelines(new_lines)
 		except Exception as e:
-			return "Error writing file: {}".format(e)
+			return "Error: {}".format(e)
 		#
 		count = tl - fl + 1
 		return "Replaced line{} {}-{} in '{}'.".format('s' if count > 1 else '', fl, tl, fileName)

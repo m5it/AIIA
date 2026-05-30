@@ -305,7 +305,14 @@ class ToolParser:
 			if len(result_str) > MAX_PREVIEW:
 				result_str = result_str[:MAX_PREVIEW] + "... (truncated, {} chars total)".format(len(str(result)))
 			#
-			self.handle.hLG.echo("✓ Result: {}".format(result_str), {'color':True, 'colorValue':'green'})
+			echo_opts = {'color':True, 'colorValue':'green'}
+			if result_str.startswith('Error: ') or result_str.startswith('Warning: '):
+				echo_opts['debugOnly'] = False
+				if result_str.startswith('Error: '):
+					echo_opts['colorValue'] = 'red'
+				else:
+					echo_opts['colorValue'] = 'orange'
+			self.handle.hLG.echo("✓ Result: {}".format(result_str), echo_opts)
 			#
 			# Track jobDone to signal Parse/AI loop
 			if toolName == 'jobDone':

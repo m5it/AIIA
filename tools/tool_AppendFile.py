@@ -71,5 +71,5 @@ class AppendFile():
 			fwrite(file_path, content, False)
 		except Exception as E:
 			print("AppendFile.run() ERROR: {}".format(E))
-			return "Error occurred: {}".format(E)
+			return "Error: {}".format(E)
 		return "{} was updated with length {} at position {}".format(fileName, len(contentOfFile), fromLineNumber)

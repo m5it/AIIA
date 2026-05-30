@@ -44,7 +44,7 @@ class Head():
 			return result if result else "(file is empty)"
 			#
 		except Exception as E:
-			return "Error reading file: {}".format(E)
+			return "Error: {}".format(E)
 	#
 	def _find_file(self, fileName):
 		full_path = "{}".format(fileName)

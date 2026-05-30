@@ -81,4 +81,4 @@ class ExecuteScript():
 		except subprocess.TimeoutExpired:
 			return "Error: Script execution timed out (30s limit)"
 		except Exception as E:
-			return "Error executing script: {}".format(E)
+			return "Error: {}".format(E)

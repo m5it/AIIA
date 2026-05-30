@@ -158,7 +158,7 @@ class Sed():
 		except subprocess.TimeoutExpired:
 			return "Error: Sed execution timed out (10s limit)"
 		except Exception as E:
-			return "Error executing sed: {}".format(E)
+			return "Error: {}".format(E)
 	#
 	def _find_file(self, fileName):
 		full_path = "{}".format(fileName)

@@ -74,7 +74,7 @@ class Sort():
 		except subprocess.TimeoutExpired:
 			return "Error: Sort execution timed out (10s limit)"
 		except Exception as E:
-			return "Error executing sort: {}".format(E)
+			return "Error: {}".format(E)
 	#
 	def _find_file(self, fileName):
 		full_path = "{}".format(fileName)
