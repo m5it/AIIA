@@ -12,10 +12,11 @@ Options         = {
 	#
 	"SPEAK"               :True,
 	#
-	"AI_MODEL"            :"gemma4:latest",
+	#"AI_MODEL"            :"gemma4:latest",
+	#"AI_MODEL"            :"ouai_v7:latest",
 	#"AI_MODEL"            :"qwen3:latest",
 	#"AI_MODEL"            :"llama3.2:latest",
-	#"AI_MODEL"            :"qwen3-coder:latest",
+	"AI_MODEL"            :"gemma4:e4b",
 	"AI_FILE_SESSID"      :"{}/sessid.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_HISTORY"     :"history.aiia", # auto generated from AI_SESS_ID
 	"AI_FILE_LOAD_HISTORY":False,
@@ -25,6 +26,7 @@ Options         = {
 	"AI_MAX_SESSION_LEN"  :200000, # whole session content
 	"AI_LIVE"             :True,
 	"AI_MAX_ITERATIONS"   :10, # max tool-call rounds per AI() turn (overridable by persona)
+	"AI_THINK"            :True, # enable think/reasoning API for models that support it (e.g. DeepSeek R1)
 	# Available options keys:
 	# mirostat, mirostat_eta, mirostat_tau, num_ctx, repeat_last_n, repeat_penalty, temperature, seed, stop, num_predict, top_k, top_p, min_p
 	"AI_OPTIONS"          : {
@@ -32,7 +34,7 @@ Options         = {
 	},
 	#
 	"MODE"                :"build",  # "plan" or "build" mode
-	"BUILD_THINKING_DISABLED":True, # disable thinking in build mode (set via !BUILD_THINK true|false)
+	"BUILD_THINKING_DISABLED":False, # disable thinking in build mode (set via !BUILD_THINK true|false)
 	"CONTINUE"            :False,    # Continue from last session when True
 	#
 	"DRAFT_CONTENT"       : None,    # Used on CTRL+C to save draft to chat history

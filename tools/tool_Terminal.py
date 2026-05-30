@@ -1,6 +1,7 @@
 import subprocess
 import os
 import re
+import shlex
 from datetime import datetime
 
 class Terminal():
@@ -47,7 +48,7 @@ class Terminal():
 			'ping', 'curl', 'wget', 'netstat', 'ss',
 			'ps', 'top', 'df', 'du', 'free',
 			'mkdir', 'cp', 'mv', 'touch', 'rm', 'rmdir', 'ln', 'install',
-			'chmod', 'chown'
+			'chmod', 'chown', 'cd'
 		]
 	#
 	def log_command(self, cmd, output, success):
@@ -76,6 +77,19 @@ class Terminal():
 		#
 		if len(args) == 0:
 			return "Error: No arguments provided. At least arg1 (program name) is required."
+		#
+		# Split any arg containing spaces into multiple args (handles model
+		# putting multiple arguments in a single <argN> tag).
+		# Strip matching outer quotes first so shlex can split properly.
+		split_args = []
+		for arg in args:
+			if ' ' in arg:
+				if len(arg) >= 2 and arg[0] == arg[-1] and arg[0] in '\'"':
+					arg = arg[1:-1]
+				split_args.extend(shlex.split(arg))
+			else:
+				split_args.append(arg)
+		args = split_args
 		#
 		program = args[0]
 		#
@@ -145,6 +159,21 @@ class Terminal():
 					"Allowed: {}").format(program, first_word, example.rstrip(),
 						', '.join(allowed))
 		#
+		# Handle cd explicitly — change Python's working directory
+		if program == 'cd':
+			if len(args) < 2:
+				target = os.path.expanduser('~')
+			else:
+				target = args[1]
+			try:
+				os.chdir(target)
+				cwd = os.getcwd()
+				print("Terminal.run() cd to: {}".format(cwd))
+				self.log_command(args, "Changed to {}".format(cwd), True)
+				return "Directory changed to: {}".format(cwd)
+			except Exception as E:
+				return "Error: cd failed: {}".format(E)
+
 		# Check if program is allowed
 		if program not in allowed:
 			self.log_command(args, "", False)

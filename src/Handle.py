@@ -284,9 +284,13 @@ class Handle():
 		if tool_invocations and (self.Options.get('TOOL_RESULT_AS_SYSTEM', False) or self.Options.get('TOOL_RESULT_AS_USER', False)):
 			assistant_content = self.hTP.ExtractToolResult(response['content'])
 		#
+		# Strip thinking from history when tool calls were made —
+		# the reasoning describes planned actions and confuses the
+		# model into re-issuing them on the next iteration.
+		thinking_for_history = response['thinking'] if not tool_invocations else ''
 		self.Response('assistant',{
 			'content':assistant_content,
-			'thinking':response['thinking'],
+			'thinking':thinking_for_history,
 			'skip_history':opt_skip_history,
 			'prompt_tokens':response.get('prompt_tokens', 0),
 			'response_tokens':response.get('response_tokens', 0),
@@ -537,10 +541,10 @@ class Handle():
 				'options': self.Options['AI_OPTIONS'],
 			}
 			
-			# Always pass think=True — separates reasoning into thinking field,
-			# keeps content clean for XML tool calls, and disables server-side
-			# tool call post-processing (which would error on XML content).
-			chat_params['think'] = True
+			# Optional: pass think=True for models that support the reasoning
+			# API (e.g. DeepSeek R1). Set AI_THINK=true in config to enable.
+			if self.Options.get('AI_THINK', False):
+				chat_params['think'] = True
 			
 			# Try the chat call
 			try:
