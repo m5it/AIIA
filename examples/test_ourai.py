@@ -13,7 +13,13 @@ import argparse
 import json
 from pathlib import Path
 
-os.environ["HF_TOKEN"] = "HF_TOKEN_PLACEHOLDER"
+# Load HF_TOKEN from .env if present (gitignored)
+env_path = Path(__file__).parent / '.env'
+if env_path.exists():
+    for line in env_path.read_text().strip().splitlines():
+        if '=' in line and not line.startswith('#'):
+            k, v = line.split('=', 1)
+            os.environ.setdefault(k.strip(), v.strip())
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
