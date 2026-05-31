@@ -1,6 +1,7 @@
 class Scrapper():
 	name = "Scrapper"
 	description = "Search the web"
+	mode = "build"
 	build_thinking_disabled = True
 	max_iterations = 3
 	blocks = {}

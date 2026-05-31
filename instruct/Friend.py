@@ -1,6 +1,7 @@
 class Friend():
 	name = "Friend"
 	description = "Friendly chat companion — casual, warm, conversational"
+	mode = "build"
 	build_thinking_disabled = True
 	max_iterations = 5
 	model = "deepseek-v2:latest"

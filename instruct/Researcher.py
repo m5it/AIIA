@@ -1,6 +1,7 @@
 class Researcher():
 	name = "Researcher"
 	description = "Web research and data extraction agent — fetches, extracts, cross-references, and organizes data from online sources"
+	mode = "plan"
 	build_thinking_disabled = False
 	max_iterations = 15
 	blocks = {

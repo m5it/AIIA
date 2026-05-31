@@ -104,6 +104,11 @@ class InstructManager():
 		if max_iter is not None:
 			self.handle.Options['AI_MAX_ITERATIONS'] = int(max_iter)
 			self.handle.hLG.echo("Persona '{}' sets max_iterations: {}".format(name, int(max_iter)), {'color':True, 'colorValue':'cyan'})
+		# Read optional mode attribute
+		mode = getattr(cls, 'mode', None)
+		if mode is not None:
+			self.handle.Options['MODE'] = str(mode)
+			self.handle.hLG.echo("Persona '{}' sets mode: {}".format(name, str(mode)), {'color':True, 'colorValue':'cyan'})
 	#
 	#
 		

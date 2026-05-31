@@ -1,6 +1,7 @@
 class SysAdmin():
 	name = "SysAdmin"
 	description = "System administrator and build assistant — compiles source, configures services, manages packages"
+	mode = "plan"
 	build_thinking_disabled = True
 	max_iterations = 10
 	blocks = {

@@ -16,7 +16,8 @@ Options         = {
 	#"AI_MODEL"            :"ouai_v7:latest",
 	#"AI_MODEL"            :"qwen3:latest",
 	#"AI_MODEL"            :"llama3.2:latest",
-	"AI_MODEL"            :"gemma4:e4b",
+	#"AI_MODEL"            :"gemma4:e4b",
+	"AI_MODEL"            :"kimi-k2.5:cloud",
 	"AI_FILE_SESSID"      :"{}/sessid.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_HISTORY"     :"history.aiia", # auto generated from AI_SESS_ID
 	"AI_FILE_LOAD_HISTORY":False,
@@ -33,7 +34,7 @@ Options         = {
 		"temperature" : 0.7,
 	},
 	#
-	"MODE"                :"build",  # "plan" or "build" mode
+	"MODE"                :"plan",  # "plan" or "build" mode
 	"BUILD_THINKING_DISABLED":False, # disable thinking in build mode (set via !BUILD_THINK true|false)
 	"CONTINUE"            :False,    # Continue from last session when True
 	#
@@ -59,7 +60,7 @@ Options         = {
 	#
 	# Tool result format (priority: system > user > tool)
 	"TOOL_RESULT_AS_SYSTEM": False, # When True, tool results use role: system instead of role: tool
-	"TOOL_RESULT_AS_USER": True,   # When True, tool results use role: user instead of role: tool
+	"TOOL_RESULT_AS_USER": False,   # When True, tool results use role: user instead of role: tool
 
 	# Token counting (populated dynamically by Handle.py on each response)
 	"NUM_PROMPT_TOKENS"       :0,  # cumulative prompt tokens across session

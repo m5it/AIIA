@@ -1,6 +1,7 @@
 class DataCollector():
 	name = "DataCollector"
 	description = "Data collection — systematically exercises framework tools to generate training data"
+	mode = "build"
 	build_thinking_disabled = True
 	max_iterations = 20
 
