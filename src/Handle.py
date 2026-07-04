@@ -112,6 +112,22 @@ class Handle():
 				if self.hHM.msgs:
 					last_row = max((m.get('rowId', 0) for m in self.hHM.msgs), default=0)
 					self.Options['AI_ROW_ID'] = last_row + 1
+				
+				# Check if loaded system messages match current mode instructions.
+				# If mode changed (different persona or plan↔build), inject fresh
+				# instructions so the model gets the correct behavior.
+				current_mode = self.Options.get('MODE', 'plan')
+				current_text = self.hPP._get_mode_instructions(current_mode)
+				header = current_text.strip()[:80]
+				mode_matches = any(
+					header in m.get('content', '')
+					for m in self.hHM.msgs if m['role'] == 'system'
+				)
+				if not mode_matches:
+					self.hLG.echo(
+						"Mode mismatch detected — injecting fresh {} persona instructions".format(current_mode),
+						{'color': True, 'colorValue': 'yellow'})
+					self.Response('system', {'content': current_text})
 	
 	#
 	def Response(self,role='user',opts=None):
