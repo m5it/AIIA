@@ -79,26 +79,36 @@ class Plan:
 	
 
 	def nextTask(self, handle, status="completed"):
+		# 1) Mark the current in_progress task as done
+		completed_id = None
+		for tid, t in self.tasks.items():
+			if t.status == "in_progress":
+				t.status = status
+				t.endTimestamp = time.time()
+				completed_id = tid
+				break
+
+		# 2) Find the next pending task and mark it in_progress
 		task_id = None
-		current_task = None
+		next_task = None
 		for tid, t in self.tasks.items():
 			if t.status == "pending":
 				task_id = tid
-				current_task = t
+				next_task = t
+				next_task.status = "in_progress"
+				next_task.startTimestamp = time.time()
 				break
 
-		if current_task:
-			current_task.status = status
-			current_task.endTimestamp = time.time()
-			next_instruction = current_task.instruction
+		if next_task:
 			return {
 				"done": False,
 				"current_task_id": task_id,
+				"completed_task_id": completed_id,
 				"status": status,
-				"next_task_instruction": next_instruction
+				"next_task_instruction": next_task.instruction
 			}
 
-		# No more pending tasks - check for blocked
+		# No more pending tasks
 		blocked_count = sum(1 for t in self.tasks.values() if t.status == "blocked")
 		completed_count = sum(1 for t in self.tasks.values() if t.status == "completed")
 		return {
@@ -106,6 +116,7 @@ class Plan:
 			"message": "No more pending tasks",
 			"blocked_count": blocked_count,
 			"completed_count": completed_count,
+			"completed_task_id": completed_id,
 			"next_task_instruction": None
 		}
 
