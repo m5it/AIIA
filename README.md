@@ -2,6 +2,8 @@
 
 **Version 0.5** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
 
+> **Recent updates:** automatic context window management (summarize + auto-clear), history archiving for training data, `<think>` tag leak fix. See [CHANGELOG.md](CHANGELOG.md) for details.
+
 ## Features
 
 - **Interactive AI Chat** — Terminal-based interface for conversing with local LLMs via Ollama (streaming response with thinking support)
@@ -1048,4 +1050,4 @@ See [LICENSE](LICENSE) for full terms including notification and payment obligat
 
 ## Project Status
 
-**Version 0.5** — Active development. The core architecture is stable. Recent additions: ReplaceLine and TreeView tools, tool result caching with per-tool TTL, consumed-once tip reinsertion, auto tip summaries, expanded persona instructions with targeted-editing mindset, terminal improvements (rm/rmdir/ln/install, `./`/`/` path bypass, argument-smash detection), and 23+ tools total.
+**Version 0.5** — Active development. Recent additions: automatic context window management (summarizes old messages or auto-clears when approaching token limit), history archiving to raw `.dbk` files before any destructive operation for training data preservation, `<think>` tag leak fix, ReplaceLine and TreeView tools, tool result caching with per-tool TTL, consumed-once tip reinsertion, auto tip summaries, expanded persona instructions, terminal improvements, and 23+ tools total.
