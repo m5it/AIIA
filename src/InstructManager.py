@@ -55,7 +55,7 @@ class InstructManager():
 		while not self.choosed and len(self.available):
 			self.handle.hLG.echo("Choose available number (x to cancel): ",{'color':True,'colorValue':'orange','debugOnly':False})
 			tmp = user_input()
-			if tmp == 'x':
+			if tmp == 'x' or not tmp:
 				self.handle.hLG.echo("Canceling persona selection...",{'color':True,'colorValue':'red','debugOnly':False})
 				self.choosed = True
 				break

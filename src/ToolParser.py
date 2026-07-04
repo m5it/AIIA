@@ -20,6 +20,19 @@ class ToolParser:
 		# Parse XML-style tool invocations like: <ReadFile><fileName>test.txt</fileName></ReadFile>
 		# Also handles self-closing tags: <listTools/>
 		# Returns: [{'name':'ReadFile', 'parameters':{'fileName':'test.txt'}}, ...]
+		#
+		# Strip HTML comments first — the model may regurgitate HISTORY.md which
+		# contains old tool calls embedded in <!-- ... --> blocks. These are NOT
+		# new tool invocations and should not be detected.
+		text = re.sub(r'<!--.*?-->', '', text, flags=re.DOTALL)
+		#
+		# Strip <think>...</think> tags — the model may include these in the
+		# content field (separate from the native thinking API).  They should
+		# NOT be treated as tool calls.
+		text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+		# Also strip orphan </think> closing tags that appear without openers
+		text = re.sub(r'</think>', '', text)
+		#
 		results = []
 		#
 		# First, find all self-closing tags: <TagName/>
@@ -98,6 +111,104 @@ class ToolParser:
 		#
 		return text.strip()
 	
+	#
+	def _format_action(self, toolName, params):
+		"""Return a human-readable action description for a tool invocation."""
+		if toolName == 'ReplaceLine':
+			fileName = params.get('fileName', '?')
+			fl = params.get('fromLine', '?')
+			tl = params.get('toLine', fl)
+			return "Editing '{}' lines {}-{}".format(fileName, fl, tl)
+		elif toolName == 'WriteFile':
+			fileName = params.get('fileName', '?')
+			content = params.get('contentOfFile', '')
+			return "Writing {} bytes to '{}'".format(len(content), fileName)
+		elif toolName == 'AppendFile':
+			fileName = params.get('fileName', '?')
+			fl = params.get('fromLineNumber', '-1')
+			if fl is None or fl == -1 or str(fl) == '-1':
+				fl = 'end'
+			elif str(fl) == '0':
+				fl = 'start'
+			else:
+				fl = 'line {}'.format(fl)
+			content = params.get('contentOfFile', '')
+			return "Appending {} bytes to '{}' at {}".format(len(content), fileName, fl)
+		elif toolName == 'CreateFile':
+			fileName = params.get('fileName', '?')
+			return "Creating new file '{}'".format(fileName)
+		elif toolName == 'ReadFile':
+			fileName = params.get('fileName', '?')
+			return "Reading '{}'".format(fileName)
+		elif toolName == 'Terminal':
+			args = [params.get('arg{}'.format(i), '') for i in range(1, 6)]
+			args = [a for a in args if a]
+			return "$ {}".format(' '.join(args)) if args else "Running terminal command"
+		elif toolName == 'WWW':
+			url = params.get('url', '?')
+			return "Fetching: {}".format(url)
+		elif toolName == 'Grep':
+			pat = params.get('pattern', '?')
+			fn = params.get('fileName', '')
+			return "Searching '{}' in {}".format(pat, fn if fn else 'all files')
+		elif toolName == 'listTools':
+			return "Listing available tools"
+		elif toolName == 'TreeView':
+			path = params.get('path', '.')
+			depth = params.get('depth', '3')
+			return "Tree view of '{}' (depth={})".format(path, depth)
+		elif toolName == 'List':
+			path = params.get('path', '.')
+			return "Listing '{}'".format(path)
+		elif toolName == 'Find':
+			pat = params.get('pattern', '*')
+			path = params.get('path', '.')
+			return "Finding '{}' in '{}'".format(pat, path)
+		elif toolName == 'ExecuteScript':
+			fn = params.get('fileName', '?')
+			args = params.get('args', '')
+			return "Running script '{}' {}".format(fn, args)
+		elif toolName == 'Head':
+			fn = params.get('fileName', '?')
+			n = params.get('lines', '10')
+			return "First {} lines of '{}'".format(n, fn)
+		elif toolName == 'Tail':
+			fn = params.get('fileName', '?')
+			n = params.get('lines', '10')
+			return "Last {} lines of '{}'".format(n, fn)
+		elif toolName == 'Sed':
+			pat = params.get('pattern', '?')
+			fn = params.get('fileName', '?')
+			return "Replacing '{}' in '{}'".format(pat, fn)
+		elif toolName == 'Diff':
+			f1 = params.get('file1', '?')
+			f2 = params.get('file2', '?')
+			return "Comparing '{}' vs '{}'".format(f1, f2)
+		elif toolName == 'Sort':
+			fn = params.get('fileName', '?')
+			return "Sorting '{}'".format(fn)
+		elif toolName == 'SaveTip':
+			title = params.get('title', '?')
+			return "Saving tip '{}'".format(title)
+		elif toolName == 'GetTip':
+			title = params.get('title', '?')
+			return "Loading tip '{}'".format(title)
+		elif toolName == 'ListTips':
+			return "Listing saved tips"
+		elif toolName == 'DeleteTip':
+			title = params.get('title', '?')
+			return "Deleting tip '{}'".format(title)
+		elif toolName == 'ReinsertTip':
+			title = params.get('title', '?')
+			return "Reinserting tip '{}' into context".format(title)
+		elif toolName in ('createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks', 'nextTask', 'jobDone', 'planDone', 'startBuild', 'LogProgress'):
+			title = params.get('title', params.get('instruction', ''))
+			if title:
+				return "{}: {}".format(toolName, title[:60])
+			return "{}".format(toolName)
+		else:
+			params_str = ', '.join(['{}={}'.format(k, v) for k, v in params.items()])
+			return "{} {}".format(toolName, params_str if params_str else '')
 	#
 	def ExecuteTextTool(self, toolName, params):
 		# Execute a tool based on XML invocation
@@ -276,21 +387,23 @@ class ToolParser:
 		tool_invocations = sorted(tool_invocations, key=sort_key)
 		#
 		job_done = False
+		last_result = None
 		for inv in tool_invocations:
 			toolName = inv['name']
 			params   = inv['parameters']
 			#
 			self.handle.tool_iteration += 1
 			#
-			# Show user what tool is being called (preview)
-			params_str = ', '.join(['{}={}'.format(k, v) for k, v in params.items()])
-			self.handle.hLG.echo("🔧 Executing: {} ({})".format(toolName, params_str if params_str else 'no params'), {'color':True, 'colorValue':'cyan'})
+			# Show user what tool is being called (human-readable preview)
+			action_msg = self._format_action(toolName, params)
+			self.handle.hLG.echo("⚙️ {} {}".format(toolName, action_msg), {'color':True, 'colorValue':'green'})
 			#
 			# Route to plan tools if in plan mode, or build tools (like LogProgress)
 			if (is_plan_mode and toolName in plan_tools) or (toolName in build_tools):
 				result = self.HandlePlanTool(toolName, params)
 			else:
 				result = self.ExecuteTextTool(toolName, params)
+			last_result = result
 			#
 			if self.handle.Options.get('TOOL_RESULT_AS_SYSTEM', False):
 				self.handle.Response('system',{'content':"☰ Tool [{}] returned:\n{}".format(toolName, str(result))})
@@ -312,7 +425,7 @@ class ToolParser:
 					echo_opts['colorValue'] = 'red'
 				else:
 					echo_opts['colorValue'] = 'orange'
-			self.handle.hLG.echo("✓ Result: {}".format(result_str), echo_opts)
+			self.handle.hLG.echo("✓ {}: {}".format(toolName, result_str), echo_opts)
 			#
 			# Track jobDone to signal Parse/AI loop
 			if toolName == 'jobDone':
@@ -320,8 +433,8 @@ class ToolParser:
 			# Reset error counter on success
 			if not str(result).startswith('Error'):
 				self.handle.tool_errors = 0
-		self.handle.hLG.echo("--- Tool iterations: {} | errors: {}".format(self.handle.tool_iteration, self.handle.tool_errors), {'color':True, 'colorValue':'cyan'})
-		return result
+			self.handle.hLG.echo("--- Tool iterations: {} | errors: {}".format(self.handle.tool_iteration, self.handle.tool_errors), {'color':True, 'colorValue':'cyan'})
+		return last_result
 	#
 	def HandlePlanTool(self, toolName, params):
 		from src.PlanManager import PlanBase, Plan, PlanTask

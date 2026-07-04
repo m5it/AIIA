@@ -78,22 +78,17 @@ class Terminal():
 		if len(args) == 0:
 			return "Error: No arguments provided. At least arg1 (program name) is required."
 		#
-		# Split any arg containing spaces into multiple args (handles model
-		# putting multiple arguments in a single <argN> tag).
-		# If the arg has matching outer quotes, the model intended it as ONE
-		# argument — strip the quotes and keep it whole.  Otherwise use
-		# shlex to split unquoted space-separated values.
-		split_args = []
-		for arg in args:
-			if ' ' in arg:
-				if len(arg) >= 2 and arg[0] == arg[-1] and arg[0] in '\'"':
-					# Model quoted the whole argument — keep as one
-					split_args.append(arg[1:-1])
-				else:
-					split_args.extend(shlex.split(arg))
+		# Build final arg list: arg1 is the program name, remaining args
+		# are passed verbatim.  No space-splitting — each <argN> is one
+		# argument.  If an arg has matching outer quotes (' or "), strip
+		# them but keep as one token (the model sometimes adds them).
+		cleaned = []
+		for i, arg in enumerate(args):
+			if len(arg) >= 2 and arg[0] == arg[-1] and arg[0] in '\'"':
+				cleaned.append(arg[1:-1])
 			else:
-				split_args.append(arg)
-		args = split_args
+				cleaned.append(arg)
+		args = cleaned
 		#
 		program = args[0]
 		#

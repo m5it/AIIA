@@ -24,6 +24,8 @@ def Help():
 	print("-R                         # Factory reset (delete all state)")
 	print("-O / --orchestra [opts]    # Run as orchestra director (--orchestra -h for help)")
 	print("-W / --worker [opts]       # Run as orchestra worker (--worker -h for help)")
+	print("-S / --server [host:port]  # Run as SSE chat server (default 127.0.0.1:9877)")
+	print("-C / --connect [host:port] # Connect to SSE chat server (default 127.0.0.1:9877)")
 	print("-Y [content_data]          # Set data / content to send as request to AIIA.")
 	print()
 #
@@ -215,6 +217,34 @@ def Main(argv):
 		WorkerMain(argv[idx + 1:])
 		Options['AI_LIVE'] = False
 		sys.exit(0)
+	if '--server' in argv or '-S' in argv:
+		opt = '--server' if '--server' in argv else '-S'
+		idx = argv.index(opt)
+		_host_port = argv[idx + 1] if len(argv) > idx + 1 and not argv[idx + 1].startswith('-') else None
+		host = '127.0.0.1'
+		port = 9877
+		if _host_port:
+			parts = _host_port.split(':')
+			host = parts[0] if parts[0] else host
+			port = int(parts[1]) if len(parts) > 1 else port
+		from src.Server import start_server
+		Options['AI_LIVE'] = False
+		start_server(host, port, Options)
+		sys.exit(0)
+	if '--connect' in argv or '-C' in argv:
+		opt = '--connect' if '--connect' in argv else '-C'
+		idx = argv.index(opt)
+		_host_port = argv[idx + 1] if len(argv) > idx + 1 and not argv[idx + 1].startswith('-') else None
+		host = '127.0.0.1'
+		port = 9877
+		if _host_port:
+			parts = _host_port.split(':')
+			host = parts[0] if parts[0] else host
+			port = int(parts[1]) if len(parts) > 1 else port
+		from src.Client import run_client
+		Options['AI_LIVE'] = False
+		run_client(host, port)
+		sys.exit(0)
 	#
 	opt_help = False
 	opt_one  = None # Send one request and exit
@@ -223,7 +253,7 @@ def Main(argv):
 	args     = []
 	#
 	try:
-		opts, args = getopt.getopt(argv,"vdchm:M:Y:T:p:R",["debug", "continue", "model=", "memory_specific=", "you=", "temperature=", "persona=", "reset"])
+		opts, args = getopt.getopt(argv,"vdchm:M:Y:T:p:RS:C:",["debug", "continue", "model=", "memory_specific=", "you=", "temperature=", "persona=", "reset", "server=", "connect="])
 	except getopt.GetoptError:
 		opt_help = True
 	

@@ -69,7 +69,7 @@ def user_input( opts={} ):
 		char = sys.stdin.read(1)
 		#
 		if char=="":
-			continue
+			break
 		#
 		if opt_quitWithCTRLX==False and ord(char)==10:
 			#print("DEBUG quit by ENTER!!!")

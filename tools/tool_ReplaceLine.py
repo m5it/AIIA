@@ -64,7 +64,15 @@ class ReplaceLine():
 		if not repl.endswith('\n'):
 			repl += '\n'
 		#
-		new_lines = lines[:fl - 1] + [repl] + lines[tl:]
+		old_lines = lines[fl - 1:tl]
+		old_preview = ''.join(old_lines).replace('\n', '\\n')
+		if len(old_preview) > 120:
+			old_preview = old_preview[:120] + '...'
+		#
+		repl_lines = repl.rstrip('\n').split('\n')
+		repl_lines = [l + '\n' for l in repl_lines]
+		#
+		new_lines = lines[:fl - 1] + repl_lines + lines[tl:]
 		#
 		try:
 			with open(full_path, 'w') as f:
@@ -73,4 +81,9 @@ class ReplaceLine():
 			return "Error: {}".format(e)
 		#
 		count = tl - fl + 1
-		return "Replaced line{} {}-{} in '{}'.".format('s' if count > 1 else '', fl, tl, fileName)
+		new_count = len(repl_lines)
+		return "Replaced line{} {}-{} in '{}'. ({} old line{} -> {} new line{}). Old: {}".format(
+			's' if count > 1 else '', fl, tl, fileName,
+			count, 's' if count != 1 else '',
+			new_count, 's' if new_count != 1 else '',
+			old_preview)

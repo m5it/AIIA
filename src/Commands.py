@@ -301,6 +301,11 @@ class Commands():
 	#
 	def CMD_CLEAR(self, inp):
 		from src.PlanSaver import PlanSaver
+		# Archive raw history before clearing — preserves training data
+		msg_count = len(self.handle.hHM.msgs)
+		archive_name = self.handle._archive_history('cleared')
+		if archive_name:
+			self.handle._save_clear_tip(archive_name, msg_count)
 		# Keep system message(s), clear everything else
 		system_msgs = [m for m in self.handle.hHM.msgs if m['role'] == 'system']
 		self.handle.hHM.msgs = system_msgs[:]

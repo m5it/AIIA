@@ -1,4 +1,4 @@
-import json, sys, time, os, copy, threading, hashlib
+import json, sys, time, os, copy, threading, hashlib, re
 from datetime import date
 from ollama import ChatResponse, chat
 from src.functions import *
@@ -242,26 +242,41 @@ class Handle():
 		opt_skip_history  = opts['skip_history'] if 'skip_history' in opts else False
 		opt_skip_color    = opts['skip_color'] if 'skip_color' in opts else False
 		opt_return_object = opts['return_object'] if 'return_object' in opts else False
+		opt_stream_cb     = opts.get('stream_callback')
 		color             = True
 		if opt_skip_color:
 			color=False
 		#
 		stream_error = None
-		response = self.Stream( res, color )
+		response = self.Stream( res, color, opt_stream_cb )
 		if 'error' in response:
 			stream_error = response['error']
 			if stream_error:
 				self.hLG.echo("Stream error: {}".format(stream_error), {'color':True, 'colorValue':'red','debugOnly':False,})
 		
+		# Strip <think>...</think> from content — the model may include these
+		# in its content field (separate from native thinking API).  Stripping
+		# early prevents spurious tool detection, hash mismatches, and history
+		# pollution.
+		response['content'] = re.sub(r'<think>.*?</think>', '', response.get('content', ''), flags=re.DOTALL)
+		response['content'] = re.sub(r'</think>', '', response.get('content', ''))
+		
 		# Detect repeated responses (model looping)
-		current_hash = hashlib.md5(response.get('content', '').strip().encode()).hexdigest()
-		if self._last_response_hash is not None and current_hash == self._last_response_hash:
-			self.hLG.echo("⚠ Model repeated itself — auto-cancelled", {'color':True, 'colorValue':'red','debugOnly':False,})
+		# _last_response_hash persists across AI() calls — only reset by new user input in You()
+		# Skip check for thinking-only responses (empty content) — they all hash to the same
+		# empty-string MD5 and flood false positives.
+		current_content = response.get('content', '').strip()
+		if current_content:
+			current_hash = hashlib.md5(current_content.encode()).hexdigest()
+			if self._last_response_hash is not None and current_hash == self._last_response_hash:
+				self.hLG.echo("⚠ Model repeated itself — auto-cancelled", {'color':True, 'colorValue':'red','debugOnly':False,})
+				if opt_return_object:
+					return {'invocations': [], 'response': current_content, 'stream_error': stream_error }
+				return True
+			self._last_response_hash = current_hash
+		else:
+			# Reset hash on thinking-only — avoids false collisions from empty content
 			self._last_response_hash = None
-			if opt_return_object:
-				return {'invocations': [], 'response': response.get('content', ''), 'stream_error': stream_error }
-			return True
-		self._last_response_hash = current_hash
 
 		#
 		# Detect tool invocations before adding assistant response
@@ -277,6 +292,10 @@ class Handle():
 			tool_invocations = self.hTP.ParseTextToolInvocation( response['content'] )
 			if tool_invocations:
 				self.hLG.echo("Parse() detected {} XML tool invocation(s)".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
+		
+		if tool_invocations and opt_stream_cb:
+			for inv in tool_invocations:
+				opt_stream_cb({'type':'tool','name':inv['name'],'params':inv.get('parameters',{})})
 		
 		# Clean assistant content: strip XML tags when using system-role results
 		# so the model doesn't see stale tool calls in its own history
@@ -384,7 +403,7 @@ class Handle():
 		return converted
 	
 	#
-	def Stream(self, res, color):
+	def Stream(self, res, color, stream_callback=None):
 		response         = "" # speaking data
 		thinking         = "" # thinking data
 		native_tool_calls = []  # native Ollama tool calls
@@ -424,6 +443,8 @@ class Handle():
 					#
 					part = chunk.message.content
 					response += part
+					if stream_callback:
+						stream_callback({'type':'token','text':part})
 					self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
 			# Extract token counts from final chunk (done=True)
 			prompt_tokens = 0
@@ -467,6 +488,7 @@ class Handle():
 		
 		# Append user content
 		if inp != None:
+			self._last_response_hash = None
 			self.Response('user',{'content':inp})
 		
 		# Handle model tool calls
@@ -497,6 +519,205 @@ class Handle():
 		except Exception:
 			return ""
 	#
+	#
+	# -- context management --------------------------------------------------
+	# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	def _estimate_tokens(self, msgs):
+		"""Rough token estimate: ~4 chars per token on average."""
+		total = 0
+		for m in msgs:
+			content = m.get('content', '')
+			thinking = m.get('thinking', '')
+			total += len(content) // 4
+			total += len(thinking) // 4
+			total += 8  # overhead per message (role label, newlines)
+		return total
+
+	def _rewrite_history(self, msgs):
+		"""Rewrite the on-disk history files to match in-memory state."""
+		main_path = "{}/history/{}".format(self.Options.get('path', ''), self.Options['AI_FILE_HISTORY'])
+		try:
+			os.remove(main_path)
+		except Exception:
+			pass
+		for m in msgs:
+			fwrite(main_path, "{}\n".format(json.dumps(m)), False)
+
+		framework_dir = self.Options.get('path', '').rstrip('/')
+		proj_dir = self.Options.get('working_dir')
+		if proj_dir and proj_dir != framework_dir:
+			proj_history = os.path.join(proj_dir, 'HISTORY.md')
+			PlanSaver.rebuild_history(proj_history, msgs)
+
+	def _archive_history(self, suffix):
+		"""Copy current .dbk to an archive file before destructive operations.
+		Archive is saved as {sid}.{suffix}.{timestamp}.dbk in the history dir.
+		Returns the archive filename (or None if nothing was archived)."""
+		main_path = "{}/history/{}".format(self.Options.get('path', ''), self.Options['AI_FILE_HISTORY'])
+		if not os.path.exists(main_path):
+			return None
+		try:
+			with open(main_path) as f:
+				lines = f.readlines()
+			# Only archive if there's more than just a few messages
+			if len(lines) <= 3:
+				return None
+		except Exception:
+			return None
+
+		ts = int(time.time())
+		sid = self.Options['AI_SESS_ID']
+		archive_name = "{}.{}.{}.dbk".format(sid, suffix, ts)
+		archive_path = "{}/history/{}".format(self.Options.get('path', ''), archive_name)
+		try:
+			fwrite(archive_path, "".join(lines), True)
+			self.hLG.echo("Archived history to {}".format(archive_name),
+				{'color': True, 'colorValue': 'cyan'})
+			return archive_name
+		except Exception as e:
+			self.hLG.echo("Failed to archive history: {}".format(e),
+				{'color': True, 'colorValue': 'red'})
+			return None
+
+	def _save_clear_tip(self, archive_name, msg_count):
+		"""Save a tip recording that the session was cleared, with archive info."""
+		try:
+			sid = self.Options['AI_SESS_ID']
+			summary = ("Session {} was cleared to free context. "
+				"{} messages archived to {}. "
+				"Use <GetTip title='session_{}_cleared'> to retrieve this note.".format(
+					sid, msg_count, archive_name, sid))
+			self.hTM.save("session_{}_cleared".format(sid), "model", [
+				{'role': 'system', 'content': "[Session {} archive: {} — {} messages]".format(
+					sid, archive_name, msg_count)}
+			])
+			self.hLG.echo("Saved clear tip: session_{}_cleared".format(sid),
+				{'color': True, 'colorValue': 'cyan'})
+		except Exception as e:
+			self.hLG.echo("Failed to save clear tip: {}".format(e),
+				{'color': True, 'colorValue': 'red'})
+
+	def _summarize_context(self, msgs, limit, threshold):
+		"""Summarize older messages, keeping last 5 exchanges + all system prompts.
+		Returns True if summarization was performed."""
+		# Collect indices to keep
+		keep = set()
+		exchange_count = 0
+		for i in range(len(msgs) - 1, -1, -1):
+			role = msgs[i]['role']
+			if role == 'system':
+				keep.add(i)
+			elif exchange_count < 5 and role in ('user', 'assistant'):
+				keep.add(i)
+				if role == 'user':
+					exchange_count += 1
+
+		idx = sorted(i for i in range(len(msgs)) if i not in keep)
+		if not idx:
+			return False
+
+		build = []
+		for i in idx:
+			role = msgs[i]['role']
+			content = msgs[i].get('content', '')
+			build.append("[{}]: {}".format(role, content[:600]))
+		to_summarize = "\n\n".join(build)
+
+		prompt = (
+			"Summarize the key facts, decisions, file states, and progress "
+			"from this conversation concisely. Focus on:\n"
+			"- What has been built or changed\n"
+			"- What decisions were made\n"
+			"- Current state of files and code\n"
+			"- What remains to be done\n\n"
+			"Keep the summary under 500 words.\n\n"
+			"---\n" + to_summarize
+		)
+
+		try:
+			res = chat(
+				model=self.Options['AI_MODEL'],
+				messages=[{'role': 'user', 'content': prompt}],
+				options={'num_predict': 1024},
+				stream=False,
+				think=False,
+			)
+			summary = res.message.content.strip()
+			if len(summary) > 3000:
+				summary = summary[:3000] + "…"
+		except Exception as e:
+			self.hLG.echo("Context summarization failed: {}".format(e),
+				{'color': True, 'colorValue': 'red'})
+			return False
+
+		new_msgs = [msgs[i] for i in sorted(keep)]
+		# Insert summary right after the last system prompt in new_msgs
+		last_sys = sum(1 for m in new_msgs if m['role'] == 'system') - 1
+		summary_msg = {
+			'role': 'system',
+			'content': "[Context summary: {}]".format(summary),
+			'sessionId': self.Options['AI_SESS_ID'],
+			'rowId': self.Options['AI_ROW_ID'] + 1,
+			'timestamp': time.time(),
+			'date': str(date.today()),
+		}
+		new_msgs.insert(last_sys + 1, summary_msg)
+
+		# Archive raw history before rewriting
+		self._archive_history('summarized')
+		self.hHM.msgs = new_msgs
+		self._rewrite_history(new_msgs)
+		self.hLG.echo(
+			"Context summarized: {} messages replaced with summary ({} chars)".format(
+				len(idx), len(summary)),
+			{'color': True, 'colorValue': 'green'})
+		return True
+
+	def _auto_clear(self):
+		"""Keep only system messages, clear everything else.  Resets counters."""
+		msg_count = len(self.hHM.msgs)
+		archive_name = self._archive_history('cleared')
+		if archive_name:
+			self._save_clear_tip(archive_name, msg_count)
+		system_msgs = [m for m in self.hHM.msgs if m['role'] == 'system']
+		self.hHM.msgs = system_msgs[:]
+		self._rewrite_history(system_msgs)
+		self.Options['AI_ROW_ID'] = 0
+		self.Options['NUM_PROMPT_TOKENS'] = 0
+		self.Options['NUM_RESPONSE_TOKENS'] = 0
+		self.Options['NUM_LAST_PROMPT_TOKENS'] = 0
+		self.Options['NUM_LAST_RESPONSE_TOKENS'] = 0
+		self.hLG.echo("Context limit reached — auto-cleared chat history",
+			{'color': True, 'colorValue': 'orange', 'debugOnly': False})
+
+	def _manage_context(self):
+		"""Check estimated token count against limit.  Summarize first, clear as
+		fallback.  Called at the start of AI() before any model request."""
+		limit = self.Options.get('AI_CONTEXT_LIMIT', 262144)
+		threshold = self.Options.get('AI_CLEAR_THRESHOLD', 0.8)
+		max_allowed = int(limit * threshold)
+
+		msgs = self.hHM.msgs
+		if not msgs:
+			return
+
+		estimate = self._estimate_tokens(msgs)
+		if estimate <= max_allowed:
+			return
+
+		self.hLG.echo(
+			"Context estimate {} exceeds limit {} (threshold {}), managing…".format(
+				estimate, limit, threshold),
+			{'color': True, 'colorValue': 'yellow'})
+
+		if self._summarize_context(msgs, limit, threshold):
+			# Re-check after summarization
+			if self._estimate_tokens(self.hHM.msgs) <= max_allowed:
+				return
+
+		self._auto_clear()
+
+	# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	def AI(self,opts=None):
 		if opts is None:
 			opts = {}
@@ -504,11 +725,14 @@ class Handle():
 		self.hLG.echo("Handle.AI() STARTING, opts: {}".format(opts),{'color':False})
 		#
 		opt_return_object = opts['return_object'] if 'return_object' in opts else False
+		opt_stream_cb     = opts.get('stream_callback')
+		#
+		# Manage context window — summarize or clear if we're over the limit
+		self._manage_context()
 		#
 		# Loop to handle multiple rounds of tool calls
 		max_iterations = self.Options.get('AI_MAX_ITERATIONS', 10)
 		iteration = 0
-		self._last_response_hash = None
 
 		while iteration < max_iterations:
 			iteration += 1
@@ -556,7 +780,7 @@ class Handle():
 			# Used if CTRL+C to save last/draft content to chat history
 			self.Options['DRAFT_RESPONSE'] = res
 			# Parse result (handles XML tool calls)
-			result = self.Parse(res,{'return_object':True})
+			result = self.Parse(res,{'return_object':True,'stream_callback':opt_stream_cb})
 			
 			# Stop if model response is empty (no content, no tools)
 			if not result.get('response', '').strip() and not result.get('invocations'):

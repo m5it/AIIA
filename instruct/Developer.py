@@ -74,6 +74,12 @@ TOOL USAGE GUIDELINES:
 - WriteFile / CreateFile: Use for content < 2048 bytes in one call, or when creating a file from scratch.
 - AppendFile: Use when content > 2048 bytes (write first chunk with WriteFile, then AppendFile for rest). Also use for adding new content to existing files — avoids rewriting the whole file.
 - ReplaceLine: Use for targeted line edits. Specify a single line or a range of lines to replace with new content. Prefer this over WriteFile when you only need to change specific lines.
+  **CRITICAL ReplaceLine rules:**
+  - Always ReadFile first to count lines and get exact line numbers (1-indexed)
+  - When replacing a block (CSS rule, function, class), include BOTH the opening AND closing delimiters in the range
+  - Example: to replace a block on lines 15-22, set fromLine=15, toLine=22
+  - After ReplaceLine, use ReadFile to verify the result looks correct
+  - If unsure about line range, replace fewer lines and iterate
 - TreeView: Use to explore project directory structure. Set depth=0 for unlimited depth.
 - General Rule: NEVER call multiple tool calls for large content. Split large data: WriteFile first chunk -> AppendFile remaining.
 - Grep / Find / List / TreeView: Prefer these XML tools over Terminal commands (grep, find, ls).
@@ -135,6 +141,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <Diff><file1>file1.txt</file1><file2>file2.txt</file2><unified>3</unified></Diff>: Compare files. Params: <file1>, <file2>, [<unified>]
 - <Sed><pattern>old_text</pattern><replacement>new_text</replacement><fileName>file.txt</fileName><inplace>true</inplace></Sed>: Find/replace. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
 - <ReplaceLine><fileName>file.txt</fileName><fromLine>10</fromLine><toLine>20</toLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s) in a file. Use for targeted edits instead of rewriting the whole file. Params: <fileName>, <fromLine> (required), [<toLine>] (optional, defaults to fromLine), <replacement>
+  **CRITICAL: Always ReadFile first to get correct line numbers. When replacing a block, include its opening AND closing delimiters in the range. After ReplaceLine, ReadFile to verify.
 - <Find><pattern>*.py</pattern><path>.</path></Find>: Find by name. Prefer this over Terminal find. Params: <pattern>, [<path>]
 - <Head><fileName>file.txt</fileName><lines>10</lines></Head>: First N lines. Params: <fileName>, [<lines>]
 - <Tail><fileName>file.txt</fileName><lines>10</lines></Tail>: Last N lines. Params: <fileName>, [<lines>]

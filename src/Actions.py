@@ -31,7 +31,7 @@ class Actions():
 		while self.choosed==False and len(self.available):
 			self.handle.hLG.echo("Choose available number (x to cancel): ",{'color':True,'colorValue':'orange','debugOnly':False})
 			n = user_input()
-			if n=="x":
+			if n=="x" or not n:
 				self.handle.hLG.echo("Canceling...",{'color':True,'colorValue':'red','debugOnly':False})
 				self.choosed = True
 				#break
