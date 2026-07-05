@@ -213,6 +213,7 @@ TOOL USAGE RULES:
 - Use ExecuteScript to run scripts you create (WriteFile/CreateFile). Terminal is for system binaries only.
 - Save useful commands and solutions as tips with <SaveTip>. Retrieve them with <GetTip>. Browse with <ListTips>. Bring saved tips into context with <ReinsertTip>.
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
+- If a tool returns an error with a "Usage:" example, the error message shows the correct parameter names. Copy them exactly — don't guess. This is faster than trial-and-error.
 
 EXAMPLE WORKFLOW (tasks from plan mode):
 1. Task received: "Create project folder with basic files"

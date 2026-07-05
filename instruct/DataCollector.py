@@ -201,4 +201,5 @@ TOOL USAGE RULES:
 - XML Content: Never use backslashes to escape characters — write raw content.
 - For one-liner shell commands, use Terminal. For complex scripts, use ExecuteScript.
 - Vary parameters across calls to the same tool — different depth, different patterns, different file names.
+- If a tool returns an error with a "Usage:" example, the error message shows the correct parameter names. Copy them exactly — don't guess. This is faster than trial-and-error.
 """

@@ -2,6 +2,26 @@
 
 ## 2026-07-05
 
+### Fixed: Auto-continue advancing tasks on tool errors
+
+The auto-continue feature (`AUTO_CONTINUE_TASKS`) was advancing to the next task when the model's last tool call was an error. This caused tasks to be skipped without being completed — the model would create a file, then fail 3× on testing, and auto-continue would mark the task done and move on.
+
+**Changes in `src/Handle.py` (`AI()` method):**
+
+Added two guards before auto-continue fires:
+- **A1 — Last tool error check:** If the last tool call in the current turn returned an error, auto-continue is blocked. The model retries in the next turn instead of advancing to a new task.
+- **A2 — LogProgress requirement:** Auto-continue only fires when the model explicitly called `<LogProgress>` in the current AI turn. This ensures the model signals meaningful progress before the system advances to the next task. The LogProgress flag, once set, persists across iterations within the same AI turn, so the model can LogProgress in one iteration and do more tool work in the next.
+
+Tracking variables (`_tools_last_error`, `_tools_log_progress`) are reset on each AI() call and after a successful auto-continue.
+
+### Fixed: Error recovery guidance in persona instructions
+
+Added to `instruct/DataCollector.py` and `instruct/Developer.py` (TOOL USAGE RULES):
+
+> "If a tool returns an error with a 'Usage:' example, the error message shows the correct parameter names. Copy them exactly — don't guess."
+
+This addresses the pattern where the model repeatedly tried wrong parameter names (`<content>` instead of `<contentOfFile>`) even after seeing the correct usage in the error message.
+
 ### Added: Persist MODE across sessions (`mode.aiia`)
 
 The current mode (plan/build) is now saved to `mode.aiia` on every `!MODE` switch and on clean exit. When continuing with `-c`, the saved mode is restored — no need to re-`!MODE build` after restart.
