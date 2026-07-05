@@ -630,6 +630,10 @@ class Handle():
 	def _summarize_context(self, msgs, limit, threshold):
 		"""Summarize older messages, keeping last 5 exchanges + all system prompts.
 		Returns True if summarization was performed."""
+		# Strip malformed entries (no `role` key) that slipped into history
+		msgs = [m for m in msgs if isinstance(m, dict) and m.get('role')]
+		if not msgs:
+			return False
 		# Collect indices to keep
 		keep = set()
 		exchange_count = 0
@@ -709,7 +713,7 @@ class Handle():
 		archive_name = self._archive_history('cleared')
 		if archive_name:
 			self._save_clear_tip(archive_name, msg_count)
-		system_msgs = [m for m in self.hHM.msgs if m['role'] == 'system']
+		system_msgs = [m for m in self.hHM.msgs if isinstance(m, dict) and m.get('role') == 'system']
 		self.hHM.msgs = system_msgs[:]
 		self._rewrite_history(system_msgs)
 		self.Options['AI_ROW_ID'] = 0
