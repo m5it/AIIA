@@ -29,6 +29,7 @@ Options         = {
 	"AI_MAX_ITERATIONS"   :10, # max tool-call rounds per AI() turn (overridable by persona)
 	"AI_CONTEXT_LIMIT"    :262144, # model's max context window in tokens (per-model)
 	"AI_CLEAR_THRESHOLD"  :0.8,    # fraction of context limit that triggers summarization/clear
+	"AI_MAX_FILE_SIZE"    :2097152, # 2MB — max file size for WriteFile/CreateFile/AppendFile/ReplaceLine
 	"AUTO_CONTINUE_TASKS" :True,   # auto-advance to next task in build mode after tool usage
 	"AI_THINK"            :True, # enable think/reasoning API for models that support it (e.g. DeepSeek R1)
 	# Available options keys:

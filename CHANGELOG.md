@@ -60,3 +60,19 @@ When in BUILD mode with a task plan, the system now automatically advances to th
 **Mechanism:** A new `_try_auto_continue()` method in `src/Handle.py` checks at the end of each `AI()` turn for pending plan tasks. If found, it calls `PlanBase.draft.nextTask()`, injects a user message `"continue task X / N...\n\nYour task:\n<instruction>"`, and loops the AI. The existing explicit `<nextTask>` tool path is unaffected.
 
 **Files:** `config.py`, `src/Handle.py`
+
+### Added: File size guard for write tools
+
+New safety mechanism prevents the model from creating or modifying files larger than `AI_MAX_FILE_SIZE` (default 2,097,152 bytes). Guards are checked in `ToolParser.FireToolInvocation()` before any tool executes — works for both XML and native Ollama tool calls.
+
+**Guarded tools and their content parameters:**
+- `WriteFile` — checks `contentOfFile`
+- `CreateFile` — checks `contentOfFile`
+- `AppendFile` — checks `contentOfFile` plus existing file size (cumulative)
+- `ReplaceLine` — checks `replacement`
+
+When a write tool exceeds the limit, it returns an error message (not executed), the error is appended to history as a tool result, and the model can correct itself on the next iteration.
+
+**Config:** `AI_MAX_FILE_SIZE: 2097152` in `config.py`
+
+**Files:** `config.py`, `src/ToolParser.py`

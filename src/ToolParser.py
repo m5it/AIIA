@@ -398,6 +398,35 @@ class ToolParser:
 			action_msg = self._format_action(toolName, params)
 			self.handle.hLG.echo("⚙️ {} {}".format(toolName, action_msg), {'color':True, 'colorValue':'green'})
 			#
+			# File size guard — prevent creating/modifying files larger than AI_MAX_FILE_SIZE
+			_write_tools = {
+				'WriteFile': 'contentOfFile',
+				'CreateFile': 'contentOfFile',
+				'AppendFile': 'contentOfFile',
+				'ReplaceLine': 'replacement',
+			}
+			if toolName in _write_tools:
+				content_param = _write_tools[toolName]
+				content = params.get(content_param, '')
+				content_bytes = len(content.encode('utf-8'))
+				max_size = self.handle.Options.get('AI_MAX_FILE_SIZE', 2097152)
+				total_bytes = content_bytes
+				existing_bytes = 0
+				if toolName == 'AppendFile':
+					file_path = params.get('fileName', '')
+					if file_path and os.path.exists(file_path):
+						existing_bytes = os.path.getsize(file_path)
+						total_bytes += existing_bytes
+				if total_bytes > max_size:
+					err = ("Error: {} not executed — content exceeds AI_MAX_FILE_SIZE "
+						   "({} bytes). Total would be: {} bytes "
+						   "(existing: {}, new: {}). "
+						   "Split the content or reduce file size."
+						   .format(toolName, max_size, total_bytes, existing_bytes, content_bytes))
+					self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
+					self.handle.Response('tool', {'content': err, 'name': toolName})
+					continue
+			#
 			# Route to plan tools if in plan mode, or build tools (like LogProgress)
 			if (is_plan_mode and toolName in plan_tools) or (toolName in build_tools):
 				result = self.HandlePlanTool(toolName, params)
