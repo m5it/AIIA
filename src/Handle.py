@@ -135,7 +135,7 @@ class Handle():
 				header = current_text.strip()[:80]
 				mode_matches = any(
 					header in m.get('content', '')
-					for m in self.hHM.msgs if m['role'] == 'system'
+					for m in self.hHM.msgs if m.get('role') == 'system'
 				)
 				if not mode_matches:
 					self.hLG.echo(
@@ -797,7 +797,6 @@ class Handle():
 		max_iterations = self.Options.get('AI_MAX_ITERATIONS', 10)
 		iteration = 0
 		_tools_were_called = False
-		_tools_log_progress = False
 		_tools_last_error = False
 
 		while iteration < max_iterations:
@@ -806,6 +805,8 @@ class Handle():
 			result        = ""
 			res           = {}
 			msgs = copy.deepcopy(self.hHM.msgs)
+			# Strip malformed entries (no `role` key) that slipped into history
+			msgs = [m for m in msgs if isinstance(m, dict) and m.get('role')]
 
 			# Auto-inject tip availability into last user message
 			tip_summary = self._get_tip_summary()
@@ -851,8 +852,6 @@ class Handle():
 			# Track whether the model made tool calls this turn
 			if result.get('invocations'):
 				_tools_were_called = True
-				if not _tools_log_progress:
-					_tools_log_progress = any(inv['name'] == 'LogProgress' for inv in result['invocations'])
 				_tools_last_error = False
 				if self.hHM.msgs and self.hHM.msgs[-1].get('role') == 'tool':
 					_tools_last_error = self.hHM.msgs[-1].get('content', '').startswith('Error:')
@@ -868,10 +867,9 @@ class Handle():
 			# Check if tools were executed by looking for tool invocations in result
 			if not result['invocations']:
 				# No more tool calls
-				# Auto-continue to next task if model made progress and no errors
-				if _tools_were_called and not _tools_last_error and _tools_log_progress and self._try_auto_continue():
+				# Auto-continue to next task if model made tool calls and no errors
+				if _tools_were_called and not _tools_last_error and self._try_auto_continue():
 					_tools_were_called = False
-					_tools_log_progress = False
 					_tools_last_error = False
 					continue
 				if opt_return_object:
