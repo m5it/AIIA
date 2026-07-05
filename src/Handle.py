@@ -733,6 +733,39 @@ class Handle():
 
 		self._auto_clear()
 
+	def _try_auto_continue(self):
+		"""If in BUILD mode with pending tasks and auto-continue enabled,
+		advance to next task and inject a continuation user message.
+		Returns True if a message was injected."""
+		if self.Options.get('MODE') != 'build':
+			return False
+		if not self.Options.get('AUTO_CONTINUE_TASKS', True):
+			return False
+
+		from src.PlanManager import PlanBase
+		if not PlanBase.draft:
+			return False
+
+		pending = any(t.status == 'pending' for t in PlanBase.draft.tasks.values())
+		if not pending:
+			return False
+
+		res = PlanBase.draft.nextTask()
+		if not res or res.get('done'):
+			return False
+
+		next_instruction = res.get('next_task_instruction', '')
+		total = len(PlanBase.draft.tasks)
+		completed = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'completed')
+		in_progress = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'in_progress')
+		task_number = completed + in_progress
+
+		msg = "continue task {} / {}...\n\nYour task:\n{}".format(task_number, total, next_instruction)
+		self.Response('user', {'content': msg})
+		self.hLG.echo("Auto-continue: task {}/{}".format(task_number, total),
+			{'color': True, 'colorValue': 'green', 'debugOnly': False})
+		return True
+
 	# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	def AI(self,opts=None):
 		if opts is None:
@@ -749,6 +782,7 @@ class Handle():
 		# Loop to handle multiple rounds of tool calls
 		max_iterations = self.Options.get('AI_MAX_ITERATIONS', 10)
 		iteration = 0
+		_tools_were_called = False
 
 		while iteration < max_iterations:
 			iteration += 1
@@ -797,7 +831,11 @@ class Handle():
 			self.Options['DRAFT_RESPONSE'] = res
 			# Parse result (handles XML tool calls)
 			result = self.Parse(res,{'return_object':True,'stream_callback':opt_stream_cb})
-			
+
+			# Track whether the model made tool calls this turn
+			if result.get('invocations'):
+				_tools_were_called = True
+
 			# Stop if model response is empty (no content, no tools)
 			if not result.get('response', '').strip() and not result.get('invocations'):
 				return True
@@ -808,7 +846,10 @@ class Handle():
 			
 			# Check if tools were executed by looking for tool invocations in result
 			if not result['invocations']:
-				# No more tool calls - return final response
+				# No more tool calls
+				# Auto-continue to next task if model did work this turn
+				if _tools_were_called and self._try_auto_continue():
+					continue
 				if opt_return_object:
 					return result['response']
 				return True

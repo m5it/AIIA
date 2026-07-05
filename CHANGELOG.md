@@ -37,3 +37,19 @@ Before any destructive history operation (summarize, clear, !CLEAR), the raw `.d
 ### Added: Expanded ReplaceLine examples in Developer persona (and all file-editing personas)
 
 Added concrete single-line and multi-line ReplaceLine examples to all personas that edit files: `instruct/Developer.py`, `instruct/SysAdmin.py`, `instruct/Researcher.py`, and `instruct/DataCollector.py`. The updated instructions explicitly show the most common model mistake (`<content>` vs `<replacement>`) and warn that multi-line replacements shift later line numbers.
+
+### Updated: DataCollector persona plan workflow
+
+Added a structured `PLAN WORKFLOW` section to `instruct/DataCollector.py` so the model knows to create a plan and tasks before starting the data collection workout. Also added a full `PLAN MANAGEMENT TOOLS` reference (createPlan, createTask, planDone, nextTask, LogProgress, jobDone, etc.) to both `plan()` and `build()` methods, and removed the per-turn `workout/dataset_log.jsonl` logging rule that caused runaway file growth.
+
+**Files:** `instruct/DataCollector.py`
+
+### Added: Auto-continue tasks in BUILD mode
+
+When in BUILD mode with a task plan, the system now automatically advances to the next task after the model completes tool-based work — no need to explicitly call `<nextTask>`. Triggered only when tool calls were made during the current AI turn (option 2).
+
+**Config:** `AUTO_CONTINUE_TASKS: True` in `config.py`
+
+**Mechanism:** A new `_try_auto_continue()` method in `src/Handle.py` checks at the end of each `AI()` turn for pending plan tasks. If found, it calls `PlanBase.draft.nextTask()`, injects a user message `"continue task X / N...\n\nYour task:\n<instruction>"`, and loops the AI. The existing explicit `<nextTask>` tool path is unaffected.
+
+**Files:** `config.py`, `src/Handle.py`
