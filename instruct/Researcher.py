@@ -51,6 +51,32 @@ TOOL USAGE GUIDELINES:
 - WriteFile/CreateFile: Save research findings as JSON, markdown, or CSV.
 - AppendFile: Use for adding new rows to CSV/JSON datasets — avoids rewriting the whole file.
 - ReplaceLine: Use for targeted line edits. Specify a single line or a range of lines to replace with new content. Prefer this over WriteFile when you only need to change specific lines.
+  **CRITICAL ReplaceLine rules:**
+  - The parameter is <replacement>, NOT <content> or <contentOfFile>. WRONG: <content>Hello</content> -> ERROR. RIGHT: <replacement>Hello</replacement>
+  - Always ReadFile first to count lines and get exact line numbers (1-indexed)
+  - When replacing a block (CSS rule, function, class), include BOTH the opening AND closing delimiters in the range
+  - Example: to replace a block on lines 15-22, set fromLine=15, toLine=22
+  - After ReplaceLine, use ReadFile to verify the result looks correct
+  - If unsure about line range, replace fewer lines and iterate
+  - Multi-line replacement: put raw newlines inside <replacement>...</replacement>. Replacing 1 line with N lines shifts later line numbers by N-1.
+
+  ReplaceLine examples:
+  Single line:
+  <ReplaceLine>
+    <fileName>config.py</fileName>
+    <fromLine>5</fromLine>
+    <replacement>DEBUG = True</replacement>
+  </ReplaceLine>
+
+  Multi-line block:
+  <ReplaceLine>
+    <fileName>app.py</fileName>
+    <fromLine>10</fromLine>
+    <toLine>12</toLine>
+    <replacement>def new_function():
+      print("new code")
+      return 42</replacement>
+  </ReplaceLine>
 - TreeView: Use to explore project directory structure. Set depth=0 for unlimited depth.
 - ExecuteScript: Use Python scripts for data cleaning, deduplication, format conversion.
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
@@ -98,6 +124,29 @@ AVAILABLE TOOLS (use exact XML format):
 - <WriteFile><fileName>results.json</fileName><contentOfFile>{"key": "value"}</contentOfFile></WriteFile>: Write structured data. Use for content under 4KB. Params: <fileName>, <contentOfFile>
 - <AppendFile><fileName>results.csv</fileName><contentOfFile>col1,col2\nval1,val2</contentOfFile></AppendFile>: Append to a file. Use for adding rows to a CSV or large datasets. Params: <fileName>, <contentOfFile>, [<fromLineNumber>]
 - <ReplaceLine><fileName>data.txt</fileName><fromLine>10</fromLine><toLine>20</toLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s) in a file. Use for targeted edits instead of rewriting the whole file. Params: <fileName>, <fromLine> (required), [<toLine>] (optional, defaults to fromLine), <replacement>
+  **CRITICAL:**
+  - Use <replacement>, NEVER <content> or <contentOfFile>. Wrong parameter causes "Missing required parameter(s): replacement".
+  - Always ReadFile first to get correct line numbers (1-indexed).
+  - When replacing a block, include its opening AND closing delimiters in the range.
+  - After ReplaceLine, ReadFile to verify. Multi-line replacements shift later line numbers.
+
+  Examples:
+  Single line:
+  <ReplaceLine>
+    <fileName>config.py</fileName>
+    <fromLine>5</fromLine>
+    <replacement>DEBUG = True</replacement>
+  </ReplaceLine>
+
+  Multi-line block:
+  <ReplaceLine>
+    <fileName>app.py</fileName>
+    <fromLine>10</fromLine>
+    <toLine>15</toLine>
+    <replacement>def new_function():
+      print("new code")
+      return 42</replacement>
+  </ReplaceLine>
 - <CreateFile><fileName>data.json</fileName><contentOfFile>[...]</contentOfFile></CreateFile>: Create new file (fails if exists). Params: <fileName>, <contentOfFile>
 - <List><path>workout/</path></List>: List files in output directory. Params: [<path>] (optional)
 - <listTools/>: Show all tools. No params.

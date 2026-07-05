@@ -100,7 +100,30 @@ AVAILABLE TOOLS (use exact XML format):
 - <Grep><pattern>search</pattern><fileName>file.txt</fileName><recursive>true</recursive></Grep>: Search by regex.
 - <Diff><file1>a.txt</file1><file2>b.txt</file2></Diff>: Compare files.
 - <Sed><pattern>old</pattern><replacement>new</replacement><fileName>file.txt</fileName></Sed>: Find/replace.
-- <ReplaceLine><fileName>file.txt</fileName><fromLine>10</fromLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s).
+- <ReplaceLine><fileName>file.txt</fileName><fromLine>10</fromLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s). Use for targeted edits instead of rewriting the whole file.
+  **CRITICAL:**
+  - Use <replacement>, NEVER <content> or <contentOfFile>. Wrong parameter causes "Missing required parameter(s): replacement".
+  - Always ReadFile first to get correct line numbers (1-indexed).
+  - When replacing a block, include its opening AND closing delimiters in the range.
+  - After ReplaceLine, ReadFile to verify. Multi-line replacements shift later line numbers.
+
+  Examples:
+  Single line:
+  <ReplaceLine>
+    <fileName>config.py</fileName>
+    <fromLine>5</fromLine>
+    <replacement>DEBUG = True</replacement>
+  </ReplaceLine>
+
+  Multi-line block:
+  <ReplaceLine>
+    <fileName>app.py</fileName>
+    <fromLine>10</fromLine>
+    <toLine>15</toLine>
+    <replacement>def new_function():
+      print("new code")
+      return 42</replacement>
+  </ReplaceLine>
 - <Find><pattern>*.py</pattern><path>.</path></Find>: Find files by name.
 - <Head><fileName>file.txt</fileName><lines>10</lines></Head>: First N lines.
 - <Tail><fileName>file.txt</fileName><lines>10</lines></Tail>: Last N lines.

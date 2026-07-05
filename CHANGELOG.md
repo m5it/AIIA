@@ -33,3 +33,7 @@ Before any destructive history operation (summarize, clear, !CLEAR), the raw `.d
 **Also:** A tip `session_{sid}_cleared` is saved on clear operations, recording the archive filename and message count for model retrieval via `<GetTip>`.
 
 **Files:** `src/Handle.py`, `src/Commands.py`
+
+### Added: Expanded ReplaceLine examples in Developer persona (and all file-editing personas)
+
+Added concrete single-line and multi-line ReplaceLine examples to all personas that edit files: `instruct/Developer.py`, `instruct/SysAdmin.py`, `instruct/Researcher.py`, and `instruct/DataCollector.py`. The updated instructions explicitly show the most common model mistake (`<content>` vs `<replacement>`) and warn that multi-line replacements shift later line numbers.
