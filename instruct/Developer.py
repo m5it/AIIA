@@ -70,6 +70,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <TreeView><path>.</path><depth>3</depth></TreeView> - Show directory tree. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
 
 TOOL USAGE GUIDELINES:
+(NOTE: The writing/editing tools below — Terminal, WriteFile, AppendFile, ReplaceLine, etc. — are BUILD-mode only. In PLAN mode they will be rejected. Use only plan tools listed above.)
 - Terminal: Use ONLY for one-liner commands. For complex scripts or data processing, use WriteFile/CreateFile.
 - WriteFile / CreateFile: Use for content < 2048 bytes in one call, or when creating a file from scratch.
 - AppendFile: Use when content > 2048 bytes (write first chunk with WriteFile, then AppendFile for rest). Also use for adding new content to existing files — avoids rewriting the whole file.

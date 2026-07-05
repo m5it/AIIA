@@ -11,6 +11,11 @@ class ToolParser:
 	Parses AI responses for XML tool invocations and job_done tags
 	"""
 	_current_handle = None  # Set before tool.run() for tools that need handle access
+	_plan_blocked = {
+		'WriteFile', 'CreateFile', 'AppendFile', 'ReplaceLine', 'Sed',
+		'Sort', 'Terminal', 'ExecuteScript',
+		'WWW', 'WWWExec', 'WWWJS',
+	}
 	#--
 	def __init__(self, opts={}):
 		self.logger = opts['logger'] if 'logger' in opts else None
@@ -461,6 +466,15 @@ class ToolParser:
 							break
 					if blocked:
 						continue
+			#
+			# PLAN mode guard — block write/execute tools
+			if is_plan_mode and toolName in self._plan_blocked:
+				err = ("Error: {} cannot be used in PLAN mode. "
+					   "Switch to BUILD mode with !MODE build to use this tool."
+					   .format(toolName))
+				self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
+				self.handle.Response('tool', {'content': err, 'name': toolName})
+				continue
 			#
 			# Route to plan tools if in plan mode, or build tools (like LogProgress)
 			if (is_plan_mode and toolName in plan_tools) or (toolName in build_tools):

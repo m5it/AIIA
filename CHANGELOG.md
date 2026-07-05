@@ -38,6 +38,20 @@ The current mode (plan/build) is now saved to `mode.aiia` on every `!MODE` switc
 
 ### Added: Path sandbox guard — restrict file access to approved directories
 
+### Added: PLAN-mode tool guard — block write/execute tools
+
+New safety mechanism prevents the model from executing write/execute tools (`WriteFile`, `CreateFile`, `AppendFile`, `ReplaceLine`, `Sed`, `Sort`, `Terminal`, `ExecuteScript`, `WWW`, `WWWExec`, `WWWJS`) while in PLAN mode. If the model attempts any of these, an error is returned telling the user to switch to BUILD mode with `!MODE build`.
+
+**Plan-mode allowed tools:**
+- Plan management: `createPlan`, `createTask`, `updateTask`, `deleteTask`, `viewTask`, `listTasks`, `deletePlan`, `deleteDraft`, `deleteAllPlans`, `planDone`, `nextTask`, `jobDone`, `startBuild`, `LogProgress`
+- Read-only tools: `ReadFile`, `TreeView`, `List`, `Find`, `Head`, `Tail`, `Grep`, `Diff`
+- Info: `listTools`
+- Tips: `SaveTip`, `GetTip`, `ListTips`, `DeleteTip`, `ReinsertTip`
+
+The guard is positioned after the file size and path sandbox checks, before the routing to `HandlePlanTool`/`ExecuteTextTool`. Tools not in the blocked set pass through to normal execution.
+
+**Files:** `src/ToolParser.py`, `instruct/Developer.py`
+
 New security mechanism prevents the model from accessing files outside the working directory. A `PathApprover` class (`src/PathApprover.py`) manages per-project approvals, loaded from and saved to `PROJECT.md` in the working directory.
 
 **How it works:**
