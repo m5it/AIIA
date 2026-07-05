@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-07-05
+
+### Added: Persist MODE across sessions (`mode.aiia`)
+
+The current mode (plan/build) is now saved to `mode.aiia` on every `!MODE` switch and on clean exit. When continuing with `-c`, the saved mode is restored — no need to re-`!MODE build` after restart.
+
+**Save triggers:**
+- `!MODE plan|build` command — writes immediately
+- `cleanup()` on program exit — safety net for any mode switch not caught above
+
+**Restore:** `_load_continue_session()` reads `mode.aiia` and sets `Options['MODE']` before the mode-mismatch check, so persona instructions are selected correctly.
+
+**Factory reset:** `reset_to_factory()` writes `plan` to `mode.aiia`.
+
+**Files:** `config.py`, `src/Handle.py`, `src/Commands.py`, `run.py`, `.gitignore`
+
+### Added: Path sandbox guard — restrict file access to approved directories
+
+New security mechanism prevents the model from accessing files outside the working directory. A `PathApprover` class (`src/PathApprover.py`) manages per-project approvals, loaded from and saved to `PROJECT.md` in the working directory.
+
+**How it works:**
+- On startup, `Handle.py` creates a `PathApprover` with `working_dir` from config.
+- If no `PROJECT.md` exists, defaults to approving `.` (the entire working directory).
+- Before any file tool executes, `ToolParser.FireToolInvocation()` checks all path parameters against approved directories/files.
+- If a path is not approved, the tool returns an error with instructions to use `!PROJECT ADD DIR/FILE`.
+
+**15 guarded tools:** ReadFile, WriteFile, CreateFile, AppendFile, ReplaceLine, Grep, Sed, Head, Tail, Sort, Diff, TreeView, List, Find, ExecuteScript
+
+**`!PROJECT` command (`src/Commands.py`):**
+- `!PROJECT` — show current approvals
+- `!PROJECT ADD DIR <path>` — approve a directory
+- `!PROJECT ADD FILE <path>` — approve a specific file
+- `!PROJECT DENY <path>` — block a previously allowed path
+- `!PROJECT REMOVE DIR|FILE <path>` — remove an approval
+- `!PROJECT RESET` — reset to defaults (only working directory)
+
+**Files:** `config.py`, `src/PathApprover.py`, `src/Handle.py`, `src/ToolParser.py`, `src/Commands.py`
+
 ## 2026-07-04
 
 ### Fixed: `<think>` tag leaking into tool parser

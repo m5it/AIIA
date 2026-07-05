@@ -65,6 +65,16 @@ def reset_to_factory():
 	except Exception as e:
 		print("  Failed to reset sessid.aiia: {}".format(e))
 	#
+	# 1b. Mode file
+	mode_path = Options.get('AI_FILE_MODE', 'mode.aiia')
+	try:
+		with open(mode_path, 'w') as f:
+			f.write('plan')
+		print("  Reset mode file        -> mode.aiia = plan")
+		removed += 1
+	except Exception as e:
+		print("  Failed to reset mode.aiia: {}".format(e))
+	#
 	# 2. History directory
 	history_dir = os.path.join(Options.get('path', ''), Options.get('history_path', 'history'))
 	if os.path.isdir(history_dir):
@@ -181,6 +191,10 @@ def cleanup():
 		Run(True)
 		return False
 	print("cleanup() QUITING")
+	# Save current mode for -c continuation
+	mode_file = Options.get('AI_FILE_MODE')
+	if mode_file:
+		fwrite(mode_file, Options.get('MODE', 'plan'), True)
 	return True
 #
 def handle_exception(exc_type, exc_value, exc_traceback):

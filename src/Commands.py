@@ -236,6 +236,13 @@ class Commands():
 			"usage"      :"!CACHE_CLEAR",
 			"func"       :self.CMD_CACHE_CLEAR,
 		},
+		"PROJECT":{
+			"name"       :"Project",
+			"description":"View or modify project path approvals (directories/files the model can access).",
+			"regex"      :r"^!PROJECT(\s+(ADD|DENY|REMOVE|RESET)(\s+(DIR|FILE))?\s*.+)?$",
+			"usage"      :"!PROJECT [ADD DIR|FILE <path>] [DENY <path>] [REMOVE DIR|FILE <path>] [RESET]",
+			"func"       :self.CMD_PROJECT,
+		},
 		"HELP":{
 				"name"       :"Help",
 				"description":"Display of available actions.",
@@ -401,6 +408,68 @@ class Commands():
 		for k in self.handle.Options:
 			print("{} => {}".format( k, self.handle.Options[ k ] ))
 		return 2 # as continue
+	#
+	def CMD_PROJECT(self, inp=""):
+		"""!PROJECT — view or modify project path approvals"""
+		pa = self.handle.Options.get('path_approver')
+		if not pa:
+			print("No path approver configured.")
+			return 2
+		parts = inp.strip().split()
+		if len(parts) < 2:
+			print("Project Path Approvals:")
+			print("  Working dir:", pa.working_dir)
+			print("  Approved dirs: {}".format(sorted(pa.approved_dirs) if pa.approved_dirs else "(none - defaults to .)"))
+			print("  Approved files: {}".format(sorted(pa.approved_files) if pa.approved_files else "(none)"))
+			print("  Denied paths: {}".format(sorted(pa.denied_paths) if pa.denied_paths else "(none)"))
+			return 2
+		action = parts[1].upper()
+		if action == 'ADD' and len(parts) >= 4:
+			kind = parts[2].upper()
+			path = ' '.join(parts[3:])
+			if kind == 'DIR':
+				pa.add_dir(path)
+				pa.save()
+				print("Approved directory '{}'".format(path))
+			elif kind == 'FILE':
+				pa.add_file(path)
+				pa.save()
+				print("Approved file '{}'".format(path))
+			else:
+				print("Usage: !PROJECT ADD DIR <path> or !PROJECT ADD FILE <path>")
+		elif action == 'DENY' and len(parts) >= 3:
+			path = ' '.join(parts[2:])
+			pa.deny(path)
+			pa.save()
+			print("Denied path '{}'".format(path))
+		elif action == 'REMOVE' and len(parts) >= 4:
+			kind = parts[2].upper()
+			path = ' '.join(parts[3:])
+			if kind == 'DIR':
+				pa.approved_dirs.discard(path)
+				pa.save()
+				print("Removed approved directory '{}'".format(path))
+			elif kind == 'FILE':
+				pa.approved_files.discard(path)
+				pa.save()
+				print("Removed approved file '{}'".format(path))
+			else:
+				print("Usage: !PROJECT REMOVE DIR <path> or !PROJECT REMOVE FILE <path>")
+		elif action == 'RESET':
+			pa.approved_dirs = {'.'}
+			pa.approved_files = set()
+			pa.denied_paths = set()
+			pa.save()
+			print("Path approvals reset to default (only working directory).")
+		else:
+			print("Unknown command. Usage:")
+			print("  !PROJECT — show current approvals")
+			print("  !PROJECT ADD DIR <path> — approve a directory")
+			print("  !PROJECT ADD FILE <path> — approve a file")
+			print("  !PROJECT DENY <path> — block a path")
+			print("  !PROJECT REMOVE DIR|FILE <path> — remove an approval")
+			print("  !PROJECT RESET — reset to defaults")
+		return 2
 	#
 	def CMD_ACTION_OPTION_SAVE(self,inp=""):
 		print("CMD_ACTION_OPTION_SAVE() START!")
@@ -678,6 +747,11 @@ class Commands():
 			if PlanBase.draft and len(PlanBase.draft.tasks) > 0:
 				ret = 5  # startBuild signal
 				print("Plan has {} tasks. Starting build...".format(len(PlanBase.draft.tasks)))
+			
+		# Persist mode to file
+		mode_file = self.handle.Options.get('AI_FILE_MODE')
+		if mode_file:
+			fwrite(mode_file, new_mode, True)
 			
 		#--
 		# Update System message with new mode!

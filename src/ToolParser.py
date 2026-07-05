@@ -427,6 +427,41 @@ class ToolParser:
 					self.handle.Response('tool', {'content': err, 'name': toolName})
 					continue
 			#
+			# Path sandbox guard — restrict file access to approved directories
+			_path_approver = self.handle.Options.get('path_approver')
+			if _path_approver:
+				_path_tools = {
+					'ReadFile': ['fileName'],
+					'WriteFile': ['fileName'],
+					'CreateFile': ['fileName'],
+					'AppendFile': ['fileName'],
+					'ReplaceLine': ['fileName'],
+					'Grep': ['fileName'],
+					'Sed': ['fileName'],
+					'Head': ['fileName'],
+					'Tail': ['fileName'],
+					'Sort': ['fileName'],
+					'Diff': ['file1', 'file2'],
+					'TreeView': ['path'],
+					'List': ['path'],
+					'Find': ['path'],
+					'ExecuteScript': ['fileName'],
+				}
+				if toolName in _path_tools:
+					blocked = False
+					for param in _path_tools[toolName]:
+						raw = params.get(param, '')
+						if raw and not _path_approver.is_allowed(raw):
+							err = ("Error: {} param '{}' = '{}' is not in the approved paths. "
+								   "Use !PROJECT ADD DIR <dir> or !PROJECT ADD FILE <file> to approve it."
+								   .format(toolName, param, raw))
+							self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
+							self.handle.Response('tool', {'content': err, 'name': toolName})
+							blocked = True
+							break
+					if blocked:
+						continue
+			#
 			# Route to plan tools if in plan mode, or build tools (like LogProgress)
 			if (is_plan_mode and toolName in plan_tools) or (toolName in build_tools):
 				result = self.HandlePlanTool(toolName, params)

@@ -7,6 +7,7 @@ from src.HistoryManager import HistoryManager
 from src.Log import Log
 from src.PlanManager import PlanBase, Plan, PlanTask
 from src.PlanSaver import PlanSaver
+from src.PathApprover import PathApprover
 #
 class Handle():
 	#
@@ -38,6 +39,10 @@ class Handle():
 		tools_path = self.Options.get('tools_path', '')
 		if tools_path and tools_path not in sys.path:
 			sys.path.append(tools_path.rstrip('/'))
+		
+		# Initialize path approver for project sandboxing
+		self.hPA = PathApprover(working_dir=self.Options.get('working_dir'))
+		self.Options['path_approver'] = self.hPA
 		
 		self.hPM     = PlanBase
 		self.tool_iteration = 0
@@ -90,6 +95,15 @@ class Handle():
 		
 		if not working_dir or working_dir == framework_dir:
 			working_dir = None
+
+		# Restore saved MODE from mode.aiia
+		mode_file = self.Options.get('AI_FILE_MODE')
+		if mode_file and os.path.exists(mode_file):
+			saved_mode = fread(mode_file)
+			if saved_mode and saved_mode.strip() in ('plan', 'build'):
+				self.Options['MODE'] = saved_mode.strip()
+				self.hLG.echo("Restored MODE: {}".format(saved_mode.strip()),
+					{'color': True, 'colorValue': 'green'})
 		
 		# Load plan from PLAN.md
 		plan_data = PlanSaver.load_plan(working_dir, framework_dir)
@@ -750,17 +764,17 @@ class Handle():
 		if not pending:
 			return False
 
-		res = PlanBase.draft.nextTask()
+		res = PlanBase.draft.nextTask(self)
 		if not res or res.get('done'):
 			return False
 
-		next_instruction = res.get('next_task_instruction', '')
+		next_instruction = res.get('next_task_instruction') or '(continue with the plan)'
 		total = len(PlanBase.draft.tasks)
 		completed = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'completed')
 		in_progress = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'in_progress')
 		task_number = completed + in_progress
 
-		msg = "continue task {} / {}...\n\nYour task:\n{}".format(task_number, total, next_instruction)
+		msg = "continue task {} / {}...\n{}".format(task_number, total, next_instruction)
 		self.Response('user', {'content': msg})
 		self.hLG.echo("Auto-continue: task {}/{}".format(task_number, total),
 			{'color': True, 'colorValue': 'green', 'debugOnly': False})
