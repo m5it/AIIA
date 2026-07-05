@@ -849,6 +849,7 @@ class Handle():
 				# No more tool calls
 				# Auto-continue to next task if model did work this turn
 				if _tools_were_called and self._try_auto_continue():
+					_tools_were_called = False
 					continue
 				if opt_return_object:
 					return result['response']

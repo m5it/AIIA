@@ -38,9 +38,16 @@ Before any destructive history operation (summarize, clear, !CLEAR), the raw `.d
 
 Added concrete single-line and multi-line ReplaceLine examples to all personas that edit files: `instruct/Developer.py`, `instruct/SysAdmin.py`, `instruct/Researcher.py`, and `instruct/DataCollector.py`. The updated instructions explicitly show the most common model mistake (`<content>` vs `<replacement>`) and warn that multi-line replacements shift later line numbers.
 
-### Updated: DataCollector persona plan workflow
+### Rewritten: DataCollector persona — `plan()` and `build()` overhaul
 
-Added a structured `PLAN WORKFLOW` section to `instruct/DataCollector.py` so the model knows to create a plan and tasks before starting the data collection workout. Also added a full `PLAN MANAGEMENT TOOLS` reference (createPlan, createTask, planDone, nextTask, LogProgress, jobDone, etc.) to both `plan()` and `build()` methods, and removed the per-turn `workout/dataset_log.jsonl` logging rule that caused runaway file growth.
+**`plan()`**: Removed hardcoded `<createTask>` XML (12 identical categories every session). Now describes categories as guidance — the model creates tasks dynamically with its own titles/instructions. Added `<planDone/>` instruction so model signals when planning is complete.
+
+**`build()`**: 
+- Removed confusing PLAN WORKFLOW section (told model to `createPlan`/`createTask` in BUILD mode, where plan already exists).
+- Added **AUTO-CONTINUE** section explaining the system auto-advances after tool-based work — model doesn't need `<nextTask>` unless blocked.
+- Added **SAFETY** section with 2MB file size limit and AppendFile+ReadFile corruption warning (46GB and 7.3GB historical incidents).
+- Truncated redundant category descriptions (kept concise bullet lists).
+- Kept full tool reference with correct parameter names, ReplaceLine critical notes/examples, PLAN MANAGEMENT TOOLS, and TOOL USAGE RULES.
 
 **Files:** `instruct/DataCollector.py`
 
