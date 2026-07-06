@@ -7,7 +7,7 @@ Options         = {
 	#
 	"DEBUG"               :False, # print A lot of Additional informations
 	"QUIET"               :False, # quite all prints and show only result. (used with -Y)
-	"VERSION"             :0.5,
+	"VERSION"             :0.6,
 	"VERSION_NAME"        :"OurAI Agent",
 	#
 	"SPEAK"               :True,
