@@ -143,6 +143,22 @@ class Handle():
 				if self.hHM.msgs:
 					last_row = max((m.get('rowId', 0) for m in self.hHM.msgs), default=0)
 					self.Options['AI_ROW_ID'] = last_row + 1
+				# Recalculate token counts from loaded history
+				total_prompt = total_response = 0
+				last_prompt = last_response = 0
+				for m in self.hHM.msgs:
+					if m.get('role') == 'assistant':
+						pt = m.get('prompt_tokens', 0)
+						rt = m.get('response_tokens', 0)
+						total_prompt += pt
+						total_response += rt
+						if pt or rt:
+							last_prompt = pt
+							last_response = rt
+				self.Options['NUM_PROMPT_TOKENS'] = total_prompt
+				self.Options['NUM_RESPONSE_TOKENS'] = total_response
+				self.Options['NUM_LAST_PROMPT_TOKENS'] = last_prompt
+				self.Options['NUM_LAST_RESPONSE_TOKENS'] = last_response
 				
 				# Check if loaded system messages match current mode instructions.
 				# If mode changed (different persona or plan↔build), inject fresh
@@ -195,7 +211,18 @@ class Handle():
 		# Append images (base64 strings for vision models)
 		if opt_images and self.Options.get('AI_VISION_ENABLED', True):
 			obj['images'] = opt_images
-		
+
+		# Embed token counts in the message (before writing to disk)
+		if role == 'assistant':
+			prompt_tokens = opts.get('prompt_tokens', 0)
+			response_tokens = opts.get('response_tokens', 0)
+			obj['prompt_tokens'] = prompt_tokens
+			obj['response_tokens'] = response_tokens
+			self.Options['NUM_LAST_PROMPT_TOKENS'] = prompt_tokens
+			self.Options['NUM_LAST_RESPONSE_TOKENS'] = response_tokens
+			self.Options['NUM_PROMPT_TOKENS'] = self.Options.get('NUM_PROMPT_TOKENS', 0) + prompt_tokens
+			self.Options['NUM_RESPONSE_TOKENS'] = self.Options.get('NUM_RESPONSE_TOKENS', 0) + response_tokens
+
 		#
 		if opt_return_object:
 			return obj
@@ -212,14 +239,6 @@ class Handle():
 		
 		# Append to chat history. (All data of session)
 		self.hHM.msgs.append( obj )
-		# Track token counts (only for 'assistant' responses)
-		if role == 'assistant':
-			prompt_tokens = opts.get('prompt_tokens', 0)
-			response_tokens = opts.get('response_tokens', 0)
-			self.Options['NUM_LAST_PROMPT_TOKENS'] = prompt_tokens
-			self.Options['NUM_LAST_RESPONSE_TOKENS'] = response_tokens
-			self.Options['NUM_PROMPT_TOKENS'] = self.Options.get('NUM_PROMPT_TOKENS', 0) + prompt_tokens
-			self.Options['NUM_RESPONSE_TOKENS'] = self.Options.get('NUM_RESPONSE_TOKENS', 0) + response_tokens
 		return True
 	
 	#
