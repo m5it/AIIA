@@ -65,6 +65,8 @@ AVAILABLE TOOLS (use exact XML format):
 - <createTask><title>Task Title</title><instruction>Detailed step-by-step instruction for the model to follow when executing this task</instruction></createTask> - Add tasks AFTER creating plan
 - <updateTask><id>taskId</id><status>pending|completed|blocked</status></updateTask> - Update task status
 - <deleteTask><id>taskId</id></deleteTask> - Remove a task
+- <clearAllTasks/> - Remove ALL tasks from the current plan
+- <cancelPlan/> - Cancel and delete the current plan entirely
 - <viewTask/> or <viewTask><id>taskId</id></viewTask> - View plan or specific task
 - <listTasks/> - List all tasks in current plan
 - <TreeView><path>.</path><depth>3</depth></TreeView> - Show directory tree. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
@@ -203,7 +205,9 @@ PLAN MANAGEMENT TOOLS (use these to track progress):
 - <createPlan><title>Plan Title</title><instructions>Goal description</instructions></createPlan> - Create a new plan (replaces current). Use when current plan needs full replacement.
 - <createTask><title>Task Title</title><instruction>What to do</instruction></createTask> - Add a new task to the current plan. Always create a plan first.
 - <updateTask><taskId>id</taskId><title>New Title</title><instruction>New instruction</instruction></updateTask> - Update a task's title and/or instruction.
-- <deleteTask><taskId>id</taskId></deleteTask> - Remove a task from the current plan.
+- <deleteTask><id>taskId</id></deleteTask> - Remove a specific task from the current plan.
+- <clearAllTasks/> - Remove ALL tasks from the current plan (keeps the plan itself).
+- <cancelPlan/> - Cancel and delete the current plan entirely (same as deletePlan).
 - <deletePlan/> - Delete the current plan entirely.
 - <deleteDraft/> - Delete the unsaved draft plan.
 - <deleteAllPlans/> - Delete all plans.

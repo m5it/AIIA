@@ -132,9 +132,9 @@ class Commands():
 		},
 		"PLAN":{
 			"name"       :"Plan",
-			"description":"View current plan status, tasks, and progress.",
-			"regex"      :r"^!PLAN(\s+[A-Z]+)?(\s+[\d]+)?$",
-			"usage"      :"!PLAN [PREVIEW|VIEW|TASKS|STATUS] [task_id]",
+			"description":"View or modify plan status. Use CLEAR/DELETE/RESET to remove plans.",
+			"regex"      :r"^!PLAN(\s+[A-Za-z]+)?(\s+[\d\.]+)?$",
+			"usage"      :"!PLAN [PREVIEW|VIEW|TASKS|STATUS|CLEAR|DELETE|RESET] [task_id]",
 			"func"       :self.CMD_PLAN,
 		},
 		"START_BUILD":{
@@ -793,12 +793,33 @@ class Commands():
 			else:
 				print("\nNo active plan.")
 
+		elif action == 'CLEAR':
+			if PlanBase.draft:
+				count = len(PlanBase.draft.tasks)
+				PlanBase.draft.tasks = {}
+				PlanBase.draft.save(plans_path)
+				print("Cleared {} tasks from current plan.".format(count))
+			else:
+				print("No active plan.")
+
+		elif action == 'DELETE' or action == 'RESET':
+			if PlanBase.draft:
+				plan_id = PlanBase.draft.id
+				PlanBase.draft = None
+				PlanBase.Delete(plan_id, plans_path)
+				print("Plan {} deleted.".format(plan_id))
+			else:
+				print("No active plan.")
+
 		else:
-			print("\nUsage: !PLAN [PREVIEW|VIEW|TASKS|STATUS]")
+			print("\nUsage: !PLAN [PREVIEW|VIEW|TASKS|STATUS|CLEAR|DELETE|RESET]")
 			print("  PREVIEW  - Show plan overview (default)")
 			print("  VIEW     - Show all tasks with details")
 			print("  TASKS    - Same as VIEW")
 			print("  STATUS   - Show quick status")
+			print("  CLEAR    - Remove all tasks from current plan")
+			print("  DELETE   - Delete current plan entirely")
+			print("  RESET    - Same as DELETE")
 
 		return 2
 

@@ -44,7 +44,9 @@ PLAN MANAGEMENT TOOLS (use exact XML format):
 - <viewTask/> - View current plan and tasks.
 - <listTasks/> - List all tasks.
 - <updateTask><taskId>id</taskId><title>...</title><instruction>...</instruction></updateTask> - Update a task.
-- <deleteTask><taskId>id</taskId></deleteTask> - Remove a task.
+- <deleteTask><id>taskId</id></deleteTask> - Remove a specific task.
+- <clearAllTasks/> - Remove ALL tasks from the current plan.
+- <cancelPlan/> - Cancel and delete the current plan entirely.
 - <deletePlan/> - Delete the current plan.
 - <deleteDraft/> - Delete the unsaved draft plan.
 - <deleteAllPlans/> - Delete all plans.
@@ -188,8 +190,10 @@ PLAN MANAGEMENT TOOLS (use exact XML format):
 - <viewTask/> - View current plan and tasks.
 - <listTasks/> - List all tasks.
 - <jobDone/> - Finish the plan when all tasks are done.
-- <updateTask><taskId>id</taskId><title>New Title</title><instruction>New instruction</instruction></updateTask> - Update a task.
-- <deleteTask><taskId>id</taskId></deleteTask> - Remove a task.
+	- <updateTask><taskId>id</taskId><title>New Title</title><instruction>New instruction</instruction></updateTask> - Update a task.
+- <deleteTask><id>taskId</id></deleteTask> - Remove a specific task.
+- <clearAllTasks/> - Remove ALL tasks from the current plan.
+- <cancelPlan/> - Cancel and delete the current plan entirely.
 - <deletePlan/> - Delete the current plan.
 - <deleteDraft/> - Delete the unsaved draft plan.
 - <deleteAllPlans/> - Delete all plans.

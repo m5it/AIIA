@@ -573,7 +573,10 @@ class ToolParser:
 			if task_id and PlanBase.draft:
 				task = PlanBase.draft.tasks.get(task_id)
 				if task:
-					return str(task.delete())
+					result = task.delete()
+					del PlanBase.draft.tasks[task_id]
+					PlanBase.draft.save(plans_path)
+					return str(result)
 			return "Error: task id required or no active plan"
 
 		elif toolName == 'deletePlan':
@@ -605,6 +608,26 @@ class ToolParser:
 			PlanBase.draft = None
 			PlanBase.Delete(plan_id, plans_path)
 			return "Draft plan {} deleted".format(plan_id)
+
+		elif toolName == 'clearAllTasks':
+			if PlanBase.draft:
+				count = len(PlanBase.draft.tasks)
+				PlanBase.draft.tasks = {}
+				PlanBase.draft.save(plans_path)
+				return "Cleared {} tasks from current plan".format(count)
+			return "No active plan"
+
+		elif toolName == 'cancelPlan':
+			plan_id = params.get('id')
+			if plan_id:
+				PlanBase.Delete(plan_id, plans_path)
+				return "Plan {} cancelled and deleted".format(plan_id)
+			if PlanBase.draft:
+				plan_id = PlanBase.draft.id
+				PlanBase.draft = None
+				PlanBase.Delete(plan_id, plans_path)
+				return "Current plan cancelled and deleted"
+			return "No active plan to cancel"
 
 		elif toolName == 'deleteAllPlans':
 			import os

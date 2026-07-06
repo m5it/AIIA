@@ -167,7 +167,9 @@ PLAN MANAGEMENT TOOLS:
 - <createPlan><title>Plan Title</title><instructions>Goal description</instructions></createPlan> - Create a new plan (replaces current). Use when current plan needs full replacement.
 - <createTask><title>Task Title</title><instruction>What to do</instruction></createTask> - Add a new task to the current plan. Always create a plan first.
 - <updateTask><taskId>id</taskId><title>New Title</title><instruction>New instruction</instruction></updateTask> - Update a task's title and/or instruction.
-- <deleteTask><taskId>id</taskId></deleteTask> - Remove a task from the current plan.
+- <deleteTask><id>taskId</id></deleteTask> - Remove a specific task
+- <clearAllTasks/> - Remove ALL tasks from the current plan
+- <cancelPlan/> - Cancel and delete the current plan entirely from the current plan.
 - <deletePlan/> - Delete the current plan entirely.
 - <deleteDraft/> - Delete the unsaved draft plan.
 - <deleteAllPlans/> - Delete all plans.

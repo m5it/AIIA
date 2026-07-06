@@ -1,4 +1,4 @@
-import os, json, time
+import os, json, time, re
 from datetime import datetime
 
 class PlanSaver:
@@ -38,12 +38,6 @@ class PlanSaver:
 		
 		content += "---\n\n"
 		
-		# Prepend to file (newest first)
-		if os.path.exists(file_path):
-			with open(file_path, 'r') as f:
-				existing = f.read()
-			content = content + existing
-		
 		with open(file_path, 'w') as f:
 			f.write(content)
 	
@@ -65,6 +59,7 @@ class PlanSaver:
 		# Truncate long content for preview
 		if len(content) > 500:
 			display = content[:500] + "...\n(truncated, {} chars total)".format(len(content))
+			display = PlanSaver._close_unclosed_tags(display, content)
 		else:
 			display = content
 		
@@ -98,6 +93,29 @@ class PlanSaver:
 		if working_dir:
 			history_file = os.path.join(working_dir, 'HISTORY.md')
 			PlanSaver.save_history_to_file(msg, history_file)
+	
+	@staticmethod
+	def _close_unclosed_tags(display, full_content):
+		"""Append missing closing XML tags when truncation cuts inside a tag tree."""
+		trunc_msg = "...\n(truncated,"
+		trunc_idx = display.find(trunc_msg)
+		truncated_content = display[:trunc_idx] if trunc_idx >= 0 else display
+
+		stack = []
+		for m in re.finditer(r'</?([A-Za-z]\w*?)(?:\s[^>]*?)?>', truncated_content):
+			tag = m.group(1)
+			if m.group(0).startswith('</'):
+				if stack and stack[-1] == tag:
+					stack.pop()
+			elif not m.group(0).endswith('/>'):
+				stack.append(tag)
+
+		remaining = full_content[len(truncated_content):]
+		result = display
+		for tag in reversed(stack):
+			if re.search(r'</' + re.escape(tag) + r'>', remaining):
+				result += '\n</' + tag + '>'
+		return result
 	
 	@staticmethod
 	def load_plan_from_file(file_path):

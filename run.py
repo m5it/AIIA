@@ -217,8 +217,91 @@ atexit.register(cleanup)
 sys.excepthook = handle_exception
 
 #
+def _list_personas():
+	"""Scan instruct/ directory and return list of persona class names (sorted)."""
+	import os
+	cls_path = Options.get('INSTRUCT_PATH', 'instruct')
+	base_path = Options.get('path', '')
+	instruct_dir = "{}{}".format(base_path, cls_path)
+	result = []
+	if os.path.isdir(instruct_dir):
+		for f in sorted(os.listdir(instruct_dir)):
+			if f.endswith('.py') and f != '__init__.py':
+				result.append(f[:-3])
+	return result
+
+def _resolve_persona(value):
+	"""If value is a numeric index, resolve it to persona class name."""
+	personas = _list_personas()
+	try:
+		idx = int(value)
+		if 0 <= idx < len(personas):
+			return personas[idx]
+	except (ValueError, IndexError):
+		pass
+	return value
+
+def _preparse_server_flags(argv):
+	"""Extract server-relevant flags from argv for -S/--server mode.
+	This runs before full getopt parsing because -S triggers early exit."""
+	i = 0
+	while i < len(argv):
+		a = argv[i]
+		# Handle --long=value form
+		value = None
+		if a.startswith('--') and '=' in a:
+			eq = a.index('=')
+			value = a[eq + 1:]
+			a = a[:eq]
+		if a in ('-p', '--persona'):
+			if value is None and i + 1 < len(argv) and not argv[i + 1].startswith('-'):
+				value = argv[i + 1]
+				i += 1
+			if value is not None:
+				Options['INSTRUCT_CLASS'] = _resolve_persona(value)
+				Options['INSTRUCT_CLASS_OVERRIDE'] = True
+		elif a in ('-P', '--prompt'):
+			if value is None and i + 1 < len(argv):
+				value = argv[i + 1]
+				i += 1
+			if value is not None:
+				Options['AI_SYSTEM_MESSAGE'] = value
+		elif a in ('-m', '--model'):
+			if value is None and i + 1 < len(argv) and not argv[i + 1].startswith('-'):
+				value = argv[i + 1]
+				i += 1
+			if value is not None:
+				Options['AI_MODEL'] = value
+		elif a == '-T' or a == '--temperature':
+			if value is None and i + 1 < len(argv) and not argv[i + 1].startswith('-'):
+				value = argv[i + 1]
+				i += 1
+			if value is not None:
+				try:
+					Options['AI_OPTIONS']['temperature'] = float(value)
+				except ValueError:
+					pass
+		elif a in ('-Q', '--quick'):
+			Options['AI_QUICK'] = True
+		elif a in ('-d', '--debug'):
+			Options['DEBUG'] = True
+		elif a in ('-M', '--memory_specific'):
+			if value is None and i + 1 < len(argv) and not argv[i + 1].startswith('-'):
+				value = argv[i + 1]
+				i += 1
+			if value is not None:
+				try:
+					Options['AI_MEMORY_SPECIFIC'] = int(value)
+				except ValueError:
+					pass
+		i += 1
+
+#
 def Main(argv):
 	global Options, hHA
+	#
+	# Pre-parse server-relevant flags before subcommand routing
+	_preparse_server_flags(argv)
 	#
 	# Subcommand routing: ourai --orchestra [args...] or ourai --worker [args...]
 	if '--orchestra' in argv:
@@ -308,7 +391,7 @@ def Main(argv):
 		elif opt=="-P" or opt=="--prompt":
 			Options['AI_SYSTEM_MESSAGE'] = arg
 		elif opt=="-p" or opt=="--persona":
-			Options['INSTRUCT_CLASS'] = arg
+			Options['INSTRUCT_CLASS'] = _resolve_persona(arg)
 			Options['INSTRUCT_CLASS_OVERRIDE'] = True
 	#
 	# Auto-detect project directory from CWD
