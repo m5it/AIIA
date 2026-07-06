@@ -283,7 +283,24 @@ class Handle():
 			stream_error = response['error']
 			if stream_error:
 				self.hLG.echo("Stream error: {}".format(stream_error), {'color':True, 'colorValue':'red','debugOnly':False,})
-		
+
+		# Early abort from Stream() — skip tool invocation detection
+		early_abort = response.get('early_abort')
+		if early_abort:
+			self.hLG.echo("Stream aborted: {}".format(early_abort),
+				{'color':True, 'colorValue':'red','debugOnly':False})
+			self.Response('assistant',{
+				'content': response.get('content', ''),
+				'thinking': response.get('thinking', ''),
+				'skip_history': opt_skip_history,
+				'prompt_tokens': response.get('prompt_tokens', 0),
+				'response_tokens': response.get('response_tokens', 0),
+			})
+			self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
+			if opt_return_object:
+				return {'invocations': [], 'response': response.get('content', ''), 'stream_error': stream_error }
+			return True
+
 		# Strip <think>...</think> from content — the model may include these
 		# in its content field (separate from native thinking API).  Stripping
 		# early prevents spurious tool detection, hash mismatches, and history
@@ -440,6 +457,7 @@ class Handle():
 		if_thinking      = False
 		if_speaking      = False
 		last_chunk       = None
+		abort_reason     = None
 		#
 		try:
 			for chunk in res:
@@ -473,6 +491,14 @@ class Handle():
 					#
 					part = chunk.message.content
 					response += part
+					# Early abort: detect misguided tool calls mid-stream
+					abort_reason = self._check_stream_abort(response)
+					if abort_reason:
+						self.hLG.echo("\n[Aborted: {}]".format(abort_reason),
+							{'color':True, 'colorValue':'red','debugOnly':False})
+						if stream_callback:
+							stream_callback({'type':'abort','reason':abort_reason})
+						break
 					if stream_callback:
 						stream_callback({'type':'token','text':part})
 					self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
@@ -484,9 +510,30 @@ class Handle():
 				response_tokens = last_chunk.eval_count or 0
 		except Exception as e:
 			self.hLG.echo("Stream error: {}".format(str(e)), {'color':True, 'colorValue':'red','debugOnly':False,})
-			return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':0, 'response_tokens':0, 'error':str(e)}
-		return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':prompt_tokens, 'response_tokens':response_tokens}
-	
+			return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':0, 'response_tokens':0, 'error':str(e), 'early_abort':abort_reason}
+		return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':prompt_tokens, 'response_tokens':response_tokens, 'early_abort':abort_reason}
+
+	def _check_stream_abort(self, partial_response):
+		"""Check if the partial response contains a tool invocation that should
+		be aborted early. Returns a reason string or None."""
+		mode = self.Options.get('MODE', '')
+
+		# In PLAN mode, abort on opening tag of blocked execution tools
+		if mode == 'plan':
+			for m in re.finditer(r'<(\w+)[\s>]', partial_response):
+				name = m.group(1)
+				if name in ToolParser._plan_blocked:
+					return "'{}' cannot be used in PLAN mode".format(name)
+
+		# Any mode: abort on complete unknown tool invocation
+		known = self.hTP.get_known_tools()
+		for m in re.finditer(r'<(\w+)>.*?</\1>', partial_response, re.DOTALL):
+			name = m.group(1)
+			if name not in known:
+				return "unknown tool '{}'".format(name)
+
+		return None
+
 	#
 	def You(self, data=None, opts=None):
 		if opts is None:
