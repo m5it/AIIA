@@ -21,6 +21,7 @@ Options         = {
 	"AI_FILE_SESSID"      :"{}/sessid.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_MODE"        :"{}/mode.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_USED_MODELS" :"{}/used_models.aiia".format(os.path.dirname(os.path.abspath(__file__))),
+	"AI_FILE_TOKENS"      :"{}/tokens.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_HISTORY"     :"history.aiia", # auto generated from AI_SESS_ID
 	"AI_FILE_LOAD_HISTORY":False,
 	"AI_SESS_ID"          :0,

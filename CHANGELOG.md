@@ -2,6 +2,18 @@
 
 ## 2026-07-06
 
+### Fixed: Token counts reset to zero on `-c` continue
+
+Token counts (`NUM_PROMPT_TOKENS`, `NUM_RESPONSE_TOKENS`, `NUM_LAST_*`) were never persisted to disk. On `-c` continue, a fresh process loaded history messages but had no way to recover the accumulated counts, so `!STATS` always showed zero.
+
+**Two mechanisms added:**
+
+1. **Per-message persistence** — Each assistant message now stores its `prompt_tokens` and `response_tokens` in the message dict before it's written to history. On continue, the recalculation loop sums up per-message values from all loaded assistant messages. This is the primary recovery path for sessions started after this change.
+
+2. **`tokens.aiia` file** — Cumulative token counts are saved to `tokens.aiia` after every assistant response. On continue, if the per-message scan finds no data (old history files predating this change), it falls back to loading from `tokens.aiia`. This ensures existing sessions also get correct counts after their first continue restart.
+
+**Files:** `config.py`, `src/Handle.py`, `.gitignore`, `CHANGELOG.md`
+
 ### Added: Image/vision support — ReadImage, ImageTransform, MediaAnalyst persona
 
 New image analysis pipeline:

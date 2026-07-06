@@ -159,6 +159,9 @@ class Handle():
 				self.Options['NUM_RESPONSE_TOKENS'] = total_response
 				self.Options['NUM_LAST_PROMPT_TOKENS'] = last_prompt
 				self.Options['NUM_LAST_RESPONSE_TOKENS'] = last_response
+				# Fallback: if per-message scan found nothing (old history), load tokens.aiia
+				if total_prompt == 0 and total_response == 0:
+					self._load_token_totals()
 				
 				# Check if loaded system messages match current mode instructions.
 				# If mode changed (different persona or plan↔build), inject fresh
@@ -222,6 +225,7 @@ class Handle():
 			self.Options['NUM_LAST_RESPONSE_TOKENS'] = response_tokens
 			self.Options['NUM_PROMPT_TOKENS'] = self.Options.get('NUM_PROMPT_TOKENS', 0) + prompt_tokens
 			self.Options['NUM_RESPONSE_TOKENS'] = self.Options.get('NUM_RESPONSE_TOKENS', 0) + response_tokens
+			self._save_token_totals()
 
 		#
 		if opt_return_object:
@@ -717,6 +721,39 @@ class Handle():
 				fwrite(path, json.dumps(models), True)
 			except Exception as e:
 				self.hLG.echo("Failed to save used models: {}".format(e),
+					{'color': True, 'colorValue': 'red'})
+
+	def _save_token_totals(self):
+		"""Persist cumulative token counts to tokens.aiia for recovery on -c."""
+		path = self.Options.get('AI_FILE_TOKENS')
+		if path:
+			try:
+				data = {
+					'NUM_PROMPT_TOKENS': self.Options.get('NUM_PROMPT_TOKENS', 0),
+					'NUM_RESPONSE_TOKENS': self.Options.get('NUM_RESPONSE_TOKENS', 0),
+					'NUM_LAST_PROMPT_TOKENS': self.Options.get('NUM_LAST_PROMPT_TOKENS', 0),
+					'NUM_LAST_RESPONSE_TOKENS': self.Options.get('NUM_LAST_RESPONSE_TOKENS', 0),
+				}
+				fwrite(path, json.dumps(data), True)
+			except Exception as e:
+				self.hLG.echo("Failed to save token totals: {}".format(e),
+					{'color': True, 'colorValue': 'red'})
+
+	def _load_token_totals(self):
+		"""Restore cumulative token counts from tokens.aiia (fallback for old history)."""
+		path = self.Options.get('AI_FILE_TOKENS')
+		if path and os.path.exists(path):
+			try:
+				raw = fread(path)
+				data = json.loads(raw)
+				for key in ('NUM_PROMPT_TOKENS', 'NUM_RESPONSE_TOKENS',
+				            'NUM_LAST_PROMPT_TOKENS', 'NUM_LAST_RESPONSE_TOKENS'):
+					if key in data:
+						self.Options[key] = data[key]
+				self.hLG.echo("Restored token counts from tokens.aiia",
+					{'color': True, 'colorValue': 'cyan', 'debugOnly': False})
+			except Exception as e:
+				self.hLG.echo("Failed to load token totals: {}".format(e),
 					{'color': True, 'colorValue': 'red'})
 
 	def _summarize_context(self, msgs, limit, threshold):
