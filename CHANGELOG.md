@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-07-06
+
+### Added: `!MODELS` and `!MODEL` commands + used-models tracking
+
+Two new session commands:
+- **`!MODELS`** — Lists all available Ollama models with previously used ones starred at the top
+- **`!MODEL <model_name>`** — Switch the active AI model mid-session (no restart needed). Shows current model if no argument.
+
+Model usage is persisted to `used_models.aiia` (alongside `mode.aiia` and `sessid.aiia`). The current model is tracked automatically at startup; `!MODEL` switches append to the list. `!MODELS` displays starred used models at top, then all available models below.
+
+**Files:** `config.py`, `src/Handle.py`, `src/Commands.py`, `CHANGELOG.md`, `README.md`
+
+### Added: Early stream abort for PLAN-mode blocked tools
+
+`Stream()` now checks each token as it arrives and aborts immediately if the model starts writing a blocked tool (`WriteFile`, `CreateFile`, etc.) while in PLAN mode — no need to wait for the full XML to parse. The partial content is still recorded in history so the model sees what it started writing.
+
+This saves tokens and response time: instead of streaming the entire misguided invocation, the stream cuts off on the opening tag, and the model retries on the next iteration.
+
+**Files:** `src/Handle.py`
+
+### Simplified: Auto-continue guard
+
+Removed the `LogProgress` requirement from the auto-continue guard. The condition is now simpler: auto-advance fires when the model made tool calls AND the last tool call did not return an error. The error guard (A1) is preserved so failed tool attempts don't skip tasks.
+
+**Files:** `src/Handle.py`
+
 ## 2026-07-05
 
 ### Fixed: Auto-continue advancing tasks on tool errors

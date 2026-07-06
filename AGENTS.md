@@ -14,6 +14,18 @@ python run_orchestra.py --port 9876        # start orchestra director
 python run_worker.py --connect localhost:9876 --name w1 -m gemma3:12b  # start worker
 ```
 
+## User Commands
+
+| Command | Description |
+|---------|-------------|
+| `!MODE [plan\|build]` | Switch modes |
+| `!MODELS` | List Ollama models (used ones starred) |
+| `!MODEL <name>` | Switch AI model mid-session |
+| `!PLAN [PREVIEW\|VIEW\|TASKS\|STATUS]` | View plan status |
+| `!HELP` | Show all commands |
+| `!STATS` | Token counts |
+| `!NEW SESSION` | Full reset |
+
 ## Architecture
 
 - **Entry point**: `run.py` → initializes `Handle` class from `src/Handle.py`

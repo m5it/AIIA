@@ -2,10 +2,11 @@
 
 **Version 0.5** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
 
-> **Recent updates:** automatic context window management (summarize + auto-clear), history archiving for training data, `<think>` tag leak fix. See [CHANGELOG.md](CHANGELOG.md) for details.
+> **Recent updates:** `!MODELS` / `!MODEL` commands for model switching, early stream abort for PLAN-mode blocked tools, simplified auto-continue guard. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Features
 
+- **Interchangeable AI Models** — Switch models mid-session with `!MODEL <name>`; list available models with `!MODELS`; model usage tracked across sessions
 - **Interactive AI Chat** — Terminal-based interface for conversing with local LLMs via Ollama (streaming response with thinking support)
 - **XML Tool System** — AI invokes tools by writing XML blocks; tools are dynamically loaded Python classes with hot-reload; 23+ tools including file I/O, search, processing, terminal, tips, and tree view
 - **Plan / Build Modes** — structured workflow: plan mode for architecting tasks, build mode for executing them
@@ -739,6 +740,8 @@ All commands start with `!` (case-sensitive). The following are available:
 | Command | Description |
 |---------|-------------|
 | `!MODE [plan\|build]` | Switch between plan and build mode. Shows current mode if no argument. |
+| `!MODELS` | List available Ollama models, with previously used ones starred at top. |
+| `!MODEL [model_name]` | Switch AI model mid-session. Shows current model if no argument. |
 | `!NEW SESSION` | Full reset — clears history, plans, tools, tokens, and re-runs Prepare() setup. |
 | `!CLEAR` | Clear chat history but keep system prompt and persona. |
 | `!RM <row_num>` | Remove a specific row from chat history by number (use `!PH` to see row numbers). |
