@@ -1,6 +1,7 @@
 #--
 # class Commands
 import os, json
+import ollama
 from src.functions import fread, fwrite, pmatch
 class Commands():
 	#
@@ -157,6 +158,20 @@ class Commands():
 			"regex"      :r"^!MODE(\s+(plan|build))?$",
 			"usage"      :"!MODE [plan|build]",
 			"func"       :self.CMD_MODE,
+		},
+		"OLLAMA_LIST":{
+			"name"       :"Models",
+			"description":"List available Ollama models, with previously used ones at top.",
+			"regex"      :r"^!MODELS$",
+			"usage"      :"!MODELS",
+			"func"       :self.CMD_OLLAMA_LIST,
+		},
+		"MODEL":{
+			"name"       :"Model",
+			"description":"Switch AI model. Shows current model if no argument.",
+			"regex"      :r"^!MODEL(\s+\S+)?$",
+			"usage"      :"!MODEL [model_name]",
+			"func"       :self.CMD_MODEL,
 		},
 		"PLAN":{
 			"name"       :"Plan",
@@ -939,4 +954,47 @@ class Commands():
 			print("  TASKS    - Same as VIEW")
 			print("  STATUS   - Show quick status")
 
+		return 2
+
+	def CMD_OLLAMA_LIST(self, inp=""):
+		"""List available Ollama models, with previously used ones at top."""
+		try:
+			used = self.handle.Options.get('used_models', [])
+			res = ollama.list()
+
+			if used:
+				print("Previously used models:")
+				for m in used:
+					print("  ★ {}".format(m))
+				print("")
+
+			print("All available Ollama models:")
+			all_names = [m.model for m in res.models]
+			for name in all_names:
+				if name not in used:
+					print("  {}".format(name))
+		except Exception as e:
+			print("Error listing models: {}".format(e))
+		return 2
+
+	def CMD_MODEL(self, inp=""):
+		"""Switch AI model mid-session."""
+		a = inp.strip().split()
+		if len(a) < 2:
+			print("Current model: {}".format(self.handle.Options.get('AI_MODEL', '(not set)')))
+			print("Usage: !MODEL <model_name>")
+			print("Tip: use !MODELS to see available models")
+			return 2
+		new_model = a[1].strip()
+		old = self.handle.Options.get('AI_MODEL', '')
+		if new_model == old:
+			print("Already using '{}'".format(old))
+			return 2
+		self.handle.Options['AI_MODEL'] = new_model
+		# Track in used_models
+		models = self.handle.Options.get('used_models', [])
+		if new_model not in models:
+			models.append(new_model)
+			self.handle._save_used_models(models)
+		print("Model changed: '{}' -> '{}'".format(old, new_model))
 		return 2

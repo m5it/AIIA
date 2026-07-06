@@ -104,7 +104,24 @@ class Handle():
 				self.Options['MODE'] = saved_mode.strip()
 				self.hLG.echo("Restored MODE: {}".format(saved_mode.strip()),
 					{'color': True, 'colorValue': 'green'})
-		
+
+		# Load used models list
+		used_models_path = self.Options.get('AI_FILE_USED_MODELS')
+		used_models = []
+		if used_models_path and os.path.exists(used_models_path):
+			raw = fread(used_models_path)
+			if raw is not False and raw.strip():
+				try:
+					used_models = json.loads(raw)
+				except Exception:
+					used_models = []
+		# Ensure current model is tracked
+		current = self.Options.get('AI_MODEL', '')
+		if current and current not in used_models:
+			used_models.append(current)
+			self._save_used_models(used_models, used_models_path)
+		self.Options['used_models'] = used_models
+
 		# Load plan from PLAN.md
 		plan_data = PlanSaver.load_plan(working_dir, framework_dir)
 		if plan_data and plan_data.get('id'):
@@ -666,6 +683,17 @@ class Handle():
 		except Exception as e:
 			self.hLG.echo("Failed to save clear tip: {}".format(e),
 				{'color': True, 'colorValue': 'red'})
+
+	def _save_used_models(self, models, path=None):
+		"""Persist the used-models list to disk."""
+		if path is None:
+			path = self.Options.get('AI_FILE_USED_MODELS')
+		if path:
+			try:
+				fwrite(path, json.dumps(models), True)
+			except Exception as e:
+				self.hLG.echo("Failed to save used models: {}".format(e),
+					{'color': True, 'colorValue': 'red'})
 
 	def _summarize_context(self, msgs, limit, threshold):
 		"""Summarize older messages, keeping last 5 exchanges + all system prompts.
