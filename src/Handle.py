@@ -172,7 +172,8 @@ class Handle():
 		opt_return_object = opts.get('return_object', False)
 		opt_log_options   = opts.get('log_options', {'color':True})
 		opt_skip_history  = opts.get('skip_history', False)
-		
+		opt_images        = opts.get('images')
+
 		# Print response
 		# Generate response object
 		obj = {
@@ -190,6 +191,10 @@ class Handle():
 		#
 		if opt_name != None:
 			obj["name"] = opt_name
+
+		# Append images (base64 strings for vision models)
+		if opt_images and self.Options.get('AI_VISION_ENABLED', True):
+			obj['images'] = opt_images
 		
 		#
 		if opt_return_object:

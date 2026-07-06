@@ -3,3 +3,6 @@ ollama>=0.6.0
 
 # Actions (optional — only needed for action modules like grandekos_*)
 requests>=2.31.0
+
+# Media/vision (optional — needed for Image tools)
+Pillow>=10.0.0

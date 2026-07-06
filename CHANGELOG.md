@@ -2,6 +2,21 @@
 
 ## 2026-07-06
 
+### Added: Image/vision support — ReadImage, ImageTransform, MediaAnalyst persona
+
+New image analysis pipeline:
+- **ReadImage tool** (`tools/tool_ReadImage.py`) — Reads an image file, provides metadata (dimensions, format, size), encodes to base64, and injects it into the conversation for vision models to analyze. The AI sees the image content in subsequent responses.
+- **ImageTransform tool** (`tools/tool_ImageTransform.py`) — Local image transformations without AI: resize, crop, convert format, rotate, flip. Operates on `workin/` files, saves to `workout/`.
+- **MediaHelper** (`src/MediaHelper.py`) — Shared utility: encode/decode images to/from base64, resize with aspect ratio preservation, get image metadata.
+- **MediaAnalyst persona** (`instruct/MediaAnalyst.py`) — New instruction class specialized for visual media analysis. Default model: `qwen3-vl:latest`. Includes detailed instructions for ReadImage, ImageTransform, and ffmpeg-based video frame extraction.
+- **Vision config** — `AI_VISION_ENABLED`, `AI_MAX_IMAGE_SIZE` (10MB), `AI_VISION_NOTE` in `config.py`
+- **Handle.Response()** — Now accepts `images` parameter to attach base64-encoded images to user messages
+- **Binary I/O** — `fread_binary()` / `fwrite_binary()` in `src/functions.py` for raw file reads
+- **Dependencies** — `Pillow>=10.0.0` added to `requirements.txt`
+- **Persona update** — `Developer.py` tool list updated with ReadImage and ImageTransform
+
+**Files:** `config.py`, `src/Handle.py`, `src/functions.py`, `src/MediaHelper.py`, `tools/tool_ReadImage.py`, `tools/tool_ImageTransform.py`, `instruct/MediaAnalyst.py`, `instruct/Developer.py`, `requirements.txt`, `CHANGELOG.md`, `README.md`
+
 ### Added: `!MODELS` and `!MODEL` commands + used-models tracking
 
 Two new session commands:

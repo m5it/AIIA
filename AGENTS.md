@@ -6,6 +6,7 @@
 source .venv/bin/activate       # activate virtual environment (Python 3.10)
 python run.py                    # start AIIA interactive session
 python run.py -m gemma3:12b     # specify model (default: gemma3:12b)
+python run.py -p MediaAnalyst   # use MediaAnalyst persona (image/video analysis)
 python run.py -Y "prompt"        # single request, no interactive session
 python run.py -d                 # enable debug output
 python run.py -T 0.8             # set temperature
@@ -49,12 +50,14 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 </ToolName>
 ```
 
-**Available tools (23 total):**
+**Available tools (25 total):**
 - `ReadFile` — Read from `workin/` (params: `<fileName>`)
 - `WriteFile` — Write to `workout/` (params: `<fileName>`, `<contentOfFile>`)
 - `AppendFile` — Append in `workout/` (params: `<fileName>`, `<contentOfFile>`)
 - `CreateFile` — Create new file in `workout/` (fails if exists) (params: `<fileName>`, `<content>`)
 - `ReplaceLine` — Replace specific line(s) in a file (params: `<fileName>`, `<fromLine>`, `<toLine>` optional, `<replacement>`)
+- `ReadImage` — Read an image file, inject into conversation (params: `<fileName>`, `<prompt>` optional)
+- `ImageTransform` — Transform images (resize, crop, convert, flip, rotate) (params: `<fileName>`, `<operation>`, `<params>` optional, `<output>` optional)
 - `TreeView` — ASCII tree view of directory structure (params: `<path>` optional, `<depth>` default 3, `<pattern>` optional, `<showHidden>` optional)
 - `List` — List files (params: `<path>` optional)
 - `listTools` — Show all tools (no params, cached 10 min)
@@ -114,6 +117,7 @@ The project uses a custom module loader (`src/functions.py`):
 
 Mode instructions (system prompts for plan/build modes) live in `instruct/` as persona classes:
 - `instruct/Developer.py` — default persona, provides `plan()` and `build()` methods
+- `instruct/MediaAnalyst.py` — image/video analysis persona (default model: qwen3-vl:latest)
 - Switch persona via `config.py`: `INSTRUCT_CLASS` option (e.g., `"Developer"`)
 - The `[--#THINKING#--ID1--]` placeholder in both plan and build text is replaced at runtime based on mode and `BUILD_THINKING_DISABLED` option
 - Create new personas by adding files to `instruct/` with the same `plan()`/`build()` interface

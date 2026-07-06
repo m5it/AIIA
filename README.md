@@ -2,7 +2,7 @@
 
 **Version 0.5** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
 
-> **Recent updates:** `!MODELS` / `!MODEL` commands for model switching, early stream abort for PLAN-mode blocked tools, simplified auto-continue guard. See [CHANGELOG.md](CHANGELOG.md) for details.
+> **Recent updates:** `!MODELS` / `!MODEL` commands for model switching, early stream abort for PLAN-mode blocked tools, image analysis tools (ReadImage, ImageTransform), vision model support. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Features
 
@@ -13,11 +13,12 @@
 - **Plan Manager** — Create plans, split into tasks, track progress, auto-continue on restart (`-c` flag)
 - **Secure Terminal Tool** — Allowlist-based command execution with audit logging and 30s timeout; also allows user-created scripts via `./` or `/` paths
 - **Persistent Sessions** — Chat history saved per session in `history/`; session ID tracked in `sessid.aiia`
+- **Image/Video Analysis** — `ReadImage` tool injects images into conversation for vision model analysis; `ImageTransform` handles local transformations (resize, crop, convert, flip, rotate); `MediaAnalyst` persona pre-configured with vision model defaults and ffmpeg-based video frame extraction workflow
 - **ReplaceLine Tool** — Targeted line edits without rewriting entire files; supports single line or range replacement; pairs with AppendFile for precise, surgical file modifications
 - **Actions System** — Dynamically loaded action modules for reusable task sequences
 - **Continue Support** — `-c` flag loads last session's `HISTORY.md` and `PLAN.md` from working directory, resumes chat and plan where you left off
 - **Project History** — Each project directory gets a `HISTORY.md` with human-readable markdown + embedded JSON for machine parsing; fully round-trip compatible
-- **Instruct Persona System** — Dynamic persona classes in `instruct/` (Developer, Friend, SysAdmin, Researcher); switch mid-session with `!INSTRUCT_SWITCH`; each persona specifies its own model, system prompt, and toolset
+- **Instruct Persona System** — Dynamic persona classes in `instruct/` (Developer, Friend, SysAdmin, Researcher, MediaAnalyst); switch mid-session with `!INSTRUCT_SWITCH`; each persona specifies its own model, system prompt, and toolset
 - **Token Tracking** — Per-turn and cumulative token counts displayed in `!STATS`
 - **TreeView Tool** — ASCII directory tree visualization with depth control, glob filtering, and hidden-file toggling; cached for 5 minutes
 - **Tips System** — Save, view, reinsert, and manage conversation snippets as JSON tips (`!TS`, `!TL`, `!TV`, `!TR`, `!TD`, `!TDR`, `!TDA`)
@@ -138,9 +139,10 @@ See [Plan & Build System](#plan--build-system) for full details.
 Switch between specialized personas that define the AI's system prompt, toolset, and model:
 
 ```
-1. !INSTRUCT_LIST               → See available personas
-2. !INSTRUCT_SWITCH Researcher   → Switch to Researcher persona
-3. !INSTRUCT_SWITCH off         → (future)
+1. !INSTRUCT_LIST                → See available personas
+2. !INSTRUCT_SWITCH Researcher    → Switch to Researcher persona
+3. !INSTRUCT_SWITCH MediaAnalyst  → Switch to image/video analysis persona
+4. !MODEL qwen3-vl:latest         → Switch to a vision-capable model
 ```
 
 Personas live in `instruct/` as Python classes. Each can specify a `model` attribute to override `AI_MODEL`:
@@ -150,12 +152,18 @@ class Friend():
     name = "Friend"
     description = "Friendly chat companion — casual, warm, conversational"
     model = "llama3.2:3b"   # optional, overrides AI_MODEL when selected
+
+class MediaAnalyst():
+    name = "MediaAnalyst"
+    description = "Visual media analyst — analyzes images/videos, extracts info, transforms media"
+    model = "qwen3-vl:latest"  # vision model for image analysis
 ```
 
 Use `-p` flag to set persona on startup:
 ```bash
 python run.py -p Friend
 python run.py -p Researcher -m gemma3:12b
+python run.py -p MediaAnalyst   # image/video analysis with vision model
 ```
 
 ### Tips System
@@ -292,6 +300,7 @@ OurAI/
 │   ├── Log.py                    # Terminal output logging
 │   ├── Speak.py                  # Text-to-speech (experimental)
 │   ├── InstructManager.py        # Persona discovery and selection
+│   ├── MediaHelper.py             # Image/video encode/decode/info utilities
 │   ├── TipManager.py             # Conversation tip save/replay
 │   ├── OrchestraDirector.py      # Orchestra TCP server, worker registry, task dispatch
 │   └── OrchestraWorker.py        # Orchestra TCP client, headless task execution
@@ -299,17 +308,21 @@ OurAI/
 ├── instruct/                     # Persona classes (plan/build system prompts)
 │   ├── Developer.py              # Software development persona
 │   ├── Friend.py                 # Casual chat persona
+│   ├── MediaAnalyst.py           # Image/video analysis persona (vision model)
 │   ├── SysAdmin.py               # System administration persona
 │   ├── Researcher.py             # Web research and data extraction persona
+│   ├── DataCollector.py          # Data collection/testing persona
 │   └── __init__.py
 │
-├── tools/                        # XML-invokable tool modules (23 files)
+├── tools/                        # XML-invokable tool modules (25 files)
 │   ├── tool_Terminal.py          # Secure terminal execution
 │   ├── tool_ReadFile.py          # Read file content
 │   ├── tool_WriteFile.py         # Write/overwrite files
 │   ├── tool_AppendFile.py        # Append or insert at line
 │   ├── tool_CreateFile.py        # Create file (fails if exists)
 │   ├── tool_ReplaceLine.py       # Replace specific line(s) in a file
+│   ├── tool_ReadImage.py         # Read image, inject into conversation
+│   ├── tool_ImageTransform.py    # Transform images (resize, crop, convert...)
 │   ├── tool_TreeView.py          # ASCII tree view of directory structure
 │   ├── tool_List.py              # List directory contents
 │   ├── tool_listTools.py         # List all available tools
@@ -760,7 +773,7 @@ All commands start with `!` (case-sensitive). The following are available:
 
 | Command | Description |
 |---------|-------------|
-| `!INSTRUCT_LIST` | List available instruct personas (Developer, Friend, SysAdmin, Researcher). |
+| `!INSTRUCT_LIST` | List available instruct personas (Developer, Friend, SysAdmin, Researcher, MediaAnalyst). |
 | `!INSTRUCT_SWITCH <name>` | Switch persona mid-session without clearing history. Appends new persona's system prompt. |
 
 ### Tips Commands
@@ -1053,4 +1066,4 @@ See [LICENSE](LICENSE) for full terms including notification and payment obligat
 
 ## Project Status
 
-**Version 0.5** — Active development. Recent additions: automatic context window management (summarizes old messages or auto-clears when approaching token limit), history archiving to raw `.dbk` files before any destructive operation for training data preservation, `<think>` tag leak fix, ReplaceLine and TreeView tools, tool result caching with per-tool TTL, consumed-once tip reinsertion, auto tip summaries, expanded persona instructions, terminal improvements, and 23+ tools total.
+**Version 0.5** — Active development. Recent additions: automatic context window management (summarizes old messages or auto-clears when approaching token limit), history archiving to raw `.dbk` files before any destructive operation for training data preservation, `<think>` tag leak fix, ReplaceLine and TreeView tools, tool result caching with per-tool TTL, consumed-once tip reinsertion, auto tip summaries, expanded persona instructions, terminal improvements, and 25+ tools total.

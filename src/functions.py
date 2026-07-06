@@ -132,3 +132,14 @@ def fwrite( filename, data, overwrite=False ):
 		f = open(filename,"a")
 	f.write("{}".format( data ))
 	f.close()
+
+def fread_binary( filename ):
+	if not os.path.exists( filename ):
+		return False
+	with open( filename, "rb" ) as f:
+		return f.read()
+
+def fwrite_binary( filename, data, overwrite=False ):
+	mode = "wb" if (overwrite or not os.path.exists(filename)) else "ab"
+	with open( filename, mode ) as f:
+		f.write(data)

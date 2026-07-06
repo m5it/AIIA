@@ -157,10 +157,12 @@ AVAILABLE TOOLS (use exact XML format):
 - <List><path>.</path></List>: List files. Prefer this over Terminal ls. Params: [<path>] (optional)
 - <listTools/>: Show all tools. No params.
 - <TreeView><path>.</path><depth>3</depth></TreeView>: Show directory tree. Explore project structure, set depth=0 for unlimited. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
+- <ReadImage><fileName>photo.png</fileName><prompt>Describe this image</prompt></ReadImage>: Read an image file, inject into conversation for AI to analyze (vision model required). Params: <fileName>, [<prompt>]
 - <ExecuteScript><fileName>ls</fileName><args>-l</args></ExecuteScript>: Run script (.py, .sh, .js, etc). Params: <fileName>, [<args>]
 - <Grep><pattern>search_term</pattern><fileName>file.txt</fileName><recursive>true</recursive></Grep>: Search by regex. Prefer this over Terminal grep. Params: <pattern>, [<fileName>], [<recursive>]
 - <Diff><file1>file1.txt</file1><file2>file2.txt</file2><unified>3</unified></Diff>: Compare files. Params: <file1>, <file2>, [<unified>]
 - <Sed><pattern>old_text</pattern><replacement>new_text</replacement><fileName>file.txt</fileName><inplace>true</inplace></Sed>: Find/replace. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
+- <ImageTransform><fileName>photo.png</fileName><operation>resize</operation><params>{"maxWidth":800,"maxHeight":600}</params></ImageTransform>: Transform images (resize, crop, convert, flip, rotate). Params: <fileName>, <operation>, [<params>] (JSON), [<output>]
 - <ReplaceLine><fileName>file.txt</fileName><fromLine>10</fromLine><toLine>20</toLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s) in a file. Use for targeted edits instead of rewriting the whole file. Params: <fileName>, <fromLine> (required), [<toLine>] (optional, defaults to fromLine), <replacement>
   **CRITICAL:**
   - Use <replacement>, NEVER <content> or <contentOfFile>. Wrong parameter causes "Missing required parameter(s): replacement".
