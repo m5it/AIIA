@@ -38,6 +38,8 @@ Options         = {
 	"AI_VISION_ENABLED"   :True, # enable vision/multimodal support (images in chat messages)
 	"AI_MAX_IMAGE_SIZE"   :10485760, # 10MB — max image file size for ReadImage
 	"AI_VISION_NOTE"      :"This model may not support vision. Use !MODEL qwen3-vl:latest or another vision model to analyze images.",
+	"AI_QUICK"            :False,    # skip interactive Prepare prompts (auto for server mode, or via -Q)
+	"AI_SYSTEM_MESSAGE"   :"",       # custom system message prefix, set via -P/--prompt CLI flag
 	# Available options keys:
 	# mirostat, mirostat_eta, mirostat_tau, num_ctx, repeat_last_n, repeat_penalty, temperature, seed, stop, num_predict, top_k, top_p, min_p
 	"AI_OPTIONS"          : {
@@ -55,7 +57,6 @@ Options         = {
 	#
 	"path"                :"{}/".format(os.path.dirname(os.path.abspath(__file__))),
 	"tools_path"          :"{}/tools/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),
-	"actions_path"        :"{}/actions/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),
 	"history_path"        :"history",
 	"plans_path"         :"plans",
 	"working_dir"        :os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(os.path.abspath(__file__))),

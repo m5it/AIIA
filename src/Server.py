@@ -20,6 +20,7 @@ class OurAIServer():
 	
 	def start(self):
 		from src.Handle import Handle
+		self.Options['AI_QUICK'] = True
 		self.handle = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", self.Options)
 		self.handle.Init()
 		self.handle.hPP.Prepare()

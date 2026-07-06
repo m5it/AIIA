@@ -21,6 +21,8 @@ def Help():
 	print("-m [model_name]            # Choose model")
 	print("-M [history_num]           # Memorize specific history")
 	print("-p [persona_name]          # Choose persona (e.g. Developer, Friend, SysAdmin)")
+	print("-P [system_prompt]         # Set custom system message prefix")
+	print("-Q                         # Quick mode — skip interactive Prepare prompts")
 	print("-R                         # Factory reset (delete all state)")
 	print("-O / --orchestra [opts]    # Run as orchestra director (--orchestra -h for help)")
 	print("-W / --worker [opts]       # Run as orchestra worker (--worker -h for help)")
@@ -267,7 +269,7 @@ def Main(argv):
 	args     = []
 	#
 	try:
-		opts, args = getopt.getopt(argv,"vdchm:M:Y:T:p:RS:C:",["debug", "continue", "model=", "memory_specific=", "you=", "temperature=", "persona=", "reset", "server=", "connect="])
+		opts, args = getopt.getopt(argv,"vdchm:M:Y:T:p:QRS:C:P:",["debug", "continue", "help", "model=", "memory_specific=", "you=", "temperature=", "persona=", "quick", "reset", "server=", "connect=", "prompt="])
 	except getopt.GetoptError:
 		opt_help = True
 	
@@ -301,6 +303,10 @@ def Main(argv):
 			reset_to_factory()
 			Options['AI_LIVE'] = False
 			sys.exit(0)
+		elif opt=="-Q" or opt=="--quick":
+			Options['AI_QUICK'] = True
+		elif opt=="-P" or opt=="--prompt":
+			Options['AI_SYSTEM_MESSAGE'] = arg
 		elif opt=="-p" or opt=="--persona":
 			Options['INSTRUCT_CLASS'] = arg
 			Options['INSTRUCT_CLASS_OVERRIDE'] = True
@@ -314,6 +320,7 @@ def Main(argv):
 	# Show help before initializing Handle (no need to load AI system just for --help)
 	if opt_help:
 		Help()
+		Options['AI_LIVE'] = False
 		sys.exit(0)
 	#
 	hHA      = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", Options)

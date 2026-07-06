@@ -7,6 +7,8 @@ source .venv/bin/activate       # activate virtual environment (Python 3.10)
 python run.py                    # start AIIA interactive session
 python run.py -m gemma3:12b     # specify model (default: gemma3:12b)
 python run.py -p MediaAnalyst   # use MediaAnalyst persona (image/video analysis)
+python run.py -Q -p Developer   # quick mode — skip interactive prompts
+python run.py -P "You are a coding assistant"  # custom system message prefix
 python run.py -Y "prompt"        # single request, no interactive session
 python run.py -d                 # enable debug output
 python run.py -T 0.8             # set temperature
@@ -31,10 +33,9 @@ python run_worker.py --connect localhost:9876 --name w1 -m gemma3:12b  # start w
 
 - **Entry point**: `run.py` → initializes `Handle` class from `src/Handle.py`
 - **Orchestra entry points**: `run_orchestra.py` (director), `run_worker.py` (worker)
-- **Core modules**: all in `src/` — `Handle.py` orchestrates chat, tools, actions, history
+- **Core modules**: all in `src/` — `Handle.py` orchestrates chat, tools, history
 - **Personas**: `instruct/` directory — personality classes with plan/build system prompts, optional model override
 - **Tools**: `tools/` directory — dynamically loaded Python classes that the AI invokes via `<ToolName>` XML syntax
-- **Actions**: `actions/` directory — dynamically loaded action modules for specific tasks
 - **History**: `history/` (gitignored) — session-based chat history, session ID tracked in `sessid.aiia`
 - **Working dirs**: `workin/` (input for tools), `workout/` (output) — both gitignored
 
@@ -169,7 +170,7 @@ When `COOKIE_FILE` is `None` (default), the tools work as before without cookies
 ## Quirks
 
 - **Indentation**: code uses tabs (not spaces) despite being Python
-- **Dynamic reload**: tools/actions are reloaded on each use via custom import system — changes take effect immediately
+- **Dynamic reload**: tools are reloaded on each use via custom import system — changes take effect immediately
 - **Session state**: `sessid.aiia` tracks session counter; history files named `{session_id}.dbk` and `{session_id}.user.dbk`
 - **No tests**: no test framework or test files configured
 - **No linting**: no linter, formatter, or typechecker configured

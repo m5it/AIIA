@@ -2,6 +2,22 @@
 
 ## 2026-07-06
 
+### Added: `-Q` / `--quick` mode and `-P` / `--prompt` CLI flags + removed actions system
+
+- **`-Q` / `--quick`** — Skips all interactive Prepare prompts (system message, history selection). Uses persona instructions + optional `-P` prefix as system message. Automatically enabled in server (`-S`) mode.
+- **`-P "Your prompt"` / `--prompt "Your prompt"`** — Sets a custom system message prefix prepended to persona instructions. Works in both interactive and quick modes.
+- **Server mode** (`-S`) — Now auto-enables quick mode. Starts without requiring stdin interaction.
+- **Removed actions system** — Deleted `src/Actions.py`, `actions/` directory, and all action-related commands from Commands.py (`!AOS`, `!AOL`, `!AO`, `!IA`, `!PA`, `!EA`).
+
+Usage examples:
+```bash
+ourai -S 0.0.0.0:9877 -p MediaAnalyst -P "You are a vision analyst"
+ourai -Q -p Developer -m gemma3:12b   # non-interactive local session
+ourai -S 0.0.0.0:9877 -p Developer -M 3   # server with specific history
+```
+
+**Files:** `config.py`, `run.py`, `src/Prepare.py`, `src/Handle.py`, `src/Commands.py`, `src/Server.py`, `src/Actions.py` (deleted), `actions/` (deleted), `.gitignore`, `CHANGELOG.md`
+
 ### Fixed: Token counts reset to zero on `-c` continue
 
 Token counts (`NUM_PROMPT_TOKENS`, `NUM_RESPONSE_TOKENS`, `NUM_LAST_*`) were never persisted to disk. On `-c` continue, a fresh process loaded history messages but had no way to recover the accumulated counts, so `!STATS` always showed zero.

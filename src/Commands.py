@@ -39,49 +39,6 @@ class Commands():
 				"usage"      :"!STATS",
 				"func"       :self.CMD_STATS,
 			},
-			"ACTION_OPTION_SAVE":{
-				"name"       :"Save action options",
-				"description":"Save specific action options",
-				"regex"      :r"^!AOS\s+\d+$",
-				"usage"      :"!AOS [action_option_num]",
-				"func"       :self.CMD_ACTION_OPTION_SAVE,
-			},
-			"ACTION_OPTIONS_LIST":{
-				"name"       :"List action options",
-				"description":"List saved action options",
-				"regex"      :r"^!AOL$",
-				"usage"      :"!AOL",
-				"func"       :self.CMD_ACTION_OPTIONS_LIST,
-			},
-			"ACTION_OPTIONS":{
-				"name"       :"Action Options",
-				"description":"LIST, SET, GET action options",
-				"regex"      :r"^!AO(\s+\d+)?(\s+SET\s+\w+=\S+)?(\s+GET\s+\w+)?$",
-				"usage"      :"\nLIST Ex.: !AO [action_num]\nGET Ex.: !AO [action_num] GET path\nSET Ex.: AO [action_num] SET path=/Memorize\n",
-				"func"       :self.CMD_ACTION_OPTIONS,
-			},
-			"IMPORT_ACTIONS":{
-				"name"       :"Import Actions",
-				"description":"Import actions from classes/code",
-				"regex"      :r"^!IA$",
-				"usage"      :"!IA",
-				"func"       :self.CMD_IMPORT_ACTIONS,
-			},
-			"PREVIEW_ACTIONS":{
-				"name"       :"Preview Imported Actions",
-				"description":"Preview imported actions that are ready to get executed.",
-				"regex"      :r"^!PA$",
-				"usage"      :"!PA",
-				"func"       :self.CMD_PREVIEW_ACTIONS,
-			},
-			"EXEC_ACTION":{
-				"name"       :"Execute Action",
-				"description":"Execute specific action...",
-				#"regex"      :r"^(!EA.[\d+])|(!EA.[\d+].DATA.[\d+])+$",
-				"regex"      :r"^!EA\s+\d+$",
-				"usage"      :"!EA",
-				"func"       :self.CMD_EXEC_ACTION,
-			},
 			"CLEAR_TOOLS":{
 				"name"       :"Clear Tools",
 				"description":"Clear loaded tools to start fresh chat or load new tools.",
@@ -260,7 +217,7 @@ class Commands():
 		},
 		"HELP":{
 				"name"       :"Help",
-				"description":"Display of available actions.",
+				"description":"Display help and available commands.",
 				"regex"      :r"^!HELP$",
 				"usage"      :"!HELP",
 				"func"       :self.CMD_HELP,
@@ -406,8 +363,6 @@ class Commands():
 		print("history          : {} / {}".format( self.handle.Options['AI_FILE_HISTORY'], self.handle.hHM.history ))
 		print("user.history     : {}".format( self.handle.Options['AI_USER_HISTORY'] ))
 		#
-		print("available actions: {}".format( len(self.handle.hAC.available) ))
-		print("imported actions : {}".format( len(self.handle.hAC.imported) ))
 		print("available history: {}".format( len(self.handle.hHM.available) ))
 		print("available tools  : {}".format( len(self.handle.hTC.available) ))
 		print("imported tools   : {}".format( len(self.handle.hTC.prepared) ))
@@ -484,115 +439,6 @@ class Commands():
 			print("  !PROJECT DENY <path> — block a path")
 			print("  !PROJECT REMOVE DIR|FILE <path> — remove an approval")
 			print("  !PROJECT RESET — reset to defaults")
-		return 2
-	#
-	def CMD_ACTION_OPTION_SAVE(self,inp=""):
-		print("CMD_ACTION_OPTION_SAVE() START!")
-		return 2
-	#
-	def CMD_ACTION_OPTIONS_LIST(self,inp=""):
-		print("CMD_ACTION_OPTIONS_LIST() START!")
-		return 2
-	#
-	def CMD_ACTION_OPTIONS(self,inp):
-		self.handle.hLG.echo("CMD_ACTION_OPTIONS START")
-		#
-		a = inp.split(" ",3)
-		# If you are missing knowledge you land on HELP and informations to learn.
-		if len(a)<2:
-			self.CMD_HELP()
-			return 2
-		self.handle.hLG.echo("CMD_ACTION_OPTIONS a({}): {}".format( len(a), a))
-		try:
-			p = int(a[1])
-		except (ValueError, TypeError):
-			print("CMD_ACTION_OPTIONS: action number must be an integer")
-			return 2
-		# Check if action is imported and ready to use, if not get back to You: ...
-		if p not in self.handle.hAC.imported:
-			print("CMD_ACTION_OPTIONS position {} don't exists!".format( p ))
-			return 2
-		# Get handle of action
-		h = self.handle.hAC.imported[p]
-		self.handle.hLG.echo("CMD_ACTION_OPTIONS h( {} ): {}".format( h['name'], h['handle'] ))
-		#
-		if len(a)>=3 and a[2]=="SET":
-			print("CMD_ACTION_OPTIONS SET {}".format( a[3] ))
-			#
-			a1 = a[3].split("=")
-			if a1[0] not in h['handle'].options:
-				print("CMD_ACTION_OPTIONS SET {} — key does not exist yet, creating it.".format( a1[0] ))
-			#
-			h['handle'].options[ a1[0] ] = a1[1] if len(a1) > 1 else ""
-		elif len(a)>=3 and a[2]=="GET":
-			print("CMD_ACTION_OPTIONS GET {}".format( a[3] if len(a) > 3 else "" ))
-			key = a[3] if len(a) > 3 else ""
-			if key not in h['handle'].options:
-				print("CMD_ACTION_OPTIONS GET {} — key does not exist!".format( key ))
-			else:
-				print("CMD_ACTION_OPTIONS GET {} = {}".format( key, h['handle'].options[ key ] ))
-		else:
-			#
-			self.handle.hLG.echo( "USAGE: ", { 'color':True, 'colorValue':'orange', 'debugOnly':False} )
-			self.handle.hLG.echo("  !AO [action_num] [cmd] [value]",{'debugOnly':False})
-			self.handle.hLG.echo("  !AO 0 GET key",{'debugOnly':False})
-			self.handle.hLG.echo("  !AO 0 SET key=value",{'debugOnly':False})
-			self.handle.hLG.echo("  key = option name ",{'debugOnly':False})
-			#
-			self.handle.hLG.echo("Options -> Values for {}".format( h['name'] ), { 'color':True, 'colorValue':'orange', 'debugOnly':False})
-			for k in h['handle'].options:
-				self.handle.hLG.echo("{} -> {}".format( k, h['handle'].options[k] ),{'debugOnly':False})
-		return 2
-	#
-	def CMD_IMPORT_ACTIONS(self,inp):
-		print("CMD_IMPORT_ACTIONS START")
-		self.handle.hAC.Choose()
-		return 2
-	#
-	def CMD_PREVIEW_ACTIONS(self,inp):
-		#print("CMD_PREVIEW_ACTIONS START")
-		if len(self.handle.hAC.imported)<=0:
-			print("No actions imported.")
-			return 2
-		print("Available actions to import: ")
-		n=0
-		for k in self.handle.hAC.imported:
-			obj = self.handle.hAC.imported[k]
-			print("{} / {}.) {}".format( n, k, obj['name'] ))
-			n+=1
-		print("\nTips:")
-		print("Continue with command `!AO...` and `!EA...`")
-		print()
-		print("!EA - Execute action examples: ")
-		print("Usage: !EA [num] aka !EA 0           - Used to execute specific action. In this case action at position 0\n")
-		print("!AO - Action options examples: ")
-		print("Usage: !AO [num]                     - List specific action options\n")
-		print("Usage: !AO [num] SET path /Memorize  - Set action option path=/Memorize\n")
-		print("Usage: !AO [num] GET path            - Get action option value\n")
-		return 2
-	#
-	def CMD_EXEC_ACTION(self,inp):
-		print("CMD_EXEC_ACTION START, inp: {}".format( inp ))
-		a = inp.split(" ")
-		print("CMD_EXEC_ACTION DEBUG a",a)
-		#
-		if len(a)<2:
-			print("CMD_EXEC_ACTION Failed length: {}. (D1)".format( len(a) ))
-			return 2
-		#
-		try:
-			action_num = int(a[1])
-		except (ValueError, TypeError):
-			print("CMD_EXEC_ACTION: action number must be an integer")
-			return 2
-		#
-		if action_num not in self.handle.hAC.imported:
-			print("CMD_EXEC_ACTION Failed position: {}. (D2)".format( a[1] ))
-			return 2
-		#
-		h = self.handle.hAC.imported[action_num]['handle']
-		print("CMD_EXEC_ACTION executing {}".format( h ))
-		h.Exec()
 		return 2
 	#
 	def CMD_PREVIEW_HISTORY(self, inp=""):

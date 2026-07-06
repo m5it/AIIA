@@ -47,26 +47,30 @@ class Prepare():
 		# Choose persona
 		self.handle.hIM.Choose()
 		#
-		# Choose system message
-		self.handle.hLG.echo("Set system message ( CTRL+x ENTER to Finish. ): ",{'color':True,'colorValue':'orange','debugOnly':False})
-		tmp = user_input({'quit_with_ctrlx':True})
-		#
 		mode = self.handle.Options.get('MODE', 'build')
-		#
 		tool_instructions = self._get_mode_instructions(mode)
 		#
-		if tmp!="":
-			# append to chat history with tool instructions
-			system_content = "{}\n\n{}".format(tmp, tool_instructions)
-			self.handle.Response('system',{'content':system_content,})
+		quick = self.handle.Options.get('AI_QUICK', False) or not self.handle.Options.get('AI_LIVE', True)
+		if quick:
+			# Non-interactive: use persona instructions + optional --prompt prefix
+			custom = self.handle.Options.get('AI_SYSTEM_MESSAGE', '')
+			if custom:
+				system_content = "{}\n\n{}".format(custom, tool_instructions)
+			else:
+				system_content = tool_instructions
+			self.handle.Response('system', {'content': system_content})
+			self.handle.hLG.echo("Quick mode — persona loaded, system message set", {'color':True, 'colorValue':'cyan'})
 		else:
-			# Use default tool instructions as system message
-			system_content = tool_instructions
+			# Interactive: prompt for custom system message prefix
+			self.handle.hLG.echo("Set system message ( CTRL+x ENTER to Finish. ): ",{'color':True,'colorValue':'orange','debugOnly':False})
+			tmp = user_input({'quit_with_ctrlx':True})
+			if tmp!="":
+				system_content = "{}\n\n{}".format(tmp, tool_instructions)
+			else:
+				system_content = tool_instructions
 			self.handle.Response('system',{'content':system_content,})
-		# Choose actions
-		self.handle.hAC.Choose()
-		# Choose history
-		self.handle.hHM.Choose()
+			# Choose history
+			self.handle.hHM.Choose()
 		# Tools will be loaded dynamically when model invokes them via XML
 		return True
 	

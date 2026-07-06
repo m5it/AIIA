@@ -2,7 +2,7 @@
 
 **Version 0.5** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
 
-> **Recent updates:** `!MODELS` / `!MODEL` commands for model switching, early stream abort for PLAN-mode blocked tools, image analysis tools (ReadImage, ImageTransform), vision model support. See [CHANGELOG.md](CHANGELOG.md) for details.
+> **Recent updates:** `-Q`/`--quick` and `-P`/`--prompt` CLI flags, server mode auto-quick, actions system removed. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Features
 
@@ -15,7 +15,6 @@
 - **Persistent Sessions** — Chat history saved per session in `history/`; session ID tracked in `sessid.aiia`
 - **Image/Video Analysis** — `ReadImage` tool injects images into conversation for vision model analysis; `ImageTransform` handles local transformations (resize, crop, convert, flip, rotate); `MediaAnalyst` persona pre-configured with vision model defaults and ffmpeg-based video frame extraction workflow
 - **ReplaceLine Tool** — Targeted line edits without rewriting entire files; supports single line or range replacement; pairs with AppendFile for precise, surgical file modifications
-- **Actions System** — Dynamically loaded action modules for reusable task sequences
 - **Continue Support** — `-c` flag loads last session's `HISTORY.md` and `PLAN.md` from working directory, resumes chat and plan where you left off
 - **Project History** — Each project directory gets a `HISTORY.md` with human-readable markdown + embedded JSON for machine parsing; fully round-trip compatible
 - **Instruct Persona System** — Dynamic persona classes in `instruct/` (Developer, Friend, SysAdmin, Researcher, MediaAnalyst); switch mid-session with `!INSTRUCT_SWITCH`; each persona specifies its own model, system prompt, and toolset
@@ -81,9 +80,12 @@ ourai                    # Start interactive session
 ourai -m gemma3:12b      # Use specific model
 ourai -c                 # Continue last session from HISTORY.md
 ourai -R                 # Factory reset (clear all state)
+ourai -Q -p Developer    # Quick mode (skip interactive prompts)
+ourai -P "You are a coding assistant"  # Custom system message prefix
 ourai -Y "List all Python files"  # Single request
 ourai -d                 # Enable debug output
 ourai -T 0.8             # Set temperature
+ourai -S 0.0.0.0:9877    # Server mode (auto-quick)
 ourai -h                 # Show help
 ```
 
@@ -259,7 +261,6 @@ All configuration lives in `config.py`:
 | `plans_path` | str | `plans/` | Directory for JSON plan files |
 | `history_path` | str | `history/` | Directory for session history |
 | `tools_path` | str | `tools/` | Directory for tool modules |
-| `actions_path` | str | `actions/` | Directory for action modules |
 
 ### Environment Variables
 
@@ -340,11 +341,6 @@ OurAI/
 │   ├── tool_ListTips.py          # List all saved tips
 │   ├── tool_DeleteTip.py         # Delete a tip
 │   ├── tool_ReinsertTip.py       # Reinsert tip into chat
-│
-├── actions/                      # Reusable action modules
-│   ├── example_rest.py           # REST API example action
-│   ├── grandekos_createpage.py   # Page creation action
-│   └── grandekos_viewpaths.py    # Path viewer action
 │
 ├── history/                      # Session chat history (gitignored)
 ├── plans/                        # JSON plan files (gitignored)
@@ -805,17 +801,6 @@ All commands start with `!` (case-sensitive). The following are available:
 | `!TOOLS` | List and choose which tools to load. |
 | `!CT` | Clear all loaded tools. |
 
-### Action Commands
-
-| Command | Description |
-|---------|-------------|
-| `!AO [num]` or `!AO [num].SET.[key]=[value]` or `!AO [num].GET.[key]` | Configure action options. |
-| `!AOS [num]` | Save action options. |
-| `!AOL` | List action options. |
-| `!IA` | Import actions from files. |
-| `!PA` | Preview imported actions. |
-| `!EA [num]` | Execute a specific action. |
-
 ### History Commands
 
 | Command | Description |
@@ -877,7 +862,7 @@ python run.py -c
 
 ## Custom Module Loader
 
-The project uses a custom module system (`src/functions.py`) instead of standard Python imports for tools, actions, and core modules:
+The project uses a custom module system (`src/functions.py`) instead of standard Python imports for tools and core modules:
 
 ```python
 from src.functions import importmodule, initmodule
@@ -891,7 +876,7 @@ obj = initmodule(mod, "Handle", options)
 
 ### Why?
 
-- **Hot-reload**: Modules in `tools/` and `actions/` are reloaded on every use — changes take effect immediately without restart
+- **Hot-reload**: Modules in `tools/` are reloaded on every use — changes take effect immediately without restart
 - **Dynamic discovery**: Tools are found and loaded based on XML invocation, not pre-configured
 - **Path resolution**: The `path` option lets you resolve modules relative to project directories
 
@@ -943,27 +928,6 @@ class YourTool():
 
 2. The tool is auto-discovered when the AI invokes `<YourTool><param1>value</param1></YourTool>` in its response.
 
-### Adding a New Action
-
-1. Create `actions/your_action.py`:
-
-```python
-class Action():
-	def __init__(self, opts):
-		self.name = "your_action"
-		self.description = "Description of your action"
-		self.options = {'key': 'default_value'}
-	
-	def Exec(self, args={}):
-		# Action logic
-		return "result"
-	
-	def Test(self):
-		return True
-```
-
-2. Use `!IA` to import, then `!EA [num]` to execute.
-
 ### Adding a New Terminal Command
 
 Add an entry to the `self.cmds` dictionary in `src/Commands.py`:
@@ -984,7 +948,7 @@ Then implement `CMD_YOUR_COMMAND(self, inp="")` method.
 
 - **Indentation**: Tabs, not spaces
 - **No comments**: Avoid adding comments
-- **Dynamic reload**: Changes to tools/actions take effect immediately (no restart needed)
+- **Dynamic reload**: Changes to tools take effect immediately (no restart needed)
 - **No linter/formatter**: No pre-configured linting or formatting
 
 ### Testing
