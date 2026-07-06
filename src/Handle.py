@@ -522,15 +522,8 @@ class Handle():
 		if mode == 'plan':
 			for m in re.finditer(r'<(\w+)[\s>]', partial_response):
 				name = m.group(1)
-				if name in ToolParser._plan_blocked:
+				if name in self.hTP._plan_blocked:
 					return "'{}' cannot be used in PLAN mode".format(name)
-
-		# Any mode: abort on complete unknown tool invocation
-		known = self.hTP.get_known_tools()
-		for m in re.finditer(r'<(\w+)>.*?</\1>', partial_response, re.DOTALL):
-			name = m.group(1)
-			if name not in known:
-				return "unknown tool '{}'".format(name)
 
 		return None
 
