@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-07-07
+
+### Added: `POST /execute` endpoint for direct tool execution
+
+New server endpoint `/execute` that runs tools directly without involving the AI model. Accepts XML tool calls and returns JSON results immediately.
+
+- **`POST /execute`** — Accepts `{"tool": "<ToolName>...</ToolName>"}`, parses XML, executes via `ExecuteTextTool()`, returns `{"success": true, "tool": "ToolName", "result": "..."}`
+- No chat history modification, no LLM roundtrip — instant tool results
+- Designed for editor/IDE integrations that need fast file operations
+
+**Files:** `src/Server.py`
+
+### Added: XML format option to TreeView tool
+
+`TreeView` now accepts an optional `format` parameter (`"ascii"` or `"xml"`). XML mode outputs `<dir name="..."><file name="..."/></dir>` structure suitable for programmatic consumption by editors and IDEs.
+
+- `format="ascii"` (default) — existing box-drawing character output
+- `format="xml"` — structured XML tree, machine-readable
+- XML output includes proper escaping of special characters in filenames
+
+**Files:** `tools/tool_TreeView.py`
+
 ## 2026-07-06
 
 ### Added: `-Q` / `--quick` mode and `-P` / `--prompt` CLI flags + removed actions system

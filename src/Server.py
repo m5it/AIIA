@@ -70,11 +70,15 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		self.end_headers()
 	
 	def do_POST(self):
-		if self.path != '/chat':
+		if self.path == '/chat':
+			self._handle_chat()
+		elif self.path == '/execute':
+			self._handle_execute()
+		else:
 			self.send_response(404)
 			self.end_headers()
-			return
-		#
+	
+	def _handle_chat(self):
 		content_length = int(self.headers.get('Content-Length', 0))
 		body = self.rfile.read(content_length)
 		try:
@@ -105,6 +109,76 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		#
 		self.ai_server.chat(message, write_event)
 		write_event({'type':'done'})
+	
+	def _send_json_response(self, status_code, data):
+		self.send_response(status_code)
+		self.send_header('Content-Type', 'application/json; charset=UTF-8')
+		self.send_header('Access-Control-Allow-Origin', '*')
+		self.end_headers()
+		self.wfile.write(json.dumps(data).encode('utf-8'))
+	
+	def _handle_execute(self):
+		"""
+		POST /execute — direct tool execution (no AI involved).
+		Accepts:  {"tool": "<ToolName>...</ToolName>"}
+		Returns:  {"success":true, "tool":"ToolName", "result":"..."}
+		      or  {"success":false, "tool":"ToolName", "error":"..."}
+		"""
+		handle = self.ai_server.handle if self.ai_server else None
+		if not handle or not hasattr(handle, 'hTP'):
+			self._send_json_response(503, {
+				'success': False,
+				'error': 'Server handle not ready'
+			})
+			return
+		#
+		content_length = int(self.headers.get('Content-Length', 0))
+		body = self.rfile.read(content_length)
+		try:
+			data = json.loads(body)
+		except (json.JSONDecodeError, UnicodeDecodeError):
+			self._send_json_response(400, {
+				'success': False,
+				'error': 'Invalid JSON'
+			})
+			return
+		#
+		tool_xml = data.get('tool', '')
+		if not tool_xml:
+			self._send_json_response(400, {
+				'success': False,
+				'error': 'Missing "tool" field'
+			})
+			return
+		#
+		tool_name = ''
+		try:
+			invocations = handle.hTP.ParseTextToolInvocation(tool_xml)
+			if not invocations:
+				self._send_json_response(400, {
+					'success': False,
+					'error': 'No tool invocation found in XML'
+				})
+				return
+			#
+			inv = invocations[0]
+			tool_name = inv['name']
+			params = inv.get('parameters', {})
+			#
+			result = handle.hTP.ExecuteTextTool(tool_name, params)
+			#
+			is_error = str(result).startswith('Error:') if result else False
+			self._send_json_response(200, {
+				'success': not is_error,
+				'tool': tool_name,
+				'result': str(result) if result else '',
+			})
+		except Exception as e:
+			self._send_json_response(500, {
+				'success': False,
+				'tool': tool_name or 'unknown',
+				'error': str(e),
+			})
 	
 	def log_message(self, format, *args):
 		pass
