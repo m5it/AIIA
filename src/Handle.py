@@ -1025,6 +1025,12 @@ class Handle():
 			try:
 				res: ChatResponse = chat(**chat_params)
 			except Exception as e:
+				err_str = str(e).lower()
+				if 'too large' in err_str or '400' in err_str or '413' in err_str or 'request body' in err_str:
+					self.hLG.echo("AI request too large — auto-clearing context and retrying...",
+						{'color':True, 'colorValue':'orange','debugOnly':False,})
+					self._auto_clear()
+					continue
 				self.hLG.echo("AI connection error: {}".format(str(e)), {'color':True, 'colorValue':'red','debugOnly':False,})
 				return 2
 			

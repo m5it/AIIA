@@ -50,6 +50,7 @@ class Terminal():
 			'mkdir', 'cp', 'mv', 'touch', 'rm', 'rmdir', 'ln', 'install',
 			'chmod', 'chown', 'cd',
 			'ollama', 'pip', 'pip3',
+			'nvidia-smi',
 		]
 	#
 	def log_command(self, cmd, output, success):
@@ -189,6 +190,23 @@ class Terminal():
 		if program not in allowed:
 			self.log_command(args, "", False)
 			return "Error: Program '{}' is not in the allowed programs list.\nAllowed: {}".format(program, ', '.join(allowed))
+
+		# Intercept ollama image-generation commands — redirect to GenerateImage tool
+		if program == 'ollama' and len(args) >= 2 and args[1] in ('run', 'generate', 'push'):
+			rest = ' '.join(args[2:]).lower()
+			image_keywords = ('x/', 'flux', 'sdxl', 'stable-diffusion', 'image-turbo', 'image-gen')
+			if any(kw in rest for kw in image_keywords):
+				return (
+					"Use <GenerateImage> instead of calling ollama directly for image generation.\n\n"
+					"Example:\n"
+					"<GenerateImage>\n"
+					"<prompt>your prompt here</prompt>\n"
+					"<model>{}</model>\n"
+					"</GenerateImage>\n\n"
+					"The GenerateImage tool has a diffusers fallback that works on Linux "
+					"without requiring GPU memory in Ollama."
+				).format(args[2] if len(args) > 2 else 'x/flux2-klein')
+
 		#
 		# Build command (shell=False for security)
 		cmd = args
