@@ -39,20 +39,7 @@ class Commands():
 				"usage"      :"!STATS",
 				"func"       :self.CMD_STATS,
 			},
-			"CLEAR_TOOLS":{
-				"name"       :"Clear Tools",
-				"description":"Clear loaded tools to start fresh chat or load new tools.",
-				"regex"      :r"^!CT$",
-				"usage"      :"!CT",
-				"func"       :self.CMD_CLEAR_TOOLS,
-			},
-			"TOOLS":{
-				"name"       :"Tools",
-				"description":"Choose tools to use with AIIA.",
-				"regex"      :r"^!TOOLS$",
-				"usage"      :"!TOOLS",
-				"func"       :self.CMD_TOOLS,
-			},
+
 			"PREVIEW_HISTORY":{
 				"name"       :"Preview History",
 				"description":"Preview current chat history",
@@ -343,16 +330,6 @@ class Commands():
 			PlanSaver.rebuild_history(proj_history, self.handle.hHM.msgs)
 		return 2
 	#
-	def CMD_CLEAR_TOOLS(self, inp):
-		print("Clearing tools...")
-		self.handle.hTC.selected             = []
-		self.handle.Options['current_tools'] = []
-		self.handle.Options['handle_tools']  = {}
-		return 2 # as continue / repeat
-	#
-	def CMD_TOOLS(self, inp):
-		print("Loading tools...")
-		return 2 # as continue / repeat
 	#
 	def CMD_STATS(self, inp):
 		print("Stats            :")
