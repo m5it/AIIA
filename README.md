@@ -1,6 +1,6 @@
 # OurAI — AI Interactive Agent
 
-**Version 0.6** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
+**Version 0.7** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
 
 > **Recent updates:** `-Q`/`--quick` and `-P`/`--prompt` CLI flags, server mode auto-quick, actions system removed. See [CHANGELOG.md](CHANGELOG.md) for details.
 
@@ -1031,4 +1031,4 @@ See [LICENSE](LICENSE) for full terms including notification and payment obligat
 
 ## Project Status
 
-**Version 0.6** — Active development. Recent additions: `-Q`/`--quick` and `-P`/`--prompt` CLI flags, server mode auto-quick, actions system removed, token count persistence on `-c` continue, vision model support via MediaAnalyst persona, image analysis tools (ReadImage, ImageTransform).
+**Version 0.7** — Active development. Recent additions: `-Q`/`--quick` and `-P`/`--prompt` CLI flags, server mode auto-quick, actions system removed, token count persistence on `-c` continue, vision model support via MediaAnalyst persona, image analysis tools (ReadImage, ImageTransform).
