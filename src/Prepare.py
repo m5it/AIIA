@@ -84,6 +84,20 @@ class Prepare():
 		return True
 	
 	#
+	def _save_instruction_tip(self, cls, cls_name):
+		"""Save persona's plan() and build() as a tip for AI_INSTRUCT_OPTION=2."""
+		tip_title = "instruct_{}".format(cls_name.lower())
+		plan_text = cls.plan() if hasattr(cls, 'plan') else ""
+		build_text = cls.build() if hasattr(cls, 'build') else ""
+		entries = []
+		if plan_text:
+			entries.append({'role': 'model', 'content': "[PLAN MODE INSTRUCTIONS]\n" + plan_text})
+		if build_text:
+			entries.append({'role': 'model', 'content': "[BUILD MODE INSTRUCTIONS]\n" + build_text})
+		if self.handle and hasattr(self.handle, 'hTM'):
+			self.handle.hTM.delete(tip_title, 'model')
+			self.handle.hTM.save(tip_title, 'model', entries)
+	#
 	def _get_mode_instructions(self, mode):
 		cls_name = self.handle.Options.get('INSTRUCT_CLASS', 'Developer')
 		cls_path = self.handle.Options.get('INSTRUCT_PATH', 'instruct')
@@ -100,6 +114,20 @@ class Prepare():
 				continue
 		if not cls:
 			return "Error: could not initialize instruct class {}".format(cls_name)
+		# Option 2: short prompt + tips
+		if self.handle.Options.get('AI_INSTRUCT_OPTION', 1) == 2:
+			self._save_instruction_tip(cls, cls_name)
+			tip_title = "instruct_{}".format(cls_name.lower())
+			return (
+				"Your role: {}\n\n"
+				"Your full instructions are stored as a tip.\n"
+				"Use <GetTip> {} or <ReinsertTip> {} to load them.\n"
+				"The tip contains separate entries for plan and build mode."
+			).format(
+				getattr(cls, 'description', cls_name),
+				tip_title, tip_title
+			)
+		# Option 1: full persona class instructions (default)
 		if mode == 'plan':
 			text = cls.plan()
 		else:

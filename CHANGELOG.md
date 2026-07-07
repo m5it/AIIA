@@ -2,6 +2,14 @@
 
 ## 2026-07-07 — v0.7
 
+### Added: `AI_INSTRUCT_OPTION=2` — short prompt + tips instruction mode
+
+**New config:** `AI_INSTRUCT_OPTION` (default `1`):
+- **`1`** (default) — current behavior: full persona class instructions (`plan()`/`build()` text) used as the system prompt
+- **`2`** — short system prompt that tells the AI to retrieve its instructions from tips. The persona's full `plan()` and `build()` content is saved as a tip (`instruct_{persona}`) at startup. The AI must use `<GetTip>` or `<ReinsertTip>` to load detailed guidance.
+
+**Why:** Saves ~2K-8K chars per request from the system prompt. Full instructions are available on-demand via tips.
+
 ### Removed: `!CT` and `!TOOLS` commands — tools now auto-load dynamically
 
 **Problem:** Both commands were legacy from the pre-auto-load era.
