@@ -1,4 +1,4 @@
-import os, base64, uuid
+import os, sys, base64, uuid
 from datetime import datetime
 from io import BytesIO
 from PIL import Image as PILImage
@@ -107,6 +107,9 @@ class GenerateImage():
 
 def _generate_ollama(model, prompt, width, height, steps, seed):
 	"""Try generating via Ollama Client.generate(). Returns PIL Image or None on failure."""
+	# Ollama diffusion models require MLX (Apple) — skip on Linux, go straight to diffusers
+	if sys.platform.startswith('linux'):
+		return None
 	# Stop any loaded ollama model that differs from the gen model (free GPU memory)
 	try:
 		import subprocess
@@ -162,10 +165,12 @@ def _generate_diffusers(model, prompt, width, height, steps, seed):
 			"  pip install diffusers torch transformers accelerate")
 
 	# Map Ollama model names to HuggingFace model IDs
+	# Note: black-forest-labs/FLUX.1-schnell is gated (requires HF login)
+	# Using open Stability AI models instead
 	HF_MODEL_MAP = {
-		'x/flux2-klein': 'black-forest-labs/FLUX.1-schnell',
+		'x/flux2-klein': 'stabilityai/sdxl-turbo',
 		'x/z-image-turbo': 'stabilityai/sdxl-turbo',
-		'flux-schnell': 'black-forest-labs/FLUX.1-schnell',
+		'flux-schnell': 'stabilityai/sdxl-turbo',
 		'sdxl-turbo': 'stabilityai/sdxl-turbo',
 	}
 	hf_model = HF_MODEL_MAP.get(model, model)
