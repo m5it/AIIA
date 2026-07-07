@@ -6,3 +6,11 @@ requests>=2.31.0
 
 # Media/vision (optional — needed for Image tools)
 Pillow>=10.0.0
+
+# Image generation (optional — needed for GenerateImage diffusers fallback on Linux)
+# Install with: pip install diffusers torch transformers accelerate
+# Note: torch may not have wheels for Python >=3.13 yet; use '--index-url https://download.pytorch.org/whl/cpu' if needed
+# diffusers>=0.30.0
+# torch>=2.0.0
+# transformers>=4.0.0
+# accelerate>=0.20.0

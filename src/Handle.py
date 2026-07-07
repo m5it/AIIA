@@ -105,6 +105,36 @@ class Handle():
 				self.hLG.echo("Restored MODE: {}".format(saved_mode.strip()),
 					{'color': True, 'colorValue': 'green'})
 
+		# Restore saved persona from persona.aiia
+		persona_file = self.Options.get('AI_FILE_PERSONA')
+		if persona_file and os.path.exists(persona_file):
+			saved_persona = fread(persona_file)
+			if saved_persona and saved_persona.strip():
+				persona = saved_persona.strip()
+				self.Options['INSTRUCT_CLASS'] = persona
+				self.Options['INSTRUCT_CLASS_OVERRIDE'] = True
+				self.hLG.echo("Restored persona: {}".format(persona),
+					{'color': True, 'colorValue': 'green'})
+
+		# Restore saved model from model.aiia
+		model_file = self.Options.get('AI_FILE_MODEL')
+		if model_file and os.path.exists(model_file):
+			saved_model = fread(model_file)
+			if saved_model and saved_model.strip():
+				_model = saved_model.strip()
+				old = self.Options.get('AI_MODEL', '')
+				self.Options['AI_MODEL'] = _model
+				if _model != old:
+					self.hLG.echo("Restored model: {}".format(_model),
+						{'color': True, 'colorValue': 'green'})
+					# Re-apply ModelRegistry for the restored model
+					from src.ModelRegistry import apply as apply_registry
+					_changes = apply_registry(self.Options, _model)
+					if _changes:
+						for _c in _changes:
+							self.hLG.echo("  Model config: {}".format(_c),
+								{'color': True, 'colorValue': 'cyan'})
+
 		# Load used models list
 		used_models_path = self.Options.get('AI_FILE_USED_MODELS')
 		used_models = []

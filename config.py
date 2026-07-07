@@ -20,6 +20,8 @@ Options         = {
 	"AI_MODEL"            :"kimi-k2.5:cloud",
 	"AI_FILE_SESSID"      :"{}/sessid.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_MODE"        :"{}/mode.aiia".format(os.path.dirname(os.path.abspath(__file__))),
+	"AI_FILE_MODEL"       :"{}/model.aiia".format(os.path.dirname(os.path.abspath(__file__))),
+	"AI_FILE_PERSONA"     :"{}/persona.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_USED_MODELS" :"{}/used_models.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_TOKENS"      :"{}/tokens.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_HISTORY"     :"history.aiia", # auto generated from AI_SESS_ID

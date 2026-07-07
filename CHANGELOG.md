@@ -2,6 +2,34 @@
 
 ## 2026-07-07
 
+### Added: `-c` persona persist — resume with last-used persona, not just Developer
+
+**Problem:** `cleanup()` saved MODE (`mode.aiia`) but not the persona (`INSTRUCT_CLASS`). On restart with `-c`, persona always reverted to `Developer` from config, ignoring what was used in the last session.
+
+**Fix:** Three changes:
+1. `config.py` — Added `AI_FILE_PERSONA` config key pointing to `persona.aiia`
+2. `run.py:cleanup()` — Now saves `INSTRUCT_CLASS` to `persona.aiia` alongside `mode.aiia`
+3. `Handle.py:_load_continue_session()` — Reads `persona.aiia`, sets `INSTRUCT_CLASS` and `INSTRUCT_CLASS_OVERRIDE = True`, so `Choose()` auto-applies the restored persona
+
+**Result:** `-c` now fully restores both mode AND persona. Running `-p MediaAnalyst`, closing, then `-c` resumes with MediaAnalyst persona.
+
+### Added: HuggingFace diffusers fallback — Linux-compatible image generation
+
+**Problem:** `GenerateImage` used `ollama.Client().generate()` which is macOS-only for diffusion models. On Linux it failed.
+
+**Fix:** Refactored `tool_GenerateImage.py` into three layers:
+1. `_generate_ollama()` — original Ollama backend (tried first)
+2. `_generate_diffusers()` — new HuggingFace diffusers fallback (on Ollama failure)
+3. `_save_and_inject()` — shared save/inject logic, reused by both backends
+
+**Model mapping:** `x/flux2-klein` → `black-forest-labs/FLUX.1-schnell`, `x/z-image-turbo` → `stabilityai/sdxl-turbo`. Unknown models tried as-is with HF `DiffusionPipeline.from_pretrained()`.
+
+**Pipeline cache:** Module-level `_diffusers_pipeline` / `_diffusers_pipeline_model` cache survives dynamic reloads — second generation with same model is instant.
+
+**Dependencies:** Optional — added commented-out entries in `requirements.txt`. Install with: `pip install diffusers torch transformers accelerate`
+
+**Caveat:** Python 3.14 may lack PyTorch wheels. Use CPU-only torch or wait for official builds.
+
 ### Added: Image generation — `GenerateImage` tool + `ModelRegistry` auto-config
 
 **New tool: `tools/tool_GenerateImage.py`** — Generates images using Ollama diffusion models (`x/flux2-klein`, `x/z-image-turbo`). Calls `Client.generate()` with `width`, `height`, `steps`, `seed` params. Saves to `workout/` and auto-injects the result into the conversation so the AI can see what it generated.

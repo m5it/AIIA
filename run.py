@@ -197,6 +197,14 @@ def cleanup():
 	mode_file = Options.get('AI_FILE_MODE')
 	if mode_file:
 		fwrite(mode_file, Options.get('MODE', 'plan'), True)
+	# Save current model for -c continuation
+	model_file = Options.get('AI_FILE_MODEL')
+	if model_file:
+		fwrite(model_file, Options.get('AI_MODEL', ''), True)
+	# Save current persona for -c continuation
+	persona_file = Options.get('AI_FILE_PERSONA')
+	if persona_file:
+		fwrite(persona_file, Options.get('INSTRUCT_CLASS', 'Developer'), True)
 	return True
 #
 def handle_exception(exc_type, exc_value, exc_traceback):
