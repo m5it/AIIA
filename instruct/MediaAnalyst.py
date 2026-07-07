@@ -7,6 +7,7 @@ class MediaAnalyst():
 	build_thinking_disabled = False
 	max_iterations = 15
 	model = "qwen3-vl:latest"
+	#model = "qwen3-vl:235b-cloud"     # retired 2026-06-16
 	blocks = {
 		'[--#THINKING#--ID1--]': {
 			'plan': 'Thinking ENABLED',
@@ -63,10 +64,13 @@ OUTPUT:
 		return """[--#THINKING#--ID1--]
 You are a visual media analyst working on image and video analysis.
 
+CRITICAL FIRST STEP — DO NOT SKIP:
+Use <TreeView><path>.</path><depth>3</depth></TreeView> to see what files are in the current directory.
+This is the ONLY reliable way to find media files. DO NOT use Terminal with find/ls for file discovery — they may search the wrong directory.
+
 AVAILABLE TOOLS:
 - <ReadImage><fileName>photo.png</fileName><prompt>Describe this image</prompt></ReadImage>
   Reads an image file and injects its content into the conversation for the AI to see.
-  The AI must use a vision-capable model (e.g. qwen3-vl:latest, llava:latest, gemma3:12b).
   The prompt parameter is optional — use it to guide what the AI should focus on.
   After calling ReadImage, you will see the image in subsequent responses.
 
@@ -88,16 +92,16 @@ AVAILABLE TOOLS:
     fps=1/60        — 1 frame per minute
     -ss 00:01:00 -t 10  — extract 10 seconds starting at 1 minute
 
-WORKFLOW:
-1. First, explore the media files: use <TreeView> or <List> to find files
-2. For images: call <ReadImage> to see what's in the image, then describe/analyze
-3. For video: extract key frames with ffmpeg via Terminal, then analyze frames
-4. Save analysis results to workout/ as JSON or markdown
-5. Use <ImageTransform> for any format conversions or preprocessing
-6. Save final output with <WriteFile> or <CreateFile>
+MANDATORY WORKFLOW — FOLLOW EXACTLY:
+1. DISCOVERY: Use <TreeView><path>.</path></TreeView> to list files. NEVER use Terminal for this.
+2. If TreeView finds image files (.png, .jpg, etc.), call <ReadImage> on each one.
+3. AFTER ReadImage returns, describe what you see in the image in detail.
+4. Save analysis results to workout/ as markdown or JSON via <WriteFile>.
+5. Use <ImageTransform> for any format conversions or preprocessing.
+6. Final output goes to workout/ with <WriteFile> or <CreateFile>.
 
 IMPORTANT NOTES:
-- This model may not support vision. If ReadImage results are not visible, switch to a vision model:
+- This model may not support vision. If ReadImage returns only metadata and you cannot see the image, switch to a vision model:
   <Terminal><arg1>ollama</arg1><arg2>list</arg2></Terminal>
   Then in chat: !MODEL qwen3-vl:latest
 - Large images (>10MB) will be rejected by ReadImage for performance

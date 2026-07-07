@@ -66,6 +66,17 @@ class Terminal():
 	def run(self, **kwargs):
 		print("Terminal.run() STARTING, args: {}".format(kwargs))
 		#
+		# Determine working directory from handle options
+		cwd = "."
+		try:
+			from src.ToolParser import ToolParser
+			if ToolParser._current_handle:
+				wd = ToolParser._current_handle.Options.get('working_dir')
+				if wd:
+					cwd = wd
+		except Exception:
+			pass
+		#
 		# Extract arguments dynamically (arg1, arg2, arg3, ...)
 		args = []
 		for i in range(1, 100):  # Support up to 99 args
@@ -104,7 +115,7 @@ class Terminal():
 						capture_output=True,
 						text=True,
 						timeout=30,
-						cwd=".",
+						cwd=cwd,
 						shell=False
 					)
 					output = ""
@@ -189,7 +200,7 @@ class Terminal():
 				capture_output=True,
 				text=True,
 				timeout=30,
-				cwd=".",
+				cwd=cwd,
 				shell=False
 			)
 			#
@@ -202,7 +213,10 @@ class Terminal():
 				output += "STDERR:\n{}".format(result.stderr)
 			#
 			self.log_command(cmd, output, True)
-			return output if output else "(no output)"
+			cwd_note = "(cwd: {})".format(cwd)
+			if output and output.strip():
+				return "{}\n{}".format(output.rstrip(), cwd_note)
+			return "(no output) {}".format(cwd_note)
 			#
 		except subprocess.TimeoutExpired:
 			self.log_command(cmd, "TIMEOUT", False)

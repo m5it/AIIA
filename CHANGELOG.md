@@ -2,6 +2,31 @@
 
 ## 2026-07-07
 
+### Fixed: MediaAnalyst persona — retired model and wasted Terminal iterations
+
+**Model fix:** `qwen3-vl:235b-cloud` was retired 2026-06-16 (HTTP 410). Changed to `qwen3-vl:latest` which is available locally.
+
+**Instruction fix:** The AI was wasting 6+ iterations on `find`/`ls` Terminal loops instead of using `TreeView` for file discovery:
+- Added **CRITICAL FIRST STEP** header: "Use `<TreeView>` first, NEVER use Terminal for file discovery"
+- Added **MANDATORY WORKFLOW** section with numbered steps (TreeView → ReadImage → analyze → save)
+- Moved image discovery instructions to the very top of the build prompt
+
+**Files:** `instruct/MediaAnalyst.py`
+
+### Fixed: Terminal tool working directory mismatch
+
+Terminal commands ran from the Python process CWD, which drifted after session changes (`!NEW SESSION`, mode switches). The AI would `cd` to a directory but Terminal's `subprocess.run(cwd=".")` ignored it.
+
+Fix: Terminal now detects `working_dir` from `ToolParser._current_handle.Options` and uses it as the subprocess CWD. Every command output now includes `(cwd: /path)` so the AI always knows where it's running.
+
+**Files:** `tools/tool_Terminal.py`
+
+### Fixed: Editor LogController missing type prefixes
+
+Added `"token"` (empty prefix for clean streamed text display) and `"done"` (`[DONE]`) cases to LogController's prefix switch. Token events no longer show a `[LOG]` prefix.
+
+**Files:** `../OurAIEditor/src/main/java/com/ourai/editor/LogController.java`
+
 ### Added: Direct user tool calls skip AI entirely
 
 When a user (or editor) sends an XML tool invocation like `<TreeView><path>.</path></TreeView>`, the framework now executes it immediately and returns the result without ever calling the LLM. Previously, the tool was executed in `You()` but then `AI()` would still run, wasting tokens as the model reacted to the tool result in history.
