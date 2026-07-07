@@ -109,6 +109,15 @@ class InstructManager():
 		if mode is not None:
 			self.handle.Options['MODE'] = str(mode)
 			self.handle.hLG.echo("Persona '{}' sets mode: {}".format(name, str(mode)), {'color':True, 'colorValue':'cyan'})
+		# Apply model registry (context limit, num_ctx, vision, think)
+		model_name = self.handle.Options.get('AI_MODEL', '')
+		if model_name:
+			from src.ModelRegistry import apply as apply_registry
+			reg_changes = apply_registry(self.handle.Options, model_name)
+			if reg_changes:
+				for c in reg_changes:
+					self.handle.hLG.echo("  Model config: {}".format(c),
+						{'color':True, 'colorValue':'cyan'})
 	#
 	#
 		

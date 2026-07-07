@@ -54,6 +54,6 @@ class ReadImage():
 			vision_note = handle.Options.get('AI_VISION_NOTE', '')
 			current = handle.Options.get('AI_MODEL', '')
 			if vision_note and current:
-				meta += "\n  Note: If the AI cannot see the image, switch to a vision model with !MODEL (e.g. qwen3-vl:latest)"
+				meta += "\n  Note: {}".format(vision_note)
 
 		return meta

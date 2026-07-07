@@ -864,4 +864,10 @@ class Commands():
 			models.append(new_model)
 			self.handle._save_used_models(models)
 		print("Model changed: '{}' -> '{}'".format(old, new_model))
+		# Apply model registry
+		from src.ModelRegistry import apply as apply_registry
+		reg_changes = apply_registry(self.handle.Options, new_model)
+		if reg_changes:
+			for c in reg_changes:
+				print("  {}".format(c))
 		return 2

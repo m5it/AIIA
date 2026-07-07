@@ -46,6 +46,15 @@ class Prepare():
 		#
 		# Choose persona
 		self.handle.hIM.Choose()
+		# Apply model registry (even if no persona was chosen — covers default model)
+		from src.ModelRegistry import apply as apply_registry
+		_model = self.handle.Options.get('AI_MODEL', '')
+		if _model:
+			_changes = apply_registry(self.handle.Options, _model)
+			if _changes:
+				for _c in _changes:
+					self.handle.hLG.echo("  Model config: {}".format(_c),
+						{'color':True, 'colorValue':'cyan'})
 		#
 		mode = self.handle.Options.get('MODE', 'build')
 		tool_instructions = self._get_mode_instructions(mode)

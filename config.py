@@ -37,7 +37,7 @@ Options         = {
 	"AI_THINK"            :True, # enable think/reasoning API for models that support it (e.g. DeepSeek R1)
 	"AI_VISION_ENABLED"   :True, # enable vision/multimodal support (images in chat messages)
 	"AI_MAX_IMAGE_SIZE"   :10485760, # 10MB — max image file size for ReadImage
-	"AI_VISION_NOTE"      :"This model may not support vision. Use !MODEL qwen3-vl:latest or another vision model to analyze images.",
+	"AI_VISION_NOTE"      :"",  # set dynamically by ModelRegistry on model change; warns if model is not vision-capable
 	"AI_QUICK"            :False,    # skip interactive Prepare prompts (auto for server mode, or via -Q)
 	"AI_SYSTEM_MESSAGE"   :"",       # custom system message prefix, set via -P/--prompt CLI flag
 	# Available options keys:

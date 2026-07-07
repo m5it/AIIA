@@ -263,6 +263,15 @@ class Handle():
 		# so -Y mode behaves the same as interactive mode
 		if self.Options.get('INSTRUCT_CLASS_OVERRIDE', False):
 			self.hIM.ApplyPersonaModel(self.Options['INSTRUCT_CLASS'])
+		# Apply model registry for -Y mode (covers -m flag without persona)
+		from src.ModelRegistry import apply as apply_registry
+		_model = self.Options.get('AI_MODEL', '')
+		if _model:
+			_changes = apply_registry(self.Options, _model)
+			if _changes:
+				for _c in _changes:
+					self.hLG.echo("  Model config: {}".format(_c),
+						{'color':True, 'colorValue':'cyan'})
 		#
 		# Add system message if not already present (for -Y flag mode)
 		system_exists = False
