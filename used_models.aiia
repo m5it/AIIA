@@ -1,1 +1,1 @@
-["gemma4:cloud", "kimi-k2.5:cloud", "qwen3-vl:235b-cloud", "qwen3.5:cloud", "qwen3-vl:latest"]
+["gemma4:cloud", "kimi-k2.5:cloud", "qwen3-vl:235b-cloud", "qwen3.5:cloud", "qwen3-vl:latest", "llama3.2-vision:latest", "minicpm-v:latest", "kimi-k2.7-code:cloud"]

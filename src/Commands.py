@@ -870,4 +870,16 @@ class Commands():
 		if reg_changes:
 			for c in reg_changes:
 				print("  {}".format(c))
+		# Stop any loaded model that differs from the new one (free GPU memory)
+		try:
+			import subprocess
+			r = subprocess.run(['ollama', 'ps'], capture_output=True, text=True, timeout=10)
+			if r.returncode == 0:
+				for line in r.stdout.strip().split('\n')[1:]:
+					parts = line.split()
+					if parts and parts[0] and parts[0] != new_model:
+						subprocess.run(['ollama', 'stop', parts[0]], capture_output=True, timeout=10)
+						print("  Freed memory: stopped {}".format(parts[0]))
+		except Exception:
+			pass
 		return 2

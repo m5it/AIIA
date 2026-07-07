@@ -2,6 +2,22 @@
 
 ## 2026-07-07
 
+### Added: Image generation — `GenerateImage` tool + `ModelRegistry` auto-config
+
+**New tool: `tools/tool_GenerateImage.py`** — Generates images using Ollama diffusion models (`x/flux2-klein`, `x/z-image-turbo`). Calls `Client.generate()` with `width`, `height`, `steps`, `seed` params. Saves to `workout/` and auto-injects the result into the conversation so the AI can see what it generated.
+
+**Model resolution chain:** `param > AI_IMAGE_GEN_MODEL config > current AI_MODEL > x/flux2-klein`. If no model is specified, the tool tries the current chat model first — cloud models like `kimi-k2.7-code:cloud` are used automatically.
+
+**Auto GPU memory management:** Before `client.generate()`, the tool runs `ollama ps` and stops any loaded model that differs from the gen target. On `!MODEL` switches, the same logic frees GPU memory.
+
+**`src/ModelRegistry.py`** — Added `x/flux2-klein:*` and `x/z-image-turbo:*` entries with `context_size=0` (non-chat model flag). The `apply()` function now skips context/think/vision changes for image gen models. Image gen models added to Terminal's allowed programs.
+
+**`config.py`** — Added `AI_IMAGE_GEN_MODEL: "x/flux2-klein"` default.
+
+**`instruct/MediaAnalyst.py`** — Full GenerateImage documentation in both plan() and build() methods: parameters, example XML, fallback chain notes, pull instructions.
+
+**Files:** `tools/tool_GenerateImage.py`, `src/ModelRegistry.py`, `src/Commands.py`, `config.py`, `instruct/MediaAnalyst.py`, `tools/tool_Terminal.py`, `CHANGELOG.md`, `README.md`
+
 ### Fixed: MediaAnalyst persona — retired model and wasted Terminal iterations
 
 **Model fix:** `qwen3-vl:235b-cloud` was retired 2026-06-16 (HTTP 410). Changed to `qwen3-vl:latest` which is available locally.

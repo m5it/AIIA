@@ -38,6 +38,7 @@ Options         = {
 	"AI_VISION_ENABLED"   :True, # enable vision/multimodal support (images in chat messages)
 	"AI_MAX_IMAGE_SIZE"   :10485760, # 10MB — max image file size for ReadImage
 	"AI_VISION_NOTE"      :"",  # set dynamically by ModelRegistry on model change; warns if model is not vision-capable
+	"AI_IMAGE_GEN_MODEL"  :"x/flux2-klein", # default model for GenerateImage tool (macOS-only in Ollama)
 	"AI_QUICK"            :False,    # skip interactive Prepare prompts (auto for server mode, or via -Q)
 	"AI_SYSTEM_MESSAGE"   :"",       # custom system message prefix, set via -P/--prompt CLI flag
 	# Available options keys:

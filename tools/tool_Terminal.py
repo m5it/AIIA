@@ -48,7 +48,8 @@ class Terminal():
 			'ping', 'curl', 'wget', 'netstat', 'ss',
 			'ps', 'top', 'df', 'du', 'free',
 			'mkdir', 'cp', 'mv', 'touch', 'rm', 'rmdir', 'ln', 'install',
-			'chmod', 'chown', 'cd'
+			'chmod', 'chown', 'cd',
+			'ollama',
 		]
 	#
 	def log_command(self, cmd, output, success):

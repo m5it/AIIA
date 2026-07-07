@@ -13,7 +13,7 @@
 - **Plan Manager** — Create plans, split into tasks, track progress, auto-continue on restart (`-c` flag)
 - **Secure Terminal Tool** — Allowlist-based command execution with audit logging and 30s timeout; also allows user-created scripts via `./` or `/` paths
 - **Persistent Sessions** — Chat history saved per session in `history/`; session ID tracked in `sessid.aiia`
-- **Image/Video Analysis** — `ReadImage` tool injects images into conversation for vision model analysis; `ImageTransform` handles local transformations (resize, crop, convert, flip, rotate); `MediaAnalyst` persona pre-configured with vision model defaults and ffmpeg-based video frame extraction workflow
+- **Image/Video Analysis** — `ReadImage` tool injects images into conversation for vision model analysis; `ImageTransform` handles local transformations (resize, crop, convert, flip, rotate); `GenerateImage` creates images from text using Ollama diffusion models (x/flux2-klein, x/z-image-turbo); `MediaAnalyst` persona pre-configured with vision model defaults and ffmpeg-based video frame extraction workflow
 - **ReplaceLine Tool** — Targeted line edits without rewriting entire files; supports single line or range replacement; pairs with AppendFile for precise, surgical file modifications
 - **Continue Support** — `-c` flag loads last session's `HISTORY.md` and `PLAN.md` from working directory, resumes chat and plan where you left off
 - **Project History** — Each project directory gets a `HISTORY.md` with human-readable markdown + embedded JSON for machine parsing; fully round-trip compatible
@@ -302,6 +302,7 @@ OurAI/
 │   ├── Speak.py                  # Text-to-speech (experimental)
 │   ├── InstructManager.py        # Persona discovery and selection
 │   ├── MediaHelper.py             # Image/video encode/decode/info utilities
+│   ├── ModelRegistry.py           # Per-model capability database (context size, vision, think)
 │   ├── TipManager.py             # Conversation tip save/replay
 │   ├── OrchestraDirector.py      # Orchestra TCP server, worker registry, task dispatch
 │   └── OrchestraWorker.py        # Orchestra TCP client, headless task execution
@@ -315,8 +316,8 @@ OurAI/
 │   ├── DataCollector.py          # Data collection/testing persona
 │   └── __init__.py
 │
-├── tools/                        # XML-invokable tool modules (25 files)
-│   ├── tool_Terminal.py          # Secure terminal execution
+├── tools/                        # XML-invokable tool modules (26 files)
+│   ├── tool_Terminal.py          # Secure terminal execution (ollama allowed)
 │   ├── tool_ReadFile.py          # Read file content
 │   ├── tool_WriteFile.py         # Write/overwrite files
 │   ├── tool_AppendFile.py        # Append or insert at line
@@ -324,6 +325,7 @@ OurAI/
 │   ├── tool_ReplaceLine.py       # Replace specific line(s) in a file
 │   ├── tool_ReadImage.py         # Read image, inject into conversation
 │   ├── tool_ImageTransform.py    # Transform images (resize, crop, convert...)
+│   ├── tool_GenerateImage.py     # Generate images via diffusion models
 │   ├── tool_TreeView.py          # ASCII tree view of directory structure
 │   ├── tool_List.py              # List directory contents
 │   ├── tool_listTools.py         # List all available tools
@@ -705,7 +707,7 @@ Displays an ASCII tree view of a directory structure. Automatically excludes `.g
 - 30-second timeout on all executions
 - All commands logged to `terminal_audit.log`
 
-**Allowed programs:** `ls`, `dir`, `cat`, `echo`, `pwd`, `whoami`, `date`, `id`, `grep`, `find`, `sort`, `head`, `tail`, `wc`, `awk`, `sed`, `bash`, `sh`, `python3`, `python`, `node`, `perl`, `ruby`, `git`, `make`, `cmake`, `gcc`, `g++`, `ping`, `curl`, `wget`, `netstat`, `ss`, `ps`, `top`, `df`, `du`, `free`, `mkdir`, `cp`, `mv`, `touch`, `rm`, `rmdir`, `ln`, `install`, `chmod`, `chown`
+**Allowed programs:** `ls`, `dir`, `cat`, `echo`, `pwd`, `whoami`, `date`, `id`, `grep`, `find`, `sort`, `head`, `tail`, `wc`, `awk`, `sed`, `bash`, `sh`, `python3`, `python`, `node`, `perl`, `ruby`, `git`, `make`, `cmake`, `gcc`, `g++`, `ping`, `curl`, `wget`, `netstat`, `ss`, `ps`, `top`, `df`, `du`, `free`, `mkdir`, `cp`, `mv`, `touch`, `rm`, `rmdir`, `ln`, `install`, `chmod`, `chown`, `ollama`
 
 #### ExecuteScript
 ```xml

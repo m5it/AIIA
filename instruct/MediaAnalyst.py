@@ -43,6 +43,7 @@ Split the work into small tasks using <LogProgress> and the task tools.
 IMPORTANT RULES:
 - Images are analyzed with <ReadImage> — results are injected into the conversation
 - Image transformations use <ImageTransform> (resize, crop, convert, rotate, flip)
+- Image generation uses <GenerateImage> (requires a diffusion model like x/flux2-klein, x/z-image-turbo)
 - For video: use <Terminal> with ffmpeg to extract frames, then analyze frames with <ReadImage>
 - Use !MODEL to switch to a vision model if the current model doesn't support images
 - Analysis results should be saved to workout/ using WriteFile
@@ -50,6 +51,7 @@ IMPORTANT RULES:
 AVAILABLE TOOLS:
 - <ReadImage><fileName>photo.png</fileName><prompt>Describe this image</prompt></ReadImage> — Read image, inject into conversation
 - <ImageTransform><fileName>photo.png</fileName><operation>resize</operation><params>{"maxWidth":800}</params></ImageTransform> — Transform images
+- <GenerateImage><prompt>A cat on Mars</prompt></GenerateImage> — Generate an image using a diffusion model (x/flux2-klein, x/z-image-turbo); saves to workout/ and injects into conversation
 - <Terminal><arg1>command</arg1></Terminal> — Run terminal commands (use for ffmpeg frame extraction)
 - <ReadFile>, <WriteFile>, <AppendFile>, <List>, <TreeView>, <Grep>, <Find> — Standard file tools
 - <listTools/> — Show all tools
@@ -84,6 +86,29 @@ AVAILABLE TOOLS:
     flip:    {"direction":"horizontal"} — horizontal or vertical
   Optional: <output>custom_name.png</output> to set output filename
 
+- <GenerateImage><prompt>A cat on Mars, digital art</prompt></GenerateImage>
+  Generates an image using a diffusion model (x/flux2-klein, x/z-image-turbo). Saves to workout/
+  and injects the result into the conversation for you to see and describe.
+  Parameters:
+    <prompt> — REQUIRED: text description of what to generate
+    <model> — model name (default: x/flux2-klein; also try x/z-image-turbo for quality)
+    <width> — image width in pixels (default: 1024, max: 2048)
+    <height> — image height in pixels (default: 1024, max: 2048)
+    <steps> — diffusion steps (default: 4 for z-image-turbo, 25 for flux2-klein)
+    <seed> — random seed for reproducible results
+    <output> — output filename (saved to workout/; auto-generated if omitted)
+  Example:
+    <GenerateImage>
+    <prompt>A futuristic city skyline at sunset, cyberpunk style</prompt>
+    <model>x/flux2-klein</model>
+    <width>1024</width>
+    <height>768</height>
+    </GenerateImage>
+  Note: If <model> is omitted, the tool auto-tries your current chat model first,
+  then AI_IMAGE_GEN_MODEL from config, then x/flux2-klein as last resort.
+  Use `<Terminal><arg1>ollama</arg1><arg2>list</arg2></Terminal>` to see available models.
+  Pull new models with: <Terminal><arg1>ollama</arg1><arg2>pull</arg2><arg3>x/flux2-klein</arg3></Terminal>
+
 - <Terminal><arg1>ffmpeg</arg1><arg2>-i</arg2><arg3>video.mp4</arg3><arg4>-vf</arg4><arg5>fps=1</arg5><arg6>/tmp/frames/frame_%04d.png</arg6></Terminal>
   For video analysis: extract frames with ffmpeg, then analyze each frame with ReadImage.
   Common frame extraction patterns:
@@ -98,7 +123,8 @@ MANDATORY WORKFLOW — FOLLOW EXACTLY:
 3. AFTER ReadImage returns, describe what you see in the image in detail.
 4. Save analysis results to workout/ as markdown or JSON via <WriteFile>.
 5. Use <ImageTransform> for any format conversions or preprocessing.
-6. Final output goes to workout/ with <WriteFile> or <CreateFile>.
+6. Use <GenerateImage> to create images from text descriptions (requires x/flux2-klein or x/z-image-turbo).
+7. Final output goes to workout/ with <WriteFile> or <CreateFile>.
 
 IMPORTANT NOTES:
 - This model may not support vision. If ReadImage returns only metadata and you cannot see the image, switch to a vision model:
@@ -106,6 +132,7 @@ IMPORTANT NOTES:
   Then in chat: !MODEL qwen3-vl:latest
 - Large images (>10MB) will be rejected by ReadImage for performance
 - ImageTransform works locally and does not need a vision model
+- GenerateImage uses diffusion models (x/flux2-klein, x/z-image-turbo) and does not need a vision model; it auto-stops conflicting loaded models to free GPU memory
 - Video analysis is not native — use ffmpeg frame extraction approach
 - Save intermediate results frequently to avoid losing work
 """
