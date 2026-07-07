@@ -235,12 +235,8 @@ def _save_and_inject(img, model, original_prompt, output, handle):
 		uid = uuid.uuid4().hex[:8]
 		out_name = "gen_{}_{}.png".format(ts, uid)
 
-	# Ensure workout/ directory exists
+	# Ensure workout/ directory exists (always cwd-relative)
 	workout_dir = 'workout'
-	if handle:
-		base_path = handle.Options.get('path', '')
-		if base_path:
-			workout_dir = os.path.join(base_path, 'workout')
 	os.makedirs(workout_dir, exist_ok=True)
 
 	out_path = os.path.join(workout_dir, out_name)
