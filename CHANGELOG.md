@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-07-07 — v0.7
+
+### Removed: `!CT` and `!TOOLS` commands — tools now auto-load dynamically
+
+**Problem:** Both commands were legacy from the pre-auto-load era.
+- `!CT` (Clear Tools) cleared tool state that tools themselves never touch
+- `!TOOLS` (List/Choose Tools) just printed "Loading tools..." and continued
+
+**Fix:** Removed both command entries and their method implementations from `Commands.py`. Removed from README command table. Tools are auto-discovered and loaded on-demand by `ToolChooser`/`ToolParser` — no manual management needed.
+
+### Fixed: Ollama image-gen intercept in Terminal
+
+When the AI tries `ollama run|generate|push` with image model names (`x/`, `flux`, `sdxl`, etc.), Terminal now returns a message redirecting to the `GenerateImage` tool instead of failing on GPU memory.
+
+### Fixed: HTTP 413 "request body too large" auto-recovery
+
+The `chat()` call in `Handle.py` now detects 400/413/too-large errors from Ollama, auto-clears conversation context, and retries — instead of getting stuck in a permanent error loop.
+
+### Fixed: Image output path now cwd-relative
+
+`GenerateImage` was resolving `workout/` via `handle.Options.get('path')` (project root). Changed to always use cwd-relative `workout/` — images land where you launched `ourai` from.
+
+### Added: `nvidia-smi` to Terminal allowed programs
+
+AI can now diagnose GPU memory usage directly.
+
+### Added: Tip `image_gen_workflow` — steer AI toward GenerateImage tool
+
+New tip tells the AI to always use `GenerateImage` instead of calling ollama directly for image generation.
+
 ## 2026-07-07
 
 ### Added: `-c` persona persist — resume with last-used persona, not just Developer

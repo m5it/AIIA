@@ -800,8 +800,7 @@ All commands start with `!` (case-sensitive). The following are available:
 |---------|-------------|
 | `!STATS` | Display program statistics including token counts. |
 | `!CACHE_CLEAR` | Clear all tool result caches and reset consumed-tip tracking. |
-| `!TOOLS` | List and choose which tools to load. |
-| `!CT` | Clear all loaded tools. |
+
 
 ### History Commands
 
