@@ -5,6 +5,12 @@ from PIL import Image as PILImage
 from ollama import Client
 from src.ToolParser import ToolParser
 
+# Suppress library noise before any diffusers/transformers/torch imports
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
+os.environ['DIFFUSERS_VERBOSITY'] = 'error'
+os.environ['TQDM_DISABLE'] = '1'
+
 # Diffusers pipeline cache (module-level, survives dynamic reloads in same process)
 _diffusers_pipeline = None
 _diffusers_pipeline_model = None
@@ -173,7 +179,8 @@ def _generate_diffusers(model, prompt, width, height, steps, seed):
 		'flux-schnell': 'stabilityai/sdxl-turbo',
 		'sdxl-turbo': 'stabilityai/sdxl-turbo',
 	}
-	hf_model = HF_MODEL_MAP.get(model, model)
+	clean_model = model.split(':')[0]  # strip :latest etc.
+	hf_model = HF_MODEL_MAP.get(clean_model, clean_model)
 
 	if '/' not in hf_model:
 		return ("Model '{}' not recognized for diffusers backend. "
@@ -220,6 +227,9 @@ def _save_and_inject(img, model, original_prompt, output, handle):
 	# Determine output filename
 	if output:
 		out_name = output
+		# Strip workout/ prefix to prevent path duplication
+		if out_name.startswith('workout/'):
+			out_name = out_name[len('workout/'):]
 	else:
 		ts = datetime.now().strftime('%Y%m%d_%H%M%S')
 		uid = uuid.uuid4().hex[:8]
