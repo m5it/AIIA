@@ -2,6 +2,29 @@
 
 ## 2026-07-07
 
+### Added: Direct user tool calls skip AI entirely
+
+When a user (or editor) sends an XML tool invocation like `<TreeView><path>.</path></TreeView>`, the framework now executes it immediately and returns the result without ever calling the LLM. Previously, the tool was executed in `You()` but then `AI()` would still run, wasting tokens as the model reacted to the tool result in history.
+
+**`Handle.You()`** — returns `1` instead of `0` when tool invocations are detected in user input:
+- Executes tools via `FireToolInvocation()` as before
+- Collects results into `_direct_tool_results` list for SSE/callers
+- Returns `1` to signal "tool was executed — skip AI"
+- Still adds both user message and tool result to conversation history for context
+
+**`Handle.Chat()`** — handles `x==1` with `continue` (skip `AI()`, show prompt again)
+
+**`Server.chat()`** — handles `result==1` by calling `_stream_tool_results()`:
+- Converts stored results to proper SSE events by tool type:
+  - `TreeView` → `{"type":"tool","tool":"TreeView","params":{"xml":"..."}}`
+  - `ReadFile` → `{"type":"tool","tool":"ReadFile","params":{"contentOfFile":"..."}}`
+  - Other → `{"type":"tool","tool":"...","params":{"result":"..."}}`
+- Clears `_direct_tool_results` after streaming
+
+Result: instant tool responses in both CLI and SSE modes, zero tokens wasted.
+
+**Files:** `src/Handle.py`, `src/Server.py`
+
 ### Added: `POST /execute` endpoint for direct tool execution
 
 New server endpoint `/execute` that runs tools directly without involving the AI model. Accepts XML tool calls and returns JSON results immediately.

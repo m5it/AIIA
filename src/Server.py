@@ -44,6 +44,8 @@ class OurAIServer():
 				result = self.handle.You(message)
 				if result == 0:
 					self.handle.AI({'stream_callback': write_event})
+				elif result == 1:
+					self._stream_tool_results(write_event)
 				elif result == 5:
 					self.handle.StartBuild()
 				elif result == 6:
@@ -53,6 +55,26 @@ class OurAIServer():
 					write_event({'type':'token','text':'[New session started]'})
 			except Exception as e:
 				write_event({'type':'error','message':str(e)})
+	
+	def _stream_tool_results(self, write_event):
+		"""
+		Stream direct tool execution results back via SSE.
+		Called when Handle.You() returns 1 (tools executed, no AI).
+		"""
+		handle = self.handle
+		results = getattr(handle, '_direct_tool_results', [])
+		for item in results:
+			name = item.get('name', '')
+			content = item.get('content', '')
+			if name == 'TreeView':
+				write_event({'type':'tool','tool':name,'params':{'xml':content}})
+			elif name == 'ReadFile':
+				write_event({'type':'tool','tool':name,'params':{'contentOfFile':content}})
+			elif name == 'WriteFile':
+				write_event({'type':'tool','tool':name,'params':{'result':content}})
+			else:
+				write_event({'type':'tool','tool':name,'params':{'result':content}})
+		handle._direct_tool_results = []
 
 
 class _SSEHandler(BaseHTTPRequestHandler):

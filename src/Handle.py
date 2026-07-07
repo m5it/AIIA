@@ -48,6 +48,7 @@ class Handle():
 		self.tool_errors    = 0
 		self._consumed_tips = set()
 		self._last_response_hash = None
+		self._direct_tool_results = [] # results from direct user tool calls (no AI)
 
 		# Eager-import _koslenium_server so its module is cached in sys.modules.
 		# Without this, the dynamic tool reloader may re-execute it, resetting
@@ -299,6 +300,8 @@ class Handle():
 				return x # return 2=continue or 3=break, 4=update handle
 			elif x==2:
 				continue
+			elif x==1:
+				continue # direct tool call — skip AI, show prompt again
 			
 			#
 			# AI()
@@ -609,11 +612,21 @@ class Handle():
 		tool_invocations = self.hTP.ParseTextToolInvocation(inp)
 		
 		if tool_invocations:
-			self.hLG.echo("Handle.You() detected {} tool invocation(s) in text".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
+			self.hLG.echo("Handle.You() detected {} tool invocation(s) in text — executing directly, skipping AI".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
 			#
+			self._direct_tool_results = []
 			self.hTP.FireToolInvocation(tool_invocations)
 			#
-			#return 2 # just to debug tool calls with user input
+			# Collect results from history for SSE / caller use
+			for msg in reversed(self.hHM.msgs):
+				if msg.get('role') == 'tool' and msg.get('name'):
+					self._direct_tool_results.append({
+						'name': msg['name'],
+						'content': msg.get('content', '')
+					})
+				if len(self._direct_tool_results) >= len(tool_invocations):
+					break
+			return 1 # tool was executed — skip AI
 		return 0 # Input without command or successed command with input data
 	
 	#
