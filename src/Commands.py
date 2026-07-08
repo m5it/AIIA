@@ -40,13 +40,20 @@ class Commands():
 				"func"       :self.CMD_STATS,
 			},
 
-			"PREVIEW_HISTORY":{
-				"name"       :"Preview History",
-				"description":"Preview current chat history",
-				"regex"      :r"^!PH$",
-				"usage"      :"!PH",
-				"func"       :self.CMD_PREVIEW_HISTORY,
-			},
+		"SUMMARIZE":{
+			"name"       :"Summarize",
+			"description":"Clear chat history (keeps system messages). Use when context gets too large.",
+			"regex"      :r"^!SUMMARIZE$",
+			"usage"      :"!SUMMARIZE",
+			"func"       :self.CMD_SUMMARIZE,
+		},
+		"PREVIEW_HISTORY":{
+			"name"       :"Preview History",
+			"description":"Preview current chat history",
+			"regex"      :r"^!PH$",
+			"usage"      :"!PH",
+			"func"       :self.CMD_PREVIEW_HISTORY,
+		},
 		"TIP_LIST":{
 			"name"       :"Tip List",
 			"description":"List all saved tip titles with entry counts.",
@@ -418,6 +425,12 @@ class Commands():
 			print("  !PROJECT RESET — reset to defaults")
 		return 2
 	#
+	def CMD_SUMMARIZE(self, inp=""):
+		self.handle.hLG.echo("Summarizing — clearing history, keeping system messages...",
+			{'color':True, 'colorValue':'orange','debugOnly':False})
+		self.handle._auto_clear()
+		return 2
+
 	def CMD_PREVIEW_HISTORY(self, inp=""):
 		self.handle.hLG.echo("Handle.Commands.CMD_PREVIEW_HISTORY START!, history.len: {}".format( len(self.handle.hHM.msgs) ))
 		i=0

@@ -2,6 +2,14 @@
 
 ## 2026-07-07 — v0.7
 
+### Added: `!SUMMARIZE` command — manual history trim
+
+Clears all non-system messages from chat history. Use when context gets too large (e.g., after GenerateImage injects base64 images). Calls `_auto_clear()` internally.
+
+### Fixed: HTTP 413 loop on large context
+
+Added `_manage_context()` call inside the AI() iteration loop (previously only called once before the loop). When GenerateImage injects a large base64 image as a tool result mid-loop, the re-check now catches the bloat before the next model request, preventing the "request body too large" loop.
+
 ### Added: `AI_INSTRUCT_OPTION=2` — short prompt + tips instruction mode
 
 **New config:** `AI_INSTRUCT_OPTION` (default `1`):

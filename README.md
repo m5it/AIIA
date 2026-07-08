@@ -806,6 +806,7 @@ All commands start with `!` (case-sensitive). The following are available:
 
 | Command | Description |
 |---------|-------------|
+| `!SUMMARIZE` | Clear chat history, keep system messages. Use when context gets too large. |
 | `!PH` | Preview current chat history with row numbers. |
 | `!CLEAR` | Clear all non-system messages from history. |
 | `!RM <row_num>` | Remove a specific row from history. |

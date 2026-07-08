@@ -986,6 +986,10 @@ class Handle():
 		while iteration < max_iterations:
 			iteration += 1
 
+			# Re-check context before each model call — tool results may have
+			# added large data (e.g., base64 images) since the last check
+			self._manage_context()
+
 			result        = ""
 			res           = {}
 			msgs = copy.deepcopy(self.hHM.msgs)
