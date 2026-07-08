@@ -59,6 +59,8 @@ export OURAI_PROJECT_DIR="$SCRIPT_DIR"
 # Create required directories and files in project directory
 mkdir -p "$SCRIPT_DIR/history" 2>/dev/null
 mkdir -p "$SCRIPT_DIR/.session" 2>/dev/null
+# Ensure the working project dir has a history/ directory for per-project state
+mkdir -p "$USER_DIR/history" 2>/dev/null
 if [[ ! -f "$SCRIPT_DIR/sessid.aiia" ]]; then
     echo "1" > "$SCRIPT_DIR/sessid.aiia"
 fi

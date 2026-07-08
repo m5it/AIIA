@@ -11,7 +11,7 @@ if _framework_dir in sys.path:
 sys.path.insert(0, _framework_dir)
 
 from ollama import chat
-import getopt, os, shutil, sys
+import getopt, os, shutil, sys, json
 import atexit, traceback
 #
 from config import Options
@@ -68,25 +68,29 @@ def reset_to_factory():
 	print("\nResetting to factory defaults...")
 	removed = 0
 	#
-	# 1. Session ID
-	sessid_path = Options.get('AI_FILE_SESSID', 'sessid.aiia')
+	# 1. State file — reset session counter and mode
+	state_path = Options.get('AI_FILE_STATE', 'state.aiia')
 	try:
-		with open(sessid_path, 'w') as f:
-			f.write('0')
-		print("  Reset session counter  -> sessid.aiia = 0")
+		tmp = state_path + '.tmp'
+		_default_state = '{"sess_id":0,"mode":"plan"}'
+		with open(tmp, 'w') as f:
+			f.write(_default_state)
+		os.replace(tmp, state_path)
+		print("  Reset state.aiia       -> sess_id=0, mode=plan")
 		removed += 1
 	except Exception as e:
-		print("  Failed to reset sessid.aiia: {}".format(e))
-	#
-	# 1b. Mode file
-	mode_path = Options.get('AI_FILE_MODE', 'mode.aiia')
-	try:
-		with open(mode_path, 'w') as f:
-			f.write('plan')
-		print("  Reset mode file        -> mode.aiia = plan")
-		removed += 1
-	except Exception as e:
-		print("  Failed to reset mode.aiia: {}".format(e))
+		print("  Failed to reset state.aiia: {}".format(e))
+	# Remove legacy per-file .aiia state files
+	framework_dir = Options.get('path', '').rstrip('/')
+	for fname in ('sessid.aiia', 'mode.aiia', 'model.aiia', 'persona.aiia',
+				  'used_models.aiia', 'tokens.aiia'):
+		fpath = os.path.join(framework_dir, fname)
+		if os.path.exists(fpath):
+			try:
+				os.remove(fpath)
+				print("  Removed legacy {} -> {}".format(fname, fpath))
+			except Exception as e:
+				print("  Failed to remove {}: {}".format(fname, e))
 	#
 	# 2. History directory
 	history_dir = os.path.join(Options.get('path', ''), Options.get('history_path', 'history'))
@@ -204,18 +208,24 @@ def cleanup():
 		Run(True)
 		return False
 	print("cleanup() QUITING")
-	# Save current mode for -c continuation
-	mode_file = Options.get('AI_FILE_MODE')
-	if mode_file:
-		fwrite(mode_file, Options.get('MODE', 'plan'), True)
-	# Save current model for -c continuation
-	model_file = Options.get('AI_FILE_MODEL')
-	if model_file:
-		fwrite(model_file, Options.get('AI_MODEL', ''), True)
-	# Save current persona for -c continuation
-	persona_file = Options.get('AI_FILE_PERSONA')
-	if persona_file:
-		fwrite(persona_file, Options.get('INSTRUCT_CLASS', 'Developer'), True)
+	# Save current state for -c continuation
+	state_path = Options.get('AI_FILE_STATE')
+	if state_path:
+		try:
+			state = {}
+			if os.path.exists(state_path):
+				try:
+					state = json.loads(fread(state_path))
+				except Exception:
+					state = {}
+			state['mode'] = Options.get('MODE', 'plan')
+			state['model'] = Options.get('AI_MODEL', '')
+			state['persona'] = Options.get('INSTRUCT_CLASS', 'Developer')
+			tmp = state_path + '.tmp'
+			fwrite(tmp, json.dumps(state), True)
+			os.replace(tmp, state_path)
+		except Exception as e:
+			print("  Failed to save state: {}".format(e))
 	return True
 #
 def handle_exception(exc_type, exc_value, exc_traceback):

@@ -36,7 +36,7 @@ class HistoryManager():
 		if path:
 			file_path = path
 		else:
-			file_path = "{}/{}".format(self.handle.Options.get('path', '').rstrip('/'), self.history)
+			file_path = "{}/history/{}".format(self.handle.Options.get('path', '').rstrip('/'), self.history)
 		#
 		if not os.path.exists(file_path):
 			return
@@ -107,7 +107,7 @@ class HistoryManager():
 					print("Viewing history debug a[0]: {}, a[1]: {}".format(a[0],a[1]))
 					tmpname = self.available[int(a[1])]
 					print("Viewing history debug fileName: {}".format(tmpname))
-					tmpdata = fread( "{}{}/{}".format( self.handle.Options.get('path', '').rstrip('/'), self.handle.Options['history_path'], tmpname) )
+					tmpdata = fread( "{}/history/{}".format( self.handle.Options.get('path', '').rstrip('/'), tmpname) )
 					print("Viewing history debug tmpdata len: {}".format( len(tmpdata) ))
 					print(tmpdata)
 			try:

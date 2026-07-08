@@ -7,12 +7,11 @@ class Prepare():
 	#
 	def GetSessionId(self):
 		self.handle.hLG.echo("Prepare.GetSessionId() START")
-		# load session id
-		tmp = fread( self.handle.Options['AI_FILE_SESSID'] )
-		if tmp!=False:
-			self.handle.Options['AI_SESS_ID'] = int(tmp)
-		self.handle.Options['AI_SESS_ID'] = self.handle.Options['AI_SESS_ID']+1
-		fwrite(self.handle.Options['AI_FILE_SESSID'],self.handle.Options['AI_SESS_ID'],True)
+		# load session id from state.aiia
+		state = self.handle._read_state()
+		saved = state.get('sess_id', 0)
+		self.handle.Options['AI_SESS_ID'] = saved + 1
+		self.handle._write_state({'sess_id': self.handle.Options['AI_SESS_ID']})
 	
 	#
 	def UpdateFileNames(self):

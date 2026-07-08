@@ -599,10 +599,8 @@ class Commands():
 				ret = 5  # startBuild signal
 				print("Plan has {} tasks. Starting build...".format(len(PlanBase.draft.tasks)))
 			
-		# Persist mode to file
-		mode_file = self.handle.Options.get('AI_FILE_MODE')
-		if mode_file:
-			fwrite(mode_file, new_mode, True)
+		# Persist mode to state
+		self.handle._write_state({'mode': new_mode})
 			
 		#--
 		# Update System message with new mode!

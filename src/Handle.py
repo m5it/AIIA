@@ -63,6 +63,15 @@ class Handle():
 	#
 	def Init(self):
 		#
+		# Per-project state: when working_dir differs from framework,
+		# store state.aiia in the project dir for isolated state.
+		working_dir = self.Options.get('working_dir')
+		framework_dir = self.Options.get('path', '').rstrip('/')
+		if working_dir and working_dir != framework_dir:
+			fname = os.path.basename(self.Options.get('AI_FILE_STATE', ''))
+			self.Options['AI_FILE_STATE'] = "{}/{}".format(working_dir, fname)
+			self.Options['history_path'] = "{}/history".format(working_dir)
+		#
 		self.hPP.GetSessionId()
 		self.hPP.UpdateFileNames()
 		#
@@ -98,60 +107,45 @@ class Handle():
 		if not working_dir or working_dir == framework_dir:
 			working_dir = None
 
-		# Restore saved MODE from mode.aiia
-		mode_file = self.Options.get('AI_FILE_MODE')
-		if mode_file and os.path.exists(mode_file):
-			saved_mode = fread(mode_file)
-			if saved_mode and saved_mode.strip() in ('plan', 'build'):
-				self.Options['MODE'] = saved_mode.strip()
-				self.hLG.echo("Restored MODE: {}".format(saved_mode.strip()),
+		# Load all persisted state from state.aiia
+		state = self._read_state()
+
+		# Restore MODE
+		saved_mode = state.get('mode', '')
+		if saved_mode in ('plan', 'build'):
+			self.Options['MODE'] = saved_mode
+			self.hLG.echo("Restored MODE: {}".format(saved_mode),
+				{'color': True, 'colorValue': 'green'})
+
+		# Restore persona
+		saved_persona = state.get('persona', '')
+		if saved_persona:
+			self.Options['INSTRUCT_CLASS'] = saved_persona
+			self.Options['INSTRUCT_CLASS_OVERRIDE'] = True
+			self.hLG.echo("Restored persona: {}".format(saved_persona),
+				{'color': True, 'colorValue': 'green'})
+
+		# Restore model
+		saved_model = state.get('model', '')
+		if saved_model:
+			old = self.Options.get('AI_MODEL', '')
+			self.Options['AI_MODEL'] = saved_model
+			if saved_model != old:
+				self.hLG.echo("Restored model: {}".format(saved_model),
 					{'color': True, 'colorValue': 'green'})
+				from src.ModelRegistry import apply as apply_registry
+				_changes = apply_registry(self.Options, saved_model)
+				if _changes:
+					for _c in _changes:
+						self.hLG.echo("  Model config: {}".format(_c),
+							{'color': True, 'colorValue': 'cyan'})
 
-		# Restore saved persona from persona.aiia
-		persona_file = self.Options.get('AI_FILE_PERSONA')
-		if persona_file and os.path.exists(persona_file):
-			saved_persona = fread(persona_file)
-			if saved_persona and saved_persona.strip():
-				persona = saved_persona.strip()
-				self.Options['INSTRUCT_CLASS'] = persona
-				self.Options['INSTRUCT_CLASS_OVERRIDE'] = True
-				self.hLG.echo("Restored persona: {}".format(persona),
-					{'color': True, 'colorValue': 'green'})
-
-		# Restore saved model from model.aiia
-		model_file = self.Options.get('AI_FILE_MODEL')
-		if model_file and os.path.exists(model_file):
-			saved_model = fread(model_file)
-			if saved_model and saved_model.strip():
-				_model = saved_model.strip()
-				old = self.Options.get('AI_MODEL', '')
-				self.Options['AI_MODEL'] = _model
-				if _model != old:
-					self.hLG.echo("Restored model: {}".format(_model),
-						{'color': True, 'colorValue': 'green'})
-					# Re-apply ModelRegistry for the restored model
-					from src.ModelRegistry import apply as apply_registry
-					_changes = apply_registry(self.Options, _model)
-					if _changes:
-						for _c in _changes:
-							self.hLG.echo("  Model config: {}".format(_c),
-								{'color': True, 'colorValue': 'cyan'})
-
-		# Load used models list
-		used_models_path = self.Options.get('AI_FILE_USED_MODELS')
-		used_models = []
-		if used_models_path and os.path.exists(used_models_path):
-			raw = fread(used_models_path)
-			if raw is not False and raw.strip():
-				try:
-					used_models = json.loads(raw)
-				except Exception:
-					used_models = []
-		# Ensure current model is tracked
+		# Restore used models list
+		used_models = state.get('used_models', [])
 		current = self.Options.get('AI_MODEL', '')
 		if current and current not in used_models:
 			used_models.append(current)
-			self._save_used_models(used_models, used_models_path)
+			self._write_state({'used_models': used_models})
 		self.Options['used_models'] = used_models
 
 		# Load plan from PLAN.md
@@ -191,9 +185,13 @@ class Handle():
 				self.Options['NUM_RESPONSE_TOKENS'] = total_response
 				self.Options['NUM_LAST_PROMPT_TOKENS'] = last_prompt
 				self.Options['NUM_LAST_RESPONSE_TOKENS'] = last_response
-				# Fallback: if per-message scan found nothing (old history), load tokens.aiia
-				if total_prompt == 0 and total_response == 0:
-					self._load_token_totals()
+			# Fallback: if per-message scan found nothing, load from state
+			if total_prompt == 0 and total_response == 0:
+				state = self._read_state()
+				for key in ('NUM_PROMPT_TOKENS', 'NUM_RESPONSE_TOKENS',
+							'NUM_LAST_PROMPT_TOKENS', 'NUM_LAST_RESPONSE_TOKENS'):
+					if key in state:
+						self.Options[key] = state[key]
 				
 				# Check if loaded system messages match current mode instructions.
 				# If mode changed (different persona or plan↔build), inject fresh
@@ -257,7 +255,12 @@ class Handle():
 			self.Options['NUM_LAST_RESPONSE_TOKENS'] = response_tokens
 			self.Options['NUM_PROMPT_TOKENS'] = self.Options.get('NUM_PROMPT_TOKENS', 0) + prompt_tokens
 			self.Options['NUM_RESPONSE_TOKENS'] = self.Options.get('NUM_RESPONSE_TOKENS', 0) + response_tokens
-			self._save_token_totals()
+			self._write_state({
+				'NUM_PROMPT_TOKENS': self.Options['NUM_PROMPT_TOKENS'],
+				'NUM_RESPONSE_TOKENS': self.Options['NUM_RESPONSE_TOKENS'],
+				'NUM_LAST_PROMPT_TOKENS': self.Options['NUM_LAST_PROMPT_TOKENS'],
+				'NUM_LAST_RESPONSE_TOKENS': self.Options['NUM_LAST_RESPONSE_TOKENS'],
+			})
 
 		#
 		if opt_return_object:
@@ -769,49 +772,88 @@ class Handle():
 			self.hLG.echo("Failed to save clear tip: {}".format(e),
 				{'color': True, 'colorValue': 'red'})
 
-	def _save_used_models(self, models, path=None):
-		"""Persist the used-models list to disk."""
-		if path is None:
-			path = self.Options.get('AI_FILE_USED_MODELS')
-		if path:
-			try:
-				fwrite(path, json.dumps(models), True)
-			except Exception as e:
-				self.hLG.echo("Failed to save used models: {}".format(e),
-					{'color': True, 'colorValue': 'red'})
-
-	def _save_token_totals(self):
-		"""Persist cumulative token counts to tokens.aiia for recovery on -c."""
-		path = self.Options.get('AI_FILE_TOKENS')
-		if path:
-			try:
-				data = {
-					'NUM_PROMPT_TOKENS': self.Options.get('NUM_PROMPT_TOKENS', 0),
-					'NUM_RESPONSE_TOKENS': self.Options.get('NUM_RESPONSE_TOKENS', 0),
-					'NUM_LAST_PROMPT_TOKENS': self.Options.get('NUM_LAST_PROMPT_TOKENS', 0),
-					'NUM_LAST_RESPONSE_TOKENS': self.Options.get('NUM_LAST_RESPONSE_TOKENS', 0),
-				}
-				fwrite(path, json.dumps(data), True)
-			except Exception as e:
-				self.hLG.echo("Failed to save token totals: {}".format(e),
-					{'color': True, 'colorValue': 'red'})
-
-	def _load_token_totals(self):
-		"""Restore cumulative token counts from tokens.aiia (fallback for old history)."""
-		path = self.Options.get('AI_FILE_TOKENS')
+	def _read_state(self):
+		"""Load full state dict from state.aiia, with migration from legacy files."""
+		path = self.Options.get('AI_FILE_STATE')
 		if path and os.path.exists(path):
 			try:
 				raw = fread(path)
-				data = json.loads(raw)
-				for key in ('NUM_PROMPT_TOKENS', 'NUM_RESPONSE_TOKENS',
-				            'NUM_LAST_PROMPT_TOKENS', 'NUM_LAST_RESPONSE_TOKENS'):
-					if key in data:
-						self.Options[key] = data[key]
-				self.hLG.echo("Restored token counts from tokens.aiia",
-					{'color': True, 'colorValue': 'cyan', 'debugOnly': False})
+				return json.loads(raw)
 			except Exception as e:
-				self.hLG.echo("Failed to load token totals: {}".format(e),
-					{'color': True, 'colorValue': 'red'})
+				self.hLG.echo("Failed to read state: {} (will migrate)".format(e),
+					{'color': True, 'colorValue': 'yellow'})
+		# No state.aiia yet — migrate from legacy per-file .aiia files
+		migrated = self._migrate_old_state()
+		if migrated:
+			self._write_state(migrated)
+		return migrated
+
+	def _write_state(self, updates=None):
+		"""Atomically write state.aiia, merging `updates` into existing state."""
+		path = self.Options.get('AI_FILE_STATE')
+		if not path:
+			return
+		state = {}
+		if os.path.exists(path):
+			try:
+				raw = fread(path)
+				state = json.loads(raw)
+			except Exception:
+				pass
+		if updates:
+			state.update(updates)
+		try:
+			tmp = path + '.tmp'
+			fwrite(tmp, json.dumps(state), True)
+			os.replace(tmp, path)
+		except Exception as e:
+			self.hLG.echo("Failed to write state: {}".format(e),
+				{'color': True, 'colorValue': 'red'})
+
+	def _migrate_old_state(self):
+		"""Import values from legacy per-file .aiia files into a single dict."""
+		fw_dir = self.Options.get('path', '').rstrip('/')
+		state = {}
+		legacy = [
+			('sess_id', '{}/sessid.aiia', lambda r: int(r.strip())),
+			('mode', '{}/mode.aiia', lambda r: r.strip() if r.strip() in ('plan','build') else None),
+			('model', '{}/model.aiia', lambda r: r.strip() or None),
+			('persona', '{}/persona.aiia', lambda r: r.strip() or None),
+			('used_models', '{}/used_models.aiia', lambda r: json.loads(r)),
+		]
+		token_keys = ['NUM_PROMPT_TOKENS', 'NUM_RESPONSE_TOKENS',
+					  'NUM_LAST_PROMPT_TOKENS', 'NUM_LAST_RESPONSE_TOKENS']
+		found = False
+		for key, tmpl, parse in legacy:
+			p = tmpl.format(fw_dir)
+			if os.path.exists(p):
+				try:
+					raw = fread(p)
+					val = parse(raw)
+					if val is not None:
+						state[key] = val
+						found = True
+				except Exception:
+					pass
+		# Migrate tokens.aiia (JSON file with separate keys)
+		tokens_path = '{}/tokens.aiia'.format(fw_dir)
+		if os.path.exists(tokens_path):
+			try:
+				tdata = json.loads(fread(tokens_path))
+				for k in token_keys:
+					if k in tdata:
+						state[k] = tdata[k]
+						found = True
+			except Exception:
+				pass
+		if found:
+			self.hLG.echo("Migrated legacy .aiia files to state.aiia",
+				{'color': True, 'colorValue': 'cyan'})
+		return state
+
+	def _save_used_models(self, models):
+		"""Persist the used-models list to state.aiia."""
+		self._write_state({'used_models': models})
 
 	def _summarize_context(self, msgs, limit, threshold):
 		"""Summarize older messages, keeping last 5 exchanges + all system prompts.
