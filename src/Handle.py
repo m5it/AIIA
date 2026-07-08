@@ -46,6 +46,8 @@ class Handle():
 		self.hPM     = PlanBase
 		self.tool_iteration = 0
 		self.tool_errors    = 0
+		self._last_failed_tool = None
+		self._last_failed_tool_count = 0
 		self._consumed_tips = set()
 		self._last_response_hash = None
 		self._direct_tool_results = [] # results from direct user tool calls (no AI)
@@ -645,6 +647,10 @@ class Handle():
 		# Append user content
 		if inp != None:
 			self._last_response_hash = None
+			# Reset consecutive error tracking on new user input
+			self.tool_errors = 0
+			self._last_failed_tool = None
+			self._last_failed_tool_count = 0
 			self.Response('user',{'content':inp})
 		
 		# Handle model tool calls
@@ -985,6 +991,23 @@ class Handle():
 
 		while iteration < max_iterations:
 			iteration += 1
+
+			# Short-circuit: ≥3 consecutive tool errors → break loop with recovery
+			if self.tool_errors >= 3:
+				self.hLG.echo(
+					"AI loop: {} consecutive tool errors — breaking loop".format(self.tool_errors),
+					{'color':True, 'colorValue':'orange','debugOnly':False})
+				recovery_msg = (
+					"[System: Tool execution failed {} times consecutively. "
+					"The last failed tool was `{}`. "
+					"Use the correct XML format shown in the tool error messages above. "
+					"Do not repeat the same malformed tool call.]"
+				).format(self.tool_errors, self._last_failed_tool)
+				self.Response('user', {'content': recovery_msg})
+				self.tool_errors = 0
+				self._last_failed_tool = None
+				self._last_failed_tool_count = 0
+				continue
 
 			# Re-check context before each model call — tool results may have
 			# added large data (e.g., base64 images) since the last check

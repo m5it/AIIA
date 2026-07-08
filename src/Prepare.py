@@ -85,18 +85,41 @@ class Prepare():
 	
 	#
 	def _save_instruction_tip(self, cls, cls_name):
-		"""Save persona's plan() and build() as a tip for AI_INSTRUCT_OPTION=2."""
-		tip_title = "instruct_{}".format(cls_name.lower())
+		"""Save persona's plan() and build() as a tip for AI_INSTRUCT_OPTION=2.
+
+		Splits build() at 'AVAILABLE TOOLS' into two tips:
+		- instruct_{name}:       workflow rules only (small, loaded via ReinsertTip)
+		- tool_reference_build:  detailed tool docs (larger, loaded on demand)
+		"""
+		base_title = "instruct_{}".format(cls_name.lower())
 		plan_text = cls.plan() if hasattr(cls, 'plan') else ""
 		build_text = cls.build() if hasattr(cls, 'build') else ""
+		# Split build text at "AVAILABLE TOOLS" marker
+		tool_marker = "\nAVAILABLE TOOLS"
+		split_pos = build_text.find(tool_marker)
+		if split_pos != -1:
+			build_workflow = build_text[:split_pos]
+			build_tools = build_text[split_pos:]
+		else:
+			build_workflow = build_text
+			build_tools = ""
+		# Main tip: workflow-only instructions
 		entries = []
 		if plan_text:
 			entries.append({'role': 'model', 'content': "[PLAN MODE INSTRUCTIONS]\n" + plan_text})
-		if build_text:
-			entries.append({'role': 'model', 'content': "[BUILD MODE INSTRUCTIONS]\n" + build_text})
+		if build_workflow:
+			entries.append({'role': 'model', 'content': "[BUILD MODE INSTRUCTIONS]\n" + build_workflow})
 		if self.handle and hasattr(self.handle, 'hTM'):
-			self.handle.hTM.delete(tip_title, 'model')
-			self.handle.hTM.save(tip_title, 'model', entries)
+			self.handle.hTM.delete(base_title, 'model')
+			self.handle.hTM.save(base_title, 'model', entries)
+		# Secondary tip: tool reference docs (on-demand)
+		if build_tools:
+			tool_tip_title = "tool_reference_build"
+			tool_entries = [{'role': 'model', 'content': "[BUILD MODE TOOL REFERENCE]\n" + build_tools}]
+			if build_text:
+				tool_entries.append({'role': 'model', 'content': "[BUILD MODE WORKFLOW EXAMPLE]\n" + build_text})
+			self.handle.hTM.delete(tool_tip_title, 'model')
+			self.handle.hTM.save(tool_tip_title, 'model', tool_entries)
 	#
 	def _get_mode_instructions(self, mode):
 		cls_name = self.handle.Options.get('INSTRUCT_CLASS', 'Developer')
@@ -117,15 +140,18 @@ class Prepare():
 		# Option 2: short prompt + tips
 		if self.handle.Options.get('AI_INSTRUCT_OPTION', 1) == 2:
 			self._save_instruction_tip(cls, cls_name)
-			tip_title = "instruct_{}".format(cls_name.lower())
+			base_title = "instruct_{}".format(cls_name.lower())
 			return (
 				"Your role: {}\n\n"
-				"Your full instructions are stored as a tip.\n"
+				"Your core instructions are stored as a tip.\n"
 				"Use <GetTip> {} or <ReinsertTip> {} to load them.\n"
-				"The tip contains separate entries for plan and build mode."
+				"The tip contains separate entries for plan and build mode.\n"
+				"Detailed tool reference docs are in a separate tip:\n"
+				"  <GetTip> tool_reference_build</GetTip>\n"
+				"  <ReinsertTip> tool_reference_build</ReinsertTip>"
 			).format(
 				getattr(cls, 'description', cls_name),
-				tip_title, tip_title
+				base_title, base_title
 			)
 		# Option 1: full persona class instructions (default)
 		if mode == 'plan':

@@ -1,4 +1,15 @@
 #!/usr/bin/python
+import sys, os
+# Ensure the framework root is in sys.path and CWD is removed, so its
+# src/ package isn't shadowed by a project CWD that has its own src/
+# package (e.g. OurSSH).
+_cwd = os.getcwd()
+sys.path = [p for p in sys.path if p not in ('', _cwd)]
+_framework_dir = os.path.dirname(os.path.abspath(__file__))
+if _framework_dir in sys.path:
+	sys.path.remove(_framework_dir)
+sys.path.insert(0, _framework_dir)
+
 from ollama import chat
 import getopt, os, shutil, sys
 import atexit, traceback

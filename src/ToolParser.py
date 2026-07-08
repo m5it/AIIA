@@ -347,6 +347,20 @@ class ToolParser:
 			missing = [r for r in required if r not in params or params[r] in (None, '')]
 			if missing:
 				self.handle.tool_errors += 1
+				# Track consecutive same-tool failures and inject correct-usage hint
+				if self.handle._last_failed_tool == toolName:
+					self.handle._last_failed_tool_count += 1
+				else:
+					self.handle._last_failed_tool = toolName
+					self.handle._last_failed_tool_count = 1
+				if self.handle._last_failed_tool_count >= 2:
+					usage_hint = (
+						"Tool `{}` failed {} times with missing parameter(s): {}. "
+						"Correct format:\n{}"
+					).format(toolName, self.handle._last_failed_tool_count,
+						', '.join(missing), self._tool_usage(info))
+					self.handle.hLG.echo(usage_hint, {'color':True, 'colorValue':'orange','debugOnly':False})
+					self.handle.Response('user', {'content': usage_hint})
 				return "Error: Missing required parameter(s): {}{}".format(
 					', '.join(missing), self._tool_usage(info))
 			#
@@ -376,7 +390,20 @@ class ToolParser:
 			return result
 		except Exception as E:
 			self.handle.tool_errors += 1
+			# Track consecutive same-tool failures for exception path too
+			if self.handle._last_failed_tool == toolName:
+				self.handle._last_failed_tool_count += 1
+			else:
+				self.handle._last_failed_tool = toolName
+				self.handle._last_failed_tool_count = 1
 			info = getattr(h, 'info', {}) if h else {}
+			if self.handle._last_failed_tool_count >= 2:
+				usage_hint = (
+					"Tool `{}` failed {} times with errors. "
+					"Correct format:\n{}"
+				).format(toolName, self.handle._last_failed_tool_count, self._tool_usage(info))
+				self.handle.hLG.echo(usage_hint, {'color':True, 'colorValue':'orange','debugOnly':False})
+				self.handle.Response('user', {'content': usage_hint})
 			return "Error executing {}: {}{}".format(toolName, E, self._tool_usage(info))
 	#
 	def _cache_key(self, toolName, params):
@@ -532,6 +559,8 @@ class ToolParser:
 			# Reset error counter on success
 			if not str(result).startswith('Error'):
 				self.handle.tool_errors = 0
+				self.handle._last_failed_tool = None
+				self.handle._last_failed_tool_count = 0
 			self.handle.hLG.echo("--- Tool iterations: {} | errors: {}".format(self.handle.tool_iteration, self.handle.tool_errors), {'color':True, 'colorValue':'cyan'})
 		return last_result
 	#
