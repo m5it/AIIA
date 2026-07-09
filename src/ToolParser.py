@@ -100,7 +100,11 @@ class ToolParser:
 			inner_content = text[inner_start:pos]
 			params = {}
 			for pm in re.finditer(r'<(\w+)>(.*?)</\1>', inner_content, re.DOTALL | re.IGNORECASE):
-				params[pm.group(1)] = pm.group(2).strip('\n').rstrip('\r')
+				raw = pm.group(2)
+				if pm.group(1) in ('replacement', 'contentOfFile'):
+					params[pm.group(1)] = raw
+				else:
+					params[pm.group(1)] = raw.strip('\n').rstrip('\r')
 			#
 			results.append({
 				'name': toolName,

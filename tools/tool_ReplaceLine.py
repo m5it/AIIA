@@ -45,7 +45,7 @@ class ReplaceLine():
 		if fl < 1 or tl < fl:
 			return "Error: invalid range — fromLine must be >= 1 and toLine >= fromLine."
 		#
-		full_path = "{}".format(fileName)
+		full_path = fileName if os.path.isabs(fileName) else os.path.join(os.getcwd(), fileName)
 		if not os.path.exists(full_path):
 			return "Error: file '{}' not found.".format(fileName)
 		try:
@@ -69,7 +69,9 @@ class ReplaceLine():
 		if len(old_preview) > 120:
 			old_preview = old_preview[:120] + '...'
 		#
-		repl_lines = repl.rstrip('\n').split('\n')
+		repl_lines = repl.split('\n')
+		if repl_lines and repl_lines[-1] == '':
+			repl_lines = repl_lines[:-1]
 		repl_lines = [l + '\n' for l in repl_lines]
 		#
 		new_lines = lines[:fl - 1] + repl_lines + lines[tl:]
