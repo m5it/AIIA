@@ -2,7 +2,7 @@
 
 **Version 0.7** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
 
-> **Recent updates:** `-Q`/`--quick` and `-P`/`--prompt` CLI flags, server mode auto-quick, actions system removed. See [CHANGELOG.md](CHANGELOG.md) for details.
+> **Recent updates:** Per-project `aiia.json` config overrides, model call timeout + auto-retry with switch recommendation. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Features
 
@@ -71,27 +71,27 @@ pip install ollama
 
 **Install globally (one-time):**
 ```bash
-sudo ./OurAI -l    # Creates /usr/local/bin/ourai → start.sh
+sudo ./OurAI -l    # Creates /usr/local/bin/aiia → start.sh
 ```
 
-Now run `ourai` from **any** directory:
+Now run `aiia` from **any** directory:
 ```bash
-ourai                    # Start interactive session
-ourai -m gemma3:12b      # Use specific model
-ourai -c                 # Continue last session from HISTORY.md
-ourai -R                 # Factory reset (clear all state)
-ourai -Q -p Developer    # Quick mode (skip interactive prompts)
-ourai -P "You are a coding assistant"  # Custom system message prefix
-ourai -Y "List all Python files"  # Single request
-ourai -d                 # Enable debug output
-ourai -T 0.8             # Set temperature
-ourai -S 0.0.0.0:9877    # Server mode (auto-quick)
-ourai -h                 # Show help
+aiia                    # Start interactive session
+aiia -m gemma3:12b      # Use specific model
+aiia -c                 # Continue last session from HISTORY.md
+aiia -R                 # Factory reset (clear all state)
+aiia -Q -p Developer    # Quick mode (skip interactive prompts)
+aiia -P "You are a coding assistant"  # Custom system message prefix
+aiia -Y "List all Python files"  # Single request
+aiia -d                 # Enable debug output
+aiia -T 0.8             # Set temperature
+aiia -S 0.0.0.0:9877    # Server mode (auto-quick)
+aiia -h                 # Show help
 ```
 
 **Uninstall:**
 ```bash
-sudo ./OurAI -u    # Removes /usr/local/bin/ourai
+sudo ./OurAI -u    # Removes /usr/local/bin/aiia
 ```
 
 **Without installing**, run directly:
@@ -101,7 +101,7 @@ python run.py              # or ./start.sh
 python run.py -m gemma3:12b -c
 ```
 
-The `start.sh`/`ourai` script auto-detects the project root, sets `OURAI_PROJECT_DIR`, creates required directories, activates the venv, and passes all flags to `run.py`.
+The `start.sh`/`aiia` script auto-detects the project root, sets `AIIA_PROJECT_DIR`, creates required directories, activates the venv, and passes all flags to `run.py`.
 
 ---
 
@@ -247,6 +247,8 @@ All configuration lives in `config.py`:
 | `AI_MAX_SESSION_LEN` | int | `200000` | Max total session context |
 | `INSTRUCT_CLASS` | str | `Developer` | Default persona class |
 | `INSTRUCT_PATH` | str | `instruct/` | Persona class directory |
+| `AI_MODEL_TIMEOUT` | int | `120` | Seconds before model API call times out (`0` = no timeout) |
+| `AI_MODEL_RETRIES` | int | `3` | Max retries on failed model calls before recommending switch |
 | `BUILD_THINKING_DISABLED` | bool | `false` | Disable thinking in build mode |
 | `PLAN_WORKER` | str/None | `None` | Worker name for delegated planning |
 | `NUM_PROMPT_TOKENS` | int | `0` | Cumulative prompt tokens |
@@ -262,12 +264,31 @@ All configuration lives in `config.py`:
 | `history_path` | str | `history/` | Directory for session history |
 | `tools_path` | str | `tools/` | Directory for tool modules |
 
+### Per-Project Config (`aiia.json`)
+
+Place an `aiia.json` file in the project directory (CWD when you run `aiia`) to override global defaults without editing `config.py`:
+
+```json
+{
+  "AI_MODEL": "gemma3:12b",
+  "AI_OPTIONS": {
+    "temperature": 0.8,
+    "num_ctx": 65536
+  },
+  "MODE": "build",
+  "AI_MAX_ITERATIONS": 20
+}
+```
+
+**Override priority** (highest to lowest): CLI flags > `aiia.json` > `config.py` defaults. Dict options (like `AI_OPTIONS`) are deep-merged — individual keys update rather than replacing the entire dict.
+
 ### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `OLLAMA_HOST` | `localhost:11434` | Ollama server address |
-| `OURAI_PROJECT_DIR` | project root | Used as `working_dir` for PLAN.md/HISTORY.md |
+| `AIIA_PROJECT_DIR` | project root | Used as `working_dir` for PLAN.md/HISTORY.md |
+| `OURAI_PROJECT_DIR` | (deprecated) | Legacy fallback, same as `AIIA_PROJECT_DIR` |
 
 ---
 
@@ -1000,7 +1021,7 @@ ollama pull gemma3:12b # Pull a model if needed
 
 This is usually a model behavior issue, not a code bug. Try:
 - Using a different model (`-m qwen3-coder:30b`)
-- The AI loop has a 5-iteration maximum to prevent infinite loops
+- The AI loop has a configurable maximum (`AI_MAX_ITERATIONS`, default 10) to prevent infinite loops
 - Check if the tool result contains useful information
 
 ### Plan not continuing after restart
@@ -1032,4 +1053,4 @@ See [LICENSE](LICENSE) for full terms including notification and payment obligat
 
 ## Project Status
 
-**Version 0.7** — Active development. Recent additions: `-Q`/`--quick` and `-P`/`--prompt` CLI flags, server mode auto-quick, actions system removed, token count persistence on `-c` continue, vision model support via MediaAnalyst persona, image analysis tools (ReadImage, ImageTransform).
+**Version 0.7** — Active development. Recent additions: per-project `aiia.json` config overrides, model call timeout + auto-retry with switch recommendation, `-Q`/`--quick` and `-P`/`--prompt` CLI flags, server mode auto-quick, actions system removed, token count persistence on `-c` continue, vision model support via MediaAnalyst persona, image analysis tools (ReadImage, ImageTransform).

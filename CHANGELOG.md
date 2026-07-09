@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-07-09 — v0.7
+
+### Added: Model call timeout + auto-retry with switch recommendation
+
+Cloud model calls (`ollama.chat()`) could hang indefinitely with no timeout. The `aiia.json` system now:
+
+**`config.py`** — Two new options:
+- `AI_MODEL_TIMEOUT: 120` — httpx timeout (connect + read) in seconds; catches both hanging connections and stalled streams
+- `AI_MODEL_RETRIES: 3` — retries before injecting a model-switch recommendation
+
+**`src/Handle.py`** — Uses `ollama.Client(timeout=...)` instead of the top-level `chat()` function. The `chat()` + `Parse()` call is wrapped in a retry loop:
+- **Transient failure** → retries up to `AI_MODEL_RETRIES` times (logged to `background.log`, echoed to user, 1s gap between attempts)
+- **Persistent failure** → after exhausting retries, injects a recovery message into history: *"Switch to a local model with `!MODEL gemma3:12b`"*
+- **Context too large** (400/413) → auto-clears and retries immediately (existing behavior preserved)
+
+### Added: Per-project config overrides (`aiia.json`)
+
+Place an `aiia.json` file in your project directory to override global `config.py` defaults:
+
+```json
+{
+  "AI_MODEL": "gemma3:12b",
+  "AI_OPTIONS": { "temperature": 0.8, "num_ctx": 65536 },
+  "MODE": "build",
+  "AI_MAX_ITERATIONS": 20,
+  "AI_THINK": false
+}
+```
+
+- Loaded early in `run.py` before CLI parsing, so CLI flags (`-m`, `-p`, `-T`) always take highest priority
+- Dict-typed options (e.g. `AI_OPTIONS`) are deep-merged — individual keys update rather than replacing
+- Only activates when CWD differs from the framework directory (i.e., when you `cd` into a project)
+- Documented in `AGENTS.md` as "Per-Project Config (`aiia.json`)"
+
+**Files:** `run.py`, `AGENTS.md`
+
 ## 2026-07-07 — v0.7
 
 ### Added: `!SUMMARIZE` command — manual history trim

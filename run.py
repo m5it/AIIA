@@ -394,6 +394,23 @@ def Main(argv):
 		run_client(host, port)
 		sys.exit(0)
 	#
+	# Load per-project config overrides (aiia.json in CWD)
+	# Applied before CLI parsing so CLI flags have final say
+	if _cwd != _framework_dir:
+		project_config_path = os.path.join(_cwd, 'aiia.json')
+		if os.path.exists(project_config_path):
+			try:
+				with open(project_config_path, 'r') as f:
+					for key, val in json.load(f).items():
+						if key in Options:
+							if isinstance(Options[key], dict) and isinstance(val, dict):
+								Options[key].update(val)
+							else:
+								Options[key] = val
+				Options['working_dir'] = _cwd
+			except Exception as e:
+				print("Warning: Failed to load {}: {}".format(project_config_path, e))
+	#
 	opt_help = False
 	opt_one  = None # Send one request and exit
 	oneOpt   = {} # options for one request from terminal
@@ -443,11 +460,9 @@ def Main(argv):
 			Options['INSTRUCT_CLASS'] = _resolve_persona(arg)
 			Options['INSTRUCT_CLASS_OVERRIDE'] = True
 	#
-	# Auto-detect project directory from CWD
-	cwd = os.getcwd()
-	framework_dir = os.path.dirname(os.path.abspath(__file__))
-	if cwd != framework_dir:
-		Options['working_dir'] = cwd
+	# Set working_dir from CWD (fallback if aiia.json didn't already set it)
+	if Options.get('working_dir') is None and _cwd != _framework_dir:
+		Options['working_dir'] = _cwd
 	#
 	# Show help before initializing Handle (no need to load AI system just for --help)
 	if opt_help:

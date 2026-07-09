@@ -130,6 +130,32 @@ Mode instructions (system prompts for plan/build modes) live in `instruct/` as p
 - Default model: `gemma3:12b` — change with `-m` flag
 - LM Studio SDK in `package.json` but not used by Python code (Node deps appear unused)
 
+## Per-Project Config (`aiia.json`)
+
+Place an `aiia.json` file in your project directory to override global `config.py` defaults:
+
+```json
+{
+  "AI_MODEL": "gemma3:12b",
+  "AI_OPTIONS": {
+    "temperature": 0.8,
+    "num_ctx": 65536
+  },
+  "MODE": "build",
+  "AI_MAX_ITERATIONS": 20,
+  "AI_THINK": false
+}
+```
+
+**Override priority** (highest to lowest):
+1. CLI flags (`-m`, `-p`, `-T`, etc.)
+2. `aiia.json` (in CWD when `run.py` is invoked)
+3. `config.py` global defaults
+
+**Merge rules**: dict-typed options (e.g. `AI_OPTIONS`) are deep-merged — individual keys update rather than replacing the entire dict. Simple values replace the global default. CLI flags always win.
+
+Only loaded when CWD differs from the framework directory (i.e., when you `cd` into a project and run `aiia` from there).
+
 ## Cookie Sharing
 
 The model can use a shared cookie file so `WWW` and `WWWJS` tools stay logged in across calls.
