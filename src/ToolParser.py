@@ -17,8 +17,8 @@ class ToolParser:
 		'WWW', 'WWWExec', 'WWWJS',
 	}
 	_plan_tools = {
-		'createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft',
-		'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks',
+		'addTask', 'createTask', 'createPlan', 'deleteTask', 'deletePlan',
+		'deleteDraft', 'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks',
 		'nextTask', 'jobDone', 'planDone', 'startBuild', 'LogProgress',
 	}
 	#--
@@ -426,13 +426,13 @@ class ToolParser:
 	def FireToolInvocation(self, tool_invocations):
 		#
 		is_plan_mode = self.handle.Options.get('MODE') == 'plan'
-		plan_tools = ['createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks']
-		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks', 'jobDone', 'startBuild', 'planDone', 'createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask']
+		plan_tools = ['addTask', 'createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks']
+		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks', 'jobDone', 'startBuild', 'planDone', 'addTask', 'createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask']
 		#
 		# Sort to process createTask before other tools
 		def sort_key(inv):
 			name = inv['name']
-			if name == 'createTask':
+			if name in ('addTask', 'createTask'):
 				return -1
 			elif name == 'createPlan':
 				return -2
@@ -568,6 +568,15 @@ class ToolParser:
 		from src.PlanManager import PlanBase, Plan, PlanTask
 
 		plans_path = self.handle.Options.get('plans_path', 'plans')
+
+		if toolName == 'addTask':
+			# Alias for createTask — normalizes XML param names the model hallucinates
+			toolName = 'createTask'
+			if 'taskTitle' in params and 'title' not in params:
+				params['title'] = params.pop('taskTitle')
+			if 'taskDescription' in params and 'instruction' not in params:
+				params['instruction'] = params.pop('taskDescription')
+			# Fallthrough to createTask
 
 		if toolName == 'createTask':
 			title = params.get('title', '')
