@@ -20,7 +20,7 @@ class DeleteTip():
 	def run(self, title="", opts={}):
 		if not title or not title.strip():
 			return "Error: <title> is required and cannot be empty." + self._usage()
-		base = Options.get('TIPS_PATH', os.path.expanduser('~/.config/ourai/tips'))
+		base = Options.get('TIPS_PATH', os.path.expanduser('~/.config/aiia/tips'))
 		removed = 0
 		for s in ['user', 'model']:
 			path = os.path.join(base, s, title)

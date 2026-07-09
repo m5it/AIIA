@@ -6,7 +6,7 @@ class TipManager():
 	def __init__(self, opts):
 		self.handle = opts.get('handle')
 		self.handle.hLG.echo("TipManager.__init__() STARTED!",{'color':True})
-		self.base_path = self.handle.Options.get('TIPS_PATH', os.path.expanduser('~/.config/ourai/tips'))
+		self.base_path = self.handle.Options.get('TIPS_PATH', os.path.expanduser('~/.config/aiia/tips'))
 	#
 	def _path(self, source, title=None):
 		p = os.path.join(self.base_path, source)

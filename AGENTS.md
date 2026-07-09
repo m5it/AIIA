@@ -77,7 +77,7 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 - `DeleteTip` — Delete a tip by title (params: `<title>`, `<source>` optional)
 - `ReinsertTip` — Reinsert a saved tip's entries into current chat history (params: `<title>`)
 
-**Tool result caching:** Tools with a `cache_ttl` class attribute (e.g., listTools=600s, TreeView=300s) automatically cache results. Cache entries stored under `~/.config/ourai/tips/_cache/{toolname}/{key_hash}.json`. Cache invalidates on TTL expiry, tool file mtime change, `!CACHE_CLEAR`, `!NEW SESSION`, or `!UPDATE HANDLE`. Global default TTL: 86400s (1 day) via `TOOL_CACHE_TTL` in config.
+**Tool result caching:** Tools with a `cache_ttl` class attribute (e.g., listTools=600s, TreeView=300s) automatically cache results. Cache entries stored under `~/.config/aiia/tips/_cache/{toolname}/{key_hash}.json`. Cache invalidates on TTL expiry, tool file mtime change, `!CACHE_CLEAR`, `!NEW SESSION`, or `!UPDATE HANDLE`. Global default TTL: 86400s (1 day) via `TOOL_CACHE_TTL` in config.
 
 **Example model output:**
 ```xml

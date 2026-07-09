@@ -54,7 +54,7 @@ def _confirm_factory_reset():
 	print("  - Session counter        (sessid.aiia)")
 	print("  - Project HISTORY.md     (working directory)")
 	print("  - Project PLAN.md        (working directory)")
-	print("  - All saved tips         (~/.config/ourai/tips/)")
+	print("  - All saved tips         (~/.config/aiia/tips/)")
 	print("  - Web cookies            (cookies.json)")
 	print("  - Terminal audit log     (terminal_audit.log)")
 	print()
@@ -129,7 +129,7 @@ def reset_to_factory():
 					print("  Failed to remove {}: {}".format(fname, e))
 	#
 	# 5. Tips directory
-	tips_path = Options.get('TIPS_PATH', os.path.expanduser('~/.config/ourai/tips'))
+	tips_path = Options.get('TIPS_PATH', os.path.expanduser('~/.config/aiia/tips'))
 	if os.path.isdir(tips_path):
 		try:
 			shutil.rmtree(tips_path)
@@ -164,7 +164,7 @@ def reset_to_factory():
 		print("Factory reset complete. {} item(s) cleared.".format(removed))
 	else:
 		print("Nothing to reset — already clean.")
-	print("Run `ourai` to start a fresh session.")
+	print("Run `aiia` to start a fresh session.")
 #
 def Run(prepared=False):
 	global Options, hHA
@@ -332,7 +332,17 @@ def Main(argv):
 	# Pre-parse server-relevant flags before subcommand routing
 	_preparse_server_flags(argv)
 	#
-	# Subcommand routing: ourai --orchestra [args...] or ourai --worker [args...]
+	# Auto-migrate old ~/.config/ourai/ to ~/.config/aiia/
+	_old_config = os.path.expanduser('~/.config/ourai')
+	_new_config = os.path.expanduser('~/.config/aiia')
+	if os.path.isdir(_old_config) and not os.path.isdir(_new_config):
+		try:
+			os.rename(_old_config, _new_config)
+			print("Migrated ~/.config/ourai -> ~/.config/aiia")
+		except Exception as e:
+			print("Failed to migrate ~/.config/ourai: {}".format(e))
+	#
+	# Subcommand routing: aiia --orchestra [args...] or aiia --worker [args...]
 	if '--orchestra' in argv:
 		from run_orchestra import Main as OrchestraMain
 		idx = argv.index('--orchestra')

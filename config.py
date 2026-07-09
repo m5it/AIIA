@@ -8,7 +8,7 @@ Options         = {
 	"DEBUG"               :False, # print A lot of Additional informations
 	"QUIET"               :False, # quite all prints and show only result. (used with -Y)
 	"VERSION"             :0.7,
-	"VERSION_NAME"        :"OurAI Agent",
+	"VERSION_NAME"        :"AIIA Agent",
 	#
 	"SPEAK"               :True,
 	#
@@ -55,14 +55,14 @@ Options         = {
 	"INSTRUCT_PATH"       :"instruct",   # path to instruct modules
 	#
 	"path"                :"{}/".format(os.path.dirname(os.path.abspath(__file__))),
-	"tools_path"          :"{}/tools/".format(os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__))),
+	"tools_path"          :"{}/tools/".format(os.environ.get('AIIA_PROJECT_DIR', os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__)))),
 	"history_path"        :"history",
 	"plans_path"         :"plans",
-	"working_dir"        :os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(os.path.abspath(__file__))),
+	"working_dir"        :os.environ.get('AIIA_PROJECT_DIR', os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(os.path.abspath(__file__)))),
 	#
 	"COOKIE_FILE"        : None,    # Path to shared cookie file for www/wwwjs web tools (e.g., "tools/cookies.json")
 	#
-	"TIPS_PATH"           :"{}/tips".format(os.path.expanduser("~/.config/ourai")),
+	"TIPS_PATH"           :"{}/tips".format(os.path.expanduser("~/.config/aiia")),
 	#
 	# Tool result caching (via tips storage)
 	"TOOL_CACHE_ENABLED"  :True,     # Enable tool result caching

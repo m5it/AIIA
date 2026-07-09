@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# Script to install(link) / uninstall(remove link) start.sh to /usr/local/bin/OurAI
-# start.sh starts run.py as OurAI!
+# Script to install(link) / uninstall(remove link) start.sh to /usr/local/bin/aiia
+# start.sh starts run.py as AIIA!
 #
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-SCRIPT_LINK_NAME="ourai"
+SCRIPT_LINK_NAME="aiia"
 OPT=$1
 
 # Check for root privileges
@@ -21,6 +21,11 @@ check_root() {
 # LINK / INSTALL
 if [[ "$OPT" == "-l" ]]; then
     check_root
+    # Migrate old ourai symlink if present
+    if [[ -f "/usr/local/bin/ourai" ]]; then
+        echo "Found old 'ourai' symlink. Removing it..."
+        rm "/usr/local/bin/ourai"
+    fi
     if [[ -f "/usr/local/bin/"$SCRIPT_LINK_NAME ]]; then
         echo "Already installed. Exiting."
         exit 1
@@ -31,7 +36,7 @@ if [[ "$OPT" == "-l" ]]; then
     fi
     # Check if directory is a git repository
     if [[ ! -d "$SCRIPT_DIR/.git" ]]; then
-        echo "ERROR: Not a git repository. OurAI requires git initialization."
+        echo "ERROR: Not a git repository. AIIA requires git initialization."
         echo "Please initialize with: cd $SCRIPT_DIR && git init"
         exit 1
     fi

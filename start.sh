@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Script used to start OurAI 
+# Script used to start AIIA 
 #
 
 # Get the current directory (where user is running from)
@@ -54,6 +54,7 @@ if ! "$PYTHON" -c "import ollama" 2>/dev/null; then
 fi
 
 # Export the PROJECT directory so tools know where the project is
+export AIIA_PROJECT_DIR="$SCRIPT_DIR"
 export OURAI_PROJECT_DIR="$SCRIPT_DIR"
 
 # Create required directories and files in project directory

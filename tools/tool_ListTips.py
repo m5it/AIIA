@@ -20,7 +20,7 @@ class ListTips():
 	def run(self, opts={}, source=None):
 		if source and source.strip().lower() not in ('user','model',''):
 			return "Error: invalid <source> '{}'. Use 'user', 'model', or omit for both.".format(source) + self._usage()
-		base = Options.get('TIPS_PATH', os.path.expanduser('~/.config/ourai/tips'))
+		base = Options.get('TIPS_PATH', os.path.expanduser('~/.config/aiia/tips'))
 		srcs = ['user', 'model']
 		if source and source.strip().lower() in ('user','model'):
 			srcs = [source.strip().lower()]

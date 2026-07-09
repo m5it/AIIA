@@ -25,7 +25,7 @@ class SaveTip():
 		err = self._validate(title, content)
 		if err:
 			return err + self._usage()
-		base = Options.get('TIPS_PATH', os.path.expanduser('~/.config/ourai/tips'))
+		base = Options.get('TIPS_PATH', os.path.expanduser('~/.config/aiia/tips'))
 		path = os.path.join(base, 'model', title)
 		os.makedirs(path, exist_ok=True)
 		ts = int(time.time())

@@ -66,7 +66,7 @@ class WWW():
 
 		# Auto-enable cookies for JS/browser requests
 		if needs_js and not Options.get("COOKIE_FILE"):
-			default_cookie = os.path.expanduser("~/.config/ourai/cookies.json")
+			default_cookie = os.path.expanduser("~/.config/aiia/cookies.json")
 			Options["COOKIE_FILE"] = default_cookie
 			os.makedirs(os.path.dirname(default_cookie), exist_ok=True)
 
