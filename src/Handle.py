@@ -23,6 +23,14 @@ class Handle():
 		wd = self.Options.get('working_dir')
 		if wd and wd == framework_dir:
 			self.Options['working_dir'] = None
+		# Defensive fallback: if working_dir is still None and CWD differs
+		# from framework_dir, set it to CWD. Catches edge cases where
+		# run.py's setup didn't set it (malformed aiia.json, stale Options
+		# on !UPDATE HANDLE / !NEW SESSION, override files, etc.).
+		if not self.Options.get('working_dir'):
+			_cwd = os.getcwd()
+			if _cwd != framework_dir:
+				self.Options['working_dir'] = _cwd
 		#
 		#self.cmds    = self.Commands(self)
 		self.cmds    = initmodule(importmodule("Commands",True,{'path':'src'}),"Commands",{'handle':self,})

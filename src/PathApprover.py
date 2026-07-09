@@ -72,7 +72,8 @@ class PathApprover:
 		if os.path.isabs(path):
 			base = os.path.normpath(path)
 		else:
-			candidate = os.path.join(self.working_dir, path) if self.working_dir else path
+			base_dir = self.working_dir or os.getcwd()
+			candidate = os.path.join(base_dir, path)
 			base = os.path.normpath(candidate)
 		if os.path.exists(base):
 			return os.path.realpath(base)
