@@ -62,6 +62,8 @@ Options         = {
 	#
 	"COOKIE_FILE"        : None,    # Path to shared cookie file for www/wwwjs web tools (e.g., "tools/cookies.json")
 	#
+	"BACKGROUND_LOG"      :None,     # Path to background.log (per-project, set in Handle.Init)
+	#
 	"TIPS_PATH"           :"{}/tips".format(os.path.expanduser("~/.config/aiia")),
 	#
 	# Tool result caching (via tips storage)

@@ -1,4 +1,5 @@
 from src.functions import rmatch,initmodule,importmodule
+import re, datetime, os
 class Log:
 	#
 	def __init__(self, opts={}):
@@ -28,6 +29,22 @@ class Log:
 		self.CGREEN     = '\033[1;32m' # GREEN
 		self.CRED       = '\033[1;31m' # RED
 		self.CNC        = '\033[0m'
+
+	def _log_background(self, text):
+		if not self.handle:
+			return
+		log_path = self.handle.Options.get('BACKGROUND_LOG')
+		if not log_path:
+			return
+		clean = re.sub(r'\033\[[0-9;]*m', '', text)
+		if not clean.strip():
+			return
+		ts = datetime.datetime.now().strftime('%H:%M:%S')
+		try:
+			with open(log_path, 'a') as f:
+				f.write("[{}] {}\n".format(ts, clean))
+		except:
+			pass
 	
 	#
 	def echo(self,text,opts={}):
@@ -44,6 +61,7 @@ class Log:
 		opt_returnStream    = opts['returnStream'] if 'returnStream' in opts else False
 		opt_speak           = opts['speak'] if 'speak' in opts else False
 		#
+		_is_streaming = opt_echoByNewLine or (opt_echoByLength != False and opt_echoByLength > 0)
 		if opt_debugOnly and self.debug==False:
 			#print("Log.echo() DEBUG D2, streamData.len: {}".format( len(self.streamData) ))
 			return False
@@ -109,6 +127,8 @@ class Log:
 				tmp = self.streamData
 				self.streamData = ""
 				return tmp
+			if not _is_streaming:
+				self._log_background(self.streamData)
 			self.streamData = ""
 		return False
 	

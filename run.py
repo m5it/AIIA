@@ -55,6 +55,7 @@ def _confirm_factory_reset():
 	print("  - Project HISTORY.md     (working directory)")
 	print("  - Project PLAN.md        (working directory)")
 	print("  - All saved tips         (~/.config/aiia/tips/)")
+	print("  - Background activity log (background.log)")
 	print("  - Web cookies            (cookies.json)")
 	print("  - Terminal audit log     (terminal_audit.log)")
 	print()
@@ -137,6 +138,15 @@ def reset_to_factory():
 			removed += 1
 		except Exception as e:
 			print("  Failed to clear tips: {}".format(e))
+	#
+	# 5b. Background log
+	bg_log_path = Options.get('BACKGROUND_LOG')
+	if bg_log_path and os.path.exists(bg_log_path):
+		try:
+			os.remove(bg_log_path)
+			print("  Cleared background.log -> {}".format(bg_log_path))
+		except Exception as e:
+			print("  Failed to remove background.log: {}".format(e))
 	#
 	# 6. Cookie files
 	for cookie_path in ['cookies.json', 'tools/koslenium_driver/www/cookies.json', 'tools/cookies.json']:

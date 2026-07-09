@@ -71,6 +71,9 @@ class Handle():
 			fname = os.path.basename(self.Options.get('AI_FILE_STATE', ''))
 			self.Options['AI_FILE_STATE'] = "{}/{}".format(working_dir, fname)
 			self.Options['history_path'] = "{}/history".format(working_dir)
+		# Per-project background.log
+		_project_dir = working_dir if working_dir and working_dir != framework_dir else framework_dir
+		self.Options['BACKGROUND_LOG'] = "{}/background.log".format(_project_dir)
 		#
 		self.hPP.GetSessionId()
 		self.hPP.UpdateFileNames()
@@ -87,6 +90,10 @@ class Handle():
 		# Handle -c / --continue flag
 		if self.Options.get('CONTINUE'):
 			self._load_continue_session()
+		self.bg_log("Session started, sess_id={}, mode={}, model={}".format(
+			self.Options.get('AI_SESS_ID', '?'),
+			self.Options.get('MODE', '?'),
+			self.Options.get('AI_MODEL', '?')))
 	
 	#
 	def _start_koslenium_server_async(self):
@@ -99,6 +106,7 @@ class Handle():
 				self.hLG.echo("koslenium server background start: {}".format(e), {'color':True, 'colorValue':'yellow'})
 		t = threading.Thread(target=_start, daemon=True)
 		t.start()
+		self.bg_log("Koslenium server thread started")
 	#
 	def _load_continue_session(self):
 		working_dir = self.Options.get('working_dir')
@@ -261,6 +269,9 @@ class Handle():
 				'NUM_LAST_PROMPT_TOKENS': self.Options['NUM_LAST_PROMPT_TOKENS'],
 				'NUM_LAST_RESPONSE_TOKENS': self.Options['NUM_LAST_RESPONSE_TOKENS'],
 			})
+			self.bg_log("AI response: {} prompt + {} response tokens (total: {} / {})".format(
+				prompt_tokens, response_tokens,
+				self.Options['NUM_PROMPT_TOKENS'], self.Options['NUM_RESPONSE_TOKENS']))
 
 		#
 		if opt_return_object:
@@ -772,6 +783,19 @@ class Handle():
 			self.hLG.echo("Failed to save clear tip: {}".format(e),
 				{'color': True, 'colorValue': 'red'})
 
+	def bg_log(self, msg, level="INFO"):
+		"""Write a timestamped line to background.log."""
+		log_path = self.Options.get('BACKGROUND_LOG')
+		if not log_path:
+			return
+		try:
+			import datetime
+			ts = datetime.datetime.now().strftime('%H:%M:%S')
+			with open(log_path, 'a') as f:
+				f.write("[{}] {}: {}\n".format(ts, level, msg))
+		except Exception:
+			pass
+
 	def _read_state(self):
 		"""Load full state dict from state.aiia, with migration from legacy files."""
 		path = self.Options.get('AI_FILE_STATE')
@@ -1036,6 +1060,8 @@ class Handle():
 
 			# Short-circuit: ≥3 consecutive tool errors → break loop with recovery
 			if self.tool_errors >= 3:
+				self.bg_log("{} consecutive tool errors, last tool: {}".format(
+					self.tool_errors, self._last_failed_tool), "WARN")
 				self.hLG.echo(
 					"AI loop: {} consecutive tool errors — breaking loop".format(self.tool_errors),
 					{'color':True, 'colorValue':'orange','debugOnly':False})
@@ -1091,6 +1117,8 @@ class Handle():
 				chat_params['think'] = True
 			
 			# Try the chat call
+			self.bg_log("AI request (iteration {}, msgs={})".format(
+				iteration, len(msgs)))
 			try:
 				res: ChatResponse = chat(**chat_params)
 			except Exception as e:
