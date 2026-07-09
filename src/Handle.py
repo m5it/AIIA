@@ -79,6 +79,11 @@ class Handle():
 			fname = os.path.basename(self.Options.get('AI_FILE_STATE', ''))
 			self.Options['AI_FILE_STATE'] = "{}/{}".format(working_dir, fname)
 			self.Options['history_path'] = "{}/history".format(working_dir)
+		#
+		# Compute a stable project hash for history filenames
+		# so different projects never collide in a shared history dir.
+		hp = self.Options.get('history_path', "{}/history".format(self.Options.get('path', '')))
+		self.Options['AI_SESS_PREFIX'] = crc32b(os.path.abspath(hp))[:8]
 		# Per-project background.log
 		_project_dir = working_dir if working_dir and working_dir != framework_dir else framework_dir
 		self.Options['BACKGROUND_LOG'] = "{}/background.log".format(_project_dir)
@@ -288,7 +293,7 @@ class Handle():
 		# Write history here. (similar to save memory just here we save all chat history)
 		# Used messages are saved with SaveMemory()
 		if opt_skip_history==False:
-			history_path = "{}/history/{}".format(self.Options.get('path', ''), self.Options['AI_FILE_HISTORY'])
+			history_path = "{}/{}".format(self.Options.get('history_path', "{}/history".format(self.Options.get('path', ''))), self.Options['AI_FILE_HISTORY'])
 			fwrite(history_path,"{}\n".format(json.dumps(obj)),False)
 		
 		# Save to HISTORY.md (working dir only)
@@ -729,7 +734,7 @@ class Handle():
 
 	def _rewrite_history(self, msgs):
 		"""Rewrite the on-disk history files to match in-memory state."""
-		main_path = "{}/history/{}".format(self.Options.get('path', ''), self.Options['AI_FILE_HISTORY'])
+		main_path = "{}/{}".format(self.Options.get('history_path', "{}/history".format(self.Options.get('path', ''))), self.Options['AI_FILE_HISTORY'])
 		try:
 			os.remove(main_path)
 		except Exception:
@@ -745,9 +750,9 @@ class Handle():
 
 	def _archive_history(self, suffix):
 		"""Copy current .dbk to an archive file before destructive operations.
-		Archive is saved as {sid}.{suffix}.{timestamp}.dbk in the history dir.
+		Archive is saved as {prefix}_{sid}.{suffix}.{timestamp}.dbk in the history dir.
 		Returns the archive filename (or None if nothing was archived)."""
-		main_path = "{}/history/{}".format(self.Options.get('path', ''), self.Options['AI_FILE_HISTORY'])
+		main_path = "{}/{}".format(self.Options.get('history_path', "{}/history".format(self.Options.get('path', ''))), self.Options['AI_FILE_HISTORY'])
 		if not os.path.exists(main_path):
 			return None
 		try:
@@ -760,9 +765,10 @@ class Handle():
 			return None
 
 		ts = int(time.time())
+		_prefix = self.Options.get('AI_SESS_PREFIX', '')
 		sid = self.Options['AI_SESS_ID']
-		archive_name = "{}.{}.{}.dbk".format(sid, suffix, ts)
-		archive_path = "{}/history/{}".format(self.Options.get('path', ''), archive_name)
+		archive_name = "{}_{}.{}.{}.dbk".format(_prefix, sid, suffix, ts)
+		archive_path = "{}/{}".format(self.Options.get('history_path', "{}/history".format(self.Options.get('path', ''))), archive_name)
 		try:
 			fwrite(archive_path, "".join(lines), True)
 			self.hLG.echo("Archived history to {}".format(archive_name),

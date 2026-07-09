@@ -22,8 +22,9 @@ class HistoryManager():
 		#
 		self.available = []
 		#
-		for tmp in os.listdir("{}/history/".format( self.handle.Options.get('path', '').rstrip('/') )):
-			if rmatch(tmp,"^\d+\..*"):
+		_hdir = self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', '')))
+		for tmp in os.listdir(_hdir):
+			if rmatch(tmp,r"^[a-f0-9]+_\d+\..*") or rmatch(tmp,r"^\d+\..*"):
 				self.available.append(tmp)
 	
 	# method get() - load chat history from a file (append to self.msgs)
@@ -36,7 +37,8 @@ class HistoryManager():
 		if path:
 			file_path = path
 		else:
-			file_path = "{}/history/{}".format(self.handle.Options.get('path', '').rstrip('/'), self.history)
+			_hdir = self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', '')))
+			file_path = "{}/{}".format(_hdir, self.history)
 		#
 		if not os.path.exists(file_path):
 			return
@@ -78,11 +80,11 @@ class HistoryManager():
 		#
 		self.Update()
 		#
-		self.available.sort(key=lambda x: int(x.split('.')[0]), reverse=False)
+		self.available.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]), reverse=False)
 		cnt=0
 		for history in self.available:
 			if self.opt_quiet==False:
-				print("{}.) {}, len: {}".format( cnt, history, len(fread("{}/history/{}".format( self.handle.Options.get('path', '').rstrip('/'), history))) ))
+				print("{}.) {}, len: {}".format( cnt, history, len(fread("{}/{}".format( self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', ''))), history))) ))
 			cnt = cnt+1
 	
 	#
@@ -107,7 +109,7 @@ class HistoryManager():
 					print("Viewing history debug a[0]: {}, a[1]: {}".format(a[0],a[1]))
 					tmpname = self.available[int(a[1])]
 					print("Viewing history debug fileName: {}".format(tmpname))
-					tmpdata = fread( "{}/history/{}".format( self.handle.Options.get('path', '').rstrip('/'), tmpname) )
+					tmpdata = fread( "{}/{}".format( self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', ''))), tmpname) )
 					print("Viewing history debug tmpdata len: {}".format( len(tmpdata) ))
 					print(tmpdata)
 			try:

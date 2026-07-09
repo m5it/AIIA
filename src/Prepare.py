@@ -18,8 +18,9 @@ class Prepare():
 		self.handle.hLG.echo("Prepare.UpdateFileNames() START")
 		# generate history file name depend on session and system message
 		if self.handle.Options['AI_FILE_LOAD_HISTORY']==False:
-			self.handle.Options['AI_FILE_HISTORY'] = "{}.dbk".format(self.handle.Options['AI_SESS_ID'])
-			self.handle.Options['AI_USER_HISTORY'] = "{}.user.dbk".format(self.handle.Options['AI_SESS_ID'])
+			_prefix = self.handle.Options['AI_SESS_PREFIX']
+			self.handle.Options['AI_FILE_HISTORY'] = "{}_{}.dbk".format(_prefix, self.handle.Options['AI_SESS_ID'])
+			self.handle.Options['AI_USER_HISTORY'] = "{}_{}.user.dbk".format(_prefix, self.handle.Options['AI_SESS_ID'])
 			#self.handle.hHM.history = self.handle.Options['AI_FILE_HISTORY']
 		else:
 			self.handle.hLG.echo("Loading existing history: {}".format(self.handle.Options['AI_FILE_HISTORY']),{'color':False})
@@ -28,7 +29,7 @@ class Prepare():
 	def SaveMemory(self):
 		self.handle.hLG.echo("Prepare.SaveMemory() START, length: {}. history: {}".format( len(self.handle.hHM.msgs), self.handle.hHM.history ),{'color':False})
 		#
-		history_path = "{}/history/{}".format(self.handle.Options.get('path', ''), self.handle.Options['AI_USER_HISTORY'])
+		history_path = "{}/{}".format(self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', ''))), self.handle.Options['AI_USER_HISTORY'])
 		if os.path.exists(history_path):
 			os.remove(history_path)
 		# write history here

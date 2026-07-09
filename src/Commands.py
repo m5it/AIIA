@@ -232,7 +232,7 @@ class Commands():
 		# Clear in-memory history
 		self.handle.hHM.msgs = []
 		# Clear main history file on disk
-		history_path = "{}/history/{}".format(self.handle.Options.get('path', ''), self.handle.Options['AI_FILE_HISTORY'])
+		history_path = "{}/{}".format(self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', ''))), self.handle.Options['AI_FILE_HISTORY'])
 		try:
 			os.remove(history_path)
 		except Exception:
@@ -283,7 +283,7 @@ class Commands():
 		system_msgs = [m for m in self.handle.hHM.msgs if m['role'] == 'system']
 		self.handle.hHM.msgs = system_msgs[:]
 		# Clear main history file on disk and rewrite system msgs
-		main_path = "{}/history/{}".format(self.handle.Options.get('path', ''), self.handle.Options['AI_FILE_HISTORY'])
+		main_path = "{}/{}".format(self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', ''))), self.handle.Options['AI_FILE_HISTORY'])
 		try:
 			os.remove(main_path)
 		except Exception:
@@ -322,7 +322,7 @@ class Commands():
 		removed = self.handle.hHM.msgs.pop(num)
 		print("Removed row {}: [{}] {}".format(num, removed.get('role','?'), removed.get('content','')[:80]))
 		# Rebuild main history file on disk
-		main_path = "{}/history/{}".format(self.handle.Options.get('path', ''), self.handle.Options['AI_FILE_HISTORY'])
+		main_path = "{}/{}".format(self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', ''))), self.handle.Options['AI_FILE_HISTORY'])
 		try:
 			os.remove(main_path)
 		except Exception:
@@ -343,7 +343,7 @@ class Commands():
 		print("-----------------")
 		print("history.msgs.len : {}".format( len(self.handle.hHM.msgs) ))
 		print("row_id           : {}".format( self.handle.Options['AI_ROW_ID'] ))
-		print("sess_id          : {}".format( self.handle.Options['AI_SESS_ID'] ))
+		print("sess_id          : {}_{}".format( self.handle.Options['AI_SESS_PREFIX'], self.handle.Options['AI_SESS_ID'] ))
 		print("history          : {} / {}".format( self.handle.Options['AI_FILE_HISTORY'], self.handle.hHM.history ))
 		print("user.history     : {}".format( self.handle.Options['AI_USER_HISTORY'] ))
 		#
