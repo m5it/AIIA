@@ -1,6 +1,6 @@
 import json, sys, time, os, copy, threading, hashlib, re
 from datetime import date
-from ollama import ChatResponse, chat
+from ollama import ChatResponse, Client, chat
 from src.functions import *
 from src.ToolChooser import ToolChooser
 from src.HistoryManager import HistoryManager
@@ -1116,25 +1116,62 @@ class Handle():
 			if self.Options.get('AI_THINK', False):
 				chat_params['think'] = True
 			
-			# Try the chat call
+			# Try the model call with retries
 			self.bg_log("AI request (iteration {}, msgs={})".format(
 				iteration, len(msgs)))
-			try:
-				res: ChatResponse = chat(**chat_params)
-			except Exception as e:
-				err_str = str(e).lower()
-				if 'too large' in err_str or '400' in err_str or '413' in err_str or 'request body' in err_str:
-					self.hLG.echo("AI request too large — auto-clearing context and retrying...",
-						{'color':True, 'colorValue':'orange','debugOnly':False,})
-					self._auto_clear()
-					continue
-				self.hLG.echo("AI connection error: {}".format(str(e)), {'color':True, 'colorValue':'red','debugOnly':False,})
-				return 2
+			model_retries = 0
+			max_retries = self.Options.get('AI_MODEL_RETRIES', 3)
+			model_timeout = self.Options.get('AI_MODEL_TIMEOUT', 120)
+			model_failed = False
+			context_cleared = False
+			while True:
+				try:
+					client = Client(timeout=model_timeout if model_timeout else None)
+					res: ChatResponse = client.chat(**chat_params)
+					result = self.Parse(res,{'return_object':True,'stream_callback':opt_stream_cb})
+					break
+				except Exception as e:
+					err_str = str(e).lower()
+					if 'too large' in err_str or '400' in err_str or '413' in err_str or 'request body' in err_str:
+						self.hLG.echo("AI request too large — auto-clearing context and retrying...",
+							{'color':True, 'colorValue':'orange','debugOnly':False})
+						self._auto_clear()
+						context_cleared = True
+						break
+					model_retries += 1
+					if model_retries > max_retries:
+						model_failed = True
+						self.bg_log(
+							"Model call failed after {} attempts: {}".format(max_retries, e),
+							"ERROR")
+						self.hLG.echo(
+							"AI model unavailable after {} attempts — guiding model to switch".format(max_retries),
+							{'color':True, 'colorValue':'red','debugOnly':False})
+						recovery_msg = (
+							"[System: The model API call failed {} times consecutively. "
+							"This is likely a cloud-model connectivity issue. "
+							"Switch to a local model with `!MODEL gemma3:12b` or another available local model.]"
+						).format(max_retries)
+						self.Response('user', {'content': recovery_msg})
+						self.tool_errors = 0
+						self._last_failed_tool = None
+						self._last_failed_tool_count = 0
+						break
+					self.bg_log(
+						"Model call failed (attempt {}/{}): {}".format(
+							model_retries, max_retries, e))
+					self.hLG.echo(
+						"AI connection error (attempt {}/{}): {} — retrying...".format(
+							model_retries, max_retries, str(e)),
+						{'color':True, 'colorValue':'red','debugOnly':False})
+					time.sleep(1)
+			if context_cleared:
+				continue
+			if model_failed:
+				continue
 			
 			# Used if CTRL+C to save last/draft content to chat history
 			self.Options['DRAFT_RESPONSE'] = res
-			# Parse result (handles XML tool calls)
-			result = self.Parse(res,{'return_object':True,'stream_callback':opt_stream_cb})
 
 			# Track whether the model made tool calls this turn
 			if result.get('invocations'):

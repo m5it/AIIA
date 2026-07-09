@@ -27,6 +27,8 @@ Options         = {
 	"AI_MAX_SESSION_LEN"  :200000, # whole session content
 	"AI_LIVE"             :True,
 	"AI_MAX_ITERATIONS"   :10, # max tool-call rounds per AI() turn (overridable by persona)
+	"AI_MODEL_TIMEOUT"    :120, # seconds before model API call times out (0 = no timeout)
+	"AI_MODEL_RETRIES"    :3,   # max retries on failed model calls before recommending switch
 	"AI_CONTEXT_LIMIT"    :262144, # model's max context window in tokens (per-model)
 	"AI_CLEAR_THRESHOLD"  :0.8,    # fraction of context limit that triggers summarization/clear
 	"AI_MAX_FILE_SIZE"    :2097152, # 2MB — max file size for WriteFile/CreateFile/AppendFile/ReplaceLine
