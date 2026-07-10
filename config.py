@@ -35,6 +35,7 @@ Options         = {
 	"AUTO_CONTINUE_TASKS" :True,   # auto-advance to next task in build mode after tool usage
 	"AUTO_CONTINUE_ALL_TASKS" :True,   # re-enter AI() loop until plan is done (requires AUTO_CONTINUE_TASKS)
 	"AUTO_CONTINUE_REMIND_AFTER" :20,  # remind model to call <nextTask> after N iterations without one
+	"TOOL_TRAINING" :True,   # on fresh sessions, let AI demonstrate tool usage once before user input
 	"AI_THINK"            :True, # enable think/reasoning API for models that support it (e.g. DeepSeek R1)
 	"AI_VISION_ENABLED"   :True, # enable vision/multimodal support (images in chat messages)
 	"AI_MAX_IMAGE_SIZE"   :10485760, # 10MB — max image file size for ReadImage
@@ -42,7 +43,7 @@ Options         = {
 	"AI_IMAGE_GEN_MODEL"  :"x/flux2-klein", # default model for GenerateImage tool
 	"AI_QUICK"            :False,    # skip interactive Prepare prompts (auto for server mode, or via -Q)
 	"AI_SYSTEM_MESSAGE"   :"",       # custom system message prefix, set via -P/--prompt CLI flag
-	"AI_INSTRUCT_OPTION"  :1,        # 1=persona classes (system prompt), 2=short prompt + tips
+	"AI_INSTRUCT_OPTION"  :2,        # 1=persona classes (system prompt), 2=short prompt + tips
 	# Available options keys:
 	# mirostat, mirostat_eta, mirostat_tau, num_ctx, repeat_last_n, repeat_penalty, temperature, seed, stop, num_predict, top_k, top_p, min_p
 	"AI_OPTIONS"          : {

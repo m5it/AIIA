@@ -356,6 +356,19 @@ class Handle():
 		from src.PlanManager import PlanBase
 		PlanBase.LoadAll(self.Options.get('plans_path', 'plans'))
 		#
+		# Tool training: on fresh sessions, let the AI demonstrate tool usage once
+		if (self.Options.get('TOOL_TRAINING', True) and
+			not self.Options.get('CONTINUE', False) and
+			len(self.hHM.msgs) <= 2):
+			self.hLG.echo("Tool training — warming up model on available tools...",
+				{'color':True, 'colorValue':'cyan','debugOnly':False})
+			self.Response('user', {'content':
+				"[Tool Training Session]\n"
+				"List all tools you have available and demonstrate at least 3 of them "
+				"with complete XML examples showing the required parameters."})
+			self.AI()
+			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
+		#
 		_auto_continue_count = 0
 		_skip_you = False
 		while True:

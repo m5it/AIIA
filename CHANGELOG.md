@@ -27,6 +27,14 @@ When the model explicitly called `<nextTask>completed</nextTask>`, `_try_auto_co
 
 **Files:** `src/Handle.py`
 
+### Added: Tool Training — pre-flight tool demonstration on fresh sessions
+
+On new sessions (not `-c` continue), the system injects a training user message before the main chat loop starts: *"List all tools you have available and demonstrate at least 3 of them with complete XML examples showing the required parameters."* The AI's response is added to history, and the model starts the session already familiar with the tool API.
+
+**Config:** `TOOL_TRAINING: True` in `config.py` — set to `False` to skip.
+
+**Files:** `config.py`, `src/Handle.py`
+
 ### Added: `AUTO_CONTINUE_REMIND_AFTER` — nextTask reminder
 
 New config option (default: 20) that tracks iterations since the last `<nextTask>completed</nextTask>` call across `AI()` re-entries. When the count reaches the threshold, a `role:user` reminder is injected telling the model to call `<nextTask>completed</nextTask>` if the current task is done, or `<nextTask>blocked</nextTask>` if blocked. Counter resets on any `<nextTask>` call or after the reminder fires.
