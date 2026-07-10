@@ -140,9 +140,9 @@ class Commands():
 		},
 		"PLAN":{
 			"name"       :"Plan",
-			"description":"View or modify plan status. Use CLEAR/DELETE/RESET to remove plans.",
+			"description":"View or modify plan status. Use CLEAR/DELETE/RESET to remove plans, DONE to finalize.",
 			"regex"      :r"^!PLAN(\s+[A-Za-z]+)?(\s+[\d\.]+)?$",
-			"usage"      :"!PLAN [PREVIEW|VIEW|TASKS|STATUS|CLEAR|DELETE|RESET] [task_id]",
+			"usage"      :"!PLAN [PREVIEW|VIEW|TASKS|STATUS|CLEAR|DELETE|RESET|DONE] [task_id]",
 			"func"       :self.CMD_PLAN,
 		},
 		"START_BUILD":{
@@ -836,8 +836,20 @@ class Commands():
 			else:
 				print("No active plan.")
 
+		elif action == 'DONE':
+			if PlanBase.draft:
+				plan = PlanBase.draft
+				plan_id = plan.id
+				plan.endTimestamp = time.time()
+				PlanBase.done[str(plan_id)] = plan.to_dict()
+				PlanBase.draft = None
+				plan.save(plans_path)
+				print("\nPlan '{}' marked as DONE and saved.".format(plan.title or plan_id))
+			else:
+				print("\nNo active plan to mark as done.")
+
 		else:
-			print("\nUsage: !PLAN [PREVIEW|VIEW|TASKS|STATUS|CLEAR|DELETE|RESET]")
+			print("\nUsage: !PLAN [PREVIEW|VIEW|TASKS|STATUS|CLEAR|DELETE|RESET|DONE]")
 			print("  PREVIEW  - Show plan overview (default)")
 			print("  VIEW     - Show all tasks with details")
 			print("  TASKS    - Same as VIEW")
@@ -845,6 +857,7 @@ class Commands():
 			print("  CLEAR    - Remove all tasks from current plan")
 			print("  DELETE   - Delete current plan entirely")
 			print("  RESET    - Same as DELETE")
+			print("  DONE     - Mark current plan as completed and save (keeps plan)")
 
 		return 2
 
