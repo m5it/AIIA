@@ -355,10 +355,17 @@ class Handle():
 		from src.PlanManager import PlanBase
 		PlanBase.LoadAll(self.Options.get('plans_path', 'plans'))
 		#
+		_auto_continue_count = 0
+		_skip_you = False
 		while True:
 			#
-			x = self.You() # return: 0, 1, 2=continue, 3=break, 5=start build, 6=new session
-			self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False})
+			if not _skip_you:
+				x = self.You() # return: 0, 1, 2=continue, 3=break, 5=start build, 6=new session
+				self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False})
+				_auto_continue_count = 0  # reset on any direct user interaction
+			else:
+				x = 0
+				_skip_you = False
 			if x==5:
 				self.StartBuild()
 			elif x==6:
@@ -376,6 +383,28 @@ class Handle():
 			self.hLG.echo("Handle.Chat() AI() response: {}".format(x),{'color':False})
 			#
 			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
+
+			# Auto-re-enter AI() when plan tasks remain and ALL_TASKS mode is on
+			if (self.Options.get('AUTO_CONTINUE_ALL_TASKS', True) and
+				self.Options.get('AUTO_CONTINUE_TASKS', True) and
+				self.Options.get('MODE') == 'build'):
+				if PlanBase.draft:
+					has_remaining = any(
+						t.status in ('pending', 'in_progress')
+						for t in PlanBase.draft.tasks.values())
+					if has_remaining:
+						_auto_continue_count += 1
+						if _auto_continue_count >= 50:
+							self.hLG.echo(
+								"Auto-continue: reached 50 rounds — stopping.",
+								{'color':True, 'colorValue':'orange','debugOnly':False})
+						else:
+							self.hLG.echo(
+								"Auto-continue: AI round {}/50".format(_auto_continue_count),
+								{'color':True, 'colorValue':'green','debugOnly':False})
+							self.Response('user', {'content': 'Continue working through the remaining plan tasks.'})
+							_skip_you = True
+							continue
 	
 	#
 	def Parse(self, res, opts=None):
@@ -1029,15 +1058,25 @@ class Handle():
 		if not PlanBase.draft:
 			return False
 
-		pending = any(t.status == 'pending' for t in PlanBase.draft.tasks.values())
-		if not pending:
-			return False
+		# If model already advanced via <nextTask>, there's an in_progress task.
+		# Inject its instruction without calling nextTask() again (avoids skip).
+		in_progress_task = None
+		for t in PlanBase.draft.tasks.values():
+			if t.status == 'in_progress':
+				in_progress_task = t
+				break
 
-		res = PlanBase.draft.nextTask(self)
-		if not res or res.get('done'):
-			return False
+		if not in_progress_task:
+			pending = any(t.status == 'pending' for t in PlanBase.draft.tasks.values())
+			if not pending:
+				return False
+			res = PlanBase.draft.nextTask(self)
+			if not res or res.get('done'):
+				return False
+			next_instruction = res.get('next_task_instruction') or '(continue with the plan)'
+		else:
+			next_instruction = in_progress_task.instruction or '(continue with the plan)'
 
-		next_instruction = res.get('next_task_instruction') or '(continue with the plan)'
 		total = len(PlanBase.draft.tasks)
 		completed = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'completed')
 		in_progress = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'in_progress')

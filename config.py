@@ -33,6 +33,7 @@ Options         = {
 	"AI_CLEAR_THRESHOLD"  :0.8,    # fraction of context limit that triggers summarization/clear
 	"AI_MAX_FILE_SIZE"    :2097152, # 2MB — max file size for WriteFile/CreateFile/AppendFile/ReplaceLine
 	"AUTO_CONTINUE_TASKS" :True,   # auto-advance to next task in build mode after tool usage
+	"AUTO_CONTINUE_ALL_TASKS" :True,   # re-enter AI() loop until plan is done (requires AUTO_CONTINUE_TASKS)
 	"AI_THINK"            :True, # enable think/reasoning API for models that support it (e.g. DeepSeek R1)
 	"AI_VISION_ENABLED"   :True, # enable vision/multimodal support (images in chat messages)
 	"AI_MAX_IMAGE_SIZE"   :10485760, # 10MB — max image file size for ReadImage
