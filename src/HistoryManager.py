@@ -19,8 +19,7 @@ class HistoryManager():
 	
 	@property
 	def _history_dir(self):
-		return self.handle.Options.get('history_path',
-			"{}/history".format(self.handle.Options.get('path', '')))
+		return "{}/history".format(self.handle.Options.get('path', '').rstrip('/'))
 
 	@property
 	def _names_path(self):
@@ -59,12 +58,28 @@ class HistoryManager():
 
 	def get_name(self, key):
 		return self._load_names().get(key, None)
+
+	def set_current_name(self, name):
+		fname = self.handle.Options.get('AI_FILE_HISTORY', '')
+		if not fname:
+			return "Error: no active history file."
+		key = fname[:-4] if fname.endswith('.dbk') else fname
+		clean = name.strip().replace(' ', '_')
+		if not clean:
+			return "Error: name cannot be empty."
+		names = self._load_names()
+		names[key] = clean
+		with open(self._names_path, 'w') as f:
+			json.dump(names, f, indent=2)
+		return "Named current history '{}' as '{}'.".format(fname, clean)
 	
 	# update self.available (list history files)
 	def Update(self):
 		#
 		self.available = []
 		#
+		if not os.path.isdir(self._history_dir):
+			return
 		for tmp in os.listdir(self._history_dir):
 			if rmatch(tmp,r"^[a-f0-9]+_\d+\..*") or rmatch(tmp,r"^\d+\..*"):
 				self.available.append(tmp)

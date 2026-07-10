@@ -126,10 +126,17 @@ class Commands():
 		},
 		"NAME_HISTORY":{
 			"name"       :"Name History",
-			"description":"Give a human-readable name to a history entry by its list index.",
-			"regex"      :r"^!NH\s+\d+\s+.+$",
-			"usage"      :"!NH <index> <name>",
+			"description":"Give a human-readable name to the current history session.",
+			"regex"      :r"^!NH\s+.+$",
+			"usage"      :"!NH <name>",
 			"func"       :self.CMD_NAME_HISTORY,
+		},
+		"VIEW_HISTORY":{
+			"name"       :"Available History",
+			"description":"List all available history files with sizes and display names.",
+			"regex"      :r"^!AH$",
+			"usage"      :"!AH",
+			"func"       :self.CMD_VIEW_HISTORY,
 		},
 		"PLAN":{
 			"name"       :"Plan",
@@ -239,7 +246,7 @@ class Commands():
 		# Clear in-memory history
 		self.handle.hHM.msgs = []
 		# Clear main history file on disk
-		history_path = "{}/{}".format(self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', ''))), self.handle.Options['AI_FILE_HISTORY'])
+		history_path = "{}/{}".format("{}/history".format(self.handle.Options.get('path', '')), self.handle.Options['AI_FILE_HISTORY'])
 		try:
 			os.remove(history_path)
 		except Exception:
@@ -290,7 +297,7 @@ class Commands():
 		system_msgs = [m for m in self.handle.hHM.msgs if m['role'] == 'system']
 		self.handle.hHM.msgs = system_msgs[:]
 		# Clear main history file on disk and rewrite system msgs
-		main_path = "{}/{}".format(self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', ''))), self.handle.Options['AI_FILE_HISTORY'])
+		main_path = "{}/{}".format("{}/history".format(self.handle.Options.get('path', '')), self.handle.Options['AI_FILE_HISTORY'])
 		try:
 			os.remove(main_path)
 		except Exception:
@@ -329,7 +336,7 @@ class Commands():
 		removed = self.handle.hHM.msgs.pop(num)
 		print("Removed row {}: [{}] {}".format(num, removed.get('role','?'), removed.get('content','')[:80]))
 		# Rebuild main history file on disk
-		main_path = "{}/{}".format(self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', ''))), self.handle.Options['AI_FILE_HISTORY'])
+		main_path = "{}/{}".format("{}/history".format(self.handle.Options.get('path', '')), self.handle.Options['AI_FILE_HISTORY'])
 		try:
 			os.remove(main_path)
 		except Exception:
@@ -352,6 +359,12 @@ class Commands():
 		print("row_id           : {}".format( self.handle.Options['AI_ROW_ID'] ))
 		print("sess_id          : {}_{}".format( self.handle.Options['AI_SESS_PREFIX'], self.handle.Options['AI_SESS_ID'] ))
 		print("history          : {} / {}".format( self.handle.Options['AI_FILE_HISTORY'], self.handle.hHM.history ))
+		_fname = self.handle.Options.get('AI_FILE_HISTORY', '')
+		if _fname:
+			_key = _fname[:-4] if _fname.endswith('.dbk') else _fname
+			_alias = self.handle.hHM.get_name(_key)
+			if _alias:
+				print("  display name   : {}".format(_alias))
 		print("user.history     : {}".format( self.handle.Options['AI_USER_HISTORY'] ))
 		#
 		print("available history: {}".format( len(self.handle.hHM.available) ))
@@ -433,17 +446,20 @@ class Commands():
 		return 2
 	#
 	def CMD_NAME_HISTORY(self, inp=""):
-		"""!NH <index> <name> — give a human-readable name to a history entry."""
+		"""!NH <name> — give a human-readable name to the current history session."""
 		parts = inp.strip().split()
-		if len(parts) < 3:
-			print("Usage: !NH <index> <name>")
-			print("  index  — position from the history list (0, 1, 2...)")
+		if len(parts) < 2:
+			print("Usage: !NH <name>")
 			print("  name   — human-readable label (spaces become underscores)")
 			return 2
-		idx = parts[1]
-		name = ' '.join(parts[2:])
-		result = self.handle.hHM.set_name(idx, name)
+		name = ' '.join(parts[1:])
+		result = self.handle.hHM.set_current_name(name)
 		print(result)
+		return 2
+	#
+	def CMD_VIEW_HISTORY(self, inp=""):
+		"""!AH — list all available history files with sizes and display names."""
+		self.handle.hHM.Available()
 		return 2
 	#
 	def CMD_SUMMARIZE(self, inp=""):

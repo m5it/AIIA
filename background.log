@@ -130,3 +130,15 @@ Usage:
 [04:47:20] You: 
 [04:47:32] You: 
 [04:47:49] You: 
+[02:19:48] INFO: Session started, sess_id=5, mode=plan, model=kimi-k2.5:cloud
+[02:19:48] INFO: Koslenium server thread started
+[02:19:48] You: 
+[02:19:48] INFO: AI request (iteration 1, msgs=3)
+[02:21:25] INFO: Session started, sess_id=6, mode=plan, model=kimi-k2.5:cloud
+[02:21:25] INFO: Koslenium server thread started
+[02:21:25] You: 
+[02:21:25] INFO: AI request (iteration 1, msgs=3)
+[02:21:59] INFO: Session started, sess_id=7, mode=plan, model=kimi-k2.5:cloud
+[02:22:03] INFO: Session started, sess_id=8, mode=plan, model=kimi-k2.5:cloud
+[02:22:12] INFO: Session started, sess_id=9, mode=plan, model=kimi-k2.5:cloud
+[02:22:17] INFO: Session started, sess_id=10, mode=plan, model=kimi-k2.5:cloud

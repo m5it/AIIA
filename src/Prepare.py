@@ -29,7 +29,7 @@ class Prepare():
 	def SaveMemory(self):
 		self.handle.hLG.echo("Prepare.SaveMemory() START, length: {}. history: {}".format( len(self.handle.hHM.msgs), self.handle.hHM.history ),{'color':False})
 		#
-		history_path = "{}/{}".format(self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', ''))), self.handle.Options['AI_USER_HISTORY'])
+		history_path = "{}/{}".format("{}/history".format(self.handle.Options.get('path', '')), self.handle.Options['AI_USER_HISTORY'])
 		if os.path.exists(history_path):
 			os.remove(history_path)
 		# write history here

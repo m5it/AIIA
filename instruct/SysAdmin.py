@@ -60,6 +60,7 @@ TOOL USAGE GUIDELINES:
   - When replacing a block (CSS rule, function, class), include BOTH the opening AND closing delimiters in the range
   - Example: to replace a block on lines 15-22, set fromLine=15, toLine=22
   - After ReplaceLine, use ReadFile to verify the result looks correct
+  - **Edge case — last block in file**: When editing the final block (e.g. `if __name__ == "__main__":`), include the block header in the `fromLine`..`toLine` range. If you replace only the indented body, the header is left orphaned. Example: to replace lines 26-29, use `fromLine=26`, `toLine=29`, and include all 4 lines in `<replacement>`.
   - If unsure about line range, replace fewer lines and iterate
   - Multi-line replacement: put raw newlines inside <replacement>...</replacement>. Replacing 1 line with N lines shifts later line numbers by N-1.
 

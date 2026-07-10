@@ -27,6 +27,7 @@ def Help():
 	print()
 	print("Help for AIIA...: ")
 	print("-h                         # Help")
+	print("--history-lists            # List all available history files and exit")
 	print("-v                         # Version")
 	print("-d                         # Debug")
 	print("-m [model_name]            # Choose model")
@@ -411,12 +412,13 @@ def Main(argv):
 	#
 	opt_help = False
 	opt_one  = None # Send one request and exit
+	opt_history_lists = False
 	oneOpt   = {} # options for one request from terminal
 	opts     = [] # default to empty (avoids UnboundLocalError if getopt fails)
 	args     = []
 	#
 	try:
-		opts, args = getopt.getopt(argv,"vdchm:M:Y:T:p:QRS:C:P:",["debug", "continue", "help", "model=", "memory_specific=", "you=", "temperature=", "persona=", "quick", "reset", "server=", "connect=", "prompt="])
+		opts, args = getopt.getopt(argv,"vdchm:M:Y:T:p:QRS:C:P:",["debug", "continue", "help", "model=", "memory_specific=", "you=", "temperature=", "persona=", "quick", "reset", "server=", "connect=", "prompt=", "history-lists"])
 	except getopt.GetoptError:
 		opt_help = True
 	
@@ -457,6 +459,8 @@ def Main(argv):
 		elif opt=="-p" or opt=="--persona":
 			Options['INSTRUCT_CLASS'] = _resolve_persona(arg)
 			Options['INSTRUCT_CLASS_OVERRIDE'] = True
+		elif opt=="--history-lists":
+			opt_history_lists = True
 	#
 	# Set working_dir from CWD (fallback if aiia.json didn't already set it)
 	if Options.get('working_dir') is None and _cwd != _framework_dir:
@@ -470,6 +474,12 @@ def Main(argv):
 	#
 	hHA      = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", Options)
 	hHA.Init()
+	
+	# List available history files and exit
+	if opt_history_lists:
+		hHA.hHM.Available()
+		sys.stdout.flush()
+		os._exit(0)
 	
 	#
 	# One request / response and exit
