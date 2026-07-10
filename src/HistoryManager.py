@@ -17,13 +17,55 @@ class HistoryManager():
 		self.token_prompt   = 0
 		self.token_response = 0
 	
+	@property
+	def _history_dir(self):
+		return self.handle.Options.get('history_path',
+			"{}/history".format(self.handle.Options.get('path', '')))
+
+	@property
+	def _names_path(self):
+		return os.path.join(self._history_dir, 'names.json')
+
+	def _load_names(self):
+		p = self._names_path
+		if not os.path.exists(p):
+			return {}
+		try:
+			with open(p) as f:
+				return json.load(f)
+		except Exception:
+			return {}
+
+	def set_name(self, index, name):
+		try:
+			idx = int(index)
+		except (ValueError, TypeError):
+			return "Error: index must be a number."
+		if not self.available:
+			self.Update()
+		self.available.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]), reverse=False)
+		if idx < 0 or idx >= len(self.available):
+			return "Error: index {} out of range (0-{}).".format(idx, len(self.available) - 1)
+		fname = self.available[idx]
+		key = fname[:-4] if fname.endswith('.dbk') else fname
+		clean = name.strip().replace(' ', '_')
+		if not clean:
+			return "Error: name cannot be empty."
+		names = self._load_names()
+		names[key] = clean
+		with open(self._names_path, 'w') as f:
+			json.dump(names, f, indent=2)
+		return "Named history '{}' as '{}'.".format(fname, clean)
+
+	def get_name(self, key):
+		return self._load_names().get(key, None)
+	
 	# update self.available (list history files)
 	def Update(self):
 		#
 		self.available = []
 		#
-		_hdir = self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', '')))
-		for tmp in os.listdir(_hdir):
+		for tmp in os.listdir(self._history_dir):
 			if rmatch(tmp,r"^[a-f0-9]+_\d+\..*") or rmatch(tmp,r"^\d+\..*"):
 				self.available.append(tmp)
 	
@@ -37,8 +79,7 @@ class HistoryManager():
 		if path:
 			file_path = path
 		else:
-			_hdir = self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', '')))
-			file_path = "{}/{}".format(_hdir, self.history)
+			file_path = "{}/{}".format(self._history_dir, self.history)
 		#
 		if not os.path.exists(file_path):
 			return
@@ -81,10 +122,16 @@ class HistoryManager():
 		self.Update()
 		#
 		self.available.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]), reverse=False)
+		names = self._load_names()
 		cnt=0
 		for history in self.available:
 			if self.opt_quiet==False:
-				print("{}.) {}, len: {}".format( cnt, history, len(fread("{}/{}".format( self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', ''))), history))) ))
+				display = history
+				key = history[:-4] if history.endswith('.dbk') else history
+				alias = names.get(key)
+				if alias:
+					display = "{} ({})".format(history, alias)
+				print("{}.) {}, len: {}".format( cnt, display, len(fread("{}/{}".format(self._history_dir, history))) ))
 			cnt = cnt+1
 	
 	#
@@ -109,7 +156,7 @@ class HistoryManager():
 					print("Viewing history debug a[0]: {}, a[1]: {}".format(a[0],a[1]))
 					tmpname = self.available[int(a[1])]
 					print("Viewing history debug fileName: {}".format(tmpname))
-					tmpdata = fread( "{}/{}".format( self.handle.Options.get('history_path', "{}/history".format(self.handle.Options.get('path', ''))), tmpname) )
+					tmpdata = fread( "{}/{}".format( self._history_dir, tmpname) )
 					print("Viewing history debug tmpdata len: {}".format( len(tmpdata) ))
 					print(tmpdata)
 			try:

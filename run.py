@@ -204,7 +204,6 @@ def Run(prepared=False):
 #
 def cleanup():
 	global Options, hHA
-	print("cleanup() START")
 	#
 	if Options['AI_LIVE']:
 		print("cleanup() REPEATING")
@@ -217,7 +216,6 @@ def cleanup():
 		#
 		Run(True)
 		return False
-	print("cleanup() QUITING")
 	# Save current state for -c continuation
 	state_path = Options.get('AI_FILE_STATE')
 	if state_path:

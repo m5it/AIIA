@@ -124,6 +124,13 @@ class Commands():
 			"usage"      :"!MODEL [model_name]",
 			"func"       :self.CMD_MODEL,
 		},
+		"NAME_HISTORY":{
+			"name"       :"Name History",
+			"description":"Give a human-readable name to a history entry by its list index.",
+			"regex"      :r"^!NH\s+\d+\s+.+$",
+			"usage"      :"!NH <index> <name>",
+			"func"       :self.CMD_NAME_HISTORY,
+		},
 		"PLAN":{
 			"name"       :"Plan",
 			"description":"View or modify plan status. Use CLEAR/DELETE/RESET to remove plans.",
@@ -423,6 +430,20 @@ class Commands():
 			print("  !PROJECT DENY <path> — block a path")
 			print("  !PROJECT REMOVE DIR|FILE <path> — remove an approval")
 			print("  !PROJECT RESET — reset to defaults")
+		return 2
+	#
+	def CMD_NAME_HISTORY(self, inp=""):
+		"""!NH <index> <name> — give a human-readable name to a history entry."""
+		parts = inp.strip().split()
+		if len(parts) < 3:
+			print("Usage: !NH <index> <name>")
+			print("  index  — position from the history list (0, 1, 2...)")
+			print("  name   — human-readable label (spaces become underscores)")
+			return 2
+		idx = parts[1]
+		name = ' '.join(parts[2:])
+		result = self.handle.hHM.set_name(idx, name)
+		print(result)
 		return 2
 	#
 	def CMD_SUMMARIZE(self, inp=""):
