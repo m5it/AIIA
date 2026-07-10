@@ -399,10 +399,17 @@ class Handle():
 								"Auto-continue: reached 50 rounds — stopping.",
 								{'color':True, 'colorValue':'orange','debugOnly':False})
 						else:
+							total = len(PlanBase.draft.tasks)
+							completed = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'completed')
+							current_task = next((t for t in PlanBase.draft.tasks.values() if t.status == 'in_progress'), None)
+							task_num = completed + 1
+							task_inst = current_task.instruction if current_task else '(waiting)'
+							task_label = task_inst[:60] + '...' if len(task_inst) > 60 else task_inst
 							self.hLG.echo(
-								"Auto-continue: AI round {}/50".format(_auto_continue_count),
+								"Auto-continue: AI round {}/50 — task {}/{}: {}".format(
+									_auto_continue_count, task_num, total, task_label),
 								{'color':True, 'colorValue':'green','debugOnly':False})
-							self.Response('user', {'content': 'Continue working through the remaining plan tasks.'})
+							self.Response('user', {'content': 'Continue task {}/{}...\n{}'.format(task_num, total, task_inst)})
 							_skip_you = True
 							continue
 	
@@ -1079,12 +1086,12 @@ class Handle():
 
 		total = len(PlanBase.draft.tasks)
 		completed = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'completed')
-		in_progress = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'in_progress')
-		task_number = completed + in_progress
+		task_number = completed + 1
 
+		task_label = next_instruction[:60] + '...' if len(next_instruction) > 60 else next_instruction
 		msg = "continue task {} / {}...\n{}".format(task_number, total, next_instruction)
 		self.Response('user', {'content': msg})
-		self.hLG.echo("Auto-continue: task {}/{}".format(task_number, total),
+		self.hLG.echo("Auto-continue: task {}/{} — {}".format(task_number, total, task_label),
 			{'color': True, 'colorValue': 'green', 'debugOnly': False})
 		return True
 
