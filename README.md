@@ -1,8 +1,8 @@
 # OurAI — AI Interactive Agent
 
-**Version 0.7** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
+**Version 0.8** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
 
-> **Recent updates:** Per-project `aiia.json` config overrides, model call timeout + auto-retry with switch recommendation. See [CHANGELOG.md](CHANGELOG.md) for details.
+> **Recent updates:** `!PLAN DONE` command, full-plan auto-continue (`AUTO_CONTINUE_ALL_TASKS`), fixed task-skip in auto-advance. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Features
 
@@ -250,6 +250,8 @@ All configuration lives in `config.py`:
 | `AI_MODEL_TIMEOUT` | int | `120` | Seconds before model API call times out (`0` = no timeout) |
 | `AI_MODEL_RETRIES` | int | `3` | Max retries on failed model calls before recommending switch |
 | `BUILD_THINKING_DISABLED` | bool | `false` | Disable thinking in build mode |
+| `AUTO_CONTINUE_TASKS` | bool | `true` | Auto-advance to next task in build mode after tool usage |
+| `AUTO_CONTINUE_ALL_TASKS` | bool | `true` | Re-enter AI loop until all plan tasks are completed |
 | `PLAN_WORKER` | str/None | `None` | Worker name for delegated planning |
 | `NUM_PROMPT_TOKENS` | int | `0` | Cumulative prompt tokens |
 | `NUM_RESPONSE_TOKENS` | int | `0` | Cumulative response tokens |
@@ -784,7 +786,7 @@ All commands start with `!` (case-sensitive). The following are available:
 
 | Command | Description |
 |---------|-------------|
-| `!PLAN [PREVIEW\|VIEW\|TASKS\|STATUS] [task_id]` | View plan status, tasks, and progress. |
+| `!PLAN [PREVIEW\|VIEW\|TASKS\|STATUS\|CLEAR\|DELETE\|DONE] [task_id]` | View plan status, tasks, progress. `DONE` marks plan completed without deleting. |
 | `!START_BUILD [planId]` | Start build mode from current draft or specific plan by ID. |
 | `!BUILD_THINK [true\|false]` | Enable or disable thinking in build mode. |
 
@@ -1053,4 +1055,4 @@ See [LICENSE](LICENSE) for full terms including notification and payment obligat
 
 ## Project Status
 
-**Version 0.7** — Active development. Recent additions: per-project `aiia.json` config overrides, model call timeout + auto-retry with switch recommendation, `-Q`/`--quick` and `-P`/`--prompt` CLI flags, server mode auto-quick, actions system removed, token count persistence on `-c` continue, vision model support via MediaAnalyst persona, image analysis tools (ReadImage, ImageTransform).
+**Version 0.8** — Active development. Recent additions: `!PLAN DONE` command to finalize plans without deleting, `AUTO_CONTINUE_ALL_TASKS` mode that re-enters AI loop until all plan tasks are done, fixed double-advance bug in task auto-continue, task-aware console output during auto-continue, ReplaceLine edge-case documentation for last-block-in-file edits.

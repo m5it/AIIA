@@ -1,5 +1,44 @@
 # Changelog
 
+## 2026-07-10 — v0.8
+
+### Added: `!PLAN DONE` command — finalize plan without deleting
+
+New `!PLAN DONE` subcommand marks the current plan as completed, sets `endTimestamp`, moves it to `PlanBase.done`, and clears the draft — but keeps the plan file on disk. Unlike `!PLAN DELETE`, the plan remains browseable and can be viewed with `!PLAN PREVIEW`/`!PLAN VIEW` on future sessions.
+
+**Files:** `src/Commands.py`, `src/PlanSaver.py`
+
+### Added: `AUTO_CONTINUE_ALL_TASKS` — full-plan auto-continue
+
+New config option (default `True`) that makes `Chat()` re-enter the `AI()` loop when plan tasks remain, instead of stopping at `AI_MAX_ITERATIONS` and waiting for user input.
+
+**Mechanism:** After `AI()` returns, `Chat()` checks if the plan has pending or in-progress tasks. If yes, `_skip_you` bypasses the `You()` prompt and injects a continuation message for the model. A safety counter stops after 50 consecutive auto-continue rounds.
+
+**Config:**
+- `AUTO_CONTINUE_ALL_TASKS: True` — enabled by default
+- Requires `AUTO_CONTINUE_TASKS: True` and `MODE == 'build'`
+- Set to `False` in `config.py` or `aiia.json` for old behavior (stop after `AI_MAX_ITERATIONS`)
+
+**Files:** `config.py`, `src/Handle.py`
+
+### Fixed: Double-advance bug in `_try_auto_continue()`
+
+When the model explicitly called `<nextTask>completed</nextTask>`, `_try_auto_continue()` would call `nextTask()` a second time, skipping the task the model just advanced to. The fix checks for an existing `in_progress` task before advancing — if one exists (set by the model's `<nextTask>`), the method injects its instruction without calling `nextTask()` again.
+
+**Files:** `src/Handle.py`
+
+### Added: Task-aware console output during auto-continue
+
+Both the `_try_auto_continue()` echo and the `Chat()` auto-continue echo now display the task number and instruction snippet (e.g., `Auto-continue: AI round 3/50 — task 5/12: Implement File I/O Functions`).
+
+**Files:** `src/Handle.py`
+
+### Added: ReplaceLine edge-case documentation
+
+Added "last block in file" rule to `instruct/Developer.py`, `instruct/Researcher.py`, `instruct/SysAdmin.py`, and `instruct/DataCollector.py` — when editing the final block (e.g. `if __name__ == "__main__":`), include the block header in the `fromLine`..`toLine` range.
+
+**Files:** `instruct/Developer.py`, `instruct/Researcher.py`, `instruct/SysAdmin.py`, `instruct/DataCollector.py`
+
 ## 2026-07-09 — v0.7
 
 ### Added: Model call timeout + auto-retry with switch recommendation
