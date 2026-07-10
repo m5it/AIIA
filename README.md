@@ -252,6 +252,7 @@ All configuration lives in `config.py`:
 | `BUILD_THINKING_DISABLED` | bool | `false` | Disable thinking in build mode |
 | `AUTO_CONTINUE_TASKS` | bool | `true` | Auto-advance to next task in build mode after tool usage |
 | `AUTO_CONTINUE_ALL_TASKS` | bool | `true` | Re-enter AI loop until all plan tasks are completed |
+| `AUTO_CONTINUE_REMIND_AFTER` | int | `20` | Remind model to call `<nextTask>` after N tool iterations without one |
 | `PLAN_WORKER` | str/None | `None` | Worker name for delegated planning |
 | `NUM_PROMPT_TOKENS` | int | `0` | Cumulative prompt tokens |
 | `NUM_RESPONSE_TOKENS` | int | `0` | Cumulative response tokens |
@@ -1055,4 +1056,4 @@ See [LICENSE](LICENSE) for full terms including notification and payment obligat
 
 ## Project Status
 
-**Version 0.8** — Active development. Recent additions: `!PLAN DONE` command to finalize plans without deleting, `AUTO_CONTINUE_ALL_TASKS` mode that re-enters AI loop until all plan tasks are done, fixed double-advance bug in task auto-continue, task-aware console output during auto-continue, ReplaceLine edge-case documentation for last-block-in-file edits.
+**Version 0.8** — Active development. Recent additions: `!PLAN DONE` command to finalize plans without deleting, `AUTO_CONTINUE_ALL_TASKS` mode that re-enters AI loop until all plan tasks are done, `AUTO_CONTINUE_REMIND_AFTER` that reminds model to call `<nextTask>` after N iterations, fixed double-advance bug in task auto-continue, task-aware console output during auto-continue, ReplaceLine edge-case documentation for last-block-in-file edits.

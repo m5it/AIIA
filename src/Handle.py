@@ -53,9 +53,10 @@ class Handle():
 		
 		self.hPM     = PlanBase
 		self.tool_iteration = 0
-		self.tool_errors    = 0
-		self._last_failed_tool = None
+		self.tool_errors             = 0
+		self._last_failed_tool       = None
 		self._last_failed_tool_count = 0
+		self._iterations_since_nextTask = 0
 		self._consumed_tips = set()
 		self._last_response_hash = None
 		self._direct_tool_results = [] # results from direct user tool calls (no AI)
@@ -1238,6 +1239,25 @@ class Handle():
 				_tools_last_error = False
 				if self.hHM.msgs and self.hHM.msgs[-1].get('role') == 'tool':
 					_tools_last_error = self.hHM.msgs[-1].get('content', '').startswith('Error:')
+
+			# Track iterations without <nextTask> and remind model
+			if result.get('invocations'):
+				has_nextTask = any(inv.get('name') == 'nextTask' for inv in result['invocations'])
+				if has_nextTask:
+					self._iterations_since_nextTask = 0
+				elif _tools_were_called:
+					self._iterations_since_nextTask += 1
+			elif _tools_were_called and not result.get('job_done'):
+				self._iterations_since_nextTask += 1
+			remind_after = self.Options.get('AUTO_CONTINUE_REMIND_AFTER', 20)
+			if (_tools_were_called and not result.get('job_done') and
+				self._iterations_since_nextTask >= remind_after):
+				self._iterations_since_nextTask = 0
+				self.Response('user', {'content':
+					"[System: You've gone {} iterations without calling `<nextTask>completed</nextTask>`. "
+					"If the current task is done, call `<nextTask>completed</nextTask>` to advance. "
+					"If blocked, call `<nextTask>blocked</nextTask>`.]".format(remind_after)})
+				continue
 
 			# Stop if model response is empty (no content, no tools)
 			if not result.get('response', '').strip() and not result.get('invocations'):

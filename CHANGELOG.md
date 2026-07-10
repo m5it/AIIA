@@ -27,6 +27,14 @@ When the model explicitly called `<nextTask>completed</nextTask>`, `_try_auto_co
 
 **Files:** `src/Handle.py`
 
+### Added: `AUTO_CONTINUE_REMIND_AFTER` — nextTask reminder
+
+New config option (default: 20) that tracks iterations since the last `<nextTask>completed</nextTask>` call across `AI()` re-entries. When the count reaches the threshold, a `role:user` reminder is injected telling the model to call `<nextTask>completed</nextTask>` if the current task is done, or `<nextTask>blocked</nextTask>` if blocked. Counter resets on any `<nextTask>` call or after the reminder fires.
+
+**Config:** `AUTO_CONTINUE_REMIND_AFTER: 20` in `config.py`
+
+**Files:** `config.py`, `src/Handle.py`
+
 ### Added: Task-aware console output during auto-continue
 
 Both the `_try_auto_continue()` echo and the `Chat()` auto-continue echo now display the task number and instruction snippet (e.g., `Auto-continue: AI round 3/50 — task 5/12: Implement File I/O Functions`).
