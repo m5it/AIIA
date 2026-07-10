@@ -652,6 +652,14 @@ class Commands():
 		else:
 			self.handle.Response('system',{ 'content':"{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) ), })
 		#--
+		# Optionally inject plan-mode tool training
+		if new_mode == 'plan' and self.handle.Options.get('TOOL_TRAINING_PLAN', True):
+			self.handle.Response('user', {'content':
+				"[Tool Training — Plan Mode]\n"
+				"You are now in PLAN mode. List all tools available to you in plan mode "
+				"and demonstrate at least 3 of them with complete XML examples showing "
+				"the required parameters."})
+			self.handle._train_skip_you = True
 		# Depend if plan contain tasks then StartBuild() || <startBuild/> and auto continue to AI
 		return ret
 

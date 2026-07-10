@@ -53,9 +53,10 @@ class Handle():
 		
 		self.hPM     = PlanBase
 		self.tool_iteration = 0
-		self.tool_errors             = 0
-		self._last_failed_tool       = None
-		self._last_failed_tool_count = 0
+		self.tool_errors                = 0
+		self._last_failed_tool          = None
+		self._last_failed_tool_count    = 0
+		self._last_ai_had_tools        = False
 		self._iterations_since_nextTask = 0
 		self._consumed_tips = set()
 		self._last_response_hash = None
@@ -374,6 +375,11 @@ class Handle():
 		while True:
 			#
 			if not _skip_you:
+				# Check if tool training was injected mid-session — skip You() prompt
+				if getattr(self, '_train_skip_you', False):
+					self._train_skip_you = False
+					_skip_you = True
+					continue
 				x = self.You() # return: 0, 1, 2=continue, 3=break, 5=start build, 6=new session
 				self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False})
 				_auto_continue_count = 0  # reset on any direct user interaction
@@ -399,33 +405,45 @@ class Handle():
 			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
 
 			# Auto-re-enter AI() when plan tasks remain and ALL_TASKS mode is on
-			if (self.Options.get('AUTO_CONTINUE_ALL_TASKS', True) and
-				self.Options.get('AUTO_CONTINUE_TASKS', True) and
-				self.Options.get('MODE') == 'build'):
-				if PlanBase.draft:
-					has_remaining = any(
-						t.status in ('pending', 'in_progress')
-						for t in PlanBase.draft.tasks.values())
-					if has_remaining:
-						_auto_continue_count += 1
-						if _auto_continue_count >= 50:
-							self.hLG.echo(
-								"Auto-continue: reached 50 rounds — stopping.",
-								{'color':True, 'colorValue':'orange','debugOnly':False})
-						else:
-							total = len(PlanBase.draft.tasks)
-							completed = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'completed')
-							current_task = next((t for t in PlanBase.draft.tasks.values() if t.status == 'in_progress'), None)
-							task_num = completed + 1
-							task_inst = current_task.instruction if current_task else '(waiting)'
-							task_label = task_inst[:60] + '...' if len(task_inst) > 60 else task_inst
-							self.hLG.echo(
-								"Auto-continue: AI round {}/50 — task {}/{}: {}".format(
-									_auto_continue_count, task_num, total, task_label),
-								{'color':True, 'colorValue':'green','debugOnly':False})
-							self.Response('user', {'content': 'Continue task {}/{}...\n{}'.format(task_num, total, task_inst)})
-							_skip_you = True
-							continue
+			if self.Options.get('AUTO_CONTINUE_ALL_TASKS', True):
+				mode = self.Options.get('MODE', 'plan')
+				should_reenter = False
+				if mode == 'build' and self.Options.get('AUTO_CONTINUE_TASKS', True):
+					if PlanBase.draft:
+						has_remaining = any(
+							t.status in ('pending', 'in_progress')
+							for t in PlanBase.draft.tasks.values())
+						if has_remaining:
+							should_reenter = True
+				elif mode == 'plan' and self._last_ai_had_tools:
+					should_reenter = True
+				if should_reenter:
+					_auto_continue_count += 1
+					if _auto_continue_count >= 50:
+						self.hLG.echo(
+							"Auto-continue: reached 50 rounds — stopping.",
+							{'color':True, 'colorValue':'orange','debugOnly':False})
+					elif mode == 'plan':
+						self.hLG.echo(
+							"Auto-continue: AI round {}/50 — continuing plan creation".format(_auto_continue_count),
+							{'color':True, 'colorValue':'cyan','debugOnly':False})
+						self.Response('user', {'content': 'Continue creating plan tasks.'})
+						_skip_you = True
+						continue
+					else:
+						total = len(PlanBase.draft.tasks)
+						completed = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'completed')
+						current_task = next((t for t in PlanBase.draft.tasks.values() if t.status == 'in_progress'), None)
+						task_num = completed + 1
+						task_inst = current_task.instruction if current_task else '(waiting)'
+						task_label = task_inst[:60] + '...' if len(task_inst) > 60 else task_inst
+						self.hLG.echo(
+							"Auto-continue: AI round {}/50 — task {}/{}: {}".format(
+								_auto_continue_count, task_num, total, task_label),
+							{'color':True, 'colorValue':'green','debugOnly':False})
+						self.Response('user', {'content': 'Continue task {}/{}...\n{}'.format(task_num, total, task_inst)})
+						_skip_you = True
+						continue
 	
 	#
 	def Parse(self, res, opts=None):
@@ -1274,10 +1292,12 @@ class Handle():
 
 			# Stop if model response is empty (no content, no tools)
 			if not result.get('response', '').strip() and not result.get('invocations'):
+				self._last_ai_had_tools = _tools_were_called
 				return True
 			
 			# Stop if jobDone was called
 			if result.get('job_done'):
+				self._last_ai_had_tools = False
 				return True
 			
 			# Check if tools were executed by looking for tool invocations in result
@@ -1288,9 +1308,11 @@ class Handle():
 					_tools_were_called = False
 					_tools_last_error = False
 					continue
+				self._last_ai_had_tools = _tools_were_called
 				if opt_return_object:
 					return result['response']
 				return True
+		self._last_ai_had_tools = _tools_were_called
 	
 	#
 	def StartBuild(self, plan_id=None):
