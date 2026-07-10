@@ -752,8 +752,10 @@ class Commands():
 	def CMD_PLAN(self, inp=""):
 		import re
 		from src.PlanManager import PlanBase, Plan, PlanTask
+		from src.PlanSaver import PlanSaver
 
 		plans_path = self.handle.Options.get('plans_path', 'plans')
+		working_dir = self.handle.Options.get('working_dir')
 
 		# Parse command
 		parts = inp.strip().split()
@@ -844,6 +846,7 @@ class Commands():
 				PlanBase.done[str(plan_id)] = plan.to_dict()
 				PlanBase.draft = None
 				plan.save(plans_path)
+				PlanSaver.save_plan(plan, working_dir)
 				print("\nPlan '{}' marked as DONE and saved.".format(plan.title or plan_id))
 			else:
 				print("\nNo active plan to mark as done.")
