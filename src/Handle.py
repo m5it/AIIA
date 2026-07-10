@@ -433,7 +433,8 @@ class Handle():
 						if has_remaining:
 							should_reenter = True
 				elif mode == 'plan' and self._last_ai_had_tools:
-					should_reenter = True
+					if not self._is_plan_complete():
+						should_reenter = True
 				if should_reenter:
 					_auto_continue_count += 1
 					if _auto_continue_count >= 50:
@@ -496,8 +497,15 @@ class Handle():
 				'response_tokens': response.get('response_tokens', 0),
 			})
 			self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
+			# Extract blocked tool name from early_abort message for user prompt
+			plan_blocked = None
+			if self.Options.get('MODE') == 'plan':
+				m = re.search(r"'(\w+)'", early_abort)
+				if m:
+					plan_blocked = m.group(1)
 			if opt_return_object:
-				return {'invocations': [], 'response': response.get('content', ''), 'stream_error': stream_error }
+				return {'invocations': [], 'response': response.get('content', ''),
+						'stream_error': stream_error, 'plan_blocked': plan_blocked}
 			return True
 
 		# Strip <think>...</think> from content — the model may include these
@@ -587,13 +595,6 @@ class Handle():
 							self.hLG.echo("Plan completed! All tasks finished.", {'color':True, 'colorValue':'green'})
 						elif result_str.startswith("DONE_WITH_BLOCKED:"):
 							self.hLG.echo("Plan has blocked tasks. Consider switching to PLAN mode to resolve.", {'color':True, 'colorValue':'orange'})
-					elif inv['name'] == 'planDone':
-						result_str = str(result) if result else ""
-						if result_str.startswith("PLAN_DONE|"):
-							parts = result_str.split("|", 2)
-							task_info = parts[1]
-							instruction = parts[2]
-							self.Response('user', {'content': "Plan is ready! Starting first task.\n\n{} - {}".format(task_info, instruction)})
 					elif inv['name'] == 'startBuild':
 						result_str = str(result) if result else ""
 						if result_str.startswith("START_BUILD|"):
@@ -601,9 +602,20 @@ class Handle():
 							task_info = parts[1]
 							instruction = parts[2]
 							self.Response('user', {'content': "Mode changed to BUILD. You can now make changes.\n\n{} - {}".format(task_info, instruction)})
+			# Handle planDone in any mode — inject user message and signal completion
+			plan_done = any(inv['name'] == 'planDone' for inv in tool_invocations)
+			if plan_done:
+				result_str = str(result) if result else ""
+				if result_str.startswith("PLAN_DONE|"):
+					parts = result_str.split("|", 2)
+					task_info = parts[1]
+					instruction = parts[2]
+					self.Response('user', {'content': "Plan is ready! Starting first task.\n\n{} - {}".format(task_info, instruction)})
 			#
 			# Return the original response so caller knows tools were executed
-			return {'invocations': tool_invocations, 'response': response['content'], 'job_done': job_done, 'stream_error': stream_error }
+			return {'invocations': tool_invocations, 'response': response['content'],
+					'job_done': job_done, 'stream_error': stream_error,
+					'plan_done': plan_done}
 		#
 		if opt_return_object:
 			return {'invocations': tool_invocations, 'response': response['content'], 'stream_error': stream_error }
@@ -731,6 +743,36 @@ class Handle():
 					return "'{}' cannot be used in PLAN mode".format(name)
 
 		return None
+
+	#
+	def _is_plan_complete(self):
+		"""Check if the model has signaled plan completion in its last response.
+		Scans last assistant message for text patterns and planDone tool calls."""
+		# Scan history in reverse for the most recent assistant message
+		for msg in reversed(self.hHM.msgs):
+			if msg.get('role') != 'assistant':
+				continue
+			content = msg.get('content', '')
+			if not content.strip():
+				continue
+			# Text patterns indicating plan completion
+			patterns = [
+				r'plan\s+is\s+(ready|complete|done|finished)',
+				r'`?!?MODE\s+build',
+				r'switch\s+to\s+build',
+				r'start\s+building',
+				r'planning\s+(is\s+)?(complete|done|finished)',
+			]
+			lower = content.lower()
+			for p in patterns:
+				if re.search(p, lower):
+					return True
+			# No patterns matched — stop scanning
+			break
+		# Check if planDone tool was called recently (look for plan_done flag)
+		if getattr(self, '_plan_done_called', False):
+			return True
+		return False
 
 	#
 	def You(self, data=None, opts=None):
@@ -1299,6 +1341,10 @@ class Handle():
 				self._plan_blocked_tool_alert = result['plan_blocked']
 				self._last_ai_had_tools = True
 				return True
+
+			# Track planDone tool call — auto-continue should stop after this
+			if result.get('plan_done'):
+				self._plan_done_called = True
 
 			# Track iterations without <nextTask> and remind model
 			if result.get('invocations'):
