@@ -404,6 +404,23 @@ class Handle():
 			#
 			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
 
+			# Blocked tool in plan mode — prompt user
+			if getattr(self, '_plan_blocked_tool_alert', None):
+				tool_name = self._plan_blocked_tool_alert
+				del self._plan_blocked_tool_alert
+				ans = user_input("Model tried to use '{}' in PLAN mode. Switch to BUILD? (y/N): ".format(tool_name))
+				if ans.strip().lower() in ('y', 'yes'):
+					self.Options['MODE'] = 'build'
+					if self.hHM.msgs and self.hHM.msgs[-1]['role'] == 'system':
+						self.hHM.msgs[-1]['content'] = self.hPP._get_mode_instructions('build')
+					self.Response('user', {'content': "Mode switched to BUILD per your approval. The model can now use write tools."})
+					_skip_you = True
+					continue
+				else:
+					self.Response('user', {'content': "Understood. Staying in PLAN mode — write tools remain blocked."})
+					_skip_you = True
+					continue
+
 			# Auto-re-enter AI() when plan tasks remain and ALL_TASKS mode is on
 			if self.Options.get('AUTO_CONTINUE_ALL_TASKS', True):
 				mode = self.Options.get('MODE', 'plan')
@@ -552,6 +569,12 @@ class Handle():
 			#
 			result = self.hTP.FireToolInvocation(tool_invocations)
 			#
+			plan_blocked = getattr(self, '_plan_blocked_tool', None)
+			if plan_blocked:
+				self._plan_blocked_tool = None
+				return {'invocations': tool_invocations, 'response': response['content'],
+						'job_done': job_done, 'stream_error': stream_error,
+						'plan_blocked': plan_blocked}
 			# Handle nextTask response in build mode - auto-add next task to history
 			if self.Options.get('MODE') == 'build':
 				for inv in tool_invocations:
@@ -1270,6 +1293,12 @@ class Handle():
 				_tools_last_error = False
 				if self.hHM.msgs and self.hHM.msgs[-1].get('role') == 'tool':
 					_tools_last_error = self.hHM.msgs[-1].get('content', '').startswith('Error:')
+
+			# Blocked tool in plan mode — stop and alert user
+			if result.get('plan_blocked'):
+				self._plan_blocked_tool_alert = result['plan_blocked']
+				self._last_ai_had_tools = True
+				return True
 
 			# Track iterations without <nextTask> and remind model
 			if result.get('invocations'):

@@ -526,7 +526,8 @@ class ToolParser:
 					   .format(toolName))
 				self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
 				self.handle.Response('tool', {'content': err, 'name': toolName})
-				continue
+				self.handle._plan_blocked_tool = toolName
+				break
 			#
 			# Route to plan tools if in plan mode, or build tools (like LogProgress)
 			if (is_plan_mode and toolName in plan_tools) or (toolName in build_tools):
