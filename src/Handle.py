@@ -416,9 +416,10 @@ class Handle():
 					{'color':True, 'colorValue':'yellow','debugOnly':False})
 				self.hLG.echo("  3. Cancel AI (return to user prompt)",
 					{'color':True, 'colorValue':'yellow','debugOnly':False})
-				self.hLG.echo("Choice (1-3): ", {'end':'','flush':True,'color':True,'colorValue':'yellow','debugOnly':False})
+				self.hLG.echo("  4. Continue (dismiss, let the model proceed)",
+					{'color':True, 'colorValue':'yellow','debugOnly':False})
+				self.hLG.echo("Choice (1-4): ", {'end':'','flush':True,'color':True,'colorValue':'yellow','debugOnly':False})
 				ans = user_input({'quit_with_ctrlx':True}).strip()
-				# Strip non-digit chars — user may include Ctrl+X to submit
 				ans = re.sub(r'[^0-9]', '', ans)
 				if ans == '1':
 					self.Options['MODE'] = 'build'
@@ -427,14 +428,17 @@ class Handle():
 					self.Response('user', {'content': "Mode switched to BUILD per your approval. The model can now use write tools."})
 					_skip_you = True
 					continue
-				elif ans == '3':
+				if ans == '3':
 					self.Response('user', {'content': "AI loop cancelled. Write tools remain blocked in PLAN mode."})
 					_skip_you = False
 					continue
-				else:
-					self.Response('user', {'content': "Understood. Staying in PLAN mode — write tools remain blocked."})
+				if ans == '4':
 					_skip_you = True
 					continue
+				# Default: option 2 or invalid — stay in plan mode
+				self.Response('user', {'content': "Understood. Staying in PLAN mode — write tools remain blocked."})
+				_skip_you = True
+				continue
 
 			# Auto-re-enter AI() when plan tasks remain and ALL_TASKS mode is on
 			if self.Options.get('AUTO_CONTINUE_ALL_TASKS', True):
