@@ -33,7 +33,8 @@ class CreateFile():
 		overwrite = overwrite.lower() in ('true', '1', 'yes')
 		dest_path = Path("{}".format(fileName))
 		if dest_path.exists() and not overwrite:
-			return "Error: File {} already exists.".format(fileName)
+			return ("Warning: File '{}' already exists. Use WriteFile tool (not CreateFile) if you want to overwrite it. "
+				"You may also set overwrite=true on this tool to force overwrite.").format(fileName)
 		try:
 			dest_path.parent.mkdir(parents=True, exist_ok=True)
 			dest_path.write_text(contentOfFile, encoding="utf-8")
