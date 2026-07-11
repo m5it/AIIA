@@ -28,6 +28,18 @@ python run_worker.py --connect localhost:9876 --name w1 -m gemma3:12b  # start w
 | `!HELP` | Show all commands |
 | `!STATS` | Token counts |
 | `!NEW SESSION` | Full reset |
+| `!INSTALL_DEPS [persona]` | Install missing persona dependencies |
+
+## User Commands (build mode)
+
+| Command | Description |
+|---------|-------------|
+| `1` | Switch to build mode |
+| `2` | Stay — let AI continue planning |
+| `3` | Cancel — stop the current turn |
+| `4` | Continue — allow the blocked action |
+
+When the model attempts a blocked tool (WriteFile/CreateFile/ReplaceLine/Sed/ExecuteScript) during plan mode, Build Mode Manager shows these options so you can let the AI proceed with implementation work mid-plan.
 
 ## Architecture
 
@@ -36,6 +48,8 @@ python run_worker.py --connect localhost:9876 --name w1 -m gemma3:12b  # start w
 - **Core modules**: all in `src/` — `Handle.py` orchestrates chat, tools, history
 - **Personas**: `instruct/` directory — personality classes with plan/build system prompts, optional model override
 - **Tools**: `tools/` directory — dynamically loaded Python classes that the AI invokes via `<ToolName>` XML syntax
+- **Dependency system**: `src/DependencyChecker.py` + `src/DependencyInstaller.py` — check/install per-persona deps into isolated venvs at `~/.config/aiia/envs/<persona>/`, tracked in `~/.config/aiia/persona_deps.json`. Personas define requirements via `requirements()` method (pip packages + HF models). Automatically checked on persona switch; manual trigger via `!INSTALL_DEPS`.
+- **Plan/build loop**: plan-mode auto-continues as long as last AI response used tools and plan is not yet complete. Blocked tools (WriteFile/CreateFile/ReplaceLine/Sed/ExecuteScript) during planning show a 1-4 user menu. Plan completion detected via key phrases in assistant output.
 - **History**: `history/` (gitignored) — session-based chat history, session ID tracked in `sessid.aiia`
 - **Working dirs**: `workin/` (input for tools), `workout/` (output) — both gitignored
 
@@ -70,6 +84,7 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 - `Head` — First N lines (params: `<fileName>`, `<lines>` optional)
 - `Tail` — Last N lines (params: `<fileName>`, `<lines>` optional)
 - `Sort` — Sort lines (params: `<fileName>`, `<numeric>/<reverse>/<unique>` optional)
+- `CurrentTime` — Get current date/time (params: `<format>` optional, `<timezone>` optional)
 - `WWW` — Fetch a web page via the Java web client (params: `<url>`) — also invocable as `<www>`
 - `SaveTip` — Save a tip with title and content to model storage (params: `<title>`, `<content>`)
 - `GetTip` — Retrieve a saved tip by title (params: `<title>`, `<source>` optional)
@@ -122,6 +137,7 @@ Mode instructions (system prompts for plan/build modes) live in `instruct/` as p
 - Switch persona via `config.py`: `INSTRUCT_CLASS` option (e.g., `"Developer"`)
 - The `[--#THINKING#--ID1--]` placeholder in both plan and build text is replaced at runtime based on mode and `BUILD_THINKING_DISABLED` option
 - Create new personas by adding files to `instruct/` with the same `plan()`/`build()` interface
+- Personas can optionally define `requirements()` returning `{pip_packages: [...], hf_models: [...], size_gb: N}` for automatic dependency installation
 
 ## Runtime Requirements
 

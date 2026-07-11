@@ -210,11 +210,18 @@ class Commands():
 			"func"       :self.CMD_BUILD_THINK,
 		},
 		"CACHE_CLEAR":{
-			"name"       :"Cache Clear",
+			"name"       :"Clear Cache",
 			"description":"Clear all cached tool results.",
 			"regex"      :r"^!CACHE_CLEAR$",
 			"usage"      :"!CACHE_CLEAR",
 			"func"       :self.CMD_CACHE_CLEAR,
+		},
+		"INSTALL_DEPS":{
+			"name"       :"Install Persona Dependencies",
+			"description":"Install missing dependencies for the current persona.",
+			"regex"      :r"^!INSTALL_DEPS(\s+\S+)?$",
+			"usage"      :"!INSTALL_DEPS [persona_name]",
+			"func"       :self.CMD_INSTALL_DEPS,
 		},
 		"PROJECT":{
 			"name"       :"Project",
@@ -590,6 +597,52 @@ class Commands():
 		count = self.handle.hTM.clear_all_caches()
 		self.handle._consumed_tips = set()
 		self.handle.hLG.echo("Cleared {} cached tool result(s) and reset consumed tips.".format(count),{'color':True,'colorValue':'orange'})
+		return 2
+	#
+	def CMD_INSTALL_DEPS(self, inp=""):
+		parts = inp.strip().split()
+		name = parts[1] if len(parts) > 1 else self.handle.Options.get('INSTRUCT_CLASS', '')
+		if not name:
+			print("No persona specified and no current persona set.")
+			return 2
+		cls_path = self.handle.Options.get('INSTRUCT_PATH', 'instruct')
+		mod = importmodule(name, False, {'path': cls_path})
+		if not mod:
+			print("Persona '{}' not found.".format(name))
+			return 2
+		cls = None
+		for n in [name, name.lower(), name.upper()]:
+			try:
+				cls = getattr(mod, n)
+				if cls:
+					break
+			except Exception:
+				continue
+		if not cls:
+			print("Could not load persona '{}'.".format(name))
+			return 2
+		requirements = getattr(cls, 'requirements', None)
+		if not requirements:
+			print("Persona '{}' has no dependency requirements.".format(name))
+			return 2
+		try:
+			req_dict = requirements(cls)
+		except Exception:
+			print("Failed to read requirements for '{}'.".format(name))
+			return 2
+		if not req_dict:
+			print("Persona '{}' has no dependency requirements.".format(name))
+			return 2
+		self.handle.hLG.echo("Installing dependencies for '{}'...".format(name),
+			{'color':True, 'colorValue':'cyan','debugOnly':False})
+		from src.DependencyInstaller import install as install_deps
+		ok = install_deps(name, req_dict, self.handle)
+		if ok:
+			self.handle.hLG.echo("All dependencies installed for '{}'.".format(name),
+				{'color':True, 'colorValue':'green','debugOnly':False})
+		else:
+			self.handle.hLG.echo("Some dependencies failed. Run !INSTALL_DEPS {} to retry.".format(name),
+				{'color':True, 'colorValue':'orange','debugOnly':False})
 		return 2
 	#
 	def CMD_UPDATE_HANDLE(self, inp):

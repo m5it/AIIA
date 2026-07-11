@@ -6,8 +6,8 @@ class MediaAnalyst():
 	mode = "build"
 	build_thinking_disabled = False
 	max_iterations = 15
-	model = "qwen3-vl:latest"
-	#model = "qwen3-vl:235b-cloud"     # retired 2026-06-16
+	#model = "qwen3-vl:latest"
+	model = "kimi-k2.7-code:cloud"
 	blocks = {
 		'[--#THINKING#--ID1--]': {
 			'plan': 'Thinking ENABLED',
@@ -15,6 +15,20 @@ class MediaAnalyst():
 			'build_disabled': 'Thinking DISABLED - be concise and direct in descriptions',
 		},
 	}
+
+	def requirements(self):
+		return {
+			"pip_packages": [
+				"torch", "transformers", "diffusers", "accelerate",
+				"rembg", "scipy", "scikit-image",
+			],
+			"hf_models": [
+				"CIDAS/clipseg-rd64-refined",
+				"runwayml/stable-diffusion-inpainting",
+			],
+			"size_gb": 14,
+			"note": "~7.4 GB SD inpainting model, ~6 GB PyTorch/CUDA, rest CLIPSeg+u2net",
+		}
 
 	def plan(self):
 		return """You are in PLAN MODE. Your role is to plan the analysis of visual media (images/videos).

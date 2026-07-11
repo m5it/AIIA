@@ -118,6 +118,64 @@ class InstructManager():
 				for c in reg_changes:
 					self.handle.hLG.echo("  Model config: {}".format(c),
 						{'color':True, 'colorValue':'cyan'})
+		# Check persona dependencies
+		if self.handle.Options.get('PERSONA_AUTO_INSTALL_DEPS', True):
+			self._check_persona_deps(name, cls)
+	#
+	def _check_persona_deps(self, name, cls):
+		"""Check if persona has dependency requirements and prompt user."""
+		requirements = getattr(cls, 'requirements', None)
+		if not requirements:
+			return
+		try:
+			req_dict = requirements(self)
+		except Exception:
+			return
+		if not req_dict:
+			return
+		from src.DependencyChecker import check as check_deps
+		status = check_deps(name, req_dict)
+		if status['all_installed']:
+			self.handle.hLG.echo("Persona '{}' dependencies already satisfied.".format(name),
+				{'color':True, 'colorValue':'green','debugOnly':False})
+			return
+		# Show summary and prompt
+		lines = ["Persona '{}' requires additional dependencies:".format(name)]
+		pip_missing = status.get('pip_missing', [])
+		hf_missing = status.get('hf_missing', [])
+		if pip_missing:
+			lines.append("  pip packages ({}): {}".format(len(pip_missing), ', '.join(pip_missing)))
+		if hf_missing:
+			lines.append("  HF models ({}): {}".format(len(hf_missing), ', '.join(hf_missing)))
+		size = req_dict.get('size_gb', '?')
+		lines.append("  Estimated total: ~{} GB".format(size))
+		note = req_dict.get('note', '')
+		if note:
+			lines.append("  Note: {}".format(note))
+		lines.append("Install now? [Y]es / [N]o / [D]etails")
+		self.handle.hLG.echo("\n".join(lines),
+			{'color':True, 'colorValue':'yellow','debugOnly':False})
+		ans = user_input().strip().lower()
+		if ans == 'd':
+			self.handle.hLG.echo("Missing packages: {}".format(', '.join(pip_missing + hf_missing)),
+				{'color':True, 'colorValue':'cyan','debugOnly':False})
+			self.handle.hLG.echo("Install now? [Y]es / [N]o: ",
+				{'end':'','flush':True,'color':True,'colorValue':'yellow','debugOnly':False})
+			ans = user_input().strip().lower()
+		if ans in ('y', 'yes'):
+			self.handle.hLG.echo("Installing dependencies for '{}'... This may take a while.".format(name),
+				{'color':True, 'colorValue':'cyan','debugOnly':False})
+			from src.DependencyInstaller import install as install_deps
+			ok = install_deps(name, req_dict, self.handle)
+			if ok:
+				self.handle.hLG.echo("All dependencies installed for '{}'.".format(name),
+					{'color':True, 'colorValue':'green','debugOnly':False})
+			else:
+				self.handle.hLG.echo("Some dependencies failed for '{}'. Run !INSTALL_DEPS {} to retry.".format(name, name),
+					{'color':True, 'colorValue':'orange','debugOnly':False})
+		else:
+			self.handle.hLG.echo("Skipping dependency installation for '{}'.".format(name),
+				{'color':True, 'colorValue':'yellow','debugOnly':False})
 	#
 	#
 		

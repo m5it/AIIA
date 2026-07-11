@@ -37,6 +37,7 @@ Options         = {
 	"AUTO_CONTINUE_REMIND_AFTER" :20,  # remind model to call <nextTask> after N iterations without one
 	"TOOL_TRAINING" :True,   # on fresh sessions, let AI demonstrate tool usage once before user input
 	"TOOL_TRAINING_PLAN" :True,   # re-inject tool training when switching to plan mode
+	"PERSONA_AUTO_INSTALL_DEPS" :True,   # check and prompt to install persona dependencies
 	"AI_THINK"            :True, # enable think/reasoning API for models that support it (e.g. DeepSeek R1)
 	"AI_VISION_ENABLED"   :True, # enable vision/multimodal support (images in chat messages)
 	"AI_MAX_IMAGE_SIZE"   :10485760, # 10MB — max image file size for ReadImage
