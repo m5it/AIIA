@@ -4,7 +4,7 @@ class ReplaceLine():
 	def __init__(self):
 		self.info = {
 			"name":"ReplaceLine",
-			"description":"Replace a specific line or range of lines in a file with new content. Lines are 1-indexed.",
+			"description":"Replace a specific line or range of lines in a file with new content. Lines are 1-indexed. First call previews the current content; call again with confirmed=true to apply.",
 			"parameters":{
 				"returnType":"string",
 				"required":["fileName","fromLine","replacement"],
@@ -25,11 +25,16 @@ class ReplaceLine():
 						"type":"string",
 						"description":"New content for the specified line(s). Multi-line supported."
 					},
+					"confirmed":{
+						"type":"string",
+						"default":"false",
+						"description":"Set to true to confirm and execute the replacement after previewing the current content."
+					},
 				},
 			},
 		}
 	#
-	def run(self, fileName="", fromLine=None, toLine=None, replacement="", opts={}):
+	def run(self, fileName="", fromLine=None, toLine=None, replacement="", confirmed="false"):
 		if not fileName or fromLine is None:
 			return "Error: fileName and fromLine are required.\nUsage: <ReplaceLine><fileName>path</fileName><fromLine>10</fromLine><replacement>new text</replacement></ReplaceLine>"
 		try:
@@ -59,15 +64,32 @@ class ReplaceLine():
 			return "Error: fromLine {} exceeds file length ({} lines).".format(fl, total)
 		if tl > total:
 			return "Error: toLine {} exceeds file length ({} lines).".format(tl, total)
-		#
+
+		# Preview: show current content without modifying
+		confirmed = confirmed.lower() in ('true', '1', 'yes')
+		old_lines = lines[fl - 1:tl]
+		old_text = ''.join(old_lines)
+		old_preview = old_text.replace('\n', '\\n')
+		if len(old_preview) > 200:
+			old_preview = old_preview[:200] + '...'
+
+		if not confirmed:
+			new_preview = replacement.replace('\n', '\\n')
+			if len(new_preview) > 200:
+				new_preview = new_preview[:200] + '...'
+			return ("Line{} {}-{} in '{}' currently reads:\n"
+				"```\n{}\n```\n"
+				"Proposed replacement:\n"
+				"```\n{}\n```\n"
+				"To confirm, add <confirmed>true</confirmed> to your ReplaceLine call.").format(
+					's' if tl != fl else '', fl, tl, fileName,
+					old_text.rstrip('\n'),
+					replacement.rstrip('\n'))
+
+		# Confirmed — execute the replacement
 		repl = replacement
 		if not repl.endswith('\n'):
 			repl += '\n'
-		#
-		old_lines = lines[fl - 1:tl]
-		old_preview = ''.join(old_lines).replace('\n', '\\n')
-		if len(old_preview) > 120:
-			old_preview = old_preview[:120] + '...'
 		#
 		repl_lines = repl.split('\n')
 		if repl_lines and repl_lines[-1] == '':
@@ -84,7 +106,7 @@ class ReplaceLine():
 		#
 		count = tl - fl + 1
 		new_count = len(repl_lines)
-		return "Replaced line{} {}-{} in '{}'. ({} old line{} -> {} new line{}). Old: {}".format(
+		return "Replaced line{} {}-{} in '{}'. ({} old line{} -> {} new line{}). Old content: {}".format(
 			's' if count > 1 else '', fl, tl, fileName,
 			count, 's' if count != 1 else '',
 			new_count, 's' if new_count != 1 else '',
