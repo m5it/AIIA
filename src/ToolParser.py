@@ -751,6 +751,10 @@ class ToolParser:
 				else:
 					return "No active plan. Use createPlan first."
 			first_task = None
+			# Don't double-start — if a task is already in_progress, do nothing
+			already_started = any(t.status == "in_progress" for t in PlanBase.draft.tasks.values())
+			if already_started:
+				return "Build already started — task already in progress."
 			for tid, task in PlanBase.draft.tasks.items():
 				if task.status == "pending":
 					first_task = task

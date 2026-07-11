@@ -425,7 +425,7 @@ class Handle():
 					self.Options['MODE'] = 'build'
 					if self.hHM.msgs and self.hHM.msgs[-1]['role'] == 'system':
 						self.hHM.msgs[-1]['content'] = self.hPP._get_mode_instructions('build')
-					self.Response('user', {'content': "Mode switched to BUILD per your approval. The model can now use write tools."})
+					self.StartBuild()
 					_skip_you = True
 					continue
 				if ans == '3':
@@ -1201,13 +1201,10 @@ class Handle():
 				break
 
 		if not in_progress_task:
-			pending = any(t.status == 'pending' for t in PlanBase.draft.tasks.values())
-			if not pending:
-				return False
-			res = PlanBase.draft.nextTask(self)
-			if not res or res.get('done'):
-				return False
-			next_instruction = res.get('next_task_instruction') or '(continue with the plan)'
+			# Don't call nextTask() here — the outer Chat loop will find the
+			# first pending task via StartBuild (or the model will call startBuild).
+			# Calling nextTask() from inside AI() can cause premature advancement.
+			return False
 		else:
 			next_instruction = in_progress_task.instruction or '(continue with the plan)'
 
@@ -1444,6 +1441,11 @@ class Handle():
 				self.hLG.echo("No active plan. Use createPlan first.", {'color':True, 'colorValue':'red'})
 				return
 		first_task = None
+		# Don't double-start — if a task is already in_progress, do nothing
+		for t in PlanBase.draft.tasks.values():
+			if t.status == "in_progress":
+				self.hLG.echo("Build already started — task already in progress.", {'color':True, 'colorValue':'yellow'})
+				return
 		for tid, task in PlanBase.draft.tasks.items():
 			if task.status == "pending":
 				first_task = task
