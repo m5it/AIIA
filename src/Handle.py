@@ -502,6 +502,13 @@ class Handle():
 			stream_error = response['error']
 			if stream_error:
 				self.hLG.echo("Stream error: {}".format(stream_error), {'color':True, 'colorValue':'red','debugOnly':False,})
+				# Signal auto-clear for request-too-large errors
+				err_lower = stream_error.lower()
+				if ('too large' in err_lower or '400' in err_lower or '413' in err_lower or 'request body' in err_lower):
+					if opt_return_object:
+						return {'invocations': [], 'response': response.get('content', ''),
+								'stream_error': stream_error, 'stream_too_large': True}
+					return True
 
 		# Early abort from Stream() — skip tool invocation detection
 		early_abort = response.get('early_abort')
@@ -873,7 +880,8 @@ class Handle():
 	# -- context management --------------------------------------------------
 	# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	def _estimate_tokens(self, msgs):
-		"""Rough token estimate: ~4 chars per token on average."""
+		"""Rough token estimate: ~4 chars per token on average, images count as
+		their base64 size (~1.37 bytes per char * num chars / 4)."""
 		total = 0
 		for m in msgs:
 			content = m.get('content', '')
@@ -881,6 +889,9 @@ class Handle():
 			total += len(content) // 4
 			total += len(thinking) // 4
 			total += 8  # overhead per message (role label, newlines)
+			# Account for base64 images: ~1.37 bytes per base64 char → /4 for tokens
+			for img_b64 in m.get('images', []):
+				total += len(img_b64) // 3  # rough: 4 base64 chars ≈ 3 bytes ≈ 0.75 tokens
 		return total
 
 	def _rewrite_history(self, msgs):
@@ -1360,6 +1371,17 @@ class Handle():
 				self._plan_blocked_tool_alert = result['plan_blocked']
 				self._last_ai_had_tools = True
 				return True
+
+			# Request body too large — auto-clear context and retry
+			if result.get('stream_too_large'):
+				self.hLG.echo("Request body too large — auto-clearing context and retrying...",
+					{'color':True, 'colorValue':'orange','debugOnly':False})
+				self._auto_clear()
+				self.Response('user', {
+					'content': "[System: The conversation was too large for the model. "
+					"Context has been cleared to free memory. Continue with the task.]"
+				})
+				continue
 
 			# Track planDone tool call — auto-continue should stop after this
 			if result.get('plan_done'):

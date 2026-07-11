@@ -77,6 +77,9 @@ Options         = {
 	"TOOL_CACHE_ENABLED"  :True,     # Enable tool result caching
 	"TOOL_CACHE_TTL"      :86400,    # Default cache TTL in seconds (1 day)
 	#
+	# Image injection limits
+	"MAX_INJECT_IMAGE_DIMENSION" :1024, # max pixel dimension when ReadImage injects into conversation (0=no limit)
+	#
 	# Tool result format (priority: system > user > tool)
 	"TOOL_RESULT_AS_SYSTEM": False, # When True, tool results use role: system instead of role: tool
 	"TOOL_RESULT_AS_USER": False,   # When True, tool results use role: user instead of role: tool
