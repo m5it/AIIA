@@ -408,13 +408,28 @@ class Handle():
 			if getattr(self, '_plan_blocked_tool_alert', None):
 				tool_name = self._plan_blocked_tool_alert
 				del self._plan_blocked_tool_alert
-				ans = user_input("Model tried to use '{}' in PLAN mode. Switch to BUILD? (y/N): ".format(tool_name))
-				if ans.strip().lower() in ('y', 'yes'):
+				self.hLG.echo("Model tried to use '{}' in PLAN mode.".format(tool_name),
+					{'color':True, 'colorValue':'yellow','debugOnly':False})
+				self.hLG.echo("  1. Switch to BUILD mode (allow the tool)",
+					{'color':True, 'colorValue':'yellow','debugOnly':False})
+				self.hLG.echo("  2. Stay in PLAN mode (block the tool, continue planning)",
+					{'color':True, 'colorValue':'yellow','debugOnly':False})
+				self.hLG.echo("  3. Cancel AI (return to user prompt)",
+					{'color':True, 'colorValue':'yellow','debugOnly':False})
+				self.hLG.echo("Choice (1-3): ", {'end':'','flush':True,'color':True,'colorValue':'yellow','debugOnly':False})
+				ans = user_input({'quit_with_ctrlx':True}).strip()
+				# Strip non-digit chars — user may include Ctrl+X to submit
+				ans = re.sub(r'[^0-9]', '', ans)
+				if ans == '1':
 					self.Options['MODE'] = 'build'
 					if self.hHM.msgs and self.hHM.msgs[-1]['role'] == 'system':
 						self.hHM.msgs[-1]['content'] = self.hPP._get_mode_instructions('build')
 					self.Response('user', {'content': "Mode switched to BUILD per your approval. The model can now use write tools."})
 					_skip_you = True
+					continue
+				elif ans == '3':
+					self.Response('user', {'content': "AI loop cancelled. Write tools remain blocked in PLAN mode."})
+					_skip_you = False
 					continue
 				else:
 					self.Response('user', {'content': "Understood. Staying in PLAN mode — write tools remain blocked."})
