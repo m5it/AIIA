@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-12 — v0.90.2
+
+### Auto: Version v0.90.2
+
+- Version auto-incremented from v0.90.1
+- Files changed: AGENTS.md, AUTOVERSION.py, config.py, hooks/pre-commit, instruct/DataCollector.py, instruct/Developer.py, instruct/Generalist.py, instruct/MediaAnalyst.py, instruct/Researcher.py, instruct/SysAdmin.py, instruct/TechTalker.py, src/Handle.py, src/ToolParser.py
+
+---
+
+
 ## 2026-07-12 — v0.9.0
 
 ### Changed: Version bump to v0.9.0 — nearing v1.0

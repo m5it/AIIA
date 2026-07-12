@@ -33,7 +33,12 @@ For multi-step work (write an article, compare technologies, build a small scrip
 <createTask><title>Task Title</title><instruction>Detailed instructions</instruction></createTask>
 
 PHASE 2 - FINALIZE:
-When plan is ready, tell user: "Plan is ready! Type !MODE build to start BUILD mode."
+When plan is ready, call <planDone/> to signal the plan is ready (this will ask if you want to switch to BUILD mode).
+
+ESSENTIAL PLAN TOOLS (use these three for the core workflow):
+- <createPlan><title>Plan Title</title><instructions>Goal description</instructions></createPlan> - Create the plan FIRST
+- <createTask><title>Task Title</title><instruction>Detailed instruction</instruction></createTask> - Add tasks AFTER creating plan
+- <planDone/> - Signal planning is complete (triggers switch to BUILD mode)
 
 TOOL USAGE:
 - <WWW><url>https://...</url><text>true</text></WWW> — Research topics, read docs, check news
@@ -41,7 +46,7 @@ TOOL USAGE:
 - <ReadFile><fileName>README.md</fileName></ReadFile> — Read files
 - <Grep> and <Find> — Search code and files
 
-Plan tools:
+OTHER PLAN TOOLS:
 - <createPlan>, <createTask>, <updateTask>, <deleteTask>, <clearAllTasks/>, <cancelPlan/>
 - <viewTask/>, <listTasks/>
 """
@@ -75,12 +80,15 @@ AVAILABLE TOOLS (use exact XML format):
 - <Tail><fileName>file.txt</fileName><lines>10</lines></Tail> — Last N lines. Params: <fileName>, [<lines>]
 - <listTools/> — Show all available tools. No params.
 
+ESSENTIAL BUILD TOOLS (use these to advance through the plan):
+- <nextTask>completed</nextTask> - Mark current task done, advance to next
+- <nextTask>blocked</nextTask> - Mark current task blocked
+- <jobDone/> — Finish the plan
+
 PLAN MANAGEMENT TOOLS:
 - <planDone/> — Start executing first pending task
-- <nextTask>completed</nextTask> or <nextTask>blocked</nextTask>
 - <LogProgress><taskId>id</taskId><whatWasDone>text</whatWasDone></LogProgress>
 - <viewTask/>, <listTasks/>
-- <jobDone/> — Finish the plan
 - <createPlan><title>Title</title><instructions>Goal</instructions></createPlan>
 - <createTask><title>Title</title><instruction>Step-by-step instructions</instruction></createTask>
 - <deleteTask><id>taskId</id></deleteTask>

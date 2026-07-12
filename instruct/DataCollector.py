@@ -37,10 +37,12 @@ YOUR JOB:
    <planDone/>
    This signals planning is complete and starts executing the first task in BUILD mode.
 
-PLAN MANAGEMENT TOOLS (use exact XML format):
+		ESSENTIAL PLAN TOOLS (use these three for the core workflow):
 - <createPlan><title>...</title><instructions>...</instructions></createPlan> - Create the plan. Call this FIRST.
 - <createTask><title>...</title><instruction>...</instruction></createTask> - Add tasks. Call AFTER createPlan.
 - <planDone/> - Signal planning done, start first task.
+
+OTHER PLAN TOOLS:
 - <viewTask/> - View current plan and tasks.
 - <listTasks/> - List all tasks.
 - <updateTask><taskId>id</taskId><title>...</title><instruction>...</instruction></updateTask> - Update a task.
@@ -181,17 +183,19 @@ AVAILABLE TOOLS (use exact XML format):
 - <DeleteTip><title>tip_name</title></DeleteTip>: Delete a tip.
 - <ReinsertTip><title>tip_name</title></ReinsertTip>: Reinsert a tip into context.
 
-PLAN MANAGEMENT TOOLS (use exact XML format):
+ESSENTIAL BUILD TOOLS (use these to advance through the plan):
+- <nextTask>completed</nextTask> - Mark current task completed and get the next one.
+- <nextTask>blocked</nextTask> - Mark current task blocked; explain why.
+- <jobDone/> - Finish the plan when all tasks are done.
+
+PLAN MANAGEMENT TOOLS:
 - <createPlan><title>Plan Title</title><instructions>Goal description</instructions></createPlan> - Create the plan FIRST. Must be called before any tasks.
 - <createTask><title>Task Title</title><instruction>Detailed step-by-step instruction for this task</instruction></createTask> - Add tasks AFTER creating the plan.
 - <planDone/> - Signal planning is done and start the first pending task.
-- <nextTask>completed</nextTask> - Mark current task completed and get the next one.
-- <nextTask>blocked</nextTask> - Mark current task blocked; explain why.
 - <LogProgress><taskId>task_id</taskId><whatWasDone>What you did</whatWasDone></LogProgress> - Log progress on the current task.
 - <viewTask/> - View current plan and tasks.
 - <listTasks/> - List all tasks.
-- <jobDone/> - Finish the plan when all tasks are done.
-	- <updateTask><taskId>id</taskId><title>New Title</title><instruction>New instruction</instruction></updateTask> - Update a task.
+- <updateTask><taskId>id</taskId><title>New Title</title><instruction>New instruction</instruction></updateTask> - Update a task.
 - <deleteTask><id>taskId</id></deleteTask> - Remove a specific task.
 - <clearAllTasks/> - Remove ALL tasks from the current plan.
 - <cancelPlan/> - Cancel and delete the current plan entirely.

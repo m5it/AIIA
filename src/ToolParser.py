@@ -4,6 +4,7 @@ ToolParser - Handles parsing of XML tool invocations and job completion detectio
 import re
 import os
 import time
+import json
 from src.functions import initmodule,importmodule,splitFileNameExtension
 
 class ToolParser:
@@ -15,6 +16,7 @@ class ToolParser:
 		'WriteFile', 'CreateFile', 'AppendFile', 'ReplaceLine', 'Sed',
 		'Sort', 'Terminal', 'ExecuteScript',
 		'WWW', 'WWWExec', 'WWWJS',
+		'startBuild',
 	}
 	_plan_tools = {
 		'addTask', 'createTask', 'createPlan', 'deleteTask', 'deletePlan',
@@ -380,6 +382,9 @@ class ToolParser:
 				return cached
 			#
 			ToolParser._current_handle = self.handle
+			if self.handle.Options.get('TOOL_SHOW_LOAD', True):
+				self.handle.hLG.echo("Executing tool call {}...".format(toolName),
+					{'color':True, 'colorValue':'yellow'})
 			try:
 				result = h.run(**params)
 			finally:
@@ -453,7 +458,13 @@ class ToolParser:
 			#
 			# Show user what tool is being called (human-readable preview)
 			action_msg = self._format_action(toolName, params)
-			self.handle.hLG.echo("⚙️ {} {}".format(toolName, action_msg), {'color':True, 'colorValue':'green'})
+			show_load = self.handle.Options.get('TOOL_SHOW_LOAD', True)
+			if show_load:
+				_tool_start = time.time()
+				_input_size = len(json.dumps(params))
+				self.handle.hLG.echo("Loading tool call {} {}".format(toolName, action_msg), {'color':True, 'colorValue':'cyan'})
+			else:
+				self.handle.hLG.echo("⚙️ {} {}".format(toolName, action_msg), {'color':True, 'colorValue':'green'})
 			#
 			# File size guard — prevent creating/modifying files larger than AI_MAX_FILE_SIZE
 			_write_tools = {
@@ -519,11 +530,14 @@ class ToolParser:
 					if blocked:
 						continue
 			#
-			# PLAN mode guard — block write/execute tools
-			if is_plan_mode and toolName in self._plan_blocked:
-				err = ("Error: {} cannot be used in PLAN mode. "
-					   "Switch to BUILD mode with !MODE build to use this tool."
-					   .format(toolName))
+			# PLAN mode guard — block write/execute tools and intercept startBuild
+			if is_plan_mode and (toolName in self._plan_blocked or toolName == 'startBuild'):
+				if toolName == 'startBuild':
+					err = "Model requested build mode via <startBuild/>. Switch to BUILD mode to start executing."
+				else:
+					err = ("Error: {} cannot be used in PLAN mode. "
+						   "Switch to BUILD mode with !MODE build to use this tool."
+						   .format(toolName))
 				self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
 				self.handle.Response('tool', {'content': err, 'name': toolName})
 				self.handle._plan_blocked_tool = toolName
@@ -535,6 +549,14 @@ class ToolParser:
 			else:
 				result = self.ExecuteTextTool(toolName, params)
 			last_result = result
+			#
+			# Show loaded message with timing and sizes (verbose mode)
+			if show_load:
+				_elapsed = time.time() - _tool_start
+				_output_size = len(str(result))
+				self.handle.hLG.echo("Loaded in {:.3f}s — Input: {} bytes, Output: {} bytes".format(
+					_elapsed, _input_size, _output_size),
+					{'color':True, 'colorValue':'green'})
 			#
 			if self.handle.Options.get('TOOL_RESULT_AS_SYSTEM', False):
 				self.handle.Response('system',{'content':"☰ Tool [{}] returned:\n{}".format(toolName, str(result))})
@@ -707,6 +729,8 @@ class ToolParser:
 				return "No active plan. Use createPlan first to create a new plan."
 			status = params.get('status', 'completed')
 			result = PlanBase.draft.nextTask(self.handle, status)
+			if hasattr(self.handle, '_write_current_task'):
+				self.handle._write_current_task()
 			if result.get('done'):
 				blocked_count = result.get('blocked_count', 0)
 				if blocked_count > 0:
@@ -718,7 +742,10 @@ class ToolParser:
 
 		elif toolName == 'jobDone':
 			if PlanBase.draft:
-				return str(PlanBase.draft.jobDone(self.handle))
+				result = str(PlanBase.draft.jobDone(self.handle))
+				if hasattr(self.handle, '_write_current_task'):
+					self.handle._write_current_task()
+				return result
 			return "No active plan. Use createPlan first to create a new plan."
 
 		elif toolName == 'planDone':
@@ -736,6 +763,8 @@ class ToolParser:
 				PlanBase.LogProgress(first_task.id, "Build started", plans_path)
 				task_number = sum(1 for t in PlanBase.draft.tasks.values() if t.status in ["completed", "in_progress"])
 				total_tasks = len(PlanBase.draft.tasks)
+				if hasattr(self.handle, '_write_current_task'):
+					self.handle._write_current_task()
 				return "PLAN_DONE|Task {}/{}|{}".format(task_number, total_tasks, first_task.instruction)
 			return "No pending tasks in plan."
 

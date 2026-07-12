@@ -37,7 +37,7 @@ PHASE 2 - CREATE TASKS:
 Call <createTask><title>Task Title</title><instruction>Detailed instruction for this task</instruction></createTask> for each step
 
 PHASE 3 - FINALIZE:
-When all tasks are created, tell user: "Plan is ready! Type !MODE build to start BUILD mode."
+When all tasks are created, call <planDone/> to signal the plan is ready (this will ask if you want to switch to BUILD mode).
 
 HOW TO SPLIT USER INSTRUCTIONS INTO TASKS:
 1. Analyze the user's goal - what is the end result they want?
@@ -60,9 +60,12 @@ WHY SPLIT INTO TASKS:
 - Better error handling (failure of one task doesn't affect others)
 - Parallel work possible in future
 
-AVAILABLE TOOLS (use exact XML format):
+ESSENTIAL PLAN TOOLS (use these three for the core workflow):
 - <createPlan><title>Plan Title</title><instructions>High-level goal and context</instructions></createPlan> - Create the plan FIRST
 - <createTask><title>Task Title</title><instruction>Detailed step-by-step instruction for the model to follow when executing this task</instruction></createTask> - Add tasks AFTER creating plan
+- <planDone/> - Signal planning is complete (triggers switch to BUILD mode)
+
+OTHER PLAN TOOLS:
 - <updateTask><id>taskId</id><status>pending|completed|blocked</status></updateTask> - Update task status
 - <deleteTask><id>taskId</id></deleteTask> - Remove a task
 - <clearAllTasks/> - Remove ALL tasks from the current plan
@@ -120,7 +123,7 @@ EXAMPLE WORKFLOW:
    <createTask><title>Build Frontend Login</title><instruction>Create index.html with login form. Connect to /api/login. Store JWT token in localStorage. Redirect to dashboard on success.</instruction></createTask>
    <createTask><title>Build Dashboard</title><instruction>Create dashboard view. Fetch user data from /api/dashboard with token. Display user info and logout button.</instruction></createTask>
 
-When all tasks are created, tell the user "Plan is ready! Type !MODE build to start BUILD mode."
+When all tasks are created, call <planDone/> to signal the plan is ready and start building.
 """
 
 	def build(self):
@@ -195,14 +198,16 @@ AVAILABLE TOOLS (use exact XML format):
 - <Tail><fileName>file.txt</fileName><lines>10</lines></Tail>: Last N lines. Params: <fileName>, [<lines>]
 - <Sort><fileName>file.txt</fileName><numeric>true</numeric></Sort>: Sort lines. Params: <fileName>, [<numeric>], [<reverse>], [<unique>]
 
-PLAN MANAGEMENT TOOLS (use these to track progress):
-- <planDone/> - Signal planning is done, start the first pending task
+ESSENTIAL BUILD TOOLS (use these to advance through the plan):
 - <nextTask>completed</nextTask> - Mark current task completed, get next task
 - <nextTask>blocked</nextTask> - Mark current task blocked, explain why
+- <jobDone/> - Finish the plan (only when all tasks are done or you want to end early)
+
+PLAN MANAGEMENT TOOLS (use these to track progress):
+- <planDone/> - Signal planning is done, start the first pending task
 - <LogProgress><taskId>task_id</taskId><whatWasDone>What you did</whatWasDone></LogProgress> - Log progress on current task
 - <viewTask/> - View current plan and tasks
 - <listTasks/> - List all tasks
-- <jobDone/> - Finish the plan (only when all tasks are done or you want to end early)
 - <createPlan><title>Plan Title</title><instructions>Goal description</instructions></createPlan> - Create a new plan (replaces current). Use when current plan needs full replacement.
 - <createTask><title>Task Title</title><instruction>What to do</instruction></createTask> - Add a new task to the current plan. Always create a plan first.
 - <updateTask><taskId>id</taskId><title>New Title</title><instruction>New instruction</instruction></updateTask> - Update a task's title and/or instruction.

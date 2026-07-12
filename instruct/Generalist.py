@@ -37,7 +37,7 @@ PHASE 2 - CREATE TASKS:
 Call <createTask><title>Task Title</title><instruction>Detailed instruction for this task</instruction></createTask> for each step
 
 PHASE 3 - FINALIZE:
-When all tasks are created, tell user: "Plan is ready! Type !MODE build to start BUILD mode."
+When all tasks are created, call <planDone/> to signal the plan is ready (this will ask if you want to switch to BUILD mode).
 
 HOW TO SPLIT WORK INTO TASKS:
 1. Analyze the user's goal - what is the end result?
@@ -47,9 +47,12 @@ HOW TO SPLIT WORK INTO TASKS:
 5. Each task should be completable in 1-5 minutes
 6. Prefer 5-10 small tasks over 1-2 large ones
 
-AVAILABLE TOOLS (use exact XML format):
-- <createPlan><title>...</title><instructions>...</instructions></createPlan>
-- <createTask><title>...</title><instruction>...</instruction></createTask>
+ESSENTIAL PLAN TOOLS (use these three for the core workflow):
+- <createPlan><title>...</title><instructions>...</instructions></createPlan> - Create the plan FIRST
+- <createTask><title>...</title><instruction>...</instruction></createTask> - Add tasks AFTER creating plan
+- <planDone/> - Signal planning is complete (triggers switch to BUILD mode)
+
+OTHER PLAN TOOLS:
 - <updateTask><id>taskId</id><status>pending|completed|blocked</status></updateTask>
 - <deleteTask><id>taskId</id></deleteTask>
 - <clearAllTasks/>
@@ -71,7 +74,7 @@ EXAMPLE WORKFLOW:
 3. Create plan: <createPlan><title>GitHub Stars CLI</title><instructions>...</instructions></createPlan>
 4. Create tasks for each piece (setup, API integration, CLI interface, packaging)
 
-When all tasks are created, tell user "Plan is ready! Type !MODE build to start BUILD mode."
+When all tasks are created, call <planDone/> to signal the plan is ready and start building.
 """
 
 	def build(self):
@@ -117,13 +120,16 @@ AVAILABLE TOOLS (use exact XML format):
 - <ExecuteScript><fileName>script.py</fileName><args>--help</args></ExecuteScript> — Run .py/.sh/.js scripts. Params: <fileName>, [<args>]
 - <listTools/> — Show all available tools. No params.
 
+ESSENTIAL BUILD TOOLS (use these to advance through the plan):
+- <nextTask>completed</nextTask> - Mark current task done, advance to next
+- <nextTask>blocked</nextTask> - Mark current task blocked
+- <jobDone/> — Finish the plan
+
 PLAN MANAGEMENT TOOLS:
 - <planDone/> — Start first pending task
-- <nextTask>completed</nextTask> or <nextTask>blocked</nextTask>
 - <LogProgress><taskId>id</taskId><whatWasDone>text</whatWasDone></LogProgress>
 - <viewTask/> — View current plan
 - <listTasks/> — List all tasks
-- <jobDone/> — Finish the plan
 - <createPlan><title>Title</title><instructions>Goal</instructions></createPlan>
 - <createTask><title>Title</title><instruction>Step-by-step instructions</instruction></createTask>
 - <updateTask><id>id</id><title>New Title</title><instruction>New instruction</instruction></updateTask>

@@ -18,10 +18,15 @@ You are in PLAN MODE. You are research architect. Your role is to analyze resear
 
 MODE: PLAN ([--#THINKING#--ID1--])
 
+ESSENTIAL PLAN TOOLS (use these three for the core workflow):
+- <createPlan><title>Plan Title</title><instructions>High-level research goal</instructions></createPlan> - Create the plan FIRST
+- <createTask><title>Task Title</title><instruction>Detailed instruction for this research step</instruction></createTask> - Add tasks AFTER creating plan
+- <planDone/> - Signal planning is complete (triggers switch to BUILD mode)
+
 IMPORTANT WORKFLOW:
 1. FIRST: Call <createPlan><title>Plan Title</title><instructions>High-level research goal</instructions></createPlan>
 2. THEN: Call <createTask><title>Task Title</title><instruction>Detailed instruction for this research step</instruction></createTask> for each step
-3. FINISH: When all tasks created, let user know plan is ready. User will switch to BUILD mode.
+3. FINISH: When all tasks created, call <planDone/> to signal the plan is ready (this will ask if you want to switch to BUILD mode).
 
 HOW TO SPLIT RESEARCH INTO TASKS:
 1. Analyze the research goal - what information is needed?
@@ -93,7 +98,7 @@ EXAMPLE WORKFLOW:
    <createTask><title>Fetch Trello pricing page</title><instruction>Fetch https://trello.com/pricing with text=true. Extract all pricing tiers, monthly prices, and key features. Save raw data to workout/raw_trello.json.</instruction></createTask>
    <createTask><title>Create comparison table</title><instruction>Read the three raw JSON files. Create a markdown comparison table with columns: Feature, Asana (price), Monday.com (price), Trello (price). Save to workout/pricing_comparison.md.</instruction></createTask>
 
-When all tasks are created, tell the user "Research plan is ready! Type !MODE build to start BUILD mode."
+When all tasks are created, call <planDone/> to signal the plan is ready and start building.
 """
 
 	def build(self):
@@ -157,14 +162,16 @@ AVAILABLE TOOLS (use exact XML format):
 - <Head><fileName>data.json</fileName><lines>10</lines></Head>: Preview the first entries of a dataset. Params: <fileName>, [<lines>]
 - <Tail><fileName>data.json</fileName><lines>10</lines></Tail>: Check the last entries. Params: <fileName>, [<lines>]
 
-PLAN MANAGEMENT TOOLS:
-- <planDone/> - Signal planning is done, start the first pending task
+ESSENTIAL BUILD TOOLS (use these to advance through the plan):
 - <nextTask>completed</nextTask> - Mark current task completed, get next task
 - <nextTask>blocked</nextTask> - Mark current task blocked (404, paywall, timeout, missing data)
+- <jobDone/> - Finish the plan (only when all research tasks are done)
+
+PLAN MANAGEMENT TOOLS:
+- <planDone/> - Signal planning is done, start the first pending task
 - <LogProgress><taskId>task_id</taskId><whatWasDone>What was fetched and saved</whatWasDone></LogProgress> - Log progress
 - <viewTask/> - View current plan and tasks
 - <listTasks/> - List all tasks
-- <jobDone/> - Finish the plan (only when all research tasks are done)
 - <createPlan><title>Plan Title</title><instructions>Goal description</instructions></createPlan> - Create a new plan (replaces current). Use when current plan needs full replacement.
 - <createTask><title>Task Title</title><instruction>What to do</instruction></createTask> - Add a new task to the current plan. Always create a plan first.
 - <updateTask><taskId>id</taskId><title>New Title</title><instruction>New instruction</instruction></updateTask> - Update a task's title and/or instruction.

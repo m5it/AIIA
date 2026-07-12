@@ -1,5 +1,11 @@
 import os
 
+try:
+	from AUTOVERSION import VERSION as _VERSION
+	_VERSION = str(_VERSION)
+except Exception:
+	_VERSION = "0.0.0"
+
 # Configuration for OurAI Agentic Framework
 # Separated from run.py for easier preview and maintenance
 
@@ -7,7 +13,7 @@ Options         = {
 	#
 	"DEBUG"               :False, # print A lot of Additional informations
 	"QUIET"               :False, # quite all prints and show only result. (used with -Y)
-	"VERSION"             :0.90,
+	"VERSION"             :_VERSION,
 	"VERSION_NAME"        :"AIIA Agent",
 	#
 	"SPEAK"               :True,
@@ -77,6 +83,7 @@ Options         = {
 	# Tool result caching (via tips storage)
 	"TOOL_CACHE_ENABLED"  :True,     # Enable tool result caching
 	"TOOL_CACHE_TTL"      :86400,    # Default cache TTL in seconds (1 day)
+	"TOOL_SHOW_LOAD"      :True,     # Show detailed tool loading/executing/Loaded messages instead of compact ⚙️ line
 	#
 	# Image injection limits
 	"MAX_INJECT_IMAGE_DIMENSION" :1024, # max pixel dimension when ReadImage injects into conversation (0=no limit)

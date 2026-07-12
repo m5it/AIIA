@@ -623,6 +623,7 @@ class Handle():
 						if result_str.startswith("NEXT_TASK:"):
 							next_instruction = result_str[10:]
 							self.Response('user', {'content': "<nextTask>\n\nYour task:\n{}".format(next_instruction)})
+							self._write_current_task()
 						elif result_str.startswith("ALL_COMPLETED:"):
 							self.hLG.echo("Plan completed! All tasks finished.", {'color':True, 'colorValue':'green'})
 						elif result_str.startswith("DONE_WITH_BLOCKED:"):
@@ -634,6 +635,7 @@ class Handle():
 							task_info = parts[1]
 							instruction = parts[2]
 							self.Response('user', {'content': "Mode changed to BUILD. You can now make changes.\n\n{} - {}".format(task_info, instruction)})
+							self._write_current_task()
 			# Handle planDone in any mode — inject user message and signal completion
 			plan_done = any(inv['name'] == 'planDone' for inv in tool_invocations)
 			if plan_done:
@@ -643,6 +645,7 @@ class Handle():
 					task_info = parts[1]
 					instruction = parts[2]
 					self.Response('user', {'content': "Plan is ready! Starting first task.\n\n{} - {}".format(task_info, instruction)})
+					self._write_current_task()
 			#
 			# Return the original response so caller knows tools were executed
 			return {'invocations': tool_invocations, 'response': response['content'],
@@ -1250,7 +1253,40 @@ class Handle():
 		self.Response('user', {'content': msg})
 		self.hLG.echo("Auto-continue: task {}/{} — {}".format(task_number, total, task_label),
 			{'color': True, 'colorValue': 'green', 'debugOnly': False})
+		self._write_current_task()
 		return True
+
+	def _write_current_task(self):
+		"""Write current task state to current_task.txt for tail -f monitoring."""
+		from src.PlanManager import PlanBase
+		path = os.path.join(os.getcwd(), 'current_task.txt')
+		if not PlanBase.draft:
+			with open(path, 'w') as f:
+				f.write("No active plan.\n")
+			return
+		plan = PlanBase.draft
+		current = next((t for t in plan.tasks.values() if t.status == 'in_progress'), None)
+		total = len(plan.tasks)
+		done = sum(1 for t in plan.tasks.values() if t.status == 'completed')
+		blocked = sum(1 for t in plan.tasks.values() if t.status == 'blocked')
+		now = time.strftime('%Y-%m-%d %H:%M:%S')
+		lines = [
+			"Plan: {}".format(plan.title or '(untitled)'),
+			"Progress: {}/{} completed ({} blocked)".format(done, total, blocked),
+		]
+		if current:
+			lines.extend([
+				"--- Current Task ---",
+				"ID: {}".format(current.id),
+				"Title: {}".format(current.title or '(no title)'),
+				"Instruction: {}".format(current.instruction or '(no instruction)'),
+				"Status: {}".format(current.status),
+			])
+		else:
+			lines.append("No task in progress.")
+		lines.append("Updated: {}".format(now))
+		with open(path, 'w') as f:
+			f.write('\n'.join(lines) + '\n')
 
 	# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	def AI(self,opts=None):
@@ -1507,5 +1543,6 @@ class Handle():
 			total_tasks = len(PlanBase.draft.tasks)
 			self.Response('user', {'content': "Mode changed to BUILD. You can now make changes.\n\nTask {}/{} - {}".format(task_number, total_tasks, first_task.instruction)})
 			self.hLG.echo("Started build: Task {}/{}".format(task_number, total_tasks), {'color':True, 'colorValue':'green'})
+			self._write_current_task()
 		else:
 			self.hLG.echo("No pending tasks in plan!", {'color':True, 'colorValue':'orange'})
