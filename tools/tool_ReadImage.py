@@ -1,7 +1,7 @@
 import os, base64
 from io import BytesIO
 from PIL import Image as PILImage
-from src.MediaHelper import MediaHelper
+from src.MediaHelper import MediaHelper, ImageCache
 from src.ToolParser import ToolParser
 
 class ReadImage():
@@ -35,33 +35,55 @@ class ReadImage():
 			max_dim = 0
 			if handle:
 				max_dim = handle.Options.get('MAX_INJECT_IMAGE_DIMENSION', 1024)
+				max_inject = handle.Options.get('AI_MAX_IMAGE_INJECT', 3145728)
 
 			# Resize if needed to keep request body size reasonable
+			img_for_cache = None
+			resized_w, resized_h = info['width'], info['height']
 			if max_dim > 0 and (info['width'] > max_dim or info['height'] > max_dim):
 				with PILImage.open(fileName) as img:
 					img.thumbnail((max_dim, max_dim), PILImage.LANCZOS)
 					buf = BytesIO()
 					img.save(buf, format=info['format'] or 'PNG')
-					b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
-					# guess mime from original file extension
-					ext = os.path.splitext(fileName)[1].lower()
-					mime_map = {'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg',
-						'.gif':'image/gif','.webp':'image/webp','.bmp':'image/bmp'}
-					mime = mime_map.get(ext, 'image/png')
-				resized_w, resized_h = img.size
+					img_for_cache = buf.getvalue()
+					resized_w, resized_h = img.size
 			else:
-				b64, mime = MediaHelper.encode_image(fileName)
-				resized_w, resized_h = info['width'], info['height']
+				with open(fileName, 'rb') as f:
+					img_for_cache = f.read()
+
+			# Check size against injection limit, downscale further if needed
+			if handle and max_inject and len(img_for_cache) > max_inject:
+				with PILImage.open(fileName) as img:
+					# Progressively shrink until under limit
+					scale = 0.75
+					while len(img_for_cache) > max_inject and img.size[0] > 100 and img.size[1] > 100:
+						new_w = int(img.size[0] * scale)
+						new_h = int(img.size[1] * scale)
+						img = img.resize((new_w, new_h), PILImage.LANCZOS)
+						buf = BytesIO()
+						img.save(buf, format='JPEG', quality=85)
+						img_for_cache = buf.getvalue()
+						scale *= 0.75
+					resized_w, resized_h = img.size
+				if handle:
+					handle.hLG.echo(
+						"  Compressed to {}x{} JPEG ({:.1f}KB) to fit injection limit".format(
+							resized_w, resized_h, len(img_for_cache) / 1024),
+						{'color':True, 'colorValue':'yellow','debugOnly':False})
+
+			# Save to image cache, get hash reference
+			ext = os.path.splitext(fileName)[1].lower() or '.png'
+			img_hash, _ = ImageCache.save_to_cache(img_for_cache, ext)
 		except Exception as e:
 			return "Error reading image: {}".format(e)
 
-		# Inject image into conversation as a user message
+		# Inject image into conversation as a user message (using lightweight ref)
 		if handle:
 			content = prompt if prompt else "Image: {} ({}x{}, {})".format(
 				os.path.basename(fileName), info['width'], info['height'], info['format'])
 			handle.Response('user', {
 				'content': content,
-				'images': [b64],
+				'image_refs': [img_hash],
 			})
 			if resized_w != info['width'] or resized_h != info['height']:
 				handle.hLG.echo(

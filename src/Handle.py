@@ -244,6 +244,7 @@ class Handle():
 		opt_log_options   = opts.get('log_options', {'color':True})
 		opt_skip_history  = opts.get('skip_history', False)
 		opt_images        = opts.get('images')
+		opt_image_refs    = opts.get('image_refs')
 
 		# Print response
 		# Generate response object
@@ -266,6 +267,10 @@ class Handle():
 		# Append images (base64 strings for vision models)
 		if opt_images and self.Options.get('AI_VISION_ENABLED', True):
 			obj['images'] = opt_images
+
+		# Lightweight image references (stored in history instead of base64)
+		if opt_image_refs and self.Options.get('AI_VISION_ENABLED', True):
+			obj['image_refs'] = opt_image_refs
 
 		# Embed token counts in the message (before writing to disk)
 		if role == 'assistant':
@@ -881,8 +886,9 @@ class Handle():
 	# -- context management --------------------------------------------------
 	# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	def _estimate_tokens(self, msgs):
-		"""Rough token estimate: ~4 chars per token on average, images count as
-		their base64 size (~1.37 bytes per char * num chars / 4)."""
+		"""Rough token estimate: ~4 chars per token on average.
+		Image refs are counted as a small fixed cost (actual bytes only
+		resolved transiently for the API call, not stored in history)."""
 		total = 0
 		for m in msgs:
 			content = m.get('content', '')
@@ -890,9 +896,13 @@ class Handle():
 			total += len(content) // 4
 			total += len(thinking) // 4
 			total += 8  # overhead per message (role label, newlines)
-			# Account for base64 images: ~1.37 bytes per base64 char → /4 for tokens
+			# Lightweight image refs: count as small fixed overhead
+			refs = m.get('image_refs', [])
+			if refs:
+				total += 50 * len(refs)  # ~50 "tokens" per image ref
+			# Direct base64 images (legacy/fallback — shouldn't appear in stored history)
 			for img_b64 in m.get('images', []):
-				total += len(img_b64) // 3  # rough: 4 base64 chars ≈ 3 bytes ≈ 0.75 tokens
+				total += len(img_b64) // 3
 		return total
 
 	def _rewrite_history(self, msgs):
@@ -1311,6 +1321,15 @@ class Handle():
 			# Chat without tools, normal chat (XML tools handle themselves)
 			self.hLG.echo("DEBUG preparing chat (iteration {})".format(iteration),{'color':False})
 			
+			# Resolve lightweight image refs → base64 for the API call
+			if self.Options.get('AI_VISION_ENABLED', True):
+				try:
+					from src.MediaHelper import ImageCache
+					ImageCache.resolve_all(msgs)
+				except Exception as e:
+					self.hLG.echo("Warning: failed to resolve image refs: {}".format(e),
+						{'color':True, 'colorValue':'yellow','debugOnly':False})
+
 			# Build chat parameters
 			chat_params = {
 				'model': self.Options['AI_MODEL'],

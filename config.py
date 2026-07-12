@@ -31,7 +31,8 @@ Options         = {
 	"AI_MODEL_RETRIES"    :3,   # max retries on failed model calls before recommending switch
 	"AI_CONTEXT_LIMIT"    :262144, # model's max context window in tokens (per-model)
 	"AI_CLEAR_THRESHOLD"  :0.8,    # fraction of context limit that triggers summarization/clear
-	"AI_MAX_FILE_SIZE"    :2097152, # 2MB — max file size for WriteFile/CreateFile/AppendFile/ReplaceLine
+	"AI_MAX_FILE_SIZE"    :2097152, # 2MB — max content size for WriteFile/CreateFile/AppendFile/ReplaceLine (text files)
+	"AI_MAX_IMAGE_INJECT" :3145728, # 3MB — max base64 size for image injection into chat (ReadImage)
 	"AUTO_CONTINUE_TASKS" :True,   # auto-advance to next task in build mode after tool usage
 	"AUTO_CONTINUE_ALL_TASKS" :True,   # re-enter AI() loop until plan is done (requires AUTO_CONTINUE_TASKS)
 	"AUTO_CONTINUE_REMIND_AFTER" :20,  # remind model to call <nextTask> after N iterations without one
@@ -79,6 +80,8 @@ Options         = {
 	#
 	# Image injection limits
 	"MAX_INJECT_IMAGE_DIMENSION" :1024, # max pixel dimension when ReadImage injects into conversation (0=no limit)
+	"AI_IMAGE_CACHE_PATH"        :"",   # custom path for image cache (default: ~/.config/aiia/img_cache)
+	"AI_IMAGE_CACHE_CLEANUP_H"   :24,   # auto-cleanup cache files older than N hours (0=disable)
 	#
 	# Tool result format (priority: system > user > tool)
 	"TOOL_RESULT_AS_SYSTEM": False, # When True, tool results use role: system instead of role: tool
