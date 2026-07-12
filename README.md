@@ -1,4 +1,4 @@
-# OurAI — AI Interactive Agent
+# AIIA — AI Interactive Agent
 
 **Version 0.9.0** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
 
@@ -59,7 +59,7 @@
 
 ```bash
 git clone <repo-url>
-cd OurAI
+cd AIIA
 
 python3 -m venv .venv
 source .venv/bin/activate
@@ -71,7 +71,7 @@ pip install ollama
 
 **Install globally (one-time):**
 ```bash
-sudo ./OurAI -l    # Creates /usr/local/bin/aiia → start.sh
+sudo ./install.sh -l    # Creates /usr/local/bin/aiia → start.sh
 ```
 
 Now run `aiia` from **any** directory:
@@ -91,7 +91,7 @@ aiia -h                 # Show help
 
 **Uninstall:**
 ```bash
-sudo ./OurAI -u    # Removes /usr/local/bin/aiia
+sudo ./install.sh -u    # Removes /usr/local/bin/aiia
 ```
 
 **Without installing**, run directly:
@@ -299,8 +299,8 @@ Place an `aiia.json` file in the project directory (CWD when you run `aiia`) to 
 ## Architecture
 
 ```
-OurAI/
-├── OurAI                          # Install script — sudo ./OurAI -l to install globally
+AIIA/
+├── install.sh                          # Install script — sudo ./install.sh -l to install globally
 ├── run.py                         # Entry point — CLI flag parsing, main loop
 ├── run_orchestra.py               # Orchestra director — multi-agent task dispatcher
 ├── run_worker.py                  # Orchestra worker — connects to director, executes tasks
