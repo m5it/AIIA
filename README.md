@@ -1,14 +1,16 @@
 # AIIA — AI Interactive Agent
 
-**Version 0.9.0** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
+**Version 0.90.4** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
 
-> **Recent updates:** `!PLAN DONE` command, full-plan auto-continue (`AUTO_CONTINUE_ALL_TASKS`), fixed task-skip in auto-advance. See [CHANGELOG.md](CHANGELOG.md) for details.
+> **Recent updates:** Ctrl+D AI loop interrupt, auto-versioning via git pre-commit hook, `planDone` replaces `!MODE build`, task monitoring via `current_task.txt`, all menu colors changed to blue. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Features
 
+- **Ctrl+D AI Loop Interrupt** — Press Ctrl+D during AI iteration to pause and show a menu: continue, return to chat prompt, or cancel session
+- **Auto-Versioning** — Git pre-commit hook auto-increments `AUTOVERSION.py` and prepends entry to `CHANGELOG.md` on every commit
 - **Interchangeable AI Models** — Switch models mid-session with `!MODEL <name>`; list available models with `!MODELS`; model usage tracked across sessions
 - **Interactive AI Chat** — Terminal-based interface for conversing with local LLMs via Ollama (streaming response with thinking support)
-- **XML Tool System** — AI invokes tools by writing XML blocks; tools are dynamically loaded Python classes with hot-reload; 23+ tools including file I/O, search, processing, terminal, tips, and tree view
+- **XML Tool System** — AI invokes tools by writing XML blocks; tools are dynamically loaded Python classes with hot-reload; 25+ tools including file I/O, search, processing, terminal, tips, and tree view
 - **Plan / Build Modes** — structured workflow: plan mode for architecting tasks, build mode for executing them
 - **Plan Manager** — Create plans, split into tasks, track progress, auto-continue on restart (`-c` flag)
 - **Secure Terminal Tool** — Allowlist-based command execution with audit logging and 30s timeout; also allows user-created scripts via `./` or `/` paths
@@ -17,7 +19,7 @@
 - **ReplaceLine Tool** — Targeted line edits without rewriting entire files; supports single line or range replacement; pairs with AppendFile for precise, surgical file modifications
 - **Continue Support** — `-c` flag loads last session's `HISTORY.md` and `PLAN.md` from working directory, resumes chat and plan where you left off
 - **Project History** — Each project directory gets a `HISTORY.md` with human-readable markdown + embedded JSON for machine parsing; fully round-trip compatible
-- **Instruct Persona System** — Dynamic persona classes in `instruct/` (Developer, Friend, SysAdmin, Researcher, MediaAnalyst); switch mid-session with `!INSTRUCT_SWITCH`; each persona specifies its own model, system prompt, and toolset
+- **Instruct Persona System** — Dynamic persona classes in `instruct/` (Developer, Friend, SysAdmin, Researcher, MediaAnalyst, DataCollector, Generalist, TechTalker, Scrapper); switch mid-session with `!INSTRUCT_SWITCH`; each persona specifies its own model, system prompt, and toolset
 - **Token Tracking** — Per-turn and cumulative token counts displayed in `!STATS`
 - **TreeView Tool** — ASCII directory tree visualization with depth control, glob filtering, and hidden-file toggling; cached for 5 minutes
 - **Tips System** — Save, view, reinsert, and manage conversation snippets as JSON tips (`!TS`, `!TL`, `!TV`, `!TR`, `!TD`, `!TDR`, `!TDA`)
@@ -300,7 +302,8 @@ Place an `aiia.json` file in the project directory (CWD when you run `aiia`) to 
 
 ```
 AIIA/
-├── install.sh                          # Install script — sudo ./install.sh -l to install globally
+├── AUTOVERSION.py                 # Auto-incremented version (git pre-commit hook)
+├── install.sh                     # Install script — sudo ./install.sh -l to install globally
 ├── run.py                         # Entry point — CLI flag parsing, main loop
 ├── run_orchestra.py               # Orchestra director — multi-agent task dispatcher
 ├── run_worker.py                  # Orchestra worker — connects to director, executes tasks
@@ -308,6 +311,7 @@ AIIA/
 ├── start.sh                       # Startup script (auto-setup, path resolution)
 ├── exports.sh                     # Ollama env vars (OLLAMA_KEEP_ALIVE, OLLAMA_HOST)
 ├── AGENTS.md                     # Development notes & conventions
+├── hooks/                        # Git hooks (pre-commit: auto-versioning)
 ├── PLAN.md                       # Current/active plan (working dir only)
 ├── HISTORY.md                    # Session transcript (working dir only)
 ├── sessid.aiia                   # Session counter file
@@ -339,6 +343,9 @@ AIIA/
 │   ├── SysAdmin.py               # System administration persona
 │   ├── Researcher.py             # Web research and data extraction persona
 │   ├── DataCollector.py          # Data collection/testing persona
+│   ├── Generalist.py             # General-purpose assistant
+│   ├── TechTalker.py             # Technical casual chat persona
+│   ├── Scrapper.py               # Web scraping persona
 │   └── __init__.py
 │
 ├── tools/                        # XML-invokable tool modules (26 files)
@@ -427,6 +434,7 @@ Plans persist as JSON files in `plans/` and as Markdown in `PLAN.md` (working di
 | **deleteAllPlans** | `<deleteAllPlans/>` | Delete all saved plans |
 | **viewTask** | `<viewTask/>` or `<viewTask><id>...</id></viewTask>` | View plan or specific task |
 | **listTasks** | `<listTasks/>` | List all tasks in current plan |
+| **planDone** | `<planDone/>` | Mark plan as complete (replaces `!MODE build`) |
 
 #### XML Tools (Build Mode)
 
@@ -435,23 +443,24 @@ Plans persist as JSON files in `plans/` and as Markdown in `PLAN.md` (working di
 | **nextTask** | `<nextTask>completed</nextTask>` or `<nextTask>blocked</nextTask>` | Mark current task and get next one |
 | **LogProgress** | `<LogProgress><taskId>...</taskId><whatWasDone>...</whatWasDone></LogProgress>` | Log progress on current task |
 | **jobDone** | `<jobDone/>` | Finish the plan (all tasks done) |
-| **startBuild** | `<startBuild/>` or `<startBuild><planId>...</planId></startBuild>` | Start build mode with optional plan ID |
+| **startBuild** | `<startBuild/>` or `<startBuild><planId>...</planId></startBuild>` | Start build mode with optional plan ID (in PLAN mode shows 1-4 menu) |
 
-Build mode also includes all plan management tools (createTask, viewTask, etc.).
+Build mode also includes all plan management tools (createTask, viewTask, planDone, etc.).
 
 ### Plan Flow
 
 ```
-         !MODE plan
+         !MODE plan  or  <planDone/>
               │
               ▼
     ┌─────────────────┐
     │  createPlan     │  AI creates plan
     │  createTask x N │  AI adds tasks
+    │  planDone       │  Signals planning complete
     └────────┬────────┘
              │
              ▼
-         !MODE build
+    !MODE build  or  <startBuild/>
              │
              ▼
     ┌─────────────────┐
@@ -732,7 +741,7 @@ Displays an ASCII tree view of a directory structure. Automatically excludes `.g
 - 30-second timeout on all executions
 - All commands logged to `terminal_audit.log`
 
-**Allowed programs:** `ls`, `dir`, `cat`, `echo`, `pwd`, `whoami`, `date`, `id`, `grep`, `find`, `sort`, `head`, `tail`, `wc`, `awk`, `sed`, `bash`, `sh`, `python3`, `python`, `node`, `perl`, `ruby`, `git`, `make`, `cmake`, `gcc`, `g++`, `ping`, `curl`, `wget`, `netstat`, `ss`, `ps`, `top`, `df`, `du`, `free`, `mkdir`, `cp`, `mv`, `touch`, `rm`, `rmdir`, `ln`, `install`, `chmod`, `chown`, `ollama`
+**Allowed programs:** `ls`, `dir`, `cat`, `echo`, `pwd`, `whoami`, `date`, `id`, `grep`, `find`, `sort`, `head`, `tail`, `wc`, `awk`, `sed`, `bash`, `sh`, `python3`, `python`, `node`, `perl`, `ruby`, `git`, `make`, `cmake`, `gcc`, `g++`, `ping`, `curl`, `wget`, `netstat`, `ss`, `ps`, `top`, `df`, `du`, `free`, `mkdir`, `cp`, `mv`, `touch`, `rm`, `rmdir`, `ln`, `install`, `chmod`, `chown`, `ollama`, `nvidia-smi`, `ffmpeg`, `ffprobe`
 
 #### ExecuteScript
 ```xml
@@ -796,7 +805,7 @@ All commands start with `!` (case-sensitive). The following are available:
 
 | Command | Description |
 |---------|-------------|
-| `!INSTRUCT_LIST` | List available instruct personas (Developer, Friend, SysAdmin, Researcher, MediaAnalyst). |
+| `!INSTRUCT_LIST` | List available instruct personas (Developer, Friend, SysAdmin, Researcher, MediaAnalyst, DataCollector, Generalist, TechTalker, Scrapper). |
 | `!INSTRUCT_SWITCH <name>` | Switch persona mid-session without clearing history. Appends new persona's system prompt. |
 
 ### Tips Commands
@@ -1057,4 +1066,4 @@ See [LICENSE](LICENSE) for full terms including notification and payment obligat
 
 ## Project Status
 
-**Version 0.9.0** — Active development. Recent additions: `!PLAN DONE` command to finalize plans without deleting, `AUTO_CONTINUE_ALL_TASKS` mode that re-enters AI loop until all plan tasks are done, `AUTO_CONTINUE_REMIND_AFTER` that reminds model to call `<nextTask>` after N iterations, Tool Training that pre-fills first AI round with tool demonstration on fresh sessions, fixed double-advance bug in task auto-continue, task-aware console output during auto-continue, ReplaceLine edge-case documentation for last-block-in-file edits.
+**Version 0.90.4** — Active development. Recent additions: Ctrl+D AI loop interrupt with blue-colored pause menu, auto-versioning via git pre-commit hook (`AUTOVERSION.py` + `CHANGELOG.md` auto-update), task monitoring via `current_task.txt` for `tail -f`, `<startBuild/>` in plan mode shows 1-4 blocked-tool menu instead of silent execution, `<planDone/>` replaces `!MODE build` across all persona instruct files, all UI menus changed from yellow to blue. See [CHANGELOG.md](CHANGELOG.md) for full history.

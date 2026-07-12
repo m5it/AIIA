@@ -1,25 +1,68 @@
 # Changelog
 
+## 2026-07-12 — v0.90.5
+
+### Auto: Version v0.90.5
+
+- Version auto-incremented from v0.90.4
+- Files changed: CHANGELOG.md, README.md, src/Handle.py
+
+---
+
+
 ## 2026-07-12 — v0.90.4
 
-### Auto: Version v0.90.4
+### Added: Ctrl+D AI Loop Interrupt — pause the AI mid-flight
 
-- Version auto-incremented from v0.90.3
-- Files changed: AUTOVERSION.py, CHANGELOG.md, src/Handle.py
+Pressing **Ctrl+D** during an AI iteration pauses the loop and shows a menu (in blue):
+- `1` — Continue AI loop (resume normal execution)
+- `2` — Stop AI, return to chat prompt
+- `3` — Cancel, quit session entirely
+
+**Mechanism:** A non-blocking `select.select()` + `tty.setraw()` check fires at the top of each AI iteration. Ctrl+D (`\x04`) is detected without blocking the loop — zero overhead when idle. Uses `termios` for raw-mode character capture, restored immediately after read. Falls back silently on non-TTY or Windows.
+
+**Menu colors changed:** All PLAN-mode blocked-tool menu items (1-4) changed from yellow to blue for consistency.
+
+**Files:** `src/Handle.py`
+
+### Added: Auto-Versioning system
+
+A `pre-commit` Git hook in `hooks/pre-commit` that:
+- Reads the current version from `AUTOVERSION.py` (single source of truth)
+- Auto-increments the third decimal on every commit (e.g. `0.90` → `0.90.1`, `0.90.1` → `0.90.2`)
+- Prepends an entry to `CHANGELOG.md` with date, new version, and list of changed files
+- Stages both `AUTOVERSION.py` and `CHANGELOG.md` after updating
+- Skips merge commits
+
+Enable with: `git config core.hooksPath hooks`
+
+**Files:** `AUTOVERSION.py`, `config.py`, `hooks/pre-commit`, `AGENTS.md`
+
+### Added: Task monitoring — `current_task.txt`
+
+`_write_current_task()` writes live plan/task state to `current_task.txt` in CWD on every transition (`startBuild`, `nextTask`, `jobDone`, `planDone`, auto-continue). Compatible with `tail -f current_task.txt` for real-time monitoring.
+
+**Files:** `src/Handle.py`, `src/ToolParser.py`
+
+### Changed: `<startBuild/>` in plan mode now shows 1-4 menu
+
+When the model calls `<startBuild/>` during PLAN mode, the user gets the blocked-tool menu instead of silent execution:
+- `1` — Switch to BUILD mode + auto-continue to AI
+- `2` — Stay in PLAN mode
+- `3` — Cancel AI
+- `4` — Dismiss, let the model proceed
+
+`startBuild` added to `_plan_blocked` set in `ToolParser.py`.
+
+### Changed: Persona instruct files — `planDone` replaces `!MODE build`
+
+All 7 persona instruct files (`Developer`, `MediaAnalyst`, `Researcher`, `DataCollector`, `Generalist`, `SysAdmin`, `TechTalker`) updated to use `<planDone/>` instead of `!MODE build`. Essential plan/build tools highlighted:
+- **PLAN**: `createPlan`/`createTask`/`planDone`
+- **BUILD**: `nextTask`/`jobDone`
+
+**Files:** All `instruct/*.py`
 
 ---
-
-
-## 2026-07-12 — v0.90.3
-
-### Auto: Version v0.90.3
-
-- Version auto-incremented from v0.90.2
-- Files changed: (none)
-
----
-
-
 ## 2026-07-12 — v0.90.2
 
 ### Auto: Version v0.90.2

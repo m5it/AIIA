@@ -1488,7 +1488,16 @@ class Handle():
 			# Show post-response context usage
 			self._show_context_usage("after +{}".format(
 				result.get('response_tokens', 0) or self.Options.get('NUM_LAST_RESPONSE_TOKENS', 0)))
-			
+
+			# Stop loop on persistent stream errors (429/rate-limit) — let user decide
+			if result.get('stream_error'):
+				err = result['stream_error'].lower()
+				if '429' in err or 'usage limit' in err or 'rate limit' in err:
+					self.hLG.echo("Stream rate-limited — stopping AI loop.",
+						{'color':True, 'colorValue':'red','debugOnly':False})
+					self._last_ai_had_tools = _tools_were_called
+					return True
+
 			# Used if CTRL+C to save last/draft content to chat history
 			self.Options['DRAFT_RESPONSE'] = res
 
