@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-07-12 — v0.90.4
+
+### Auto: Version v0.90.4
+
+- Version auto-incremented from v0.90.3
+- Files changed: AUTOVERSION.py, CHANGELOG.md, src/Handle.py
+
+---
+
+
+## 2026-07-12 — v0.90.3
+
+### Auto: Version v0.90.3
+
+- Version auto-incremented from v0.90.2
+- Files changed: (none)
+
+---
+
+
 ## 2026-07-12 — v0.90.2
 
 ### Auto: Version v0.90.2

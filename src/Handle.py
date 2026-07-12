@@ -415,16 +415,16 @@ class Handle():
 				tool_name = self._plan_blocked_tool_alert
 				del self._plan_blocked_tool_alert
 				self.hLG.echo("Model tried to use '{}' in PLAN mode.".format(tool_name),
-					{'color':True, 'colorValue':'yellow','debugOnly':False})
+					{'color':True, 'colorValue':'blue','debugOnly':False})
 				self.hLG.echo("  1. Switch to BUILD mode (allow the tool)",
-					{'color':True, 'colorValue':'yellow','debugOnly':False})
+					{'color':True, 'colorValue':'blue','debugOnly':False})
 				self.hLG.echo("  2. Stay in PLAN mode (block the tool, continue planning)",
-					{'color':True, 'colorValue':'yellow','debugOnly':False})
+					{'color':True, 'colorValue':'blue','debugOnly':False})
 				self.hLG.echo("  3. Cancel AI (return to user prompt)",
-					{'color':True, 'colorValue':'yellow','debugOnly':False})
+					{'color':True, 'colorValue':'blue','debugOnly':False})
 				self.hLG.echo("  4. Continue (dismiss, let the model proceed)",
-					{'color':True, 'colorValue':'yellow','debugOnly':False})
-				self.hLG.echo("Choice (1-4): ", {'end':'','flush':True,'color':True,'colorValue':'yellow','debugOnly':False})
+					{'color':True, 'colorValue':'blue','debugOnly':False})
+				self.hLG.echo("Choice (1-4): ", {'end':'','flush':True,'color':True,'colorValue':'blue','debugOnly':False})
 				ans = user_input({'quit_with_ctrlx':True}).strip()
 				ans = re.sub(r'[^0-9]', '', ans)
 				if ans == '1':
@@ -1288,6 +1288,46 @@ class Handle():
 		with open(path, 'w') as f:
 			f.write('\n'.join(lines) + '\n')
 
+	def _check_ai_interrupt(self):
+		"""Non-blocking check for Ctrl+D key press at iteration boundaries."""
+		import select
+		if not sys.stdin.isatty():
+			return False
+		try:
+			if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
+				import tty, termios
+				fd = sys.stdin.fileno()
+				old = termios.tcgetattr(fd)
+				try:
+					tty.setraw(fd)
+					ch = sys.stdin.read(1)
+					return ch == '\x04'
+				finally:
+					termios.tcsetattr(fd, termios.TCSADRAIN, old)
+		except:
+			pass
+		return False
+
+	def _show_ai_interrupt_menu(self):
+		"""Show menu when Ctrl+D interrupts the AI loop."""
+		self.hLG.echo("\n  ═══ AI Loop Interrupted ═══",
+			{'color':True, 'colorValue':'blue','debugOnly':False})
+		self.hLG.echo("  1. Continue AI loop",
+			{'color':True, 'colorValue':'blue','debugOnly':False})
+		self.hLG.echo("  2. Stop AI — return to chat prompt",
+			{'color':True, 'colorValue':'blue','debugOnly':False})
+		self.hLG.echo("  3. Cancel — quit session",
+			{'color':True, 'colorValue':'blue','debugOnly':False})
+		self.hLG.echo("  Choice (1-3): ",
+			{'end':'','flush':True,'color':True,'colorValue':'blue','debugOnly':False})
+		ans = user_input({'quit_with_ctrlx':True}).strip()
+		ans = re.sub(r'[^0-9]', '', ans)
+		if ans == '2':
+			return 2
+		if ans == '3':
+			return 3
+		return 1
+
 	# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	def AI(self,opts=None):
 		if opts is None:
@@ -1310,6 +1350,18 @@ class Handle():
 
 		while iteration < max_iterations:
 			iteration += 1
+
+			# Check for Ctrl+D interrupt at iteration boundary
+			if self._check_ai_interrupt():
+				self.hLG.echo("\n[Ctrl+D detected]",
+					{'color':True, 'colorValue':'blue','debugOnly':False})
+				choice = self._show_ai_interrupt_menu()
+				if choice == 2:
+					self._last_ai_had_tools = _tools_were_called
+					return True
+				if choice == 3:
+					return 3
+				# choice 1: continue loop
 
 			# Short-circuit: ≥3 consecutive tool errors → break loop with recovery
 			if self.tool_errors >= 3:
