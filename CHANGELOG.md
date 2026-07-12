@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-12 — v0.9.0
+
+### Changed: Version bump to v0.9.0 — nearing v1.0
+
+- All version references updated from v0.8 to v0.9.0
+- `CreateFile` now returns a warning with instructions to use `WriteFile` when file already exists
+
 ## 2026-07-10 — v0.8
 
 ### Added: `!PLAN DONE` command — finalize plan without deleting

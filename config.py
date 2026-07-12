@@ -7,7 +7,7 @@ Options         = {
 	#
 	"DEBUG"               :False, # print A lot of Additional informations
 	"QUIET"               :False, # quite all prints and show only result. (used with -Y)
-	"VERSION"             :0.8,
+	"VERSION"             :0.90,
 	"VERSION_NAME"        :"AIIA Agent",
 	#
 	"SPEAK"               :True,

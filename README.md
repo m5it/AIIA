@@ -1,6 +1,6 @@
 # OurAI — AI Interactive Agent
 
-**Version 0.8** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
+**Version 0.9.0** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
 
 > **Recent updates:** `!PLAN DONE` command, full-plan auto-continue (`AUTO_CONTINUE_ALL_TASKS`), fixed task-skip in auto-advance. See [CHANGELOG.md](CHANGELOG.md) for details.
 
@@ -1057,4 +1057,4 @@ See [LICENSE](LICENSE) for full terms including notification and payment obligat
 
 ## Project Status
 
-**Version 0.8** — Active development. Recent additions: `!PLAN DONE` command to finalize plans without deleting, `AUTO_CONTINUE_ALL_TASKS` mode that re-enters AI loop until all plan tasks are done, `AUTO_CONTINUE_REMIND_AFTER` that reminds model to call `<nextTask>` after N iterations, Tool Training that pre-fills first AI round with tool demonstration on fresh sessions, fixed double-advance bug in task auto-continue, task-aware console output during auto-continue, ReplaceLine edge-case documentation for last-block-in-file edits.
+**Version 0.9.0** — Active development. Recent additions: `!PLAN DONE` command to finalize plans without deleting, `AUTO_CONTINUE_ALL_TASKS` mode that re-enters AI loop until all plan tasks are done, `AUTO_CONTINUE_REMIND_AFTER` that reminds model to call `<nextTask>` after N iterations, Tool Training that pre-fills first AI round with tool demonstration on fresh sessions, fixed double-advance bug in task auto-continue, task-aware console output during auto-continue, ReplaceLine edge-case documentation for last-block-in-file edits.
