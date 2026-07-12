@@ -170,6 +170,12 @@ class Handle():
 			self._write_state({'used_models': used_models})
 		self.Options['used_models'] = used_models
 
+		# Restore auto-continue setting
+		auto_continue = state.get('auto_continue')
+		if auto_continue is not None:
+			self.Options['AUTO_CONTINUE_TASKS'] = auto_continue
+			self.Options['AUTO_CONTINUE_ALL_TASKS'] = auto_continue
+
 		# Load plan from PLAN.md
 		plan_data = PlanSaver.load_plan(working_dir, framework_dir)
 		if plan_data and plan_data.get('id'):

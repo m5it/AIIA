@@ -209,6 +209,13 @@ class Commands():
 			"usage"      :"!BUILD_THINK [true|false]",
 			"func"       :self.CMD_BUILD_THINK,
 		},
+		"AUTO_CONTINUE":{
+			"name"       :"Auto Continue",
+			"description":"Enable or disable auto-continue (re-enter AI loop when plan tasks remain)",
+			"regex"      :r"^!AUTO_CONTINUE(\s+(true|false))?$",
+			"usage"      :"!AUTO_CONTINUE [true|false]",
+			"func"       :self.CMD_AUTO_CONTINUE,
+		},
 		"CACHE_CLEAR":{
 			"name"       :"Clear Cache",
 			"description":"Clear all cached tool results.",
@@ -745,6 +752,28 @@ class Commands():
 			self.handle.hHM.msgs[-1]['content'] = "{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) )
 		else:
 			self.handle.Response('system',{ 'content':"{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) ), })
+		return 2
+
+	def CMD_AUTO_CONTINUE(self, inp=""):
+		parts = inp.strip().split()
+		if len(parts) < 2:
+			current = self.handle.Options.get('AUTO_CONTINUE_ALL_TASKS', True)
+			print("Auto-continue: {}".format("enabled" if current else "disabled"))
+			return 2
+		val = parts[1].strip().lower()
+		if val == 'true':
+			self.handle.Options['AUTO_CONTINUE_TASKS'] = True
+			self.handle.Options['AUTO_CONTINUE_ALL_TASKS'] = True
+			self.handle._write_state({'auto_continue': True})
+			print("Auto-continue ENABLED")
+		elif val == 'false':
+			self.handle.Options['AUTO_CONTINUE_TASKS'] = False
+			self.handle.Options['AUTO_CONTINUE_ALL_TASKS'] = False
+			self.handle._write_state({'auto_continue': False})
+			print("Auto-continue DISABLED — user input required after each task")
+		else:
+			print("Invalid. Use true or false.")
+			return 2
 		return 2
 
 	def CMD_INSTRUCT_LIST(self, inp=""):
