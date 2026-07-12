@@ -51,6 +51,7 @@ class Terminal():
 			'chmod', 'chown', 'cd',
 			'ollama', 'pip', 'pip3',
 			'nvidia-smi',
+			'ffmpeg', 'ffprobe',
 		]
 	#
 	def log_command(self, cmd, output, success):

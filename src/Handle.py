@@ -366,7 +366,8 @@ class Handle():
 			self.Response('user', {'content':
 				"[Tool Training Session]\n"
 				"List all tools you have available and demonstrate at least 3 of them "
-				"with complete XML examples showing the required parameters."})
+				"with complete XML examples showing the required parameters. "
+				"Do NOT use GetTip — use TreeView, ReadFile, and WriteFile instead."})
 			self.AI()
 			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
 		#
@@ -1152,6 +1153,28 @@ class Handle():
 		self.hLG.echo("Context limit reached — auto-cleared chat history",
 			{'color': True, 'colorValue': 'orange', 'debugOnly': False})
 
+	def _show_context_usage(self, label=""):
+		"""Print context usage: estimate / limit (percent%)."""
+		limit = self.Options.get('AI_CONTEXT_LIMIT', 262144)
+		threshold = self.Options.get('AI_CLEAR_THRESHOLD', 0.8)
+		msgs = self.hHM.msgs
+		if not msgs:
+			return
+		estimate = self._estimate_tokens(msgs)
+		pct = estimate / limit * 100 if limit else 0
+		max_allowed = int(limit * threshold)
+		if pct < 70:
+			color = 'green'
+		elif pct < threshold * 100:
+			color = 'yellow'
+		else:
+			color = 'red'
+		self.hLG.echo(
+			"{}[Context: {}/{} ({:.1f}%)]".format(
+				"[{}] ".format(label) if label else "",
+				estimate, limit, pct),
+			{'color': True, 'colorValue': color, 'debugOnly': False})
+
 	def _manage_context(self):
 		"""Check estimated token count against limit.  Summarize first, clear as
 		fallback.  Called at the start of AI() before any model request."""
@@ -1231,6 +1254,7 @@ class Handle():
 		#
 		# Manage context window — summarize or clear if we're over the limit
 		self._manage_context()
+		self._show_context_usage()
 		#
 		# Loop to handle multiple rounds of tool calls
 		max_iterations = self.Options.get('AI_MAX_ITERATIONS', 10)
@@ -1263,6 +1287,7 @@ class Handle():
 			# Re-check context before each model call — tool results may have
 			# added large data (e.g., base64 images) since the last check
 			self._manage_context()
+			self._show_context_usage("iter {}".format(iteration))
 
 			result        = ""
 			res           = {}
@@ -1352,6 +1377,10 @@ class Handle():
 				continue
 			if model_failed:
 				continue
+			
+			# Show post-response context usage
+			self._show_context_usage("after +{}".format(
+				result.get('response_tokens', 0) or self.Options.get('NUM_LAST_RESPONSE_TOKENS', 0)))
 			
 			# Used if CTRL+C to save last/draft content to chat history
 			self.Options['DRAFT_RESPONSE'] = res

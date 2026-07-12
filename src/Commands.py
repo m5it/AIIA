@@ -383,6 +383,11 @@ class Commands():
 		print("  last_response  : {}".format( self.handle.Options['NUM_LAST_RESPONSE_TOKENS'] ))
 		print("  total_prompt   : {}".format( self.handle.Options['NUM_PROMPT_TOKENS'] ))
 		print("  total_response : {}".format( self.handle.Options['NUM_RESPONSE_TOKENS'] ))
+		print("  context_usage  :")
+		_limit = self.handle.Options.get('AI_CONTEXT_LIMIT', 262144)
+		_estimate = self.handle._estimate_tokens(self.handle.hHM.msgs) if hasattr(self.handle, '_estimate_tokens') else 0
+		_pct = _estimate / _limit * 100 if _limit else 0
+		print("    estimate / limit: {}/{} ({:.1f}%)".format(_estimate, _limit, _pct))
 		print("-----------------")
 		print("Options         :")
 		print("-----------------")
@@ -711,7 +716,8 @@ class Commands():
 				"[Tool Training — Plan Mode]\n"
 				"You are now in PLAN mode. List all tools available to you in plan mode "
 				"and demonstrate at least 3 of them with complete XML examples showing "
-				"the required parameters."})
+				"the required parameters. "
+				"Do NOT use GetTip — use TreeView, ReadFile, and WriteFile instead."})
 			self.handle._train_skip_you = True
 		# Depend if plan contain tasks then StartBuild() || <startBuild/> and auto continue to AI
 		return ret
