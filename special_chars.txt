@@ -1,1 +1,0 @@
-Résumé test: Ñáéíóú. Binary-ish: \x01\x02\xFF
