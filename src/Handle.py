@@ -522,6 +522,21 @@ class Handle():
 								'stream_error': stream_error, 'stream_too_large': True}
 					return True
 
+		# Ctrl+D interrupt — save partial response and signal caller
+		if response.get('ctrl_d_interrupt'):
+			self.Response('assistant', {
+				'content': response.get('content', ''),
+				'thinking': response.get('thinking', ''),
+				'skip_history': opt_skip_history,
+				'prompt_tokens': response.get('prompt_tokens', 0),
+				'response_tokens': response.get('response_tokens', 0),
+			})
+			self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
+			if opt_return_object:
+				return {'invocations': [], 'response': response.get('content', ''),
+						'stream_error': stream_error, 'ctrl_d_interrupt': True}
+			return True
+
 		# Early abort from Stream() — skip tool invocation detection
 		early_abort = response.get('early_abort')
 		if early_abort:
@@ -717,8 +732,21 @@ class Handle():
 		last_chunk       = None
 		abort_reason     = None
 		#
+		_stream_chunk_count = 0
 		try:
 			for chunk in res:
+				_stream_chunk_count += 1
+				# Periodic Ctrl+D check during streaming (every 5 chunks)
+				if _stream_chunk_count % 5 == 0:
+					if self._check_ai_interrupt():
+						self.hLG.echo("\n[Ctrl+D detected — stream interrupted]",
+							{'color':True, 'colorValue':'blue','debugOnly':False})
+						if stream_callback:
+							stream_callback({'type':'interrupt','reason':'ctrl_d'})
+						return {'content': response, 'thinking': thinking,
+								'native_tool_calls': native_tool_calls,
+								'prompt_tokens': 0, 'response_tokens': 0,
+								'ctrl_d_interrupt': True}
 				last_chunk = chunk
 				# thinking
 				if chunk.message.thinking:
@@ -1490,7 +1518,20 @@ class Handle():
 				continue
 			if model_failed:
 				continue
-			
+
+			# Ctrl+D interrupt during streaming — show menu
+			if result.get('ctrl_d_interrupt'):
+				choice = self._show_ai_interrupt_menu()
+				if choice == 2:
+					self.Options['AUTO_CONTINUE_TASKS'] = False
+					self.Options['AUTO_CONTINUE_ALL_TASKS'] = False
+					self._last_ai_had_tools = _tools_were_called
+					return True
+				if choice == 3:
+					return 3
+				# choice 1: continue loop (partial response is already in history)
+				continue
+
 			# Show post-response context usage
 			self._show_context_usage("after +{}".format(
 				result.get('response_tokens', 0) or self.Options.get('NUM_LAST_RESPONSE_TOKENS', 0)))
