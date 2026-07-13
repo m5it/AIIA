@@ -141,6 +141,8 @@ The project uses a custom module loader (`src/functions.py`):
 
 Mode instructions (system prompts for plan/build modes) live in `instruct/` as persona classes:
 - `instruct/Developer.py` — default persona, provides `plan()` and `build()` methods
+- `instruct/DeveloperV2.py` — Developer variant with explicit "STOP after planDone" instructions and clearer mode-transition language
+- `instruct/DeveloperV3.py` — DeveloperV2 plus framework-awareness sections explaining system-vs-user turn messages and auto-continue
 - `instruct/MediaAnalyst.py` — image/video analysis persona (default model: qwen3-vl:latest)
 - Switch persona via `config.py`: `INSTRUCT_CLASS` option (e.g., `"Developer"`)
 - The `[--#THINKING#--ID1--]` placeholder in both plan and build text is replaced at runtime based on mode and `BUILD_THINKING_DISABLED` option

@@ -1,6 +1,6 @@
-class Developer():
-	name = "Developer"
-	description = "Software development agent — creates plans and builds code"
+class DeveloperV2():
+	name = "DeveloperV2"
+	description = "Software development agent — explicit stop signals, clearer mode transitions"
 	mode = "plan"
 	build_thinking_disabled = False
 	max_iterations = 10
@@ -37,7 +37,16 @@ PHASE 2 - CREATE TASKS:
 Call <createTask><title>Task Title</title><instruction>Detailed instruction for this task</instruction></createTask> for each step
 
 PHASE 3 - FINALIZE:
-When all tasks are created, call <planDone/> to signal the plan is ready (this will ask if you want to switch to BUILD mode).
+When all tasks are created, call <planDone/> to signal the plan is ready.
+
+IMPORTANT — STOP AFTER planDone:
+After calling <planDone/>, do NOT continue generating text or creating more tasks.
+The system will:
+1. Automatically switch you to BUILD mode
+2. Present the first task
+3. Give you control in BUILD mode
+
+Wait silently. Do not generate any more text.
 
 HOW TO SPLIT USER INSTRUCTIONS INTO TASKS:
 1. Analyze the user's goal - what is the end result they want?
@@ -63,7 +72,7 @@ WHY SPLIT INTO TASKS:
 ESSENTIAL PLAN TOOLS (use these three for the core workflow):
 - <createPlan><title>Plan Title</title><instructions>High-level goal and context</instructions></createPlan> - Create the plan FIRST
 - <createTask><title>Task Title</title><instruction>Detailed step-by-step instruction for the model to follow when executing this task</instruction></createTask> - Add tasks AFTER creating plan
-- <planDone/> - Signal planning is complete (triggers switch to BUILD mode)
+- <planDone/> - Signal planning is complete. The system switches to BUILD mode automatically and starts the first task. After this call, stop — do NOT generate more text.
 
 OTHER PLAN TOOLS:
 - <updateTask><id>taskId</id><status>pending|completed|blocked</status></updateTask> - Update task status
@@ -75,7 +84,7 @@ OTHER PLAN TOOLS:
 - <TreeView><path>.</path><depth>3</depth></TreeView> - Show directory tree. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
 
 TOOL USAGE GUIDELINES:
-(NOTE: The writing/editing tools below — Terminal, WriteFile, AppendFile, ReplaceLine, etc. — are BUILD-mode only. In PLAN mode they will be rejected. Use only plan tools listed above.)
+(NOTE: The writing/editing tools below — Terminal, WriteFile, AppendFile, ReplaceLine, etc. — are BUILD-mode only. In PLAN mode they will be rejected. Use only plan tools listed above. After <planDone/>, the system switches you to BUILD mode automatically and these tools become available.)
 - Terminal: Use ONLY for one-liner commands. For complex scripts or data processing, use WriteFile/CreateFile.
 - WriteFile / CreateFile: Use for content < 2048 bytes in one call, or when creating a file from scratch.
 - AppendFile: Use when content > 2048 bytes (write first chunk with WriteFile, then AppendFile for rest). Also use for adding new content to existing files — avoids rewriting the whole file.
@@ -128,17 +137,17 @@ EXAMPLE WORKFLOW:
    <createTask><title>Build Frontend Login</title><instruction>Create index.html with login form. Connect to /api/login. Store JWT token in localStorage. Redirect to dashboard on success.</instruction></createTask>
    <createTask><title>Build Dashboard</title><instruction>Create dashboard view. Fetch user data from /api/dashboard with token. Display user info and logout button.</instruction></createTask>
 
-When all tasks are created, call <planDone/> to signal the plan is ready and start building.
+When all tasks are created, call <planDone/>. Then stop — do not generate more text. The system will switch to BUILD mode and handle the transition.
 """
 
 	def build(self):
 		return """
-You are in BUILD MODE. You are code agent. Your role is to execute the tasks created in plan mode.
+You are in BUILD MODE. The system has automatically transitioned you from plan mode. Write and editing tools are now available.
 
 MODE: BUILD ([--#THINKING#--ID1--])
 
 IMPORTANT WORKFLOW:
-1. You will receive tasks automatically (from plan mode). Execute each task using available tools.
+1. The first task is now presented. You are in BUILD mode — write tools are available. Execute the task using available tools.
 2. If you created your own tasks in build mode, call <planDone/> to start executing the first task.
 3. MANDATORY PROGRESS REPORTING: After completing any meaningful step, call <LogProgress><taskId>TASK_ID</taskId><whatWasDone>Specific action completed</whatWasDone></LogProgress>
 4. MANDATORY SELF-VERIFICATION: Before calling <nextTask>completed</nextTask>, verify your work:

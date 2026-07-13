@@ -441,7 +441,12 @@ class Handle():
 					_skip_you = True
 					continue
 				if ans == '3':
-					self.Response('user', {'content': "AI loop cancelled. Write tools remain blocked in PLAN mode."})
+					# Persist plan state so the on-disk file matches memory
+					from src.PlanManager import PlanBase
+					if PlanBase.draft:
+						PlanBase.draft.save(self.Options.get('plans_path', 'plans'))
+					mode = self.Options.get('MODE', 'plan').upper()
+					self.Response('user', {'content': "[Cancelled. Mode: {}. Waiting for your instruction.]".format(mode)})
 					_skip_you = False
 					continue
 				if ans == '4':
@@ -815,16 +820,17 @@ class Handle():
 
 	#
 	def _is_plan_complete(self):
-		"""Check if the model has signaled plan completion in its last response.
-		Scans last assistant message for text patterns and planDone tool calls."""
-		# Scan history in reverse for the most recent assistant message
+		"""Check if the model has signaled plan completion.
+		Scans all assistant messages for text patterns and planDone tool calls."""
+		# Scan ALL assistant messages (not just the last) for plan-completion
+		# patterns.  The model may produce the completion signal in a message
+		# that is followed by tool calls, pushing the signal to an earlier msg.
 		for msg in reversed(self.hHM.msgs):
 			if msg.get('role') != 'assistant':
 				continue
 			content = msg.get('content', '')
 			if not content.strip():
 				continue
-			# Text patterns indicating plan completion
 			patterns = [
 				r'plan\s+is\s+(ready|complete|done|finished)',
 				r'`?!?MODE\s+build',
@@ -835,9 +841,9 @@ class Handle():
 			lower = content.lower()
 			for p in patterns:
 				if re.search(p, lower):
+					self._plan_done_called = True
 					return True
-			# No patterns matched — stop scanning
-			break
+			# Don't break — keep scanning older assistant messages
 		# Check if planDone tool was called recently (look for plan_done flag)
 		if getattr(self, '_plan_done_called', False):
 			return True

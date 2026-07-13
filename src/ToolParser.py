@@ -729,6 +729,8 @@ class ToolParser:
 				return "No active plan. Use createPlan first to create a new plan."
 			status = params.get('status', 'completed')
 			result = PlanBase.draft.nextTask(self.handle, status)
+			# Persist task state to disk right away
+			PlanBase.draft.save(plans_path)
 			if hasattr(self.handle, '_write_current_task'):
 				self.handle._write_current_task()
 			if result.get('done'):
@@ -765,6 +767,10 @@ class ToolParser:
 				total_tasks = len(PlanBase.draft.tasks)
 				if hasattr(self.handle, '_write_current_task'):
 					self.handle._write_current_task()
+				# Switch to BUILD mode so the model can write files
+				self.handle.Options['MODE'] = 'build'
+				if self.handle.hHM.msgs and self.handle.hHM.msgs[-1].get('role') == 'system':
+					self.handle.hHM.msgs[-1]['content'] = self.handle.hPP._get_mode_instructions('build')
 				return "PLAN_DONE|Task {}/{}|{}".format(task_number, total_tasks, first_task.instruction)
 			return "No pending tasks in plan."
 

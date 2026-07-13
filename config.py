@@ -52,6 +52,7 @@ Options         = {
 	"AI_IMAGE_GEN_MODEL"  :"x/flux2-klein", # default model for GenerateImage tool
 	"AI_QUICK"            :False,    # skip interactive Prepare prompts (auto for server mode, or via -Q)
 	"AI_SYSTEM_MESSAGE"   :"",       # custom system message prefix, set via -P/--prompt CLI flag
+	"LOAD_AGENTS_MD"      :True,     # auto-load AGENTS.md from working_dir into system prompt
 	"AI_INSTRUCT_OPTION"  :2,        # 1=persona classes (system prompt), 2=short prompt + tips
 	# Available options keys:
 	# mirostat, mirostat_eta, mirostat_tau, num_ctx, repeat_last_n, repeat_penalty, temperature, seed, stop, num_predict, top_k, top_p, min_p

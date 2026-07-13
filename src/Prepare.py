@@ -67,6 +67,7 @@ class Prepare():
 				system_content = "{}\n\n{}".format(custom, tool_instructions)
 			else:
 				system_content = tool_instructions
+			system_content = self._inject_agents_md(system_content)
 			self.handle.Response('system', {'content': system_content})
 			self.handle.hLG.echo("Quick mode — persona loaded, system message set", {'color':True, 'colorValue':'cyan'})
 		else:
@@ -77,6 +78,7 @@ class Prepare():
 				system_content = "{}\n\n{}".format(tmp, tool_instructions)
 			else:
 				system_content = tool_instructions
+			system_content = self._inject_agents_md(system_content)
 			self.handle.Response('system',{'content':system_content,})
 			# Choose history
 			self.handle.hHM.Choose()
@@ -120,6 +122,23 @@ class Prepare():
 				tool_entries.append({'role': 'model', 'content': "[BUILD MODE WORKFLOW EXAMPLE]\n" + build_text})
 			self.handle.hTM.delete(tool_tip_title, 'model')
 			self.handle.hTM.save(tool_tip_title, 'model', tool_entries)
+	#
+	def _inject_agents_md(self, system_content):
+		"""Append AGENTS.md from working_dir to system content if present and LOAD_AGENTS_MD is enabled."""
+		if not self.handle.Options.get('LOAD_AGENTS_MD', True):
+			return system_content
+		agents_md_path = os.path.join(self.handle.Options.get('working_dir', '.'), 'AGENTS.md')
+		if not os.path.exists(agents_md_path):
+			return system_content
+		try:
+			with open(agents_md_path, 'r') as f:
+				agents_content = f.read()
+			if agents_content.strip():
+				system_content += "\n\n---\n## Project Instructions (AGENTS.md)\n\n" + agents_content + "\n---"
+				self.handle.hLG.echo("Loaded AGENTS.md from {}".format(agents_md_path), {'color':True, 'colorValue':'cyan'})
+		except Exception as e:
+			self.handle.hLG.echo("Warning: Failed to read AGENTS.md: {}".format(e), {'color':True, 'colorValue':'yellow'})
+		return system_content
 	#
 	def _get_mode_instructions(self, mode):
 		cls_name = self.handle.Options.get('INSTRUCT_CLASS', 'Developer')

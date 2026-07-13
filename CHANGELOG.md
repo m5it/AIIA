@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-13 — v0.90.9
+
+### Auto: Version v0.90.9
+
+- Version auto-incremented from v0.90.8
+- Files changed: AGENTS.md, config.py, docs/gpu_notes.md, instruct/Developer.py, instruct/DeveloperV2.py, instruct/DeveloperV3.py, src/Handle.py, src/Prepare.py, src/ToolParser.py
+
+---
+
+
 ## 2026-07-13 — v0.90.8
 
 ### Auto: Version v0.90.8
