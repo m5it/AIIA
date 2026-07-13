@@ -416,6 +416,13 @@ class Handle():
 			#
 			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
 
+			# After planDone — stop auto-continue and wait for user input
+			if getattr(self, '_plan_just_done', False):
+				del self._plan_just_done
+				self.hLG.echo("Plan complete — switched to BUILD mode. Waiting for your instruction.",
+					{'color':True, 'colorValue':'green','debugOnly':False})
+				continue
+
 			# Blocked tool in plan mode — prompt user
 			if getattr(self, '_plan_blocked_tool_alert', None):
 				tool_name = self._plan_blocked_tool_alert
@@ -1578,9 +1585,12 @@ class Handle():
 				})
 				continue
 
-			# Track planDone tool call — auto-continue should stop after this
+			# Track planDone tool call — stop AI loop and wait for user input
 			if result.get('plan_done'):
 				self._plan_done_called = True
+				self._last_ai_had_tools = False
+				self._plan_just_done = True
+				return True
 
 			# Track iterations without <nextTask> and remind model
 			if result.get('invocations'):

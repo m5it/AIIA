@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-13 — v0.90.11
+
+### Auto: Version v0.90.11
+
+- Version auto-incremented from v0.90.10
+- Files changed: src/Handle.py, src/ToolParser.py
+
+---
+
+
 ## 2026-07-13 — v0.90.10
 
 ### Auto: Version v0.90.10
