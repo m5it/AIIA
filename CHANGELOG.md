@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-13 — v0.90.10
+
+### Auto: Version v0.90.10
+
+- Version auto-incremented from v0.90.9
+- Files changed: docs/threading_queue_notes.md
+
+---
+
+
 ## 2026-07-13 — v0.90.9
 
 ### Auto: Version v0.90.9
