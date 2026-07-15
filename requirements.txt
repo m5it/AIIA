@@ -1,15 +1,8 @@
-# Core
+# Core framework — works on any machine
 ollama>=0.6.0
-
-# Actions (optional — only needed for action modules like grandekos_*)
 requests>=2.31.0
-
-# Media/vision (optional — needed for Image tools)
 Pillow>=10.0.0
 
-# Image generation (optional — needed for GenerateImage diffusers fallback on Linux)
-# Install with: pip install diffusers torch transformers accelerate
-diffusers>=0.30.0
-torch>=2.0.0
-transformers>=4.0.0
-accelerate>=0.20.0
+# GPU/ML packages for image generation and MediaAnalyst persona
+# are in requirements-gpu.txt. Install only if needed:
+#   pip install -r requirements-gpu.txt

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-15 — v0.90.12
+
+### Auto: Version v0.90.12
+
+- Version auto-incremented from v0.90.11
+- Files changed: AGENTS.md, requirements-gpu.txt, requirements.txt
+
+---
+
+
 ## 2026-07-13 — v0.90.11
 
 ### Auto: Version v0.90.11

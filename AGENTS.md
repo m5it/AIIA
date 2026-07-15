@@ -4,6 +4,8 @@
 
 ```bash
 source .venv/bin/activate       # activate virtual environment (Python 3.10)
+pip install -r requirements.txt  # install core deps (fast, ~5MB)
+pip install -r requirements-gpu.txt  # optional GPU deps (torch, diffusers, etc.)
 python run.py                    # start AIIA interactive session
 python run.py -m gemma3:12b     # specify model (default: gemma3:12b)
 python run.py -p MediaAnalyst   # use MediaAnalyst persona (image/video analysis)
