@@ -374,16 +374,14 @@ def Main(argv):
 	if '--server' in argv or '-S' in argv:
 		opt = '--server' if '--server' in argv else '-S'
 		idx = argv.index(opt)
-		_host_port = argv[idx + 1] if len(argv) > idx + 1 and not argv[idx + 1].startswith('-') else None
-		host = '127.0.0.1'
-		port = 9877
-		if _host_port:
-			parts = _host_port.split(':')
-			host = parts[0] if parts[0] else host
-			port = int(parts[1]) if len(parts) > 1 else port
+		_spec = argv[idx + 1] if len(argv) > idx + 1 and not argv[idx + 1].startswith('-') else None
+		#
+		from src.ServerFactory import ServerFactory
+		profile_name, host, port = ServerFactory.resolve_profile_spec(_spec, Options)
+		#
 		from src.Server import start_server
 		Options['AI_LIVE'] = False
-		start_server(host, port, Options)
+		start_server(host, port, Options, profile=profile_name)
 		sys.exit(0)
 	if '--connect' in argv or '-C' in argv:
 		opt = '--connect' if '--connect' in argv else '-C'

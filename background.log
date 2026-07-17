@@ -142,3 +142,11 @@ Usage:
 [02:22:03] INFO: Session started, sess_id=8, mode=plan, model=kimi-k2.5:cloud
 [02:22:12] INFO: Session started, sess_id=9, mode=plan, model=kimi-k2.5:cloud
 [02:22:17] INFO: Session started, sess_id=10, mode=plan, model=kimi-k2.5:cloud
+[04:43:13] INFO: Session started, sess_id=11, mode=plan, model=kimi-k2.5:cloud
+[04:43:13] Choose persona START...: 
+[04:43:13] Choose available number (x to cancel): 
+[04:43:13] Canceling persona selection...
+[04:43:17] INFO: Session started, sess_id=12, mode=plan, model=kimi-k2.5:cloud
+[04:43:17] Persona set via -p: Developer
+[04:45:40] INFO: Session started, sess_id=13, mode=plan, model=kimi-k2.5:cloud
+[04:45:40] Persona set via -p: Developer

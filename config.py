@@ -79,6 +79,13 @@ Options         = {
 	#
 	"SITE_SCRIPTS_PATH"  : None,    # Path to per-website JS support scripts (default: project wwwurljssupport/ or ~/.config/aiia/wwwurljssupport/)
 	#
+	"SERVER_PROFILE"      :"HTTP",      # default server profile (HTTP, HTTPS, WS, V1, V2, ...)
+	"SERVER_HOST"         :"127.0.0.1", # default bind address for -S
+	"SERVER_PORT"         :9877,        # default port for -S
+	"SERVER_PROFILES_PATH":"server_profiles", # path to server profile modules
+	"SERVER_TLS_CERT"     :None,        # path to TLS cert (for HTTPS profile)
+	"SERVER_TLS_KEY"      :None,        # path to TLS key (for HTTPS profile)
+	#
 	"BACKGROUND_LOG"      :None,     # Path to background.log (per-project, set in Handle.Init)
 	#
 	"TIPS_PATH"           :"{}/tips".format(os.path.expanduser("~/.config/aiia")),
