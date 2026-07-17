@@ -7,9 +7,13 @@ Endpoints:
 
 This is the standard server for editor clients, AI tools, and API consumers.
 Uses stdlib http.server + ThreadingMixIn — no external deps.
+
+Authentication:
+  Per-project Basic Auth via .aiia/auth.json in each project directory
+  Falls back to global SERVER_AUTH_* settings if project has no auth file
 """
 
-import json, sys, os, threading
+import json, sys, os, threading, base64
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 from server_profiles._ServerBase import ServerProfile
@@ -34,6 +38,84 @@ class OurAIServer():
 		self.Options = Options
 		self.handle = None
 		self._lock = threading.Lock()
+		# Global fallback auth settings
+		self.global_auth_enabled = Options.get("SERVER_AUTH_ENABLED", False)
+		self.global_username = Options.get("SERVER_USERNAME", "admin")
+		self.global_password = Options.get("SERVER_PASSWORD", "aiia")
+	
+	def _load_project_auth(self, project_path):
+		"""Load authentication credentials from project's .aiia/auth.json.
+		
+		Returns: (enabled, username, password) or (False, None, None) if no auth
+		"""
+		if not project_path or not os.path.isdir(project_path):
+			return (self.global_auth_enabled, self.global_username, self.global_password)
+		
+		auth_file = os.path.join(project_path, ".aiia", "auth.json")
+		if not os.path.exists(auth_file):
+			# No project-specific auth, use global settings
+			return (self.global_auth_enabled, self.global_username, self.global_password)
+		
+		try:
+			with open(auth_file, 'r', encoding='utf-8') as f:
+				auth_data = json.load(f)
+			enabled = auth_data.get('enabled', True)
+			username = auth_data.get('username', '')
+			password = auth_data.get('password', '')
+			return (enabled, username, password)
+		except (json.JSONDecodeError, IOError, KeyError) as e:
+			# Error reading auth file, deny access
+			print(f"Warning: Error reading auth file for {project_path}: {e}")
+			return (True, None, None)  # Auth required but invalid
+	
+	def _build_auth_hash(self, username, password):
+		"""Build expected Authorization header value for Basic Auth."""
+		credentials = f"{username}:{password}"
+		return base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
+	
+	def check_auth(self, headers, project_path=None):
+		"""Check if request is authenticated for the specified project.
+		
+		Args:
+			headers: HTTP headers dict
+			project_path: Optional project path from X-Project-Path header
+			
+		Returns:
+			(True, None) if authenticated or no auth required
+			(False, error_message) if authentication failed
+		"""
+		# Load project-specific or global auth settings
+		enabled, expected_user, expected_pass = self._load_project_auth(project_path)
+		
+		if not enabled:
+			return (True, None)
+		
+		# Auth required but no valid credentials configured
+		if not expected_user or not expected_pass:
+			return (False, "Authentication required but credentials not configured")
+		
+		auth_header = headers.get('Authorization', '')
+		if not auth_header.startswith('Basic '):
+			return (False, "Basic authentication required")
+		
+		provided_hash = auth_header[6:]  # Remove "Basic " prefix
+		expected_hash = self._build_auth_hash(expected_user, expected_pass)
+		
+		if provided_hash != expected_hash:
+			return (False, "Invalid credentials")
+		
+		return (True, None)
+	
+	def send_auth_challenge(self, handler, message="Authentication required"):
+		"""Send 401 Unauthorized response with WWW-Authenticate header."""
+		handler.send_response(401)
+		handler.send_header('WWW-Authenticate', 'Basic realm="AIIA Server"')
+		handler.send_header('Content-Type', 'application/json')
+		handler.end_headers()
+		handler.wfile.write(json.dumps({
+			"error": "Unauthorized",
+			"message": message
+		}).encode('utf-8'))
 	
 	def start(self):
 		from src.Handle import Handle
@@ -48,6 +130,8 @@ class OurAIServer():
 		print("\n" + "="*60)
 		print("  {} server listening on http://{}:{}".format(
 			self.Options.get('VERSION_NAME', 'AIIA'), self.host, self.port))
+		print("  🔐 Per-project authentication: ENABLED")
+		print("  Global fallback: {}".format("ENABLED" if self.global_auth_enabled else "DISABLED"))
 		print("  Connect with: run.py --connect {}:{}".format(self.host, self.port))
 		print("  API docs:     GET http://{}:{}/".format(self.host, self.port))
 		print("="*60 + "\n")
@@ -95,7 +179,25 @@ class OurAIServer():
 class _SSEHandler(BaseHTTPRequestHandler):
 	ai_server = None
 	
+	def _get_project_path(self):
+		"""Extract project path from X-Project-Path header."""
+		return self.headers.get('X-Project-Path', self.ai_server.Options.get('working_dir') if self.ai_server else None)
+	
+	def _check_auth(self):
+		"""Check authentication and send 401 if needed."""
+		project_path = self._get_project_path()
+		authenticated, error_msg = self.ai_server.check_auth(self.headers, project_path)
+		
+		if not authenticated:
+			self.ai_server.send_auth_challenge(self, error_msg)
+			return False
+		return True
+	
 	def do_GET(self):
+		# Check auth for all endpoints
+		if not self._check_auth():
+			return
+			
 		if self.path == '/health':
 			self._send_json(200, {"status":"ok"})
 		elif self.path == '/' or self.path == '/api':
@@ -106,16 +208,28 @@ class _SSEHandler(BaseHTTPRequestHandler):
 	
 	def _get_api_index(self):
 		"""Return API index with available endpoints."""
+		project_path = self._get_project_path()
+		auth_info = "per-project"
+		if self.ai_server:
+			enabled, user, _ = self.ai_server._load_project_auth(project_path)
+			auth_info = "required" if enabled else "disabled"
+		
 		return {
 			'service': 'AIIA Agentic AI',
 			'version': self.ai_server.Options.get('VERSION', '0.0.0') if self.ai_server else 'unknown',
 			'profile': 'HTTP',
+			'authentication': auth_info,
+			'auth_method': 'Basic Auth with X-Project-Path header',
 			'endpoints': [
 				{'method': 'GET',  'path': '/',         'description': 'This index'},
 				{'method': 'GET',  'path': '/health',   'description': 'Health check'},
 				{'method': 'POST', 'path': '/chat',     'description': 'Send message, receive SSE stream of AI tokens'},
 				{'method': 'POST', 'path': '/execute',  'description': 'Direct tool execution (no AI)'},
 			],
+			'headers': {
+				'Authorization': 'Basic base64(username:password)',
+				'X-Project-Path': '/path/to/project (optional, uses default if not set)',
+			},
 			'links': {
 				'chat':    'POST /chat    {"message":"your text"}',
 				'execute': 'POST /execute {"tool":"<ToolName>...</ToolName>"}',
@@ -123,6 +237,10 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		}
 	
 	def do_POST(self):
+		# Check auth for all endpoints
+		if not self._check_auth():
+			return
+			
 		if self.path == '/chat':
 			self._handle_chat()
 		elif self.path == '/execute':
@@ -231,7 +349,7 @@ class HTTP(ServerProfile):
 	"""HTTP SSE Server — default AIIA API server for editor clients and AI tools."""
 	
 	name = "HTTP"
-	description = "HTTP SSE server with /chat, /execute, /health endpoints"
+	description = "HTTP SSE server with /chat, /execute, /health endpoints (per-project Basic Auth)"
 	default_port = 9877
 	
 	@classmethod

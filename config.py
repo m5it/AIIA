@@ -70,7 +70,7 @@ Options         = {
 	"INSTRUCT_PATH"       :"instruct",   # path to instruct modules
 	#
 	"path"                :"{}/".format(os.path.dirname(os.path.abspath(__file__))),
-	"tools_path"          :"{}/tools/".format(os.environ.get('AIIA_PROJECT_DIR', os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(__file__)))),
+	"tools_path"          :"{}/tools/".format(os.environ.get('AIIA_PROJECT_DIR', os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(os.path.abspath(__file__))))),
 	"history_path"        :"history",
 	"plans_path"         :"plans",
 	"working_dir"        :os.environ.get('AIIA_PROJECT_DIR', os.environ.get('OURAI_PROJECT_DIR', os.path.dirname(os.path.abspath(__file__)))),
@@ -86,6 +86,11 @@ Options         = {
 	"SERVER_PROFILES_PATH":"server_profiles", # path to server profile modules
 	"SERVER_TLS_CERT"     :None,        # path to TLS cert (for HTTPS profile)
 	"SERVER_TLS_KEY"      :None,        # path to TLS key (for HTTPS profile)
+	#
+	# Server Authentication Settings
+	"SERVER_AUTH_ENABLED" :False,       # Enable Basic Auth for HTTP server
+	"SERVER_USERNAME"     :"admin",      # Default username (change in production!)
+	"SERVER_PASSWORD"     :"aiia",       # Default password (change in production!)
 	#
 	"BACKGROUND_LOG"      :None,     # Path to background.log (per-project, set in Handle.Init)
 	#
