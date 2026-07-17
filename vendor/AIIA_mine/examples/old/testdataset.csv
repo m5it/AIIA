@@ -1,0 +1,4 @@
+text,label
+[CLS]Kako si?[SEP]Dobro![SEP],1
+[CLS]Kako si?[SEP]Se kar.[SEP],1
+[CLS]Kako si?[SEP]Sem ze bil bolse... :)[SEP],1

@@ -1,0 +1,8 @@
+# Core framework — works on any machine
+ollama>=0.6.0
+requests>=2.31.0
+Pillow>=10.0.0
+
+# GPU/ML packages for image generation and MediaAnalyst persona
+# are in requirements-gpu.txt. Install only if needed:
+#   pip install -r requirements-gpu.txt

@@ -1,0 +1,15 @@
+{"time":"2025-06-06T06:27:51.239021593+01:00","level":"INFO","msg":"stream: starting","core version":"0.20.1","symlink path":"/home/t3ch/Projects/Hobies/OurAI/examples/wandb/offline-run-20250606_062750-ktx51rv4/logs/debug-core.log"}
+{"time":"2025-06-06T06:27:51.348928498+01:00","level":"WARN","msg":"GraphQL client is nil, skipping feature loading"}
+{"time":"2025-06-06T06:27:51.349348317+01:00","level":"INFO","msg":"stream: created new stream","id":"ktx51rv4"}
+{"time":"2025-06-06T06:27:51.349491928+01:00","level":"INFO","msg":"stream: started","id":"ktx51rv4"}
+{"time":"2025-06-06T06:27:51.349568504+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"ktx51rv4"}
+{"time":"2025-06-06T06:27:51.349675397+01:00","level":"INFO","msg":"sender: started","stream_id":"ktx51rv4"}
+{"time":"2025-06-06T06:27:51.349635868+01:00","level":"INFO","msg":"handler: started","stream_id":"ktx51rv4"}
+{"time":"2025-06-06T06:27:51.363292761+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-06-06T06:27:52.368668966+01:00","level":"INFO","msg":"stream: closing","id":"ktx51rv4"}
+{"time":"2025-06-06T06:27:52.368801517+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-06-06T06:27:52.368931497+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-06-06T06:27:52.369498969+01:00","level":"INFO","msg":"handler: closed","stream_id":"ktx51rv4"}
+{"time":"2025-06-06T06:27:52.36953767+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"ktx51rv4"}
+{"time":"2025-06-06T06:27:52.369590538+01:00","level":"INFO","msg":"sender: closed","stream_id":"ktx51rv4"}
+{"time":"2025-06-06T06:27:52.369858277+01:00","level":"INFO","msg":"stream: closed","id":"ktx51rv4"}

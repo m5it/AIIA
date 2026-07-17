@@ -1,0 +1,88 @@
+# def train(model, device, train_loader, optimizer):
+	# for epoch in range(10):
+		# model.train()
+		# total_loss = 0
+		# for batch in train_loader:
+			# # Zero the gradients
+			# optimizer.zero_grad()
+			# if batch['input_ids'][0][0][0].tolist()==101 and batch['input_ids'][0][0][1].tolist()==102:
+				# print("looks empty batch.. continue...")
+				# continue
+			# print("train() input_ids( {} ): {} -> {}".format( len(batch['input_ids']), batch['input_ids'][0][0][1].tolist(), batch['input_ids'] ))
+			# # Tokenize the input IDs and attention masks
+			# inputs = tokenizer(batch['input_ids'], attention_mask=batch['attention_mask'])
+
+			# # Forward pass
+			# outputs = model(**inputs)
+
+			# # Compute the loss (for masked language modeling)
+			# if isinstance(outputs, tuple):
+				# loss = outputs[0]
+			# else:
+				# loss = outputs.loss
+
+			# # Backward pass and optimize
+			# loss.backward()
+			# optimizer.step()
+
+			# # Print the loss
+			# total_loss += loss.item()
+
+		# print(f'Epoch {epoch+1}, Loss = {total_loss / len(train_loader)}')
+		
+# def train(model, device, loader, optimizer):
+	# model.train()
+	# total_loss = 0
+	# correct = 0
+	# for batch in loader:
+		# input_ids = batch['input_ids'].to(device)
+		# attention_mask = batch['attention_mask'].to(device)
+
+		# # Forward pass
+		# output = model(input_ids, attention_mask=attention_mask)
+		
+		# if isinstance(output, tuple):
+			# loss, logits = output
+			# labels = batch.get('labels', None)
+		# else:
+			# loss = output.loss
+			# logits = None
+
+		# # Backward pass and optimization
+		# optimizer.zero_grad()
+		# loss.backward()
+		# optimizer.step()
+
+		# total_loss += loss.item()
+
+		# if isinstance(output, tuple):
+			# _, predicted = torch.max(logits, dim=1)
+			# correct += (predicted == labels).sum().item()
+
+	# accuracy = correct / len(loader.dataset) * 100 if loader.dataset else 0
+	# return {
+		# 'loss': total_loss / len(loader),
+		# 'accuracy': accuracy,
+	# }
+# # Define a custom training loop
+# def train(model, device, loader, optimizer):
+	# model.train()
+	# total_loss = 0
+	# for batch in loader:
+		# input_ids = batch['input_ids'].to(device)
+		# attention_mask = batch['attention_mask'].to(device)
+		# #labels = batch.get('labels', None)
+
+		# # Forward pass
+		# #output = model(input_ids, attention_mask=attention_mask, labels=labels)
+		# output = model(input_ids, attention_mask=attention_mask)
+		# loss = output.loss
+
+		# # Backward pass and optimization
+		# optimizer.zero_grad()
+		# loss.backward()
+		# optimizer.step()
+
+		# total_loss += loss.item()
+
+	# return total_loss / len(loader)

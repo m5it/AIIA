@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+"""Pre-commit hook: auto-increment version in AUTOVERSION.py + update CHANGELOG.md"""
+import re
+import sys
+import subprocess
+import os
+from datetime import date
+
+REPO_ROOT = subprocess.run(
+	['git', 'rev-parse', '--show-toplevel'],
+	capture_output=True, text=True
+).stdout.strip()
+
+VERSION_FILE = os.path.join(REPO_ROOT, 'AUTOVERSION.py')
+CHANGELOG_FILE = os.path.join(REPO_ROOT, 'CHANGELOG.md')
+
+# Skip on merge commits
+merge_msg = os.path.join(REPO_ROOT, '.git', 'MERGE_MSG')
+if os.path.exists(merge_msg):
+	with open(merge_msg) as f:
+		if 'Merge' in f.read():
+			sys.exit(0)
+
+# Read current version
+if not os.path.exists(VERSION_FILE):
+	sys.exit(0)
+
+with open(VERSION_FILE) as f:
+	content = f.read()
+
+match = re.search(r'VERSION\s*=\s*"([^"]+)"', content)
+if not match:
+	sys.exit(0)
+
+current = match.group(1)
+parts = current.split('.')
+
+if len(parts) == 2:
+	new = "{}.{}.1".format(parts[0], parts[1])
+elif len(parts) == 3:
+	new = "{}.{}.{}".format(parts[0], parts[1], int(parts[2]) + 1)
+else:
+	sys.exit(0)
+
+# Get changed files from this commit
+result = subprocess.run(
+	['git', 'diff', '--cached', '--name-only', '--diff-filter=ACDMR'],
+	capture_output=True, text=True
+)
+changed_files = [f for f in result.stdout.strip().split('\n') if f]
+
+# Update AUTOVERSION.py
+content = content.replace('VERSION = "{}"'.format(current), 'VERSION = "{}"'.format(new))
+with open(VERSION_FILE, 'w') as f:
+	f.write(content)
+
+# Update CHANGELOG.md
+today = date.today().isoformat()
+files_str = ', '.join(changed_files) if changed_files else '(none)'
+new_entry = "## {today} — v{ver}\n\n### Auto: Version v{ver}\n\n- Version auto-incremented from v{old}\n- Files changed: {files}\n\n---\n\n".format(
+	today=today, ver=new, old=current, files=files_str)
+
+with open(CHANGELOG_FILE) as f:
+	old_changelog = f.read()
+
+if old_changelog.startswith('# Changelog\n'):
+	old_changelog = '# Changelog\n\n' + new_entry + old_changelog[len('# Changelog\n'):]
+else:
+	old_changelog = new_entry + old_changelog
+
+with open(CHANGELOG_FILE, 'w') as f:
+	f.write(old_changelog)
+
+# Stage both files
+subprocess.run(['git', 'add', VERSION_FILE, CHANGELOG_FILE])

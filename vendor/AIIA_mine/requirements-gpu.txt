@@ -1,0 +1,9 @@
+# GPU/ML packages — optional, only needed for:
+#   - GenerateImage tool (diffusers fallback on Linux)
+#   - MediaAnalyst persona (image/video analysis)
+# Install with: pip install -r requirements-gpu.txt
+
+torch>=2.0.0
+diffusers>=0.30.0
+transformers>=4.0.0
+accelerate>=0.20.0

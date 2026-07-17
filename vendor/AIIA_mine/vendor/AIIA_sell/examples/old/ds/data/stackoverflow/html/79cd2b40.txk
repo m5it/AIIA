@@ -1,0 +1,1191 @@
+
+        
+
+            <div id="question-header" class="d-flex sm:fd-column">
+                        <h1 itemprop="name" class="fs-headline1 ow-anywhere mb8 flex--item fl1"><a href="/questions/32399159/splitting-class-file" class="question-hyperlink">Splitting class file</a></h1>
+
+                <div class="ml12 aside-cta flex--item sm:ml0 sm:mb12 sm:order-first d-flex jc-end">
+
+                        <div class="ml12 aside-cta flex--item print:d-none">
+                                <a href="/questions/ask" class="ws-nowrap s-btn s-btn__filled">
+        Ask Question
+    </a>
+
+                        </div>
+                </div>
+            </div>
+            <div class="d-flex fw-wrap pb8 mb16 bb bc-black-200">
+                    <div class="flex--item ws-nowrap mr16 mb8" title="2015-09-04 13:21:12Z">
+                        <span class="fc-black-400 mr2">Asked</span>
+                        <time itemprop="dateCreated" datetime="2015-09-04 13:21:12Z">9 years, 8 months ago</time>
+                    </div>
+                    <div class="flex--item ws-nowrap mr16 mb8">
+                        <span class="fc-black-400 mr2">Modified</span>
+                        <a href="?lastactivity" class="s-link s-link__inherit" title="2018-11-19 03:07:13Z">6 years, 6 months ago</a>
+                    </div>
+                    <div class="flex--item ws-nowrap mb8 mr16" title="Viewed 75 times">
+                        <span class="fc-black-400 mr2">Viewed</span>
+                        75 times
+                    </div>
+                        <div class="flex--item mb8 fc-black-400">
+                            <svg aria-hidden="true" class="fc-orange-400 svg-icon iconStarVerified" width="18" height="18" viewbox="0 0 18 18"><path d="M9.86.89a1.14 1.14 0 0 0-1.72 0l-.5.58c-.3.35-.79.48-1.23.33l-.72-.25a1.14 1.14 0 0 0-1.49.85l-.14.76c-.1.45-.45.8-.9.9l-.76.14c-.67.14-1.08.83-.85 1.49l.25.72c.15.44.02.92-.33 1.23l-.58.5a1.14 1.14 0 0 0 0 1.72l.58.5c.35.3.48.79.33 1.23l-.25.72c-.23.66.18 1.35.85 1.49l.76.14c.45.1.8.45.9.9l.14.76c.14.67.83 1.08 1.49.85l.72-.25c.44-.15.92-.02 1.23.33l.5.58c.46.52 1.26.52 1.72 0l.5-.58c.3-.35.79-.48 1.23-.33l.72.25c.66.23 1.35-.18 1.49-.85l.14-.76c.1-.45.45-.8.9-.9l.76-.14c.67-.14 1.08-.83.85-1.49l-.25-.72c-.15-.44-.02-.92.33-1.23l.58-.5c.52-.46.52-1.26 0-1.72l-.58-.5c-.35-.3-.48-.79-.33-1.23l.25-.72a1.14 1.14 0 0 0-.85-1.49l-.76-.14c-.45-.1-.8-.45-.9-.9l-.14-.76a1.14 1.14 0 0 0-1.49-.85l-.72.25c-.44.15-.92.02-1.23-.33zm-.49 2.67L10.6 6.6q.1.23.34.25l3.26.22c.36.03.5.48.23.71l-2.5 2.1a.4.4 0 0 0-.14.4l.8 3.16a.4.4 0 0 1-.6.44L9.2 12.13a.4.4 0 0 0-.42 0l-2.77 1.74a.4.4 0 0 1-.6-.44l.8-3.16a.4.4 0 0 0-.13-.4l-2.5-2.1a.4.4 0 0 1 .22-.7l3.26-.23a.4.4 0 0 0 .34-.25l1.22-3.03a.4.4 0 0 1 .74 0"/></svg> Part of <a href="/collectives/php" class="js-gps-track " data-gps-track="subcommunity_link.click({ subcommunity_user_type: 0, subcommunity_slug: php, link_source: post_header })">PHP</a> Collective
+                        </div>
+            </div>
+
+
+
+            <div id="mainbar" role="main" aria-label="question and answers">
+                
+<div class="question js-question" data-questionid="32399159" data-position-on-page="0" data-score="1" data-author-reputation="3657" id="question">
+    <style>
+    </style>
+<div class="js-zone-container zone-container-main">
+    <div id="dfp-tlb" class="everyonelovesstackoverflow everyoneloves__top-leaderboard everyoneloves__leaderboard" style="min-height: auto; height: auto; display: none;"/>
+		<div class="js-report-ad-button-container " style="width: 728px"/>
+</div>
+
+    <div class="post-layout ">
+        <div class="votecell post-layout--left">
+            
+<div class="js-voting-container d-flex jc-center fd-column ai-center gs4 fc-black-300" data-post-id="32399159" data-referrer="None">
+        <button class="js-vote-up-btn flex--item s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="upvote-btn-32399159" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-pressed="false" aria-label="Up vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" aria-describedby="--stacks-s-tooltip-alzmf9gg">
+            <svg aria-hidden="true" class="svg-icon iconArrowUp" width="18" height="18" viewbox="0 0 18 18"><path d="M1 12h16L9 4z"/></svg>
+        </button><div id="--stacks-s-tooltip-alzmf9gg" class="s-popover s-popover__tooltip" role="tooltip">This question shows research effort; it is useful and clear<div class="s-popover--arrow"/></div>
+        <input type="hidden" id="voteUpHash" value="70:3:31e,16:ce8cab66fe8a4017,10:1748471150,16:794a000b80c52280,8:32399159,fb3a03be32a658ea50e8eebebe90313697ceab858490a3d2f98c584ee91f3f0d"/>
+        <div class="js-vote-count flex--item d-flex fd-column ai-center fc-theme-body-font fw-bold fs-subheading py4" itemprop="upvoteCount" data-value="1">
+1        </div>
+        <button class="js-vote-down-btn js-vote-down-question flex--item mb8 s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="downvote-btn-32399159" title="This question does not show any research effort; it is unclear or not useful" aria-pressed="false" aria-label="Down vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200">
+            <svg aria-hidden="true" class="svg-icon iconArrowDown" width="18" height="18" viewbox="0 0 18 18"><path d="M1 6h16l-8 8z"/></svg>
+        </button>
+        <input type="hidden" id="voteDownHash" value="70:3:31e,16:7faaf618fec55de3,10:1748471150,16:ac81146a299b906b,8:32399159,98a96151c9518e92a1f3df64d35e0d12a738c2fe70393f916f499b6b54802383"/>
+
+
+        
+<button class="js-saves-btn s-btn s-btn__unset c-pointer py4" type="button" id="saves-btn-32399159" data-controller="s-tooltip" data-s-tooltip-placement="right" data-s-popover-placement="" data-is-saved="false" aria-label="Save" data-post-id="32399159" data-post-type-id="1" data-user-privilege-for-post-click="0" aria-controls="" data-s-popover-auto-show="false" aria-describedby="--stacks-s-tooltip-bo0i5630">
+    <svg aria-hidden="true" class="fc-theme-primary-400 js-saves-btn-selected d-none svg-icon iconBookmark" width="18" height="18" viewbox="0 0 18 18"><path d="M3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+    <svg aria-hidden="true" class="js-saves-btn-unselected svg-icon iconBookmarkAlt" width="18" height="18" viewbox="0 0 18 18"><path d="m9 10.6 4 2.66V3H5v10.26zM3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+</button><div id="--stacks-s-tooltip-bo0i5630" class="s-popover s-popover__tooltip" role="tooltip">Save this question.<div class="s-popover--arrow"/></div>
+
+
+
+
+
+
+
+
+    
+    <a class="js-post-issue flex--item s-btn s-btn__unset c-pointer py6 mx-auto" href="/posts/32399159/timeline" data-shortcut="T" data-ks-title="timeline" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-label="Timeline" aria-describedby="--stacks-s-tooltip-rlgsr23l"><svg aria-hidden="true" class="mln2 mr0 svg-icon iconHistory" width="19" height="18" viewbox="0 0 19 18"><path d="M3 9a8 8 0 1 1 3.73 6.77L8.2 14.3A6 6 0 1 0 5 9l3.01-.01-4 4-4-4zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10z"/></svg></a><div id="--stacks-s-tooltip-rlgsr23l" class="s-popover s-popover__tooltip" role="tooltip">Show activity on this post.<div class="s-popover--arrow"/></div>
+
+</div>
+
+        </div>
+
+        
+
+<div class="postcell post-layout--right">
+    
+    <div class="s-prose js-post-body" itemprop="text">
+                
+<p>I've got config.class  file which is getting bigger and bigger.
+It has structure like this:</p>
+
+<pre class="lang-php s-code-block"><code data-highlighted="yes" class="hljs language-php"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">config</span>
+</span>{
+    <span class="hljs-keyword">public</span> <span class="hljs-variable">$myConfig</span> = <span class="hljs-number">20</span>;
+    ....
+
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_ invoke__">__construct</span>() {
+        <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">set_config_topics</span>();
+        ....
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">set_config_topics</span>(<span class="hljs-params"/>) </span>{
+        <span class="hljs-variable language_">$this</span>-&gt;bum=<span class="hljs-string">'gg'</span>;
+        ....
+    }
+}
+</code></pre>
+
+<p>I want to split that config class to several config files (module config).
+I can extend class but I don't want to get wierd chain.
+I want something like this:</p>
+
+<pre class="lang-php s-code-block"><code data-highlighted="yes" class="hljs language-php"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">config</span>
+</span>{
+    <span class="hljs-keyword">private</span> config_files=<span class="hljs-keyword">array</span>(
+        <span class="hljs-string">'config.topics.php'</span>,
+        <span class="hljs-string">'config.second.module.php'</span>,
+        ...
+    );
+
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_ invoke__">__construct</span>() {
+        <span class="hljs-comment">//require all config_files and attach them as class' variables</span>
+    }
+}
+</code></pre>
+
+<p>How to do it? </p>
+    </div>
+
+        <div class="mt24 mb12">
+            <div class="post-taglist d-flex gs4 gsy fd-column">
+                <div class="d-flex ps-relative fw-wrap">
+                    <a class="themed subcommunity-topic-avatar subcommunity-topic-php s-avatar s-avatar__24 mr2 js-community-tag my2 mr6 va-top" style="" data-controller="s-tooltip" href="/collectives/php" aria-describedby="--stacks-s-tooltip-4o9tiglu"/><div id="--stacks-s-tooltip-4o9tiglu" class="s-popover s-popover__tooltip" role="tooltip">PHP Collective<div class="s-popover--arrow"/></div>
+                    <ul class="ml0 list-ls-none js-post-tag-list-wrapper d-inline"><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/php" class="s-tag post-tag js-gps-track" title="show questions tagged 'php'" aria-label="show questions tagged 'php'" rel="tag" aria-labelledby="tag-php-tooltip-container" data-tag-menu-origin="Unknown">php</a></li></ul>
+                </div>
+            </div>
+        </div>
+
+    <div class="mb0 ">
+        <div class="mt16 d-flex gs8 gsy fw-wrap jc-end ai-start pt4 mb16">
+            <div class="flex--item mr16 fl1 w96">
+                
+
+
+<div class="js-post-menu pt2" data-post-id="32399159" data-post-type-id="1">
+
+    <div class="d-flex gs8 s-anchors s-anchors__muted fw-wrap">
+
+        <div class="flex--item">
+            <a href="/q/32399159" rel="nofollow" itemprop="url" class="js-share-link js-gps-track" title="Short permalink to this question" data-gps-track="post.click({ item: 2, priv: 0, post_type: 1 })" data-controller="se-share-sheet s-popover" data-se-share-sheet-title="Share a link to this question" data-se-share-sheet-subtitle="" data-se-share-sheet-post-type="question" data-se-share-sheet-social="facebook twitter devto" data-se-share-sheet-location="1" data-se-share-sheet-license-url="https%3a%2f%2fcreativecommons.org%2flicenses%2fby-sa%2f4.0%2f" data-se-share-sheet-license-name="CC BY-SA 4.0" data-s-popover-placement="bottom-start" aria-controls="se-share-sheet-0" data-action=" s-popover#toggle se-share-sheet#preventNavigation s-popover:show-&gt;se-share-sheet#willShow s-popover:shown-&gt;se-share-sheet#didShow" aria-expanded="false">Share</a><div class="s-popover z-dropdown s-anchors s-anchors__default" style="width: unset; max-width: 28em;" id="se-share-sheet-0"><div class="s-popover--arrow"/><div><label for="share-sheet-input-se-share-sheet-0"><span class="js-title fw-bold">Share a link to this question</span> <span class="js-subtitle"/></label></div><div class="my8"><input type="text" id="share-sheet-input-se-share-sheet-0" class="js-input s-input wmn3 sm:wmn-initial bc-black-300 bg-white fc-black-600" readonly=""/></div><div class="d-flex jc-space-between ai-center mbn4"><button class="js-copy-link-btn s-btn s-btn__link js-gps-track" data-gps-track="">Copy link</button><a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license" class="js-license s-block-link w-auto" target="_blank" title="The current license for this post: CC BY-SA 4.0">CC BY-SA 4.0</a><div class="js-social-container d-none"/></div></div>
+        </div>
+
+
+                    <div class="flex--item">
+                        <a href="/posts/32399159/edit" class="js-suggest-edit-post js-gps-track" data-gps-track="post.click({ item: 6, priv: 0, post_type: 1 })" title="">Improve this question</a>
+                    </div>
+
+                <div class="flex--item">
+                    <button type="button" id="btnFollowPost-32399159" class="s-btn s-btn__link js-follow-post js-follow-question js-gps-track" data-gps-track="post.click({ item: 14, priv: 0, post_type: 1 })" data-controller="s-tooltip " data-s-tooltip-placement="bottom" data-s-popover-placement="bottom" aria-controls="" aria-describedby="--stacks-s-tooltip-c5wx1vkj">
+                        Follow
+                        <input type="hidden" id="voteFollowHash" value="70:3:31e,16:c4b04a67b29df8e9,10:1748471150,16:f1764f9c6b54298d,8:32399159,a20aa0fdfa559c70bd5fc31d62c68aba4d1c10cc5b7acac2b881b8b9acf9105a"/>
+                    </button><div id="--stacks-s-tooltip-c5wx1vkj" class="s-popover s-popover__tooltip" role="tooltip">Follow this question to receive notifications<div class="s-popover--arrow"/></div>
+                </div>
+
+
+
+
+
+
+    </div>
+    <div class="js-menu-popup-container"/>
+</div>
+            </div>
+
+                <div class="post-signature flex--item">
+<div class="user-info user-hover ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            <a href="/posts/32399159/revisions" title="show all edits to this post" class="js-gps-track" data-gps-track="post.click({ item: 4, priv: 0, post_type: 1 })">edited <span title="2018-11-19 03:07:13Z" class="relativetime">Nov 19, 2018 at 3:07</span></a>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1033581/c%c5%93ur"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/e8891617e36b8d1254eb3ce1a5662da4?s=64&amp;d=identicon&amp;r=PG" alt="Cœur's user avatar" width="32" height="32" class="bar-sm"/></div></a>
+    </div>
+    <div class="user-details">
+        <a href="/users/1033581/c%c5%93ur" dir="auto">Cœur</a>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score 38,827" dir="ltr">38.8k</span><span title="25 gold badges" aria-hidden="true"><span class="badge1"/><span class="badgecount">25</span></span><span class="v-visible-sr">25 gold badges</span><span title="206 silver badges" aria-hidden="true"><span class="badge2"/><span class="badgecount">206</span></span><span class="v-visible-sr">206 silver badges</span><span title="280 bronze badges" aria-hidden="true"><span class="badge3"/><span class="badgecount">280</span></span><span class="v-visible-sr">280 bronze badges</span>
+        </div>
+    </div>
+</div>
+                </div>
+            <div class="post-signature owner flex--item">
+                <div class="user-info ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            asked <span title="2015-09-04 13:21:12Z" class="relativetime">Sep 4, 2015 at 13:21</span>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/979911/piernik"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/873d08d1349756b1eedc6d46ca3e0c25?s=64&amp;d=identicon&amp;r=PG" alt="piernik's user avatar" width="32" height="32" class="bar-sm"/></div></a>
+    </div>
+    <div class="user-details" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <a href="/users/979911/piernik" itemprop="url" dir="auto">piernik</a><span class="d-none" itemprop="name">piernik</span>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score " dir="ltr">3,657</span><span title="5 gold badges" aria-hidden="true"><span class="badge1"/><span class="badgecount">5</span></span><span class="v-visible-sr">5 gold badges</span><span title="47 silver badges" aria-hidden="true"><span class="badge2"/><span class="badgecount">47</span></span><span class="v-visible-sr">47 silver badges</span><span title="87 bronze badges" aria-hidden="true"><span class="badge3"/><span class="badgecount">87</span></span><span class="v-visible-sr">87 bronze badges</span>
+        </div>
+    </div>
+</div>
+
+
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+
+
+
+            
+
+<span class="d-none" itemprop="commentCount">1</span> 
+    <div class="post-layout--right js-post-comments-component">
+        <div id="comments-32399159" class="comments js-comments-container bt bc-black-200 mt12 " data-post-id="32399159" data-min-length="15">
+            <ul class="comments-list js-comments-list" data-remaining-comments-count="0" data-canpost="false" data-cansee="true" data-comments-unavailable="false" data-addlink-disabled="true">
+
+                        <li id="comment-52666569" class="comment js-comment " data-comment-id="52666569" data-comment-owner-id="418482" data-comment-score="0">
+        <div class="js-comment-actions comment-actions">
+            <div class="comment-score js-comment-score js-comment-edit-hide">
+            </div>
+        </div>
+        <div class="comment-text  js-comment-text-and-form">
+            <div class="comment-body js-comment-edit-hide">
+                
+                <span class="comment-copy">If there's going to be so much config that it requires multiple files to be managed, would it not be better to have a database config file, and then load any other config from the database on startup, or get them as required?  That way if you create the config and forget to add the file to the config class, the values will be loaded from the DB and not missed out.</span>
+                
+                <div class="d-inline-flex ai-center">
+– <a href="/users/418482/gabe3886" title="4,265 reputation" class="comment-user">gabe3886</a>
+                </div>
+                <span class="comment-date" dir="ltr"><a class="comment-link" href="#comment52666569_32399159">
+                    <span class="v-visible-sr">Commented</span>
+                    <span title="2015-09-04 13:28:33Z, License: CC BY-SA 3.0" class="relativetime-clean">Sep 4, 2015 at 13:28</span>
+                </a></span>
+            </div>
+        </div>
+    </li>
+
+            </ul>
+	    </div>
+
+        <div id="comments-link-32399159" data-rep="40" data-anon="true">
+                        <a class="js-add-link comments-link disabled-link" title="Use comments to ask for more information or suggest improvements. Avoid answering questions in comments." href="#" role="button">Add a comment</a>
+                    <span class="js-link-separator dno"> | </span>
+            <a class="js-show-link comments-link dno" title="Expand to show all comments on this post" href="#" onclick="" role="button"/>
+        </div>         
+    </div>
+
+<script defer="" src="https://cdn.sstatic.net/Js/webpack-chunks/svelte.en.js?v=0e13e4096c72"/><script defer="" src="https://cdn.sstatic.net/Js/webpack-chunks/stacks-svelte.en.js?v=03b2ad419921"/><script defer="" src="https://cdn.sstatic.net/Js/webpack-chunks/1130.en.js?v=70fcdc9ce0b0"/><script defer="" src="https://cdn.sstatic.net/Js/islands/comment-popover.en.js?v=9ad112c440af"/>    </div>
+
+</div>
+
+
+<div class="js-zone-container zone-container-responsive">
+    <div id="dfp-isb" class="everyonelovesstackoverflow everyoneloves__inline-sidebar mx-auto" style="min-height: auto; height: auto; display: none;"/>
+		<div class="js-report-ad-button-container mx-auto" style="width: 300px"/>
+</div>
+
+                
+                <div id="answers">
+                    <a name="tab-top"/>
+                    <div id="answers-header">
+                        <div class="answers-subheader d-flex ai-center mb8">
+                            <div class="flex--item fl1">
+                                <h2 class="mb0" data-answercount="1">
+                                        1 Answer
+                                    <span style="display:none;" itemprop="answerCount">1</span>
+                                </h2>
+                            </div>
+                            <div class="flex--item">
+                                
+
+<div class="d-flex g4 gsx ai-center sm:fd-column sm:ai-start">
+    <div class="d-flex fd-column ai-end sm:ai-start">
+        <label class="flex--item fs-caption" for="answer-sort-dropdown-select-menu">
+            Sorted by:
+        </label>
+        <a class="js-sort-preference-change s-link flex--item fs-fine d-none" data-value="ScoreDesc" href="/questions/32399159/splitting-class-file?answertab=scoredesc#tab-top">
+            Reset to default
+        </a>
+    </div>
+    <div class="flex--item s-select">
+        <select id="answer-sort-dropdown-select-menu">
+                    <option value="scoredesc" selected="selected">
+                        Highest score (default)
+                    </option>
+                    <option value="trending">
+                        Trending (recent votes count more)
+                    </option>
+                    <option value="modifieddesc">
+                        Date modified (newest first)
+                    </option>
+                    <option value="createdasc">
+                        Date created (oldest first)
+                    </option>
+        </select>
+    </div>
+</div>
+
+
+                            </div>
+                        </div>
+                            
+                    </div>
+
+
+                                        
+<a name="32399396"/>
+<div id="answer-32399396" class="answer js-answer accepted-answer js-accepted-answer" data-answerid="32399396" data-parentid="32399159" data-score="3" data-position-on-page="1" data-highest-scored="1" data-question-has-accepted-highest-score="1" data-author-reputation="5952" itemprop="acceptedAnswer" itemscope="" itemtype="https://schema.org/Answer">
+        <div class="post-layout">
+            <div class="votecell post-layout--left">
+                
+<div class="js-voting-container d-flex jc-center fd-column ai-center gs4 fc-black-300" data-post-id="32399396" data-referrer="None">
+        <button class="js-vote-up-btn flex--item s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="upvote-btn-32399396" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-pressed="false" aria-label="Up vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" aria-describedby="--stacks-s-tooltip-v8w4timp">
+            <svg aria-hidden="true" class="svg-icon iconArrowUp" width="18" height="18" viewbox="0 0 18 18"><path d="M1 12h16L9 4z"/></svg>
+        </button><div id="--stacks-s-tooltip-v8w4timp" class="s-popover s-popover__tooltip" role="tooltip">This answer is useful<div class="s-popover--arrow"/></div>
+        <input type="hidden" id="voteUpHash" value="70:3:31e,16:c7ca9bc448e1e618,10:1748471150,16:2fb69184abe332b7,8:32399396,5ad62ceefb0bba50e5aceaecb835a9a9f2952f5a78e166e1d341857de8dd011e"/>
+        <div class="js-vote-count flex--item d-flex fd-column ai-center fc-theme-body-font fw-bold fs-subheading py4" itemprop="upvoteCount" data-value="3">
+3        </div>
+        <button class="js-vote-down-btn flex--item mb8 s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="downvote-btn-32399396" title="This answer is not useful" aria-pressed="false" aria-label="Down vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200">
+            <svg aria-hidden="true" class="svg-icon iconArrowDown" width="18" height="18" viewbox="0 0 18 18"><path d="M1 6h16l-8 8z"/></svg>
+        </button>
+        <input type="hidden" id="voteDownHash" value="70:3:31e,16:98463c0f08f63036,10:1748471150,16:5ec2e1f43047f577,8:32399396,75664d22ba67fe07bdbf0a694c7eb14859bedb55386f09e86e760194a921e46e"/>
+
+
+        
+<button class="js-saves-btn s-btn s-btn__unset c-pointer py4" type="button" id="saves-btn-32399396" data-controller="s-tooltip" data-s-tooltip-placement="right" data-s-popover-placement="" data-is-saved="false" aria-label="Save" data-post-id="32399396" data-post-type-id="2" data-user-privilege-for-post-click="0" aria-controls="" data-s-popover-auto-show="false" aria-describedby="--stacks-s-tooltip-dup4cdfa">
+    <svg aria-hidden="true" class="fc-theme-primary-400 js-saves-btn-selected d-none svg-icon iconBookmark" width="18" height="18" viewbox="0 0 18 18"><path d="M3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+    <svg aria-hidden="true" class="js-saves-btn-unselected svg-icon iconBookmarkAlt" width="18" height="18" viewbox="0 0 18 18"><path d="m9 10.6 4 2.66V3H5v10.26zM3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+</button><div id="--stacks-s-tooltip-dup4cdfa" class="s-popover s-popover__tooltip" role="tooltip">Save this answer.<div class="s-popover--arrow"/></div>
+
+
+
+
+
+
+
+            <div class="js-accepted-answer-indicator flex--item fc-green-400 py6 mtn8" data-s-tooltip-placement="right" title="Loading when this answer was accepted…" tabindex="0" role="note" aria-label="Accepted">
+                <div class="ta-center">
+                    <svg aria-hidden="true" class="svg-icon iconCheckmarkLg" width="36" height="36" viewbox="0 0 36 36"><path d="m6 14 8 8L30 6v8L14 30l-8-8z"/></svg>
+                </div>
+            </div>
+
+    
+    <a class="js-post-issue flex--item s-btn s-btn__unset c-pointer py6 mx-auto" href="/posts/32399396/timeline" data-shortcut="T" data-ks-title="timeline" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-label="Timeline" aria-describedby="--stacks-s-tooltip-5btg3str"><svg aria-hidden="true" class="mln2 mr0 svg-icon iconHistory" width="19" height="18" viewbox="0 0 19 18"><path d="M3 9a8 8 0 1 1 3.73 6.77L8.2 14.3A6 6 0 1 0 5 9l3.01-.01-4 4-4-4zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10z"/></svg></a><div id="--stacks-s-tooltip-5btg3str" class="s-popover s-popover__tooltip" role="tooltip">Show activity on this post.<div class="s-popover--arrow"/></div>
+
+</div>
+
+            </div>
+
+            
+
+<div class="answercell post-layout--right">
+        <div class="js-endorsements" data-for-answer="32399396">
+</div>
+
+    
+    <div class="s-prose js-post-body" itemprop="text">
+<p>If you're in a newer version of PHP (5.4+), you can use <a href="http://php.net/manual/en/language.oop5.traits.php" rel="nofollow">traits</a>.</p>
+
+<pre class="lang-php s-code-block"><code data-highlighted="yes" class="hljs language-php"><span class="hljs-class"><span class="hljs-keyword">trait</span> <span class="hljs-title">ConfigTopics</span> </span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">set_config_topics</span>(<span class="hljs-params"/>) </span>{
+        <span class="hljs-comment">// ...</span>
+    }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">config</span> </span>{
+    <span class="hljs-keyword">use</span> <span class="hljs-title">ConfigTopics</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_ invoke__">__construct</span>() {
+        <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">set_config_topics</span>();
+    }
+}
+</code></pre>
+
+<p>Some notes:</p>
+
+<ul>
+<li>If you are inheriting non-public methods, they should be <code>protected</code> rather than <code>private</code>. This is because <code>private</code> methods can only be accessed from the class/trait where they are actually defined, but <code>protected</code> methods can also be used by all sub-classes.</li>
+<li>Traits are useful for sharing common code/functionality between multiple different classes. If none of these functions are used outside of your config class, then I really wouldn't bother splitting them out. Instead try an editor which supports code folding, or something like that.</li>
+<li>You can also extend a class (i.e. a sub-class). You can only extend one class, though, so traits are a type of multiple-inheritance for functionality.</li>
+</ul>
+    </div>
+    <div class="mt24">
+        <div class="d-flex fw-wrap ai-start jc-end gs8 gsy">
+            <time itemprop="dateCreated" datetime="2015-09-04 13:31:19Z"/>
+            <div class="flex--item mr16" style="flex: 1 1 100px;">
+                
+
+
+<div class="js-post-menu pt2" data-post-id="32399396" data-post-type-id="2">
+
+    <div class="d-flex gs8 s-anchors s-anchors__muted fw-wrap">
+
+        <div class="flex--item">
+            <a href="/a/32399396" rel="nofollow" itemprop="url" class="js-share-link js-gps-track" title="Short permalink to this answer" data-gps-track="post.click({ item: 2, priv: 0, post_type: 2 })" data-controller="se-share-sheet s-popover" data-se-share-sheet-title="Share a link to this answer" data-se-share-sheet-subtitle="" data-se-share-sheet-post-type="answer" data-se-share-sheet-social="facebook twitter devto" data-se-share-sheet-location="2" data-se-share-sheet-license-url="https%3a%2f%2fcreativecommons.org%2flicenses%2fby-sa%2f3.0%2f" data-se-share-sheet-license-name="CC BY-SA 3.0" data-s-popover-placement="bottom-start" aria-controls="se-share-sheet-1" data-action=" s-popover#toggle se-share-sheet#preventNavigation s-popover:show-&gt;se-share-sheet#willShow s-popover:shown-&gt;se-share-sheet#didShow" aria-expanded="false">Share</a><div class="s-popover z-dropdown s-anchors s-anchors__default" style="width: unset; max-width: 28em;" id="se-share-sheet-1"><div class="s-popover--arrow"/><div><label for="share-sheet-input-se-share-sheet-1"><span class="js-title fw-bold">Share a link to this answer</span> <span class="js-subtitle"/></label></div><div class="my8"><input type="text" id="share-sheet-input-se-share-sheet-1" class="js-input s-input wmn3 sm:wmn-initial bc-black-300 bg-white fc-black-600" readonly=""/></div><div class="d-flex jc-space-between ai-center mbn4"><button class="js-copy-link-btn s-btn s-btn__link js-gps-track" data-gps-track="">Copy link</button><a href="https://creativecommons.org/licenses/by-sa/3.0/" rel="license" class="js-license s-block-link w-auto" target="_blank" title="The current license for this post: CC BY-SA 3.0">CC BY-SA 3.0</a><div class="js-social-container d-none"/></div></div>
+        </div>
+
+
+                    <div class="flex--item">
+                        <a href="/posts/32399396/edit" class="js-suggest-edit-post js-gps-track" data-gps-track="post.click({ item: 6, priv: 0, post_type: 2 })" title="">Improve this answer</a>
+                    </div>
+
+                <div class="flex--item">
+                    <button type="button" id="btnFollowPost-32399396" class="s-btn s-btn__link js-follow-post js-follow-answer js-gps-track" data-gps-track="post.click({ item: 14, priv: 0, post_type: 2 })" data-controller="s-tooltip " data-s-tooltip-placement="bottom" data-s-popover-placement="bottom" aria-controls="" aria-describedby="--stacks-s-tooltip-fmyiivgi">
+                        Follow
+                        <input type="hidden" id="voteFollowHash" value="70:3:31e,16:733983631450aa83,10:1748471150,16:072d88d47682ef9a,8:32399396,16c53c0d87dae114636db931851c69f54982e0e4cf33c9d2aeef4d7fb7c05e3c"/>
+                    </button><div id="--stacks-s-tooltip-fmyiivgi" class="s-popover s-popover__tooltip" role="tooltip">Follow this answer to receive notifications<div class="s-popover--arrow"/></div>
+                </div>
+
+
+
+
+
+
+    </div>
+    <div class="js-menu-popup-container"/>
+</div>
+            </div>
+
+
+            <div class="post-signature flex--item fl0">
+                <div class="user-info user-hover ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            answered <span title="2015-09-04 13:31:19Z" class="relativetime">Sep 4, 2015 at 13:31</span>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/1172464/samlev"><div class="gravatar-wrapper-32"><img src="https://i.sstatic.net/EFyXl.png?s=64" alt="samlev's user avatar" width="32" height="32" class="bar-sm"/></div></a>
+    </div>
+    <div class="user-details" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <a href="/users/1172464/samlev" itemprop="url" dir="auto">samlev</a><span class="d-none" itemprop="name">samlev</span>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score " dir="ltr">5,952</span><span title="1 gold badge" aria-hidden="true"><span class="badge1"/><span class="badgecount">1</span></span><span class="v-visible-sr">1 gold badge</span><span title="28 silver badges" aria-hidden="true"><span class="badge2"/><span class="badgecount">28</span></span><span class="v-visible-sr">28 silver badges</span><span title="38 bronze badges" aria-hidden="true"><span class="badge3"/><span class="badgecount">38</span></span><span class="v-visible-sr">38 bronze badges</span>
+        </div>
+    </div>
+</div>
+
+
+            </div>
+        </div>
+        
+    
+    </div>
+    
+</div>
+
+
+
+
+                
+
+<span class="d-none" itemprop="commentCount"/> 
+    <div class="post-layout--right js-post-comments-component">
+        <div id="comments-32399396" class="comments js-comments-container bt bc-black-200 mt12  dno" data-post-id="32399396" data-min-length="15">
+            <ul class="comments-list js-comments-list" data-remaining-comments-count="0" data-canpost="false" data-cansee="true" data-comments-unavailable="false" data-addlink-disabled="true">
+
+            </ul>
+	    </div>
+
+        <div id="comments-link-32399396" data-rep="40" data-anon="true">
+                        <a class="js-add-link comments-link disabled-link" title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." href="#" role="button">Add a comment</a>
+                    <span class="js-link-separator dno"> | </span>
+            <a class="js-show-link comments-link dno" title="Expand to show all comments on this post" href="#" onclick="" role="button"/>
+        </div>         
+    </div>
+
+        </div>
+</div>
+<div class="js-zone-container zone-container-main">
+    <div id="dfp-bmlb" class="everyonelovesstackoverflow everyoneloves__bot-mid-leaderboard everyoneloves__leaderboard" style="min-height: auto; height: auto; display: none;"/>
+		<div class="js-report-ad-button-container " style="width: 728px"/>
+</div>
+
+                        <a name="new-answer"/>
+                            <form id="post-form" action="/questions/32399159/answer/submit" method="post" class="js-add-answer-component post-form">
+                                <input type="hidden" id="post-id" value="32399159"/>
+                                <input type="hidden" id="qualityBanWarningShown" name="qualityBanWarningShown" value="false"/>
+                                <input type="hidden" name="referrer" value=""/>
+                                    <input type="hidden" name="referrer-id" value="0"/>
+                                <h2 class="space" id="your-answer-header">
+                                    Your Answer
+                                </h2>
+                                    
+
+
+
+<script>
+    StackExchange.ready(function() {
+        var channelOptions = {
+            tags: "".split(" "),
+            id: "1"
+        };
+        initTagRenderer("".split(" "), "".split(" "), channelOptions);
+
+        StackExchange.using("externalEditor", function() {
+            // Have to fire editor after snippets, if snippets enabled
+            if (StackExchange.settings.snippets.snippetsEnabled) {
+                StackExchange.using("snippets", function() {
+                    createEditor();
+                });
+            }
+            else {
+                createEditor();
+            }
+        });
+
+        function createEditor() {   
+            StackExchange.prepareEditor({
+                useStacksEditor: true,
+                heartbeatType: 'answer',
+                autoActivateHeartbeat: false,
+                convertImagesToLinks: true,
+                noModals: true,
+                showLowRepImageUploadWarning: true,
+                reputationToPostImages: 10,
+                bindNavPrevention: true,
+                postfix: "",
+                imageUploadEnabled: false,
+                imageUploader: {
+                    brandingHtml: "",
+                    contentPolicyHtml: "User contributions licensed under \u003ca href=\"https://stackoverflow.com/help/licensing\"\u003eCC BY-SA\u003c/a\u003e \u003ca href=\"https://stackoverflow.com/legal/acceptable-use-policy\"\u003e(content policy)\u003c/a\u003e",
+                    allowUrls: true,
+                },
+                onDemand: true,
+                discardSelector: ".discard-answer",
+                enableTables: true,
+                isStacksEditorPreviewEnabled: true,
+                tabindex: 103,
+                highlightingLanguages: ["html","perl","dfm","ml","gyp","javascript","rss","jsp","scss","objc","bsh","kts","gemspec","wl","objective-c++","objectivec","https","el","h++","hs","plist","lua","xml","obj-c++","clojure","none","hh","vbs","ruby","kt","http","sh","typescript","vb","py","c#","mkd","xhtml","php","xjb","shellsession","sql","fs","ss","css","cson","pm","edn","mts","kotlin","coffeescript","pl","pas","tex","rust","csh","jsx","protobuf","delphi","matlab","m","s","xsl","mathematica","mak","mma","irb","md","cxx","atom","ts","lsp","cl","yaml","wsf","erlang","obj-c","rkt","golang","latex","ipython","svg","ini","toml","julia","cv","shell","makefile","dpr","scm","rc","vbnet","cpp","rs","cc","swift","vhd","c++","c-like","r","mjs","make","h","hpp","erl","iced","c","python","pascal","less","dart","podspec","scala","php-template","yml","markdown","bash","clj","java","cyc","coffee","json","cjs","go","hxx","ocaml","proto","cs","csharp","lisp","rb","console","cts","mkdown","mm","js","mk","tsx","haskell","scheme","thor","vhdl","xsd"]
+                ,enableTables:true
+            });
+                    }
+    });
+</script>
+<div id="post-editor" class="post-editor js-post-editor d-flex fd-column g4">
+
+
+    <input type="hidden" name="stacksEditorEnabled" value="True"/>
+
+        <input type="hidden" id="stacksEditorView" name="stacksEditorView"/>
+        <div class="js-stacks-validation">
+            <textarea id="js-stacks-editor-content" name="post-text" class="d-none js-stacks-editor-backing-textarea js-post-body-field" data-editor-type="stacks-editor" data-post-type-id="2" data-min-length="" aria-labelledby="your-answer-header"/>
+
+            <div id="js-stacks-editor-container" class="js-stacks-editor-container mb8">
+                <div class="js-fake-stacks-editor s-textarea s-input__readonly overflow-auto hmn2 w100 p0 d-flex fd-column pe-none">
+  <div class="py6 bg-inherit btr-sm w100">
+    <div class="d-flex overflow-x-auto ai-center px12 py4 pb0">
+      <div class="d-flex g16 fl-grow1 ai-center">
+        <div class="s-editor-menu-block d-flex g2">
+          <div>
+            <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+              <span class="svg-icon-bg iconHeader"/>
+            </button>
+          </div>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconBold"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconItalic"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconCode"/>
+          </button>
+        </div>
+        <div class="s-editor-menu-block d-flex g2">
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconLink"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconQuote"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconCodeblock"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconImage"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconTable"/>
+          </button>
+        </div>
+        <div class="s-editor-menu-block d-flex g2">
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconOrderedList"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconUnorderedList"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconHorizontalRule"/>
+          </button>
+        </div>
+        <div class="s-editor-menu-block d-flex g2 sm:d-inline-flex d-none">
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconUndo"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconRefresh"/>
+          </button>
+        </div>
+        <div class="s-editor-menu-block d-flex g2">
+          <a class="s-editor-btn s-btn is-disabled" tabindex="-1" href="#" target="_blank">
+            <span class="svg-icon-bg iconHelp"/>
+          </a>
+        </div>
+      </div>
+      <div class="flex--item d-flex ai-center ml24 fc-black-500">
+        <div class="s-btn-group--radio">
+          <label class="s-btn s-editor-btn px6">
+            <span class="svg-icon-bg iconRichText"/>
+          </label>
+          <label class="s-btn s-editor-btn px6">
+            <span class="svg-icon-bg iconMarkdown"/>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class=" fl-grow1 outline-none p12 pt6 w100 s-prose ProseMirror">
+  </div>
+</div>
+
+            </div>
+            <div id="js-stacks-editor-container-validation-message" class="s-input-message mt4 js-stacks-validation-message d-none"/>
+        </div>
+
+    <aside class="d-flex ai-start jc-space-between js-answer-help s-notice s-notice__warning pb0 pr4 pt4 mb8 d-none" role="status" aria-hidden="true">
+    <div class="flex--item pt8">
+        <p>Thanks for contributing an answer to Stack Overflow!</p><ul><li>Please be sure to <em>answer the question</em>. Provide details and share your research!</li></ul><p>But <em>avoid</em> …</p><ul><li>Asking for help, clarification, or responding to other answers.</li><li>Making statements based on opinion; back them up with references or personal experience.</li></ul><p>To learn more, see our <a href="/help/how-to-answer">tips on writing great answers</a>.</p>
+    </div>
+    <button class="flex--item js-answer-help-close-btn s-btn s-btn__muted fc-black-600">
+        <svg aria-hidden="true" class="svg-icon iconClear" width="18" height="18" viewbox="0 0 18 18"><path d="M15 4.41 13.59 3 9 7.59 4.41 3 3 4.41 7.59 9 3 13.59 4.41 15 9 10.41 13.59 15 15 13.59 10.41 9z"/></svg>
+    </button>
+</aside>
+
+
+
+    <div>
+        <div id="draft-saved" class="fc-success h24" style="display:none;">Draft saved</div>
+        <div id="draft-discarded" class="fc-error h24" style="display:none;">Draft discarded</div>
+    </div>
+
+
+
+        <div class="edit-block">
+            <input id="fkey" name="fkey" type="hidden" value="4e63a3da78dea56c2ee921d42a4d897c8b67670bbabcb0ee11160b2facc87a76"/>
+            <input id="author" name="author" type="text"/>
+        </div>
+
+</div>
+
+
+                                <div class="ps-relative">
+                                               <div class="form-item new-post-login p0 my16">
+                <div class="d-flex gs16 md:fd-column new-login-form">
+                    <div class="d-flex fd-column w50 md:w-auto gsy gs8 jc-space-between new-login-left">
+                        <h3 class="flex--item fs-title">Sign up or <a id="login-link" href="/users/login?ssrc=question_page&amp;returnurl=https%3a%2f%2fstackoverflow.com%2fquestions%2f32399159%2fsplitting-class-file%23new-answer">log in</a></h3>
+                        <script>
+                            StackExchange.ready(function () {
+                                StackExchange.helpers.onClickDraftSave('#login-link');
+                            });
+                        </script>
+                        <div class="flex--item s-btn s-btn__muted s-btn__outlined s-btn__icon google-login" data-ga="[&quot;sign up&quot;,&quot;Sign Up Started - Google&quot;,&quot;New Post&quot;,null,null]">
+                            <svg aria-hidden="true" class="native svg-icon iconGoogle" width="18" height="18" viewbox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.8 4.8 0 0 1 4.48-3.3"/></svg> Sign up using Google
+                        </div>
+                        <div class="flex--item s-btn s-btn__muted s-btn__outlined s-btn__icon stackexchange-login" data-ga="[&quot;sign up&quot;,&quot;Sign Up Navigation&quot;,&quot;New Post&quot;,null,null]">
+                            <svg aria-hidden="true" class="native svg-icon iconGlyphXSm" width="18" height="18" viewbox="0 0 18 18"><path fill="#BCBBBB" d="M14 16v-5h2v7H2v-7h2v5z"/><path fill="#F48024" d="m12.09.72-1.21.9 4.5 6.07 1.22-.9zM5 15h8v-2H5zm9.15-5.87L8.35 4.3l.96-1.16 5.8 4.83zm-7.7-1.47 6.85 3.19.63-1.37-6.85-3.2zm6.53 5L5.4 11.39l.38-1.67 7.42 1.48z"/></svg> Sign up using Email and Password
+                        </div>
+                    </div>
+                    <input type="hidden" name="use-facebook" class="use-facebook" value="false"/>
+                    <input type="hidden" name="use-google" class="use-google" value="false"/>
+                    <button type="button" class="d-none js-submit-openid">Submit</button>
+                    <div class="d-flex gsy gs8 fd-column w50 md:w-auto new-login-right form-item p0">
+                                <h3 class="flex--item fs-title">Post as a guest</h3>
+            <div class="flex--item">
+                <div class="d-flex gs4 gsy fd-column">
+                    <label class="s-label" for="display-name">Name</label>
+                    <div class="d-flex ps-relative">
+                        <input class="s-input" id="display-name" name="display-name" maxlength="30" type="text" value="" tabindex="105" placeholder=""/>
+                    </div>
+                </div>
+            </div>
+            <div class="flex--item">
+                <div class="d-flex gs4 gsy fd-column">
+                    <div class="flex--item">
+                        <div class="d-flex gs2 gsy fd-column">
+                            <label class="flex--item s-label" for="m-address">Email</label>
+                            <p class="flex--item s-description">Required, but never shown</p>
+                        </div>
+                    </div>
+                    <div class="d-flex ps-relative">
+                        <input class="s-input js-post-email-field" id="m-address" name="m-address" type="text" value="" size="40" tabindex="106" placeholder=""/>
+                    </div>
+                </div>
+            </div>
+
+                    </div>
+                </div>
+            </div>
+            <script>
+                StackExchange.ready(
+                    function () {
+                        StackExchange.openid.initPostLogin('.new-post-login', 'https%3a%2f%2fstackoverflow.com%2fquestions%2f32399159%2fsplitting-class-file%23new-answer', 'question_page');
+                    }
+                );
+            </script>
+            <noscript>
+                        <h3 class="flex--item fs-title">Post as a guest</h3>
+            <div class="flex--item">
+                <div class="d-flex gs4 gsy fd-column">
+                    <label class="s-label" for="display-name">Name</label>
+                    <div class="d-flex ps-relative">
+                        <input class="s-input" id="display-name" name="display-name" maxlength="30" type="text" value="" tabindex="105" placeholder=""/>
+                    </div>
+                </div>
+            </div>
+            <div class="flex--item">
+                <div class="d-flex gs4 gsy fd-column">
+                    <div class="flex--item">
+                        <div class="d-flex gs2 gsy fd-column">
+                            <label class="flex--item s-label" for="m-address">Email</label>
+                            <p class="flex--item s-description">Required, but never shown</p>
+                        </div>
+                    </div>
+                    <div class="d-flex ps-relative">
+                        <input class="s-input js-post-email-field" id="m-address" name="m-address" type="text" value="" size="40" tabindex="106" placeholder=""/>
+                    </div>
+                </div>
+            </div>
+
+            </noscript>
+
+                                </div>
+
+                                    <div class="form-submit clear-both d-flex sm:fd-column sm:jc-stretch gs4 ai-center mb24">
+                                        <button id="submit-button" class="flex--item fl-shrink0 s-btn s-btn__filled sm:w100" type="submit" tabindex="120" autocomplete="off">
+                                            Post Your Answer
+                                        </button>
+                                        <button class="flex--item s-btn s-btn__danger fl-shrink0 sm:w100 discard-answer d-none">
+                                            Discard
+                                        </button>
+                                            <p class="flex--item mb0 fs-italic ml12 sm:ml0">
+                                                By clicking “Post Your Answer”, you agree to our <a href="https://stackoverflow.com/legal/terms-of-service/public" name="tos" target="_blank" class="-link">terms of service</a> and acknowledge you have read our <a href="https://stackoverflow.com/legal/privacy-policy" name="privacy" target="_blank" class="-link">privacy policy</a>.<input type="hidden" name="legalLinksShown" value="1"/>
+                                            </p>
+                                    </div>
+                                    <div class="js-general-error general-error clear-both d-none" aria-live="polite"/>
+                            </form>
+
+
+                            <div class="js-bottom-notice d-flex w100 md:mb12 md:fd-column ac-stretch" data-loc="1">
+                                <div class="flex--item ba bc-black-200 bar-md p24 md:p16 mr12 md:mb12 md:mr0 w50 md:w100">
+                                    <div class="d-flex fd-column">
+                                        <p class="flex--item fs-body2 fw-bold fc-black-500 mb8">Start asking to get answers</p>
+                                        <p class="flex--item fs-body1 fc-black-400 mb16">Find the answer to your question by asking.</p>
+                                        <a class="flex--item s-btn s-btn__outlined as-start px32 md:px16" href="/questions/ask">Ask question</a>
+                                    </div>
+                                </div>
+                                <div class="flex--item ba bc-black-200 bar-md p24 md:p16 w50 md:w100">
+                                    <div class="d-flex fd-column gsy g16">
+                                        <p class="flex--item fs-body2 fw-bold fc-black-500 mb0">Explore related questions</p>
+                                        <div class="flex--item mb0"><ul class="ml0 list-ls-none js-post-tag-list-wrapper d-inline"><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/php" class="s-tag post-tag js-gps-track" title="show questions tagged 'php'" aria-label="show questions tagged 'php'" rel="tag" aria-labelledby="tag-php-tooltip-container" data-tag-menu-origin="Unknown">php</a></li></ul></div>
+                                        <p class="flex--item fs-body1 fc-black-400 mb0">See similar questions with these tags.</p>
+                                    </div>
+                                </div>
+                            </div>
+                </div>
+            </div>
+
+            
+<div id="sidebar" class="show-votes" role="complementary" aria-label="sidebar">
+        
+    <div class="sidebar-subcommunity mb16">
+        <div>
+                <a href="/collectives/php" class="js-gps-track" data-gps-track="subcommunity_link.click({ subcommunity_user_type: 0, subcommunity_slug: php, link_source: 1})">
+                <span class="themed subcommunity-topic-avatar subcommunity-topic-php bg-theme-primary btr-sm  p8 d-flex ai-center h:bs-md">
+                    <span class="flex--item my6 ml4">
+                        <div class="themed subcommunity-topic-avatar subcommunity-topic-php s-avatar s-avatar__32 mr6"/>
+                    </span>
+                    <span class="flex--item fl-grow1 fl-shrink0 mr8">
+                        <span class="d-block fs-body2 fc-white">PHP</span>
+                        <span class="d-block fs-caption fc-black-150">Collective</span>
+                    </span>
+                    
+                    <span class="s-btn s-btn__outlined s-btn__xs mr4 fc-white bc-white h:bg-theme-primary-400 f:bg-theme-primary-400">See more</span>
+                </span>
+            </a>
+        </div>
+
+
+
+            <div>
+                <div class="fs-fine p12 ba bc-black-200 fc-black-400 bbr-sm">
+
+                            <a href="/collectives"><svg aria-hidden="true" class="va-text-bottom svg-icon iconHelpSm" width="14" height="14" viewbox="0 0 14 14"><path d="M7 1C3.74 1 1 3.77 1 7c0 3.26 2.77 6 6 6 3.27 0 6-2.73 6-6s-2.73-6-6-6m1.06 9.06c-.02.63-.48 1.02-1.1 1-.57-.02-1.03-.43-1.01-1.06s.5-1.04 1.08-1.02c.6.02 1.05.45 1.03 1.08m.73-3.07-.47.3q-.31.23-.44.6a4 4 0 0 0-.08.65c0 .04-.03.14-.16.14h-1.4c-.14 0-.16-.09-.16-.13q-.02-.76.36-1.42.53-.64 1.26-1.06c.15-.1.21-.21.3-.33q.27-.32.28-.74c.01-.67-.53-1.14-1.18-1.14-.9 0-1.18.7-1.18 1.46H4.2c0-1.17.31-1.92.98-2.36a3.5 3.5 0 0 1 1.83-.44c.88 0 1.58.16 2.2.62q.88.62.88 1.82-.02.74-.43 1.24-.23.3-.86.79z"/></svg> This question is in a collective:</a> a subcommunity defined by tags with relevant content and experts.
+                                        </div>
+            </div>
+    </div>
+    <script type="text/javascript">
+        StackExchange.ready(function () {
+            const $showButton = $('.js-show-additional-communities');
+
+            $showButton.on('s-expandable-control:show', function () {
+                $showButton.text('Show fewer');
+            });
+
+            $showButton.on('s-expandable-control:hide', function () {
+                $showButton.html($showButton.data('show-title'));
+            });
+        });
+    </script>
+
+    
+    <div class="s-sidebarwidget s-sidebarwidget__yellow s-anchors s-anchors__grayscale mb16" data-tracker="cb=1">
+            <ul class="s-sidebarwidget--content s-sidebarwidget__items p0">
+                        <li class="s-sidebarwidget--header">
+                            The Overflow Blog
+                        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<svg aria-hidden="true" class="va-text-top svg-icon iconPencilSm" width="14" height="14" viewbox="0 0 14 14"><path fill="#F1B600" d="m2 10.12 6.37-6.43 1.88 1.88L3.88 12H2z"/><path fill="#E87C87" d="m11.1 1.71 1.13 1.12c.2.2.2.51 0 .71L11.1 4.7 9.21 2.86l1.17-1.15c.2-.2.51-.2.71 0"/></svg>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://stackoverflow.blog/2025/05/27/the-future-is-agents-building-a-platform-for-rag-agents/?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;The Overflow Blog&quot;,&quot;https://stackoverflow.blog/2025/05/27/the-future-is-agents-building-a-platform-for-rag-agents/&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 1, position: 0, location: questionpage })">“The future is agents”: Building a platform for RAG agents</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<svg aria-hidden="true" class="va-text-top svg-icon iconPencilSm" width="14" height="14" viewbox="0 0 14 14"><path fill="#F1B600" d="m2 10.12 6.37-6.43 1.88 1.88L3.88 12H2z"/><path fill="#E87C87" d="m11.1 1.71 1.13 1.12c.2.2.2.51 0 .71L11.1 4.7 9.21 2.86l1.17-1.15c.2-.2.51-.2.71 0"/></svg>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://stackoverflow.blog/2025/05/28/a-deep-dive-into-building-an-agent-framework-for-salesforce/?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;The Overflow Blog&quot;,&quot;https://stackoverflow.blog/2025/05/28/a-deep-dive-into-building-an-agent-framework-for-salesforce/&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 1, position: 1, location: questionpage })">A deep dive into building an agent framework for Salesforce</a>
+            </div>
+        </li>
+                        <li class="s-sidebarwidget--header">
+                            Upcoming Events
+                        </li>
+    <li class="s-sidebarwidget--item d-flex px16">
+        <div class="flex--item1 fl-shrink0">
+            <div class="favicon favicon-stackoverflow" title="Stack Overflow"/>
+        </div>
+        <div class="flex--item wmn0 ow-break-word">
+            <a href="https://stackoverflow.com/election?cb=1" class="fc-danger js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Upcoming Events&quot;,&quot;https://stackoverflow.com/election&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 5, position: 2, location: questionpage })">2025 Community Moderator Election</a>
+            <div>ends <span title="2025-06-11 20:00:00Z">June 11</span></div>
+        </div>
+    </li>
+                        <li class="s-sidebarwidget--header">
+                            Featured on Meta
+                        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackexchangemeta" title="Meta Stack Exchange"/>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackexchange.com/questions/408998/two-new-chat-rooms-experiment-geared-towards-new-users?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackexchange.com/questions/408998/two-new-chat-rooms-experiment-geared-towards-new-users&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 3, position: 3, location: questionpage })">Two New Chat Rooms Experiment Geared Towards New Users</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackexchangemeta" title="Meta Stack Exchange"/>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackexchange.com/questions/410212/how-can-we-bring-more-fun-to-the-stack-ecosystem-community-ideas-welcome?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackexchange.com/questions/410212/how-can-we-bring-more-fun-to-the-stack-ecosystem-community-ideas-welcome&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 3, position: 4, location: questionpage })">How Can We Bring More Fun to the Stack Ecosystem? Community Ideas Welcome!</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackoverflowmeta" title="Meta Stack Overflow"/>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackoverflow.com/questions/433957/how-can-i-revert-the-style-layout-changes-to-comments?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackoverflow.com/questions/433957/how-can-i-revert-the-style-layout-changes-to-comments&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 6, position: 5, location: questionpage })">How can I revert the style/layout changes to comments?</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackoverflowmeta" title="Meta Stack Overflow"/>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackoverflow.com/questions/421831/policy-generative-ai-e-g-chatgpt-is-banned?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackoverflow.com/questions/421831/policy-generative-ai-e-g-chatgpt-is-banned&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 6, position: 6, location: questionpage })">Policy: Generative AI (e.g., ChatGPT) is banned</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackoverflowmeta" title="Meta Stack Overflow"/>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackoverflow.com/questions/434022/experimenting-with-the-commenting-reputation-requirement?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackoverflow.com/questions/434022/experimenting-with-the-commenting-reputation-requirement&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 6, position: 7, location: questionpage })">Experimenting with the Commenting Reputation Requirement</a>
+            </div>
+        </li>
+        </ul>
+    </div>
+
+
+<div class="js-zone-container zone-container-sidebar" style="min-height: auto; height: auto;">
+    <div id="dfp-tsb" class="everyonelovesstackoverflow everyoneloves__top-sidebar" data-dfp-zone="true" style="min-height: auto; height: auto;" data-google-query-id="CPCP986ax40DFRdKHQkdh00Z9g"><div id="google_ads_iframe_/248424177/stackoverflow.com/sb/question-pages_0__container__" style="border: 0pt none; display: inline-block; width: 300px; height: 600px;"><iframe frameborder="0" src="https://f8a13fb46f435c4353f7cf6a726421cf.safeframe.googlesyndication.com/safeframe/1-0-45/html/container.html" id="google_ads_iframe_/248424177/stackoverflow.com/sb/question-pages_0" title="3rd party ad content" name="" scrolling="no" marginwidth="0" marginheight="0" width="300" height="600" data-is-safeframe="true" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" allow="private-state-token-redemption;attribution-reporting" aria-label="Advertisement" tabindex="0" data-google-container-id="1" style="border: 0px; vertical-align: bottom;" data-load-complete="true"/></div></div>
+		<div class="js-report-ad-button-container " style="width: 300px; height: 24px;"><button data-google-event-data="{&quot;serviceName&quot;:&quot;publisher_ads&quot;,&quot;slot&quot;:{},&quot;isEmpty&quot;:false,&quot;slotContentChanged&quot;:true,&quot;size&quot;:[300,600],&quot;advertiserId&quot;:4947982933,&quot;campaignId&quot;:3742256868,&quot;creativeId&quot;:138516575829,&quot;creativeTemplateId&quot;:null,&quot;labelIds&quot;:null,&quot;lineItemId&quot;:6960178706,&quot;sourceAgnosticCreativeId&quot;:138516575829,&quot;sourceAgnosticLineItemId&quot;:6960178706,&quot;isBackfill&quot;:false,&quot;yieldGroupIds&quot;:null,&quot;companyIds&quot;:null,&quot;vast&quot;:null,&quot;responseIdentifier&quot;:&quot;CPCP986ax40DFRdKHQkdh00Z9g&quot;,&quot;adTransparencyUrl&quot;:null}" data-modal-url="/ads/report-ad" data-ad-unit="dfp-tsb" class="js-report-ad s-btn s-btn__link fs-fine mt2 float-right">Report this ad</button></div>
+</div>
+<div class="js-zone-container zone-container-sidebar mt16" style="min-height: auto; height: auto;">
+    <div id="dfp-msb" class="everyonelovesstackoverflow everyoneloves__mid-sidebar" data-dfp-zone="true" style="min-height: auto; height: auto;" data-google-query-id="CPLn_M6ax40DFY5CHQkdjvkqog"><div id="google_ads_iframe_/248424177/stackoverflow.com/msb/question-pages_0__container__" style="border: 0pt none; display: inline-block; width: 300px; height: 600px;"><iframe frameborder="0" src="https://f8a13fb46f435c4353f7cf6a726421cf.safeframe.googlesyndication.com/safeframe/1-0-45/html/container.html" id="google_ads_iframe_/248424177/stackoverflow.com/msb/question-pages_0" title="3rd party ad content" name="1-0-45;93564;&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;script&gt;var jscVersion = 'r20250527';&lt;/script&gt;&lt;script&gt;var google_casm=[];&lt;/script&gt;&lt;/head&gt;&lt;body leftMargin=&quot;0&quot; topMargin=&quot;0&quot; marginwidth=&quot;0&quot; marginheight=&quot;0&quot;&gt;&lt;div class=&quot;GoogleActiveViewInnerContainer&quot;id=&quot;avic_CPLn_M6ax40DFY5CHQkdjvkqog&quot;style=&quot;left:0px;top:0px;width:100%;height:100%;position:fixed;pointer-events:none;z-index:-9999;&quot;&gt;&lt;/div&gt;&lt;div style=&quot;display:inline&quot;class=&quot;GoogleActiveViewElement&quot;data-google-av-cxn=&quot;https://pagead2.googlesyndication.com/pcs/activeview?xai=AKAOjstd6AGhKFrk6FPaFE9c3HdGkPDTIC3zgwxPL9tQq5VxYcEmlEKzrS_uDJOeoaZ2l1PHl6OXb_n7__6O4_HLifaedYDpoeZ2oqKTbpHPzcHiCaI0vpBZVHuczTZNyab-oZsI8r06x24wnNUedQXmCIYB4-4znSgMhx_-WL2ujDwjRBkDTg5V2aGbhOIqWk26F3oiGj0imWj9llR5g2pzLI1DkNpWu_JXAcfC7CWY3x1ODBikGSUUUfDBRpTYJ2qOCMA6VZYu4fpZhWVrRbJd9Wvh-1MVTb19m_SAIPQs1zrOrgHM91mHWg&amp;amp;sig=Cg0ArKJSzE6IT5jiddbTEAE&quot;data-google-av-adk=&quot;3890135258&quot;data-google-av-metadata=&quot;la=0&amp;amp;xdi=0&amp;amp;&quot;data-google-av-ufs-integrator-metadata=&quot;CgIYABKcAwqPA2h0dHBzOi8vcGFnZWFkMi5nb29nbGVzeW5kaWNhdGlvbi5jb20vcGNzL2FjdGl2ZXZpZXc_eGFpPUFLQU9qc3RkNkFHaEtGcms2RlBhRkU5YzNIZEdrUERUSUMzemd3eFBMOXRRcTVWeFljRW1sRUt6clNfdURKT2VvYVoybDFQSGw2T1hiX243X182TzRfSExpZmFlZFlEcG9lWjJvcUtUYnBIUHpjSGlDYUkwdnBCWlZIdWN6VFpOeWFiLW9ac0k4cjA2eDI0d25OVWVkUVhtQ0lZQjQtNHpuU2dNaHhfLVdMMnVqRHdqUkJrRFRnNVYyYUdiaE9JcVdrMjZGM29pR2owaW1XajlsbFI1ZzJwekxJMURrTnBXdV9KWEFjZkM3Q1dZM3gxT0RCaWtHU1VVVWZEQlJwVFlKMnFPQ01BNlZaWXU0ZnBaaFdWclJiSmQ5V3ZoLTFNVlRiMTltX1NBSVBRczF6ck9yZ0hNOTFtSFdnJnNpZz1DZzBBcktKU3pFNklUNWppZGRiVEVBRRIAGgAgASgAMAQaHgoaQ1BMbl9NNmF4NDBERlk1Q0hRa2Rqdmtxb2cQBQ&quot;data-google-av-override=&quot;-1&quot;data-google-av-dm=&quot;2&quot;data-google-av-aid=&quot;0&quot;data-google-av-naid=&quot;1&quot;data-google-av-slift=&quot;&quot;data-google-av-cpmav=&quot;&quot;data-google-av-btr=&quot;https://pagead2.googlesyndication.com/pcs/view?xai=AKAOjsucuAMfHT-7kbLXD1xmGs-sWc6p41KobicUEiAEiFW27j9bU8PEiRKe_1CmvLC-vaBhVGWbOX-jxXMLuMz3cfoSh_sLppCLZKRMYyYSPVAK49URInacOhY89wZgzLx3StDLtCeeWDh-zg5L1eJ5-It44fKP2LJbEzjZvjLjeT_CTHuFCTH648qapevHGxwPJeIZr7AhZmmtxmt05LZhJ7siRfX6IONhVLAB0dVxdgQE5cyphBaKjS1skfZi9fnPmgc8JK2SNEILvDLqNG-SLK7BA0KcEZeEYytokA1V9OMNRh1GCLSnB5Y0BsrQ2toCmdPFyugciLZjZglgN-vTE9X2Vu9QRhjBn0FQ3NOdQiPWWGgRWL_vBakCvJkklJkqA8NQl0_gg2s5uKax395gAOJ-U4e9aVLeHTa1iSvqjeuWSgoLYkRU3y0-MkDNkRROonR-xffAZJVGZCDfNtdnGwI6nHECZS_74aHfcQ&amp;amp;sig=Cg0ArKJSzGxVeDmZFo0xEAE&amp;amp;uach_m=%5BUACH%5D&amp;amp;urlfix=1&amp;amp;adurl=&quot;data-google-av-itpl=&quot;20&quot;data-google-av-rs=&quot;4&quot;data-google-av-flags=&quot;[&amp;quot;x%278440&amp;#39;9efotm(&amp;amp;753374%2bejvf/%27844&amp;gt;&amp;#39;9wuvb$&amp;amp;56533&amp;gt;!=|vqc)!273794&amp;amp;&amp;lt;qqvb/%&amp;lt;1735020!=nehu`/!364=5051!9abk{a($160210:3&amp;amp;&amp;lt;cbotf+*0150034:%2bejvf/%72;17613!=efdwa*&amp;#39;76463;21$?ebkpb$&amp;amp;0366717&amp;gt;*&amp;gt;bgipf+!3=712363%9aihwc)!7202&amp;lt;217&amp;#39;9efotm(&amp;amp;20061;48&amp;amp;&amp;gt;`dopb/%&amp;lt;1707200!=8(&amp;amp;2005575?&amp;amp;&amp;gt;`dopb/%&amp;lt;170642?!=|vqc)!7201;=50&amp;#39;9wuvb$&amp;amp;03641654*&amp;gt;bgipf+!3=731103%9aihwc)!7200?073&amp;#39;9efotm(&amp;amp;2004?51;&amp;amp;&amp;gt;`dopb/%&amp;lt;17&amp;gt;474&amp;gt;!=nehu`/!36406412!9abk{a($167745;=&amp;amp;&amp;lt;cbotf+*01254133%2pvs`/!36383624!9abk{a($167574&amp;gt;7&amp;amp;&amp;lt;qqvb/%&amp;lt;104=460!=nehu`/!363;42&amp;gt;7!9abk{a($1656;3?&amp;lt;&amp;amp;&amp;lt;cbotf+*01011776%2bejvf/%72&amp;gt;17266!=efdwa*&amp;#39;7616?=&amp;lt;=$?ebkpb$&amp;amp;0335225&amp;gt;*&amp;gt;bgipfz&amp;quot;]&quot;&gt;&lt;DIV STYLE=&quot;position: absolute; left: 0px; top: 0px; visibility: hidden;&quot;&gt;&lt;IMG SRC=&quot;https://pagead2.googlesyndication.com/pagead/gen_204?id=xbid&amp;dbm_b=AKAmf-AO2iYBY461OiK6yvr6P3_hQM1EzuOMTdL1rm_GlPZerAExJd3Y0SG35mpMTe7Zo0rU0DF3596XKEAzfOPG7oV-NuSAgByeKLuxdOfZslH1DnAnKsQ&quot; BORDER=0 WIDTH=1 HEIGHT=1 ALT=&quot;&quot; STYLE=&quot;display:none&quot;&gt;&lt;/DIV&gt;&lt;div&gt;&lt;div style=&quot;position:absolute;&quot;&gt;&lt;script&gt;if (!window.mraid) {document.write('\x3cdiv id=&quot;ad_unit&quot;\x3e');}document.write('\x3cdiv class=&quot;GoogleCreativeContainerClass&quot; ' +'id=&quot;gcc_b403aLL0EI6F9fgPjvOrkQo&quot;\x3e');(function() {var m = document.createElement('meta');m.setAttribute('data-jc', '82');m.setAttribute('data-jc-version', 'r20250527');var ss = document.getElementsByTagName('script')[0];if (ss &amp;&amp; ss.parentNode) {ss.parentNode.insertBefore(m, ss);}})();(function(){'use strict';/*  Copyright The Closure Library Authors. SPDX-License-Identifier: Apache-2.0 */ var h=this||self;function k(a,d,b){if(a)for(let c=0;a!=null&amp;&amp;c&lt;500&amp;&amp;!b(a);++c)a=d(a)}function l(a,d){k(a,b=&gt;{try{return b===b.parent?null:b.parent}catch(c){}return null},d)}function m(a,d){if(a.tagName==&quot;IFRAME&quot;)d(a);else{a=a.querySelectorAll(&quot;IFRAME&quot;);for(let b=0;b&lt;a.length&amp;&amp;!d(a[b]);++b);}}function n(a){return(a=a.ownerDocument)&amp;&amp;(a.parentWindow||a.defaultView)||null} function p(a,d,b){let c;try{c=JSON.parse(b.data)}catch(f){}if(typeof c===&quot;object&quot;&amp;&amp;c&amp;&amp;c.type===&quot;creativeLoad&quot;){var g=n(a);if(b.source&amp;&amp;g){var e;l(b.source,f=&gt;{try{if(f.parent===g)return e=f,!0}catch(q){}});e&amp;&amp;m(a,f=&gt;{if(f.contentWindow===e)return d(c),!0})}}}function r(a){return typeof a===&quot;string&quot;?document.getElementById(a):a};window.clsn=(a,d)=&gt;{const b=r(a);if(b)if(b.onCreativeLoad)b.onCreativeLoad(d);else{var c=d?[d]:[],g=e=&gt;{for(let f=0;f&lt;c.length;++f)try{c[f](1,e)}catch(q){}c={push:f=&gt;{f(1,e)}}};b.onCreativeLoad=e=&gt;{c.push(e)};b.setAttribute(&quot;data-creative-load-listener&quot;,&quot;&quot;);b.addEventListener(&quot;creativeLoad&quot;,e=&gt;{g(e.detail)});h.addEventListener(&quot;message&quot;,e=&gt;{p(b,g,e)})}};}).call(this); clsn(&quot;gcc_b403aLL0EI6F9fgPjvOrkQo&quot;);document.write('\x3ca target\x3d\x22_blank\x22 id\x3d\x22img_anch_CN7M9s6ax40DFY5CHQkdjvkqog\x22 href\x3d\x22https://pagead2.googlesyndication.com/pcs/click?xai\x3dAKAOjst2kgsA_rT5khEdPMpodQjY-owQocIXQuzrjz4A3DdZ8xyr8t3sZQafWK9caP3u1TFqhyTXvQPCfKXS6L14vBg68pjw0yDM-UcR6FlLyANEGH-5X9ubjvsSEgvRJaPLCmejXBrBuqPzQGY13vgoZUi8kTwNvOoRbd09l4L2Y-pTNUjTtjDfmizs4XJ0TqzkZWe8FQRchmwnw_iyYwVXiFw6q28s8KMap9ePdv4f1nwIT1uvbAMNk3JRp149nP0CMTPPPYTFmEL0YcmmK10JaWyz92W_JrYzl_sWb70_10Y_3Xg5i1y5DQu7sPwgSS2_EfOHipiCY95I0TWQNYAJVupp3ucma6392RKIfj-w4p2-oNasuTdnw_ZmCXCe0Q8WS8OndMJnnsE8kqVnRJ9lkziu_Hju6ttIKxq8YuklLYcUJQK8kVCXYKsnkOOrAtOz4cumLgngd6_f8XB7KtHfVhTvkRisefpRFH3VApExovuy2sCpVmjPKhGfoYoKrkG6XW2ioMmiXTglXToyNKqsd4RA25b2StsV_pMYj-OlGTIDLfujOZzGt1sWFmICxj9w9YTHZ78_bz_ezBiGPb77kROHJ0Wfmvo4E7zKPRyntx0TybONyD8rgMybSPUu0YjOJQqd9MC5twTFsYvv8kmy92IU6hNbg6ynoKH2ZTP-fdNER9DmHnKCPxOatxwDaoeJm-rV_ueXTcWlOhI6Ujybk_IO9FFIYzIqnNJIP87B2RM1kCT_I-hm_P_MQi9sdT_VBSYDmPXp57OgyBX-m7CFoTJ-vRDI6Jk2NGzkpHl5aAbKzrHe5YhaGWYje514vG02T_5NPCNSdvm0dBy0LupH95fW33_wt02lz0dqbwphB6Kg4KHFxcl8Qtv0dCN1nniwQ4Bnea-eETYEkWQABTUTfCxy_UEgnrnqkF6-NWGYd_l5VzMPBSFuboaysa74DbKfRK_QJtQz29rvjZ3GUHecDE7BLqDPB6PGonMwXrSYKwULb5YxhY54CzId30qU89oI7ycUiFJg_JW8cWWAF8WCrFFa6PtFqbNo0EDnlOx-5cnbfloYCvWJ3rJ8IM-bfTLqQ_2rsYWuP2JSowDmJFV4dbW_KWSbl2oKJNM8LjKsJHcIEnbcpHzWyYx8YYpi1xHmSiTeUkaT2AXLT_OnGDal2TNibWa5ulXTjKYpHLfnMNmghKsYFldThM7Cs-hKJw2TW8o5V2346GVoUG_mBN_c7yZ7Lx_MrVGyqbFmQuaAJwAvNcN2VhtGEpDg_j3mkocTfARFivszu_ANcd-rlP_q54eU-qTn968uBgeMYigFJcwXFgsLHqLAjL2JUMsErl8oTIthBAzHw8Sd9PrVQ3CjOtbzu6gEjP0OdRE4ONkq4h1JOb8t_nqR12h7dT-4-Q6lLh3JFK7rQh25O8HPMMiBHYI-YE5acm1JhAnjD9WzbuH-RL1cXheK-8WLXvDpki_4IRInjdM9dJFj-4E5T1qWOxJMjfGqGxMyzWvULyMSSgx70diYHtRN5d_CDEYH-e9ZRz-KC-z9LbOopTbjY-Wh6UwibeP4CAiEH74VQktV5EpxaQkGqh1mboPBYob_M9tj4Z9IHFrCoLb6F72JCGWafTMW96UeG-LTy-6z7VzgKYxecvFRohVIAfNRr3y-DmlCbzqZQfI9wSBb5BBQt32r87wNhTYcpPdcrnqqR7XHYNf0LwWoe4QDbTjrTpKNsntT_e6Q7ZxTNSDWs6wktvkxLGkurspuQebO2uKzzD6pXGHc6AY6A2VkZBxkPvgHFP4aKQvsBb1Hp3xqxB3sz4B1UfHdujfhwKBox6ZiAJ5saKAT9tj2E3L9sMWF4gFFdl5LBEYFx3jD-YWL7MKBs8QZrnBKjQCDA71f8qPcd5e2pT2jEJZ7tzymhFzU8eBNtWt2s9Dtzq0iw00TRSpLJQb_0cA\x26amp;sig\x3dCg0ArKJSzPDg8u818sN1\x26amp;fbs_aeid\x3d%5Bgw_fbsaeid%5D\x26amp;urlfix\x3d1\x26amp;adurl\x3dhttps://www.ionos.es/alojamiento/alojamiento-web%3Fitc%3DJHXQHVOZ-TH53Y8-H7NV6TK%26ac%3DOM.WE.WEo55K430307T7073a%26utm_source%3Ddv360%26utm_medium%3Ddisplay%26utm_campaign%3DDIS-ES-BRA-BRAX-360-ACP-TVC_BAN---%26utm_content%3DPRO_SOF_T3%26utm_term%3DPD_SOF_TAG3%26dclid%3D%25edclid!%26gad_source%3D7\x22\x3e\x3cimg src\x3d\x22https://s0.2mdn.net/simgad/7212854766886661212\x22 alt\x3d\x22Advertisement\x22 border\x3d\x220\x22 width\x3d\x22300\x22 height\x3d\x22600\x22 style\x3d\x22display:block\x22\x3e\x3c/a\x3e\x3cscript data-jc\x3d\x2274\x22 data-jc-version\x3d\x22r20250527\x22 data-jcp-a-id\x3d\x22img_anch_CN7M9s6ax40DFY5CHQkdjvkqog\x22 data-jcp-for-sure-open-browser\x3d\x22false\x22 data-jcp-for-sure-open-custom-tabs\x3d\x22false\x22 data-jcp-cc-overlay\x3d\x22\x22 data-jcp-cc-button\x3d\x22\x22 data-jcp-is-fledge\x3d\x22false\x22 data-jcp-turtlex-event-ad-signals\x3d\x22\x22 data-jcp-turtlex-event-ad-metadata\x3d\x22\x22\x3e(function(){\x27use strict\x27;/*  Copyright The Closure Library Authors. SPDX-License-Identifier: Apache-2.0 */ var l\x3dthis||self;function t(a){l.setTimeout(()\x3d\x3e{throw a;},0)};function u(a,b){a.__closure__error__context__984382||(a.__closure__error__context__984382\x3d{});a.__closure__error__context__984382.severity\x3db};let v\x3dvoid 0;function w(){const a\x3dError(\x22int32\x22);u(a,\x22warning\x22);return a};function x(a,b\x3d!1){return b\x26\x26Symbol.for\x26\x26a?Symbol.for(a):a!\x3dnull?Symbol(a):Symbol()}var y\x3dx(),z\x3dx(\x22m_m\x22,!0);const A\x3dx(\x22jas\x22,!0);var B\x3d{};function C(a,b){return b\x3d\x3d\x3dvoid 0?a.h!\x3d\x3dD\x26\x26!!(2\x26(a.g[A]|0)):!!(2\x26b)\x26\x26a.h!\x3d\x3dD}const D\x3d{};const aa\x3dBigInt(Number.MIN_SAFE_INTEGER),ba\x3dBigInt(Number.MAX_SAFE_INTEGER);const ca\x3dNumber.isFinite;function E(a){if(typeof a!\x3d\x3d\x22number\x22)throw w();if(!ca(a))throw w();return a|0};function da(a){return a};function F(a,b,d,c){var e\x3dc!\x3d\x3dvoid 0;c\x3d!!c;const g\x3d[];var f\x3da.length;let h,k\x3d4294967295,p\x3d!1;const n\x3d!!(b\x2664),q\x3dn?b\x26128?0:-1:void 0;b\x261||(h\x3df\x26\x26a[f-1],h!\x3dnull\x26\x26typeof h\x3d\x3d\x3d\x22object\x22\x26\x26h.constructor\x3d\x3d\x3dObject?(f--,k\x3df):h\x3dvoid 0,!n||b\x26128||e||(p\x3d!0,k\x3d(ea??da)(k-q,q,a,h)+q));b\x3dvoid 0;for(e\x3d0;e\x3cf;e++){let m\x3da[e];if(m!\x3dnull\x26\x26(m\x3dd(m,c))!\x3dnull)if(n\x26\x26e\x3e\x3dk){const r\x3de-q;(b??(b\x3d{}))[r]\x3dm}else g[e]\x3dm}if(h)for(let m in h){a\x3dh[m];if(a\x3d\x3dnull||(a\x3dd(a,c))\x3d\x3dnull)continue;f\x3d+m;let r;n\x26\x26!Number.isNaN(f)\x26\x26(r\x3df+q)\x3ck?g[r]\x3da: (b??(b\x3d{}))[m]\x3da}b\x26\x26(p?g.push(b):g[k]\x3db);return g}function G(a){switch(typeof a){case \x22number\x22:return Number.isFinite(a)?a:\x22\x22+a;case \x22bigint\x22:return a\x3e\x3daa\x26\x26a\x3c\x3dba?Number(a):\x22\x22+a;case \x22boolean\x22:return a?1:0;case \x22object\x22:if(Array.isArray(a)){const b\x3da[A]|0;return a.length\x3d\x3d\x3d0\x26\x26b\x261?void 0:F(a,b,G)}if(a!\x3dnull\x26\x26a[z]\x3d\x3d\x3dB)return H(a);return}return a}let ea;function H(a){a\x3da.g;return F(a,a[A]|0,G)};function fa(a){if(a\x3d\x3dnull){var b\x3d32;a\x3d[]}else{if(!Array.isArray(a))throw Error(\x22narr\x22);b\x3da[A]|0;2048\x26b\x26\x26!(2\x26b)\x26\x26ha();if(b\x26256)throw Error(\x22farr\x22);if(b\x2664)return b\x262048||(a[A]\x3db|2048),a;var d\x3da;b|\x3d64;var c\x3dd.length;if(c){var e\x3dc-1;c\x3dd[e];if(c!\x3dnull\x26\x26typeof c\x3d\x3d\x3d\x22object\x22\x26\x26c.constructor\x3d\x3d\x3dObject){const g\x3db\x26128?0:-1;e-\x3dg;if(e\x3e\x3d1024)throw Error(\x22pvtlmt\x22);for(const f in c){const h\x3d+f;if(h\x3ce)d[h+g]\x3dc[f],delete c[f];else break}b\x3db\x26-8380417|(e\x261023)\x3c\x3c13}}}a[A]\x3db|2112;return a} function ha(){if(y!\x3dnull){var a\x3dv??(v\x3d{});var b\x3da[y]||0;b\x3e\x3d5||(a[y]\x3db+1,a\x3dError(),u(a,\x22incident\x22),t(a))}};function ia(a,b){if(typeof a!\x3d\x3d\x22object\x22)return a;if(Array.isArray(a)){var d\x3da[A]|0;a.length\x3d\x3d\x3d0\x26\x26d\x261?a\x3dvoid 0:d\x262||(!b||4096\x26d||16\x26d?a\x3dI(a,d,!1,b\x26\x26!(d\x2616)):(a[A]|\x3d34,d\x264\x26\x26Object.freeze(a)));return a}if(a!\x3dnull\x26\x26a[z]\x3d\x3d\x3dB){d\x3da.g;const c\x3dd[A]|0;C(a,c)||(c\x262?b\x3d!0:c\x2632\x26\x26!(c\x264096)?(d[A]\x3dc|2,a.h\x3dD,b\x3d!0):b\x3d!1,b?(a\x3dnew a.constructor(d),a.o\x3dD):a\x3dI(d,c));return a}}function I(a,b,d,c){c??(c\x3d!!(34\x26b));a\x3dF(a,b,ia,c);c\x3d32;d\x26\x26(c|\x3d2);b\x3db\x268380609|c;a[A]\x3db;return a};function J(a,b,d){if(a.h\x3d\x3d\x3dD){var c\x3da.g;c\x3dI(c,c[A]|0);c[A]|\x3d2048;a.g\x3dc;a.h\x3dvoid 0;a.o\x3dvoid 0;c\x3d!0}else c\x3d!1;if(!c\x26\x26C(a,a.g[A]|0))throw Error();a\x3da.g;a:{var e\x3da[A]|0;c\x3db+-1;const g\x3da.length-1;if(g\x3e\x3d0\x26\x26c\x3e\x3dg){const f\x3da[g];if(f!\x3dnull\x26\x26typeof f\x3d\x3d\x3d\x22object\x22\x26\x26f.constructor\x3d\x3d\x3dObject){f[b]\x3dd;break a}}c\x3c\x3dg?a[c]\x3dd:d!\x3d\x3dvoid 0\x26\x26(e\x3d(e??a[A]|0)\x3e\x3e13\x261023||536870912,b\x3e\x3de?d!\x3dnull\x26\x26(a[e+-1]\x3d{[b]:d}):a[c]\x3dd)}}function K(a,b,d){if(d!\x3dnull\x26\x26typeof d!\x3d\x3d\x22string\x22)throw Error();J(a,b,d)};var L\x3dclass{constructor(a){this.g\x3dfa(a)}toJSON(){return H(this)}};L.prototype[z]\x3dB;L.prototype.toString\x3dfunction(){return this.g.toString()};var ja\x3dclass extends L{};var ka\x3dclass extends L{};function M(a\x3dwindow){return a};/*  Copyright Google LLC SPDX-License-Identifier: Apache-2.0 */ var N\x3d/^\\s*(?!javascript:)(?:[\\w+.-]+:|[^:/?#]*(?:[/?#]|$))/i;let O;function P(a,b,d,c){const e\x3d/^(https?:[^:?]+[/]pcs[/]click[^/]+?)(?:\x26nx[^\x26]+\x26ny[^\x26]+\x26dim[^\x26]+)?(\x26adurl\x3d.*)/.exec(a);return e?e[1]+`\x26nx\x3d${b}\x26ny\x3d${d}\x26dim\x3d${c}`+e[2]:a}function la(a){const b\x3da.currentTarget,d\x3db.querySelector(\x22img[alt]\x22);if(d){const {j:c,l:e,i:g}\x3dQ(a,d.offsetLeft,d.offsetTop,d.width,d.height);a\x3dP(b.href,c,e,g);N.test(a)\x26\x26(b.href\x3da)}} var R\x3d(a,b)\x3d\x3e{M(l)?.fence?.setReportEventDataForAutomaticBeacons({eventType:a,eventData:b,destination:[\x22buyer\x22],once:!0})},S\x3d(a,b)\x3d\x3e{M(l)?.fence?.reportEvent({eventType:\x22click\x22,eventData:a,destination:[b]})};function T(a,b){const d\x3dnew ka;K(d,1,a);a\x3dJSON.stringify(H(O));K(d,4,a);K(d,10,Date.now().toString());R(\x22reserved.top_navigation\x22,JSON.stringify(H(d)));R(\x22reserved.top_navigation_start\x22,JSON.stringify(H(d)));S(JSON.stringify(H(d)),\x22buyer\x22);S(b,\x22component-seller\x22)} function Q(a,b,d,c,e){return{j:+Math.round(a.clientX-b),l:+Math.round(a.clientY-d),i:`${+c}x${+e}`,m:void 0}}function U(a,b){l.AFMA_Communicator!\x3dvoid 0\x26\x26l.AFMA_Communicator.sendMessage!\x3dvoid 0\x26\x26(a.preventDefault(),l.AFMA_Communicator.sendMessage(\x22open\x22,{a:\x22app\x22,u:a.currentTarget.href,system_browser:!0,use_first_package:!0,use_running_process:!0,use_custom_tabs:b}))};const V\x3dfunction(a,b\x3dnull){return b\x26\x26b.getAttribute(\x22data-jc\x22)\x3d\x3d\x3dString(a)?b:document.querySelector(`[${\x22data-jc\x22}\x3d\x22${a}\x22]`)}(74,document.currentScript);if(V\x3d\x3dnull)throw Error(\x22JSC not found 74\x22);const W\x3d{},Z\x3dV.attributes;for(let a\x3dZ.length-1;a\x3e\x3d0;a--){const b\x3dZ[a].name;b.indexOf(\x22data-jcp-\x22)\x3d\x3d\x3d0\x26\x26(W[b.substring(9)]\x3dZ[a].value)} (a\x3d\x3e{const b\x3ddocument.getElementById(a[\x22a-id\x22]),d\x3da[\x22for-sure-open-browser\x22]\x3d\x3d\x3d\x22true\x22,c\x3da[\x22for-sure-open-custom-tabs\x22]\x3d\x3d\x3d\x22true\x22;var e\x3da[\x22cc-overlay\x22],g\x3da[\x22cc-button\x22];const f\x3de?document.getElementById(e):null,h\x3dg?document.getElementById(g):null;e\x3da[\x22is-fledge\x22]\x3d\x3d\x3d\x22true\x22;g\x3df\x26\x26h;O\x3dnew ja;if(e){const k\x3dg?f:b.querySelector(\x22img[alt]\x22);(g?f:b).addEventListener(\x22mousedown\x22,q\x3d\x3e{const {j:m,l:r,i:X,m:Y}\x3dQ(q,k.offsetLeft,k.offsetTop,k.clientWidth,k.clientHeight);m\x26\x26J(O,2,m\x3d\x3dnull?m:E(m));r\x26\x26J(O,3,r\x3d\x3dnull?r: E(r));X\x26\x26K(O,7,X);Y\x26\x26K(O,4,Y)});const p\x3da[\x22turtlex-event-ad-signals\x22],n\x3da[\x22turtlex-event-ad-metadata\x22];h?(h.addEventListener(\x22click\x22,()\x3d\x3e{T(p,n)}),h.addEventListener(\x22auxclick\x22,()\x3d\x3e{T(p,n)})):(b.addEventListener(\x22click\x22,()\x3d\x3e{T(p,n)}),b.addEventListener(\x22auxclick\x22,()\x3d\x3e{T(p,n)}))}else if(b.addEventListener(\x22mousedown\x22,la),g\x26\x26f.addEventListener(\x22mousedown\x22,k\x3d\x3e{const {j:p,l:n,i:q}\x3dQ(k,f.offsetLeft,f.offsetTop,f.clientWidth,f.clientHeight);k\x3dP(h.href,p,n,q);N.test(k)\x26\x26(h.href\x3dk)}),d||c)b.addEventListener(\x22click\x22, k\x3d\x3e{U(k,c)}),h\x26\x26h.addEventListener(\x22click\x22,k\x3d\x3e{U(k,c)})})(W);}).call(this);\x3c/script\x3e');document.write('\x3c/div\x3e');document.write('\x3cstyle\x3ediv{margin:0;padding:0;}.abgcp{height:15px;padding-right:1px;padding-top:1px;padding-left:9px;padding-bottom:24px;right:0px;top:0px;position:absolute;width:31px;z-index:2147483646;}.abgc{display:block;height:15px;position:absolute;right:1px;top:1px;text-rendering:geometricPrecision;z-index:2147483646;}.abgb{display:inline-block;height:15px;}.abgc,.abgcp,.jar .abgc,.jar .abgcp,.jar .cbb{opacity:1;}.abgc{cursor:pointer;}.cbb{cursor:pointer;height:15px;width:15px;z-index:2147483646;background-color:#ffffff;opacity:0;}.cbb svg{position:absolute;top:0;right:0;height:15px;width:15px;stroke:;fill:#00aecd;stroke-width:1.25;}.abgb{position:absolute;right:16px;top:0px;}.cbb{position:absolute;right:0px;top:0px;}.abgs{display:none;height:100%;}.abgl{text-decoration:none;}.abgs svg,.abgb svg{display:inline-block;height:15px;width:auto;vertical-align:top;}.abgc .il-wrap{background-color:#ffffff;height:15px;white-space:nowrap;}.abgc .il-wrap.exp{border-bottom-left-radius:5px;}.abgc .il-text,.abgc .il-icon{display:inline-block;}.abgc .il-text{padding-right:1px;padding-left:5px;height:15px;width:55px;}.abgc .il-icon{height:15px;width:15px;}.abgc .il-text svg{fill:#000000;}.abgc .il-icon svg{fill:#00aecd}\x3c/style\x3e\x3cdiv id\x3d\x22abgcp\x22 class\x3d\x22abgcp\x22\x3e\x3cdiv id\x3d\x22abgc\x22 class\x3d\x22abgc\x22 dir\x3d\x22ltr\x22\x3e\x3cdiv id\x3d\x22abgb\x22 class\x3d\x22abgb\x22\x3e\x3cdiv class\x3d\x22il-wrap\x22\x3e\x3cdiv class\x3d\x22il-icon\x22\x3e\x3csvg xmlns\x3d\x22http://www.w3.org/2000/svg\x22 xmlns:xlink\x3d\x22http://www.w3.org/1999/xlink\x22 viewBox\x3d\x220 0 15 15\x22\x3e\x3ccircle cx\x3d\x226\x22 cy\x3d\x226\x22 r\x3d\x220.67\x22\x3e\x3c/circle\x3e\x3cpath d\x3d\x22M4.2,11.3Q3.3,11.8,3.3,10.75L3.3,4.1Q3.3,3.1,4.3,3.5L10.4,7.0Q12.0,7.5,10.4,8.0L6.65,10.0L6.65,7.75a0.65,0.65,0,1,0,-1.3,0L5.35,10.75a0.9,0.9,0,0,0,1.3,0.8L12.7,8.2Q13.7,7.5,12.7,6.7L3.3,1.6Q2.2,1.3,1.8,2.5L1.8,12.5Q2.2,13.9,3.3,13.3L4.8,12.5A0.3,0.3,0,1,0,4.2,11.3Z\x22\x3e\x3c/path\x3e\x3c/svg\x3e\x3c/div\x3e\x3c/div\x3e\x3c/div\x3e\x3cdiv id\x3d\x22abgs\x22 class\x3d\x22abgs\x22\x3e\x3ca id\x3d\x22abgl\x22 class\x3d\x22abgl\x22 href\x3d\x22https://adssettings.google.com/whythisad?source\x3ddisplay\x26amp;reasons\x3dASp5-QBkIoSO1YaDrFyrGzyqrunDMh8AU0bnad7HcyMpM5ayy1X7532HMMYW1AqSljZ1_G4NDEwri8LytU7aKB_YGWvtIR228cxt6rX-6SpOeEEQsBxBAp0BpUouimj812aAX8vM_F_OgDZNH3aPmbvZHsigfqI-BTNGryhZTicEsguyuF4iKG9K6cbyT6U3Gk_wQpuxfNDTLL6Kn1wlTskIVuUOALtA9-6xuC0ozvMUHEFPP1k1wAgJspjilT8TL37UmmA3XSacXENzvhJXCrUPbp8tGxU5xrC7iuaGIp2VXESgrR94a4GRzodx-lZuwSpfsgyhJcSPzKcDyaEiBHvHiSrANvhZWyNzaCQvLj93TGmPNK3ALZINNllJgrPeMhfoQ3-AMSLplmfJMY7KBJP8jhHdP3zAl9p6UBjE-NXSez-RcPesaLkuk7XJkKgYt-hkzYHo4nrbbylAR3b7hnMbWNe0cXSiIKqRROGnrxjysb1uKa-Mowq420wV4Y48fzjIgsMWL_b0WvOU6phxiJzwkV-Aaq_GM6ZSoAwRuzt6yvbG_q6qaXW0T1OohNnf23b3-P2y4mU_t438VHuhJ1GD9RGUN1YUS9nI8hBiLMRwFSwI3Mv9xMWg7BfJE1fiQ5T3Gga0JMAcqhJImJc_WMITZjOetqRWVAPhzGo0pgdlc734UBQAB-lwtT-IEQn2Tjl5qPLSlAgRxsO1qmxM6kzU7T4VIjNVy6-0g10qOgjqqfp2Tjwdq8Q5UVhx__DqN0Q6fFpGyWKFU1v-za5eILndwcT5P1qr-mEkPvrKZgmuGZRKaNlMuELWSoa-uGKW-YBXyLmQRUh8PixdBfsauOayfqKp7lsRK7Q2wlhZBp5l8mbu4esSi63jqZwEhI-IWsZjAX_L6hsLMlqwHgFDJa-ZTl9cbaKrRJZBx8ss57DguanQDoyO-kFk5LhMJRqXttWJBh0qyMtEVYqjYqRQFKRCarOCwl6TAuvls2YPdocJUbEFP-CupT9TlR1P37l7w_-HMPfXjCb8qiPdKqI69jpSqXI2bkQbfl8fgmuU3ixkcR5ArBgDa5cOmmGwqCNIKA2a9OSUJqd0OpaxkyQDAsyqHGrZ7N3Hvjm4T16rDHN-DQZGS8AxlhAXUZ9dIxyOfAAr_6Bc7MO6aMGXteqpZQRnGA6syVs1oBVSKfoS0tbwQX5LXq2fNo7ua998cFTCYmSAF6DOR4udD4SP0EP7M40TCdF5rh-C4RXsUk-T5mwM_kfZD_xlZM7Xetsezfgcb7nieNBsubkf7wpqvRC-giOIRp4WeFJftc6WdE3jB-5_1MWEh67LTjtqcgUsSvkm6CBp3OTLwJ-XVQcc8Py2vegG8IG2Y-N4TBRD3TiZ35vqgc8VFNdX7SQ_gbcECfwuwHEgMSo1WUL_1sqfcf649s1USMFGmhROkQ7pkxRaY-i3rBvZ3cXR6GyBP5wwk7ZKOxQtiUozH-EKBA10ubltdoKPXONRGo2MewUUGOObN4PKZVj-dQHCdK3TeaD8f5rPFdYrEKiB_8kxzfhGQCyQaQ1p-7ERJMYrN_ebjfR88KefoXETs4ZSlU2rIABnJeYr2p4PAErr3PnhwX8XIBY2ZCXtF8SC7bXAeLRvdXUIcRIDCF7HxMwqKB4y4oulgJH6RzyhhRMMtpwf4okWZ51iWOak8Tt5Nx0y0XJwGVIfyU7mi4vajaVQSBZYIOhYHArPQfBqgiQSRdCwxc46dahgRj0CWMWby5Ym-4Wql70XvNKofpUVOc8Vewl7Bd19PeJv_P7T0m4AzcgsQpmNs84tkgan99ahR8xWbodc4-q55vasGxX_THJyMLsQ4nyxw-uwejA4CvW2m7NyuY6Hv6qKB5wgSAZdR2gNCgaNkHrUjcqQArLKsHPZA9iTH8C_3W4g-ADDqpxpQ60Px3GkXmhtDxZeWGfaol_7K5VTFs40V7UypEq1ec4g3Jbm1CE\x22 target\x3d\x22_blank\x22\x3e\x3c/a\x3e\x3c/div\x3e\x3cdiv id\x3d\x22cbb\x22 class\x3d\x22cbb\x22 tabindex\x3d\x220\x22 role\x3d\x22button\x22\x3e\x3csvg width\x3d\x2215\x22 height\x3d\x2215\x22 viewBox\x3d\x220 0 15 15\x22 fill\x3d\x22none\x22 xmlns\x3d\x22http://www.w3.org/2000/svg\x22\x3e\n\x3cg clip-path\x3d\x22url(#clip0_2157_481)\x22\x3e\n\x3crect width\x3d\x2215\x22 height\x3d\x2215\x22 transform\x3d\x22translate(15) rotate(90)\x22 fill\x3d\x22white\x22/\x3e\n\x3crect width\x3d\x2215\x22 height\x3d\x2215\x22 transform\x3d\x22translate(15) rotate(90)\x22 fill\x3d\x22white\x22/\x3e\n\x3ccircle cx\x3d\x227.5\x22 cy\x3d\x2211.5\x22 r\x3d\x221.5\x22 transform\x3d\x22rotate(-180 7.5 11.5)\x22 fill\x3d\x22#00aecd\x22/\x3e\n\x3ccircle cx\x3d\x227.5\x22 cy\x3d\x227.5\x22 r\x3d\x221.5\x22 transform\x3d\x22rotate(-180 7.5 7.5)\x22 fill\x3d\x22#00aecd\x22/\x3e\n\x3ccircle cx\x3d\x227.5\x22 cy\x3d\x223.5\x22 r\x3d\x221.5\x22 transform\x3d\x22rotate(-180 7.5 3.5)\x22 fill\x3d\x22#00aecd\x22/\x3e\n\x3c/g\x3e\n\x3cdefs\x3e\n\x3cclipPath id\x3d\x22clip0_2157_481\x22\x3e\n\x3crect width\x3d\x2215\x22 height\x3d\x2215\x22 fill\x3d\x22white\x22 transform\x3d\x22translate(15) rotate(90)\x22/\x3e\n\x3c/clipPath\x3e\n\x3c/defs\x3e\n\x3c/svg\x3e\x3c/div\x3e\x3c/div\x3e\x3c/div\x3e\x3cstyle\x3e.mute_panel{z-index:2147483646;}.abgac{position:absolute;left:0px;top:0px;z-index:2147483646;display:none;width:100%;height:100%;background-color:#FAFAFA;}.mlsc{height:100%;display:flex;justify-content:center;align-items:center;}.mls{animation:mlskf 2s linear infinite;height:50%;width:50%;}.mlsd{stroke-dasharray:1,189;stroke-dashoffset:0;animation:mlsdkf 1.4s ease-in-out infinite;}@keyframes mlskf{100%{transform:rotate(360deg);}}@keyframes mlsdkf{0%{stroke-dasharray:1,189;stroke-dashoffset:0;}50%{stroke-dasharray:134,189;stroke-dashoffset:-53px;}100%{stroke-dasharray:134,189;stroke-dashoffset:-188px;}}\x3c/style\x3e\x3cdiv id\x3d\x22mute_panel\x22 class\x3d\x22mute_panel\x22 aria-hidden\x3d\x22true\x22\x3e\x3cdiv id\x3d\x22abgac\x22 class\x3d\x22abgac\x22 aria-hidden\x3d\x22true\x22\x3e\x3cdiv id\x3d\x22mlsc\x22 class\x3d\x22mlsc\x22\x3e\x3csvg class\x3d\x22mls\x22 viewBox\x3d\x2250 50 100 100\x22\x3e\x3ccircle class\x3d\x22mlsd\x22 cx\x3d\x22100\x22 cy\x3d\x22100\x22 r\x3d\x2230\x22 fill\x3d\x22none\x22 stroke\x3d\x22#9E9E9E\x22 stroke-width\x3d\x223\x22/\x3e\x3c/svg\x3e\x3c/div\x3e\x3c/div\x3e\x3c/div\x3e\x3cscript data-jc\x3d\x2260\x22 src\x3d\x22https://pagead2.googlesyndication.com/pagead/js/r20250527/r20110914/abg_lite_fy2021.js\x22 async data-jc-version\x3d\x22r20250527\x22 data-jcp-attribution-data\x3d\x22[[null,\x26quot;https://googleads.g.doubleclick.net/pagead/images/mtad/x_blue.png\x26quot;,null,\x26quot;https://googleads.g.doubleclick.net/pagead/images/mtad/x_blue.png\x26quot;,\x26quot;https://googleads.g.doubleclick.net/pagead/interaction/?ai\x3dCDnP6b403aLL0EI6F9fgPjvOrkQrY0qGQf6jsj_TjE87TzKy7RhABIPjaxVdg1QWgAf7iz8MpyAEJqQKVCMYK9vCyPqgDAaoEtgJP0F8OBnC7wzioaIOmh3XIlgRSHKtWhuio4er6lyHg4jMwWky_OdsijzkiagKDC1ZfwhXaKbiZS47H2ETBqMFTsjvNFj8yuOeJPWqeKdF7uyXLiULCqdcrSJM0JDb3-0tBD4j9UlWYW6gTcm-vBdtggF4ojbQGa_gVSlR0cXXG5ugRAqzUvEESPPZYDPY1z2c6rF1VuJTMVSkoyq4sK3k9MPPvddJ8boZy6f7jSCJ6hwa_3rcZvU1qXZmiHRIyLojauGNj29HVU7E7vWAB-nIgwM-tYKcgjOqDgd_kYgvNjgXez1nLm02ZcQoqIiHvo0NWt-YBBCV2FQ6PC0bpX4sFZCJwz7xVwJkeNZSPGhy1ONVzmpyyEfwO1EiBjw06xnR_cEGg3qQz6j8bfh4Orpg-r_aHZ52iwATD__adpwXgBAOIBfS7_PlToAZMgAf-mqCjBKgH1ckbqAfZtrECqAemvhuoB_PRG6gHltgbqAeqm7ECqAfgvbECqAeOzhuoB5PYG6gH8OAbqAfulrECqAf-nrECqAevvrECqAeaBqgH_56xAqgH35-xAqgH-MKxAqgH-8KxAtgHANIILQiR4YBwEAEYnQEyBeuLgIAgOgwAgICAgICUruADoANIvf3BOljdivbOmseNA4AKA5gLAcgLAYAMAaIMCCoGCgTaz7ECqg0CRVPiDRMI3sz2zprHjQMVjkIdCR2O-Sqi6g0TCIn59s6ax40DFY5CHQkdjvkqorAT2qzLHNgTA9gUAdAVAfgWAYAXAbIXMxgCKi8vMjQ4NDI0MTc3L3N0YWNrb3ZlcmZsb3cuY29tL21zYi9xdWVzdGlvbi1wYWdlc7IYCRIC8FkYTCIBALIZATU\\u0026sigh\x3de8ZvKTT4diU\x26quot;,\x26quot;qrRz_N7PXCoIqOyP9OMTEPS7_PlTGODW-M4EIghpb25vcy5lczIHCAUTGKZsFEIXY2EtcHViLTY2MDUxMjMxMjM1MTg1MjBIF1gAcAE\x26quot;,[\x26quot;user_feedback_menu_interaction\x26quot;,\x26quot;\x26quot;,0],null,null,null,null,\x26quot;What was wrong with this ad?\x26quot;,null,\x26quot;https://googleads.g.doubleclick.net/pagead/images/mtad/back_blue.png\x26quot;,\x26quot;Thanks for the feedback!\x26quot;,\x26quot;We’ll review this ad to improve the experience in the future.\x26quot;,\x26quot;Thanks for the feedback!\x26quot;,\x26quot;We’ll use your feedback to review ads on this site.\x26quot;,null,null,null,\x26quot;Closing ad: %1$d\x26quot;,null,\x26quot;https://googleads.g.doubleclick.net/pagead/images/mtad/ad_choices_blue.png\x26quot;,\x26quot;https://www.google.com/url?ct\x3dabg\\u0026q\x3dhttps://www.google.com/adsense/support/bin/request.py%3Fcontact%3Dabg_afc%26url%3D%26gl%3DES%26hl%3Den%26ai0%3D\\u0026usg\x3dAOvVaw2-x-o8tiD93nAKgp2ZUZa9\x26quot;,\x26quot;https://googleads.g.doubleclick.net/pagead/images/mtad/x_blue.png\x26quot;,0,[[\x26quot;Send feedback\x26quot;,[\x26quot;user_feedback_menu_option\x26quot;,\x26quot;1\x26quot;,1],[\x26quot;What was wrong with this ad?\x26quot;,[[\x26quot;Seen this ad multiple times\x26quot;,[\x26quot;mute_survey_option\x26quot;,\x26quot;2\x26quot;,1]],[\x26quot;Ad covered content\x26quot;,[\x26quot;mute_survey_option\x26quot;,\x26quot;3\x26quot;,1]],[\x26quot;Ad was inappropriate\x26quot;,[\x26quot;mute_survey_option\x26quot;,\x26quot;8\x26quot;,1]],[\x26quot;Not interested in this ad\x26quot;,[\x26quot;mute_survey_option\x26quot;,\x26quot;7\x26quot;,1]]]],[\x26quot;user_feedback_undo\x26quot;,\x26quot;1\x26quot;,1]]],[\x26quot;https://googleads.g.doubleclick.net/pagead/images/adchoices/iconx2-000000.png\x26quot;,\x26quot;AdChoices\x26quot;,\x26quot;Ad closed by %1$s\x26quot;,null,\x26quot;https://www.gstatic.com/images/branding/googlelogo/2x/googlelogo_dark_color_84x28dp.png\x26quot;,\x26quot;Send feedback\x26quot;,\x26quot;Thanks. Feedback improves Google ads\x26quot;,null,null,null,null,null,null,\x26quot;See my Google ad settings\x26quot;,null,\x26quot;https://www.gstatic.com\x26quot;,\x26quot;\x26quot;,\x26quot;Ads by %1$s\x26quot;,\x26quot;Ad settings\x26quot;,\x26quot;https://adssettings.google.com\x26quot;,null,null,null,0,null,null,0,0,1],\x26quot;APyvJYwAAAbiW1tbW251bGwsbnVsbCxudWxsLG51bGwsbnVsbCxudWxsLG51bGwsbnVsbCxudWxsLG51bGwsbnVsbCxudWxsLG51bGwsbnVsbCxudWxsLG51bGwsbnVsbCxudWxsLG51bGwsbnVsbCxudWxsLG51bGwsbnVsbCxudWxsLG51bGwsbnVsbCxudWxsLG51bGwsbnVsbCx0cnVlLG51bGwsbnVsbCxbWyJUcmFra2VuIEdtYkgiLCJERSIsMSxudWxsLDFdLCIxMjM5Mjk2ODY0Il0sbnVsbCxbMSw0XV0sW251bGwsImh0dHBzOi8vZ29vZ2xlYWRzLmcuZG91YmxlY2xpY2submV0L3BhZ2VhZC9pbnRlcmFjdGlvbi8_YWk9Q0RuUDZiNDAzYUxMMEVJNkY5ZmdQanZPcmtRclkwcUdRZjZqc2pfVGpFODdUekt5N1JoQUJJUGpheFZkZzFRV2dBZjdpejhNcHlBRUpxUUtWQ01ZSzl2Q3lQcWdEQWFvRXRnSlAwRjhPQm5DN3d6aW9hSU9taDNYSWxnUlNIS3RXaHVpbzRlcjZseUhnNGpNd1dreV9PZHNpanpraWFnS0RDMVpmd2hYYUtiaVpTNDdIMkVUQnFNRlRzanZORmo4eXVPZUpQV3FlS2RGN3V5WExpVUxDcWRjclNKTTBKRGIzLTB0QkQ0ajlVbFdZVzZnVGNtLXZCZHRnZ0Y0b2piUUdhX2dWU2xSMGNYWEc1dWdSQXF6VXZFRVNQUFpZRFBZMXoyYzZyRjFWdUpUTVZTa295cTRzSzNrOU1QUHZkZEo4Ym9aeTZmN2pTQ0o2aHdhXzNyY1p2VTFxWFptaUhSSXlMb2phdUdOajI5SFZVN0U3dldBQi1uSWd3TS10WUtjZ2pPcURnZF9rWWd2TmpnWGV6MW5MbTAyWmNRb3FJaUh2bzBOV3QtWUJCQ1YyRlE2UEMwYnBYNHNGWkNKd3o3eFZ3SmtlTlpTUEdoeTFPTlZ6bXB5eUVmd08xRWlCancwNnhuUl9jRUdnM3FRejZqOGJmaDRPcnBnLXJfYUhaNTJpd0FURF9fYWRwd1hnQkFPSUJmUzdfUGxUb0FaTWdBZi1tcUNqQktnSDFja2JxQWZadHJFQ3FBZW12aHVvQl9QUkc2Z0hsdGdicUFlcW03RUNxQWZndmJFQ3FBZU96aHVvQjVQWUc2Z0g4T0FicUFmdWxyRUNxQWYtbnJFQ3FBZXZ2ckVDcUFlYUJxZ0hfNTZ4QXFnSDM1LXhBcWdILU1LeEFxZ0gtOEt4QXRnSEFOSUlMUWlSNFlCd0VBRVluUUV5QmV1TGdJQWdPZ3dBZ0lDQWdJQ1VydUFEb0FOSXZmM0JPbGpkaXZiT21zZU5BNEFLQTVnTEFjZ0xBWUFNQWFJTUNDb0dDZ1RhejdFQ3FnMENSVlBpRFJNSTNzejJ6cHJIalFNVmprSWRDUjJPLVNxaTZnMFRDSW41OXM2YXg0MERGWTVDSFFrZGp2a3FvckFUMnF6TEhOZ1RBOWdVQWRBVkFmZ1dBWUFYQWJJWE14Z0NLaTh2TWpRNE5ESTBNVGMzTDNOMFlXTnJiM1psY21ac2IzY3VZMjl0TDIxellpOXhkV1Z6ZEdsdmJpMXdZV2RsYzdJWUNSSUM4RmtZVENJQkFMSVpBVFVcdTAwMjZzaWdoPWU4WnZLVFQ0ZGlVIixbbnVsbCxudWxsLG51bGwsImh0dHBzOi8vZGlzcGxheWFkcy1mb3JtYXRzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hZHMvcHJldmlldy9jb250ZW50LmpzP2NsaWVudD13dGFcdTAwMjZvYmZ1c2NhdGVkQ3VzdG9tZXJJZD0zMjc0NTU3NTM2XHUwMDI2Y3JlYXRpdmVJZD03NTA4NTgzODI5NjVcdTAwMjZ2ZXJzaW9uSWQ9MFx1MDAyNmFkR3JvdXBDcmVhdGl2ZUlkPTY3OTY1MzY2ODM5Mlx1MDAyNnNpZz1BQ2lWQl95UUljSERQZWpKU0dFTmdCM0VmalE2V2RHMGVRIl0sbnVsbCxudWxsLDEsInFyUnpfTjdQWENvSXFPeVA5T01URVBTN19QbFRHT0RXLU00RUlnaHBiMjV2Y3k1bGN6SUhDQVVUR0tac0ZFSVhZMkV0Y0hWaUxUWTJNRFV4TWpNeE1qTTFNVGcxTWpCSUYxZ0FjQUUiLCIyMjUzNTkzNzUyNCJdXV0sW251bGwsbnVsbCwxLDEsMSxudWxsLG51bGwsbnVsbCxudWxsLG51bGwsbnVsbCxudWxsLG51bGwsbnVsbCwxXSxbbnVsbCxudWxsLCJFUyJdXYEZGzxrQPnb0WGlZpRXC-m-LNvuYWqqsVWXOCtKjyEQHK433SESDG35WjNCOdzWyietZFvAWjOss-0L9_3tv1yly-lcqUXP-RqRtbPuH8B6GdxRQctRojYaHzAise3v9JbSGzMmg3TSQKQskufeLl-KQeZR-D_ybeRuQVIS00VkcAQznxtqx_Uty6aw2eY6OQDbqJpaWYhTenAlZGnkjjJwAcE4U3XWoaZfxK6_Oo2tXUcx1h7Tg17gmB_6euTnBsTPYakfYRsnOeq68Xui8AZWzIKajQwCngpu5scwNtIaHyHMUHb-yjKpZt1b3aHFrJUBC2B7PumcAZRVC4PESls,MVpjfrjm3MkDdRnLAwcR3Q\x26quot;,\x26quot;https://adssettings.google.com/whythisad?source\x3ddisplay\\u0026reasons\x3dASp5-QBkIoSO1YaDrFyrGzyqrunDMh8AU0bnad7HcyMpM5ayy1X7532HMMYW1AqSljZ1_G4NDEwri8LytU7aKB_YGWvtIR228cxt6rX-6SpOeEEQsBxBAp0BpUouimj812aAX8vM_F_OgDZNH3aPmbvZHsigfqI-BTNGryhZTicEsguyuF4iKG9K6cbyT6U3Gk_wQpuxfNDTLL6Kn1wlTskIVuUOALtA9-6xuC0ozvMUHEFPP1k1wAgJspjilT8TL37UmmA3XSacXENzvhJXCrUPbp8tGxU5xrC7iuaGIp2VXESgrR94a4GRzodx-lZuwSpfsgyhJcSPzKcDyaEiBHvHiSrANvhZWyNzaCQvLj93TGmPNK3ALZINNllJgrPeMhfoQ3-AMSLplmfJMY7KBJP8jhHdP3zAl9p6UBjE-NXSez-RcPesaLkuk7XJkKgYt-hkzYHo4nrbbylAR3b7hnMbWNe0cXSiIKqRROGnrxjysb1uKa-Mowq420wV4Y48fzjIgsMWL_b0WvOU6phxiJzwkV-Aaq_GM6ZSoAwRuzt6yvbG_q6qaXW0T1OohNnf23b3-P2y4mU_t438VHuhJ1GD9RGUN1YUS9nI8hBiLMRwFSwI3Mv9xMWg7BfJE1fiQ5T3Gga0JMAcqhJImJc_WMITZjOetqRWVAPhzGo0pgdlc734UBQAB-lwtT-IEQn2Tjl5qPLSlAgRxsO1qmxM6kzU7T4VIjNVy6-0g10qOgjqqfp2Tjwdq8Q5UVhx__DqN0Q6fFpGyWKFU1v-za5eILndwcT5P1qr-mEkPvrKZgmuGZRKaNlMuELWSoa-uGKW-YBXyLmQRUh8PixdBfsauOayfqKp7lsRK7Q2wlhZBp5l8mbu4esSi63jqZwEhI-IWsZjAX_L6hsLMlqwHgFDJa-ZTl9cbaKrRJZBx8ss57DguanQDoyO-kFk5LhMJRqXttWJBh0qyMtEVYqjYqRQFKRCarOCwl6TAuvls2YPdocJUbEFP-CupT9TlR1P37l7w_-HMPfXjCb8qiPdKqI69jpSqXI2bkQbfl8fgmuU3ixkcR5ArBgDa5cOmmGwqCNIKA2a9OSUJqd0OpaxkyQDAsyqHGrZ7N3Hvjm4T16rDHN-DQZGS8AxlhAXUZ9dIxyOfAAr_6Bc7MO6aMGXteqpZQRnGA6syVs1oBVSKfoS0tbwQX5LXq2fNo7ua998cFTCYmSAF6DOR4udD4SP0EP7M40TCdF5rh-C4RXsUk-T5mwM_kfZD_xlZM7Xetsezfgcb7nieNBsubkf7wpqvRC-giOIRp4WeFJftc6WdE3jB-5_1MWEh67LTjtqcgUsSvkm6CBp3OTLwJ-XVQcc8Py2vegG8IG2Y-N4TBRD3TiZ35vqgc8VFNdX7SQ_gbcECfwuwHEgMSo1WUL_1sqfcf649s1USMFGmhROkQ7pkxRaY-i3rBvZ3cXR6GyBP5wwk7ZKOxQtiUozH-EKBA10ubltdoKPXONRGo2MewUUGOObN4PKZVj-dQHCdK3TeaD8f5rPFdYrEKiB_8kxzfhGQCyQaQ1p-7ERJMYrN_ebjfR88KefoXETs4ZSlU2rIABnJeYr2p4PAErr3PnhwX8XIBY2ZCXtF8SC7bXAeLRvdXUIcRIDCF7HxMwqKB4y4oulgJH6RzyhhRMMtpwf4okWZ51iWOak8Tt5Nx0y0XJwGVIfyU7mi4vajaVQSBZYIOhYHArPQfBqgiQSRdCwxc46dahgRj0CWMWby5Ym-4Wql70XvNKofpUVOc8Vewl7Bd19PeJv_P7T0m4AzcgsQpmNs84tkgan99ahR8xWbodc4-q55vasGxX_THJyMLsQ4nyxw-uwejA4CvW2m7NyuY6Hv6qKB5wgSAZdR2gNCgaNkHrUjcqQArLKsHPZA9iTH8C_3W4g-ADDqpxpQ60Px3GkXmhtDxZeWGfaol_7K5VTFs40V7UypEq1ec4g3Jbm1CE\x26quot;,\x26quot;Why this ad?\x26quot;,1,0],null,null,0,null,0,0,1,0,0,0,1,0,0,0,null,0,1,0,null,[[\x26quot;post_click_menu_height_when_bottom_anchor_on_mobile\x26quot;,\x26quot;0\x26quot;],[\x26quot;show_ad_after_mute\x26quot;,\x26quot;true\x26quot;],[\x26quot;jake_ui_extension\x26quot;,\x26quot;jake_default_ui\x26quot;]],600,300,0,null,null,0,null,null,\x26quot;right\x26quot;,0,null,\x26quot;r20250527/r20110914\x26quot;,null,0,null,0]\x22\x3e\x3c/script\x3e');if (!window.mraid) {document.write('\x3c/div\x3e');}(function() {(function(){var s = document.createElement('script');s.setAttribute('data-jc', '86');s.src = 'https://pagead2.googlesyndication.com/pagead/js/r20250527/r20110914/elements/html/omrhp_fy2021.js';s.setAttribute('data-jc-version', 'r20250527');var ss = document.getElementsByTagName('script')[0];if (ss &amp;&amp; ss.parentNode) {ss.parentNode.insertBefore(s, ss);}})();window.dicnf = {eavp: true,ebrp: true,apfa: true,atsb: true,bvst: 'r20250527',eeid: 'b403aLL0EI6F9fgPjvOrkQo',aunb: true,adsg: '',admetadata: '',uffp: true,};(function(){function aa(a){var b=0;return function(){return b&lt;a.length?{done:!1,value:a[b++]}:{done:!0}}}var ba=typeof Object.defineProperties==&quot;function&quot;?Object.defineProperty:function(a,b,c){if(a==Array.prototype||a==Object.prototype)return a;a[b]=c.value;return a}; function ca(a){a=[&quot;object&quot;==typeof globalThis&amp;&amp;globalThis,a,&quot;object&quot;==typeof window&amp;&amp;window,&quot;object&quot;==typeof self&amp;&amp;self,&quot;object&quot;==typeof global&amp;&amp;global];for(var b=0;b&lt;a.length;++b){var c=a[b];if(c&amp;&amp;c.Math==Math)return c}throw Error(&quot;Cannot find global object&quot;);}var da=ca(this);function n(a,b){if(b)a:{var c=da;a=a.split(&quot;.&quot;);for(var d=0;d&lt;a.length-1;d++){var e=a[d];if(!(e in c))break a;c=c[e]}a=a[a.length-1];d=c[a];b=b(d);b!=d&amp;&amp;b!=null&amp;&amp;ba(c,a,{configurable:!0,writable:!0,value:b})}} var fa=typeof Object.create==&quot;function&quot;?Object.create:function(a){function b(){}b.prototype=a;return new b},ha;if(typeof Object.setPrototypeOf==&quot;function&quot;)ha=Object.setPrototypeOf;else{var ia;a:{var ja={a:!0},ka={};try{ka.__proto__=ja;ia=ka.a;break a}catch(a){}ia=!1}ha=ia?function(a,b){a.__proto__=b;if(a.__proto__!==b)throw new TypeError(a+&quot; is not extensible&quot;);return a}:null}var la=ha; function r(a,b){a.prototype=fa(b.prototype);a.prototype.constructor=a;if(la)la(a,b);else for(var c in b)if(c!=&quot;prototype&quot;)if(Object.defineProperties){var d=Object.getOwnPropertyDescriptor(b,c);d&amp;&amp;Object.defineProperty(a,c,d)}else a[c]=b[c];a.ga=b.prototype}function ma(a){var b=typeof Symbol!=&quot;undefined&quot;&amp;&amp;Symbol.iterator&amp;&amp;a[Symbol.iterator];if(b)return b.call(a);if(typeof a.length==&quot;number&quot;)return{next:aa(a)};throw Error(String(a)+&quot; is not an iterable or ArrayLike&quot;);} var na=typeof Object.assign==&quot;function&quot;?Object.assign:function(a,b){for(var c=1;c&lt;arguments.length;c++){var d=arguments[c];if(d)for(var e in d)Object.prototype.hasOwnProperty.call(d,e)&amp;&amp;(a[e]=d[e])}return a};n(&quot;Object.assign&quot;,function(a){return a||na});function oa(){for(var a=Number(this),b=[],c=a;c&lt;arguments.length;c++)b[c-a]=arguments[c];return b}n(&quot;globalThis&quot;,function(a){return a||da});n(&quot;Object.is&quot;,function(a){return a?a:function(b,c){return b===c?b!==0||1/b===1/c:b!==b&amp;&amp;c!==c}}); n(&quot;Array.prototype.includes&quot;,function(a){return a?a:function(b,c){var d=this;d instanceof String&amp;&amp;(d=String(d));var e=d.length;c=c||0;for(c&lt;0&amp;&amp;(c=Math.max(c+e,0));c&lt;e;c++){var g=d[c];if(g===b||Object.is(g,b))return!0}return!1}}); n(&quot;String.prototype.includes&quot;,function(a){return a?a:function(b,c){if(this==null)throw new TypeError(&quot;The 'this' value for String.prototype.includes must not be null or undefined&quot;);if(b instanceof RegExp)throw new TypeError(&quot;First argument to String.prototype.includes must not be a regular expression&quot;);return this.indexOf(b,c||0)!==-1}});n(&quot;Number.isFinite&quot;,function(a){return a?a:function(b){return typeof b!==&quot;number&quot;?!1:!isNaN(b)&amp;&amp;b!==Infinity&amp;&amp;b!==-Infinity}});n(&quot;Number.MAX_SAFE_INTEGER&quot;,function(){return 9007199254740991}); n(&quot;Number.MIN_SAFE_INTEGER&quot;,function(){return-9007199254740991});n(&quot;Number.isNaN&quot;,function(a){return a?a:function(b){return typeof b===&quot;number&quot;&amp;&amp;isNaN(b)}});/*  Copyright The Closure Library Authors. SPDX-License-Identifier: Apache-2.0 */ var x=this||self;function pa(a){x.setTimeout(function(){throw a;},0)};var qa=Array.prototype.indexOf?function(a,b){return Array.prototype.indexOf.call(a,b,void 0)}:function(a,b){if(typeof a===&quot;string&quot;)return typeof b!==&quot;string&quot;||b.length!=1?-1:a.indexOf(b,0);for(var c=0;c&lt;a.length;c++)if(c in a&amp;&amp;a[c]===b)return c;return-1},ra=Array.prototype.forEach?function(a,b){Array.prototype.forEach.call(a,b,void 0)}:function(a,b){for(var c=a.length,d=typeof a===&quot;string&quot;?a.split(&quot;&quot;):a,e=0;e&lt;c;e++)e in d&amp;&amp;b.call(void 0,d[e],e,a)};function sa(a){sa[&quot; &quot;](a);return a}sa[&quot; &quot;]=function(){};var ta={},A=null;var ua=void 0;var va=typeof Symbol===&quot;function&quot;&amp;&amp;typeof Symbol()===&quot;symbol&quot;;function wa(a,b,c){return typeof Symbol===&quot;function&quot;&amp;&amp;typeof Symbol()===&quot;symbol&quot;?(c===void 0?0:c)&amp;&amp;Symbol.for&amp;&amp;a?Symbol.for(a):a!=null?Symbol(a):Symbol():b}var xa=wa(&quot;jas&quot;,void 0,!0),ya=wa(void 0,&quot;0actk&quot;),za=wa(&quot;m_m&quot;,&quot;fa&quot;,!0);var Aa={ea:{value:0,configurable:!0,writable:!0,enumerable:!1}},Ba=Object.defineProperties,B=va?xa:&quot;ea&quot;,Ca,Da=[];C(Da,7);Ca=Object.freeze(Da);function Ea(a,b){va||B in a||Ba(a,Aa);a[B]|=b}function C(a,b){va||B in a||Ba(a,Aa);a[B]=b};var Fa={};function Ga(a,b){return b===void 0?a.g!==D&amp;&amp;!!(2&amp;(a.m[B]|0)):!!(2&amp;b)&amp;&amp;a.g!==D}var D={};var Ha=typeof x.BigInt===&quot;function&quot;&amp;&amp;typeof x.BigInt(0)===&quot;bigint&quot;;var Ja=Number.MIN_SAFE_INTEGER.toString(),Ka=Ha?BigInt(Number.MIN_SAFE_INTEGER):void 0,La=Number.MAX_SAFE_INTEGER.toString(),Ma=Ha?BigInt(Number.MAX_SAFE_INTEGER):void 0;function Na(a,b){if(a.length&gt;b.length)return!1;if(a.length&lt;b.length||a===b)return!0;for(var c=0;c&lt;a.length;c++){var d=a[c],e=b[c];if(d&gt;e)return!1;if(d&lt;e)return!0}};function Oa(a){if(typeof a!==&quot;boolean&quot;){var b=typeof a;throw Error(&quot;Expected boolean but got &quot;+(b!=&quot;object&quot;?b:a?Array.isArray(a)?&quot;array&quot;:b:&quot;null&quot;)+&quot;: &quot;+a);}return a};function Pa(a){return a};function Qa(a,b,c,d){var e=d!==void 0;d=!!d;var g=[],f=a.length,h=4294967295,k=!1,l=!!(b&amp;64),p=l?b&amp;128?0:-1:void 0;if(!(b&amp;1)){var m=f&amp;&amp;a[f-1];m!=null&amp;&amp;typeof m===&quot;object&quot;&amp;&amp;m.constructor===Object?(f--,h=f):m=void 0;if(l&amp;&amp;!(b&amp;128)&amp;&amp;!e){k=!0;var q;h=((q=Ra)!=null?q:Pa)(h-p,p,a,m)+p}}b=void 0;for(e=0;e&lt;f;e++)if(q=a[e],q!=null&amp;&amp;(q=c(q,d))!=null)if(l&amp;&amp;e&gt;=h){var y=e-p,t=void 0;((t=b)!=null?t:b={})[y]=q}else g[e]=q;if(m)for(var v in m)a=m[v],a!=null&amp;&amp;(a=c(a,d))!=null&amp;&amp;(f=+v,e=void 0,l&amp;&amp;!Number.isNaN(f)&amp;&amp; (e=f+p)&lt;h?g[e]=a:(f=void 0,((f=b)!=null?f:b={})[v]=a));b&amp;&amp;(k?g.push(b):g[h]=b);return g}function Sa(a){switch(typeof a){case &quot;number&quot;:return Number.isFinite(a)?a:&quot;&quot;+a;case &quot;bigint&quot;:return(Ha?a&gt;=Ka&amp;&amp;a&lt;=Ma:a[0]===&quot;-&quot;?Na(a,Ja):Na(a,La))?Number(a):&quot;&quot;+a;case &quot;boolean&quot;:return a?1:0;case &quot;object&quot;:if(Array.isArray(a)){var b=a[B]|0;return a.length===0&amp;&amp;b&amp;1?void 0:Qa(a,b,Sa)}if(a!=null&amp;&amp;a[za]===Fa)return E(a);return}return a}var Ra;function E(a){a=a.m;return Qa(a,a[B]|0,Sa)};function G(a,b,c){var d=d===void 0?0:d;if(a==null){var e=32;c?(a=[c],e|=128):a=[];b&amp;&amp;(e=e&amp;-8380417|(b&amp;1023)&lt;&lt;13)}else{if(!Array.isArray(a))throw Error(&quot;narr&quot;);e=a[B]|0;2048&amp;e&amp;&amp;!(2&amp;e)&amp;&amp;Ta();if(e&amp;256)throw Error(&quot;farr&quot;);if(e&amp;64)return d!==0||e&amp;2048||C(a,e|2048),a;if(c&amp;&amp;(e|=128,c!==a[0]))throw Error(&quot;mid&quot;);a:{c=a;e|=64;var g=c.length;if(g){var f=g-1,h=c[f];if(h!=null&amp;&amp;typeof h===&quot;object&quot;&amp;&amp;h.constructor===Object){b=e&amp;128?0:-1;f-=b;if(f&gt;=1024)throw Error(&quot;pvtlmt&quot;);for(var k in h)g=+k,g&lt;f&amp;&amp;(c[g+b]=h[k], delete h[k]);e=e&amp;-8380417|(f&amp;1023)&lt;&lt;13;break a}}if(b){k=Math.max(b,g-(e&amp;128?0:-1));if(k&gt;1024)throw Error(&quot;spvt&quot;);e=e&amp;-8380417|(k&amp;1023)&lt;&lt;13}}}e|=64;d===0&amp;&amp;(e|=2048);C(a,e);return a}function Ta(){if(ya!=null){var a;var b=(a=ua)!=null?a:ua={};a=b[ya]||0;a&gt;=5||(b[ya]=a+1,b=Error(),b.__closure__error__context__984382||(b.__closure__error__context__984382={}),b.__closure__error__context__984382.severity=&quot;incident&quot;,pa(b))}};function Ua(a,b){if(typeof a!==&quot;object&quot;)return a;if(Array.isArray(a)){var c=a[B]|0;a.length===0&amp;&amp;c&amp;1?a=void 0:c&amp;2||(!b||4096&amp;c||16&amp;c?a=Va(a,c,!1,b&amp;&amp;!(c&amp;16)):(Ea(a,34),c&amp;4&amp;&amp;Object.freeze(a)));return a}if(a!=null&amp;&amp;a[za]===Fa){b=a.m;c=b[B]|0;if(!Ga(a,c)){if(c&amp;2)var d=!0;else!(c&amp;32)||c&amp;4096?d=!1:(C(b,c|2),a.g=D,d=!0);d?(a=new a.constructor(b),a.i=D):a=Va(b,c)}return a}}function Va(a,b,c,d){d!=null||(d=!!(34&amp;b));a=Qa(a,b,Ua,d);d=32;c&amp;&amp;(d|=2);b=b&amp;8380609|d;C(a,b);return a} function Wa(a){if(a.g===D){var b=a.m;b=Va(b,b[B]|0);Ea(b,2048);a.m=b;a.g=void 0;a.i=void 0;b=!0}else b=!1;if(!b&amp;&amp;Ga(a,a.m[B]|0))throw Error();};function Xa(a,b,c){Wa(a);var d=a.m;Ya(d,d[B]|0,b,c);return a}function Ya(a,b,c,d){var e=c+-1,g=a.length-1;if(g&gt;=0&amp;&amp;e&gt;=g){var f=a[g];if(f!=null&amp;&amp;typeof f===&quot;object&quot;&amp;&amp;f.constructor===Object)return f[c]=d,b}if(e&lt;=g)return a[e]=d,b;if(d!==void 0){var h;g=((h=b)!=null?h:b=a[B]|0)&gt;&gt;13&amp;1023||536870912;c&gt;=g?d!=null&amp;&amp;(e={},a[g+-1]=(e[c]=d,e)):a[e]=d}return b}function H(a,b,c){if(c!=null&amp;&amp;typeof c!==&quot;string&quot;)throw Error();return Xa(a,b,c)};function I(a,b,c){this.m=G(a,b,c)}I.prototype.toJSON=function(){return E(this)};I.prototype[za]=Fa;I.prototype.toString=function(){return this.m.toString()};function Za(a){this.m=G(a)}r(Za,I);function J(a,b){this.key=a;this.defaultValue=b===void 0?!1:b;this.valueType=&quot;boolean&quot;};var $a=new J(&quot;100000&quot;),ab=new J(&quot;45357156&quot;,!0),bb=new J(&quot;45350890&quot;),cb=new J(&quot;45628745&quot;,!0),db=new J(&quot;45414892&quot;);var eb=RegExp(&quot;ad\\.doubleclick\\.net/(ddm/trackimp|pcs/view)&quot;),fb=[&quot;A7CQXglZzTrThjGTBEn1rWTxHOEtkWivwzgea+NjyardrwlieSjVuyG44PkYgIPGs8Q9svD8sF3Yedn0BBBjXAkAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjk1MTY3OTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ==&quot;];function gb(a,b){return a.substring(a.length-7)==&quot;&amp;adurl=&quot;?a.substring(0,a.length-7)+b+&quot;&amp;adurl=&quot;:a+b};function L(a){return a=a===void 0?window:a};var M=x.dicnf||{};function hb(a){var b=!1,c;return function(){b||(c=a(),b=!0);return c}};function ib(a){try{var b;if(b=!!a&amp;&amp;a.location.href!=null)a:{try{sa(a.foo);b=!0;break a}catch(c){}b=!1}return b}catch(c){return!1}}function jb(a,b){b=b===void 0?!1:b;var c=c===void 0?x:c;for(var d=0;c&amp;&amp;d++&lt;40&amp;&amp;(!b&amp;&amp;!ib(c)||!a(c));)a:{try{var e=c.parent;if(e&amp;&amp;e!=c){c=e;break a}}catch(g){}c=null}}function kb(){if(!globalThis.crypto)return Math.random();try{var a=new Uint32Array(1);globalThis.crypto.getRandomValues(a);return a[0]/65536/65536}catch(b){return Math.random()}} function lb(a,b){if(a)for(var c in a)Object.prototype.hasOwnProperty.call(a,c)&amp;&amp;b(a[c],c,a)}function N(a,b){b=b===void 0?document:b;return b.createElement(String(a).toLowerCase())};var O=[];function mb(){var a=O;O=[];a=ma(a);for(var b=a.next();!b.done;b=a.next()){b=b.value;try{b()}catch(c){}}};function nb(a,b,c){typeof a.addEventListener===&quot;function&quot;&amp;&amp;a.addEventListener(b,c,!1)}function ob(a,b,c){typeof a.removeEventListener===&quot;function&quot;&amp;&amp;a.removeEventListener(b,c,!1)}function pb(a,b){a.readyState===&quot;complete&quot;||a.readyState===&quot;interactive&quot;?(O.push(b),O.length===1&amp;&amp;(window.Promise?Promise.resolve().then(mb):(a=window.setImmediate,typeof a===&quot;function&quot;?a(mb):setTimeout(mb,0)))):a.addEventListener(&quot;DOMContentLoaded&quot;,b)};function P(a,b,c,d){qb(x,a,b===void 0?null:b,!1,c===void 0?!1:c,d===void 0?!1:d)}function qb(a,b,c,d,e,g){g=g===void 0?!1:g;a.google_image_requests||(a.google_image_requests=[]);var f=N(&quot;IMG&quot;,a.document);if(c||e){var h=function(k){c&amp;&amp;c(k);if(e){k=a.google_image_requests;var l=qa(k,f);l&gt;=0&amp;&amp;Array.prototype.splice.call(k,l,1)}ob(f,&quot;load&quot;,h);ob(f,&quot;error&quot;,h)};nb(f,&quot;load&quot;,h);nb(f,&quot;error&quot;,h)}d&amp;&amp;(f.referrerPolicy=&quot;no-referrer&quot;);g&amp;&amp;(f.attributionSrc=&quot;&quot;);f.src=b;a.google_image_requests.push(f)} var rb=hb(function(){return&quot;referrerPolicy&quot;in N(&quot;IMG&quot;)});function sb(){this.g={}}function Q(a){tb||(tb=new ub);var b=tb.g[a.key];if(a.valueType===&quot;proto&quot;){try{var c=JSON.parse(b);if(Array.isArray(c))return c}catch(d){}return a.defaultValue}return typeof b===typeof a.defaultValue?b:a.defaultValue};function ub(){this.g={};var a=document.currentScript;a=(a=(a=a===void 0?null:a)&amp;&amp;a.getAttribute(&quot;data-jc&quot;)===&quot;0&quot;?a:document.querySelector('[data-jc=&quot;0&quot;]'))&amp;&amp;a.getAttribute(&quot;data-jc-flags&quot;)||&quot;&quot;;try{var b=JSON.parse(a)[0];a=&quot;&quot;;for(var c=0;c&lt;b.length;c++)a+=String.fromCharCode(b.charCodeAt(c)^&quot;\u0003\u0007\u0003\u0007\b\u0004\u0004\u0006\u0005\u0003&quot;.charCodeAt(c%10));this.g=JSON.parse(a)}catch(d){}}var tb;r(ub,sb);function Bb(a,b){var c=c===void 0?{}:c;this.error=a;this.meta=c;this.context=b.context;this.msg=b.message||&quot;&quot;;this.id=b.id||&quot;jserror&quot;};function Cb(a){var b=a.toString();a.name&amp;&amp;b.indexOf(a.name)==-1&amp;&amp;(b+=&quot;: &quot;+a.name);a.message&amp;&amp;b.indexOf(a.message)==-1&amp;&amp;(b+=&quot;: &quot;+a.message);if(a.stack)a:{a=a.stack;var c=b;try{a.indexOf(c)==-1&amp;&amp;(a=c+&quot;\n&quot;+a);for(var d;a!=d;)d=a,a=a.replace(RegExp(&quot;((https?:/..*/)[^/:]*:\\d+(?:.|\n)*)\\2&quot;),&quot;$1&quot;);b=a.replace(RegExp(&quot;\n *&quot;,&quot;g&quot;),&quot;\n&quot;);break a}catch(e){b=c;break a}b=void 0}return b};var Db=RegExp(&quot;^https?://(\\w|-)+\\.cdn\\.ampproject\\.(net|org)(\\?|/|$)&quot;);function Eb(a,b){this.g=a;this.i=b}function Fb(a,b){this.url=a;this.g=!!b;this.depth=null};var Gb=null;function Hb(){var a=a===void 0?x:a;return(a=a.performance)&amp;&amp;a.now&amp;&amp;a.timing?Math.floor(a.now()+a.timing.navigationStart):Date.now()}function Ib(){var a=a===void 0?x:a;return(a=a.performance)&amp;&amp;a.now?a.now():null};function Jb(a,b){var c=Ib()||Hb();this.label=a;this.type=b;this.value=c;this.duration=0;this.taskId=this.slotId=void 0;this.uniqueId=Math.random()};var R=x.performance,Kb=!!(R&amp;&amp;R.mark&amp;&amp;R.measure&amp;&amp;R.clearMarks),S=hb(function(){var a;if(a=Kb){var b=b===void 0?window:b;if(Gb===null){Gb=&quot;&quot;;try{a=&quot;&quot;;try{a=b.top.location.hash}catch(d){a=b.location.hash}if(a){var c=a.match(/\bdeid=([\d,]+)/);Gb=c?c[1]:&quot;&quot;}}catch(d){}}b=Gb;a=!!b.indexOf&amp;&amp;b.indexOf(&quot;1337&quot;)&gt;=0}return a}); function Lb(){var a=window;this.i=[];this.j=a||x;var b=null;a&amp;&amp;(a.google_js_reporting_queue=a.google_js_reporting_queue||[],this.i=a.google_js_reporting_queue,b=a.google_measure_js_timing);this.g=S()||(b!=null?b:Math.random()&lt;1)}function Mb(a){a&amp;&amp;R&amp;&amp;S()&amp;&amp;(R.clearMarks(&quot;goog_&quot;+a.label+&quot;_&quot;+a.uniqueId+&quot;_start&quot;),R.clearMarks(&quot;goog_&quot;+a.label+&quot;_&quot;+a.uniqueId+&quot;_end&quot;))}Lb.prototype.start=function(a,b){if(!this.g)return null;a=new Jb(a,b);b=&quot;goog_&quot;+a.label+&quot;_&quot;+a.uniqueId+&quot;_start&quot;;R&amp;&amp;S()&amp;&amp;R.mark(b);return a}; Lb.prototype.end=function(a){if(this.g&amp;&amp;typeof a.value===&quot;number&quot;){a.duration=(Ib()||Hb())-a.value;var b=&quot;goog_&quot;+a.label+&quot;_&quot;+a.uniqueId+&quot;_end&quot;;R&amp;&amp;S()&amp;&amp;R.mark(b);!this.g||this.i.length&gt;2048||this.i.push(a)}};function Nb(){this.j=&quot;&amp;&quot;;this.i={};this.l=0;this.g=[]}function Ob(a,b){var c={};c[a]=b;return[c]}function Pb(a,b,c,d,e){var g=[];lb(a,function(f,h){(f=Qb(f,b,c,d,e))&amp;&amp;g.push(h+&quot;=&quot;+f)});return g.join(b)} function Qb(a,b,c,d,e){if(a==null)return&quot;&quot;;b=b||&quot;&amp;&quot;;c=c||&quot;,$&quot;;typeof c===&quot;string&quot;&amp;&amp;(c=c.split(&quot;&quot;));if(a instanceof Array){if(d||(d=0),d&lt;c.length){for(var g=[],f=0;f&lt;a.length;f++)g.push(Qb(a[f],b,c,d+1,e));return g.join(c[d])}}else if(typeof a===&quot;object&quot;)return e||(e=0),e&lt;2?encodeURIComponent(Pb(a,b,c,d,e+1)):&quot;...&quot;;return encodeURIComponent(String(a))} function Rb(a,b){var c=&quot;https://pagead2.googlesyndication.com&quot;+b,d=Sb(a)-b.length;if(d&lt;0)return&quot;&quot;;a.g.sort(function(p,m){return p-m});b=null;for(var e=&quot;&quot;,g=0;g&lt;a.g.length;g++)for(var f=a.g[g],h=a.i[f],k=0;k&lt;h.length;k++){if(!d){b=b==null?f:b;break}var l=Pb(h[k],a.j,&quot;,$&quot;);if(l){l=e+l;if(d&gt;=l.length){d-=l.length;c+=l;e=a.j;break}b=b==null?f:b}}a=&quot;&quot;;b!=null&amp;&amp;(a=e+&quot;trn=&quot;+b);return c+a}function Sb(a){var b=1,c;for(c in a.i)c.length&gt;b&amp;&amp;(b=c.length);return 3997-b-a.j.length-1};var Tb=RegExp(&quot;^(?:([^:/?#.]+):)?(?://(?:([^\\\\/?#]*)@)?([^\\\\/?#]*?)(?::([0-9]+))?(?=[\\\\/?#]|$))?([^?#]+)?(?:\\?([^#]*))?(?:#([\\s\\S]*))?$&quot;);function Ub(a,b,c,d){for(var e=c.length;(b=a.indexOf(c,b))&gt;=0&amp;&amp;b&lt;d;){var g=a.charCodeAt(b-1);if(g==38||g==63)if(g=a.charCodeAt(b+e),!g||g==61||g==38||g==35)return b;b+=e+1}return-1}var Vb=/#|$/,Wb=/[?&amp;]($|#)/;function Xb(a,b,c){this.o=a;this.u=b;this.g=c===void 0?null:c;this.i=null;this.j=!1;this.B=this.l}function Yb(a,b,c,d){try{if(a.g&amp;&amp;a.g.g){var e=a.g.start(b.toString(),3);var g=c();a.g.end(e)}else g=c()}catch(k){c=a.u;try{Mb(e),c=a.B(b,new Bb(k,{message:Cb(k)}),void 0,d)}catch(l){a.l(217,l)}if(c){var f,h;(f=window.console)==null||(h=f.error)==null||h.call(f,k)}else throw k;}return g} function Zb(a,b,c,d,e){return function(){var g=oa.apply(0,arguments);return Yb(a,b,function(){return c.apply(d,g)},e)}} Xb.prototype.l=function(a,b,c,d,e){e=e||&quot;jserror&quot;;var g=void 0;try{var f=new Nb;f.g.push(1);f.i[1]=Ob(&quot;context&quot;,a);b.error&amp;&amp;b.meta&amp;&amp;b.id||(b=new Bb(b,{message:Cb(b)}));if(b.msg){var h=b.msg.substring(0,512);f.g.push(2);f.i[2]=Ob(&quot;msg&quot;,h)}var k=b.meta||{};if(this.i)try{this.i(k)}catch(ea){}if(d)try{d(k)}catch(ea){}d=[k];f.g.push(3);f.i[3]=d;var l;if(!(l=t)){h=x;d=[];k=null;do{var p=h;if(ib(p)){var m=p.location.href;k=p.document&amp;&amp;p.document.referrer||null}else m=k,k=null;d.push(new Fb(m||&quot;&quot;));try{h= p.parent}catch(ea){h=null}}while(h&amp;&amp;p!==h);m=0;for(var q=d.length-1;m&lt;=q;++m)d[m].depth=q-m;p=x;if(p.location&amp;&amp;p.location.ancestorOrigins&amp;&amp;p.location.ancestorOrigins.length===d.length-1)for(q=1;q&lt;d.length;++q){var y=d[q];y.url||(y.url=p.location.ancestorOrigins[q-1]||&quot;&quot;,y.g=!0)}l=d}var t=l;var v=new Fb(x.location.href,!1);l=null;var w=t.length-1;for(p=w;p&gt;=0;--p){var u=t[p];!l&amp;&amp;Db.test(u.url)&amp;&amp;(l=u);if(u.url&amp;&amp;!u.g){v=u;break}}u=null;var z=t.length&amp;&amp;t[w].url;v.depth!==0&amp;&amp;z&amp;&amp;(u=t[w]);g=new Eb(v,u); if(g.i){var K=g.i.url||&quot;&quot;;f.g.push(4);f.i[4]=Ob(&quot;top&quot;,K)}var F={url:g.g.url||&quot;&quot;};if(g.g.url){var Ia=g.g.url.match(Tb),vb=Ia[1],wb=Ia[3],xb=Ia[4];t=&quot;&quot;;vb&amp;&amp;(t+=vb+&quot;:&quot;);wb&amp;&amp;(t+=&quot;//&quot;,t+=wb,xb&amp;&amp;(t+=&quot;:&quot;+xb));var yb=t}else yb=&quot;&quot;;F=[F,{url:yb}];f.g.push(5);f.i[5]=F;$b(this.o,e,f,this.j,c)}catch(ea){try{var zb,Ab;$b(this.o,e,{context:&quot;ecmserr&quot;,rctx:a,msg:Cb(ea),url:(Ab=(zb=g)==null?void 0:zb.g.url)!=null?Ab:&quot;&quot;},this.j,c)}catch(td){}}return this.u};function ac(a){var b=&quot;M&quot;;if(a.M&amp;&amp;a.hasOwnProperty(b))return a.M;b=new a;return a.M=b};function bc(){};function cc(){this.path=&quot;/pagead/gen_204?id=&quot;;this.g=Math.random()}function dc(){var a=ec,b=window.google_srt;b&gt;=0&amp;&amp;b&lt;=1&amp;&amp;(a.g=b)}function $b(a,b,c,d,e){if(((d===void 0?0:d)?a.g:Math.random())&lt;(e||.01))try{if(c instanceof Nb)var g=c;else g=new Nb,lb(c,function(h,k){var l=g,p=l.l++;h=Ob(k,h);l.g.push(p);l.i[p]=h});var f=Rb(g,a.path+b+&quot;&amp;&quot;);f&amp;&amp;P(f)}catch(h){}};var ec,fc,T=new Lb;function hc(){window.google_measure_js_timing||(T.g=!1,T.i!==T.j.google_js_reporting_queue&amp;&amp;(S()&amp;&amp;ra(T.i,Mb),T.i.length=0))}(function(a){ec=a!=null?a:new cc;typeof window.google_srt!==&quot;number&quot;&amp;&amp;(window.google_srt=Math.random());dc();fc=new Xb(ec,!0,T);fc.i=function(){};fc.j=!0;window.document.readyState===&quot;complete&quot;?hc():T.g&amp;&amp;nb(window,&quot;load&quot;,function(){hc()})})();var ic=[&quot;FRAME&quot;,&quot;IMG&quot;,&quot;IFRAME&quot;],jc=/^[01](px)?$/;function kc(){this.j=this.g=this.l=this.i=!1}function lc(){var a=new kc;a.i=!1;a.l=!0;return a}function mc(a,b){a.g=b;return a}function nc(a,b){a.j=b;return a}function oc(a){return typeof a===&quot;string&quot;?document.getElementById(a):a} function pc(a,b){b=b===void 0?!1:b;if(a.tagName===&quot;IMG&quot;){if(a.complete&amp;&amp;(!a.naturalWidth||!a.naturalHeight))return!0;var c;if(b&amp;&amp;((c=a.style)==null?void 0:c.display)===&quot;none&quot;)return!0}var d,e;return jc.test((d=a.getAttribute(&quot;width&quot;))!=null?d:&quot;&quot;)&amp;&amp;jc.test((e=a.getAttribute(&quot;height&quot;))!=null?e:&quot;&quot;)} function qc(a,b){if(a.tagName===&quot;IMG&quot;)return a.naturalWidth&amp;&amp;a.naturalHeight?!0:!1;try{if(a.readyState)var c=a.readyState;else{var d,e;c=(d=a.contentWindow)==null?void 0:(e=d.document)==null?void 0:e.readyState}return c===&quot;complete&quot;}catch(g){return b===void 0?!1:b}}function rc(a){a||(a=function(b,c,d){b.addEventListener(c,d)});return a}function sc(a){if(x.document.readyState===&quot;complete&quot;)a(5);else{var b=rc(b);b(x,&quot;load&quot;,function(){a(4)})}} function tc(a,b,c){c=c===void 0?new kc:c;if(a=oc(a)){var d=rc(d);for(var e=!1,g=function(w){e||(e=!0,b(w))},f,h=2,k=0;k&lt;ic.length;++k)if(ic[k]===a.tagName){h=3;f=[a];break}f||(f=a.querySelectorAll(ic.join(&quot;,&quot;)));var l=0,p=0,m=!c.g,q=a=!1;k={};for(var y=0;y&lt;f.length;k={C:void 0},y++){var t=f[y];if(!pc(t,c.g))if(k.C=t.tagName===&quot;IMG&quot;,qc(t,c.i))a=!0,k.C&amp;&amp;(m=!0);else{l++;var v=function(w){return function(u){l--;!l&amp;&amp;m&amp;&amp;g(h);w.C&amp;&amp;(u=u&amp;&amp;u.type===&quot;error&quot;,p--,u||(m=!0),!p&amp;&amp;q&amp;&amp;m&amp;&amp;g(h))}}(k);d(t,&quot;load&quot;,v);k.C&amp;&amp; (p++,d(t,&quot;error&quot;,v))}}p===0&amp;&amp;(m=!0);f=null;f=x.document.readyState===&quot;complete&quot;;if(c.j&amp;&amp;f){if(p&gt;0){q=!0;return}h=5}else if(l===0&amp;&amp;!a&amp;&amp;f)h=5;else if(l||!a){d(x,&quot;load&quot;,function(){!c.l||!p&amp;&amp;m?g(4):q=!0});return}g(h)}};function uc(a,b,c){if(a)for(var d=0;a!=null&amp;&amp;d&lt;500&amp;&amp;!c(a);++d)a=b(a)}function vc(a,b){uc(a,function(c){try{return c===c.parent?null:c.parent}catch(d){}return null},b)}function wc(a,b){if(a.tagName==&quot;IFRAME&quot;)b(a);else{a=a.querySelectorAll(&quot;IFRAME&quot;);for(var c=0;c&lt;a.length&amp;&amp;!b(a[c]);++c);}}function xc(a){return(a=a.ownerDocument)&amp;&amp;(a.parentWindow||a.defaultView)||null} function yc(a,b,c){try{var d=JSON.parse(c.data)}catch(f){}if(typeof d===&quot;object&quot;&amp;&amp;d&amp;&amp;d.type===&quot;creativeLoad&quot;){var e=xc(a);if(c.source&amp;&amp;e){var g;vc(c.source,function(f){try{if(f.parent===e)return g=f,!0}catch(h){}});g&amp;&amp;wc(a,function(f){if(f.contentWindow===g)return b(d),!0})}}}function zc(a){return typeof a===&quot;string&quot;?document.getElementById(a):a} function Ac(a,b){var c=zc(a);if(c)if(c.onCreativeLoad)c.onCreativeLoad(b);else{var d=b?[b]:[],e=function(g){for(var f=0;f&lt;d.length;++f)try{d[f](1,g)}catch(h){}d={push:function(h){h(1,g)}}};c.onCreativeLoad=function(g){d.push(g)};c.setAttribute(&quot;data-creative-load-listener&quot;,&quot;&quot;);c.addEventListener(&quot;creativeLoad&quot;,function(g){e(g.detail)});x.addEventListener(&quot;message&quot;,function(g){yc(c,e,g)})}};function U(a){var b=this;this.i=!1;this.g=[];a(function(c){Bc(b,c)})}function Bc(a,b){if(!a.i)if(b instanceof U)b.then(function(c){Bc(a,c)});else{a.i=!0;a.j=b;for(b=0;b&lt;a.g.length;++b)Cc(a,a.g[b]);a.g=[]}}function Cc(a,b){a.i?b(a.j):a.g.push(b)}U.prototype.then=function(a){var b=this;return new U(function(c){Cc(b,function(d){c(a(d))})})}; function Dc(a){var b=a.length,c=0;return new U(function(d){if(b==0)d([]);else for(var e=[],g={A:0};g.A&lt;b;g={A:g.A},++g.A)a[g.A].then(function(f){return function(h){e[f.A]=h;++c==b&amp;&amp;d(e)}}(g))})}function Ec(){var a,b=new U(function(c){a=c});return new Fc(b,a)}function Fc(a,b){this.promise=a;this.resolve=b};function Gc(a){if(a.prerendering)return 3;var b;return(b={visible:1,hidden:2,prerender:3,preview:4,unloaded:5,&quot;&quot;:0}[a.visibilityState||a.webkitVisibilityState||a.mozVisibilityState||&quot;&quot;])!=null?b:0}function Hc(a){var b;a.visibilityState?b=&quot;visibilitychange&quot;:a.mozVisibilityState?b=&quot;mozvisibilitychange&quot;:a.webkitVisibilityState&amp;&amp;(b=&quot;webkitvisibilitychange&quot;);return b};function Ic(a,b,c){function d(k){try{var l=typeof k.data===&quot;object&quot;?k.data:JSON.parse(k.data);f===l.paw_id&amp;&amp;(window.clearTimeout(h),window.removeEventListener(&quot;message&quot;,d),l.signal?b(l.signal):l.error&amp;&amp;c(l.error))}catch(p){k={msg:&quot;postmessageError&quot;,err:p instanceof Error?p.message:&quot;nonError&quot;,data:k.data==null?&quot;null&quot;:k.data.length&gt;500?k.data.substring(0,500):k.data},ac(bc),l=[],!k.eid&amp;&amp;l.length&amp;&amp;(k.eid=l.toString()),$b(ec,&quot;paw_sigs&quot;,k,!0)}}var e={},g=200;e=e===void 0?{}:e;b=b===void 0?function(){}: b;c=c===void 0?function(){}:c;g=g===void 0?200:g;var f=String(Math.floor(kb()*2147483647)),h=0;window.addEventListener(&quot;message&quot;,function(k){Zb(fc,903,function(){d(k)})()});a.postMessage(Object.assign({},{paw_id:f},e));h=window.setTimeout(function(){window.removeEventListener(&quot;message&quot;,d);c(&quot;PAW GMA postmessage timed out.&quot;)},g)} function Jc(){var a=window,b,c;if(a.gmaSdk||((b=a.webkit)==null?0:(c=b.messageHandlers)==null?0:c.getGmaViewSignals))return a;try{var d=window.parent,e,g;if(d.gmaSdk||((e=d.webkit)==null?0:(g=e.messageHandlers)==null?0:g.getGmaViewSignals))return d}catch(f){}return null};function Kc(a){this.m=G(a)}r(Kc,I);function Lc(a){this.m=G(a)}r(Lc,I);function Mc(a,b){return H(a,2,b)}function Nc(a,b){return H(a,3,b)}function Oc(a,b){return H(a,4,b)}function Pc(a,b){return H(a,5,b)}function Qc(a,b){return H(a,9,b)} function Rc(a,b){var c=b;Wa(a);b=a.m;var d=b[B]|0;if(c==null)Ya(b,d,10);else{for(var e=c===Ca?7:c[B]|0,g=e,f=!!(2&amp;e)&amp;&amp;!!(4&amp;e)||!!(256&amp;e),h=f||Object.isFrozen(c),k=!0,l=!0,p=0;p&lt;c.length;p++){var m=c[p];f||(m=Ga(m),k&amp;&amp;(k=!m),l&amp;&amp;(l=m))}f||(e=k?13:5,e=l?e&amp;-4097:e|4096);h&amp;&amp;e===g||(c=Array.prototype.slice.call(c),g=0,e=(2&amp;d?e|2:e&amp;-3)&amp;-273);e!==g&amp;&amp;C(c,e);d=Ya(b,d,10,c);2&amp;e||!(4096&amp;e||16&amp;e)||(c=d,c===void 0&amp;&amp;(c=b[B]|0),c&amp;32&amp;&amp;!(c&amp;4096)&amp;&amp;C(b,c|4096))}return a} function Sc(a,b){return Xa(a,11,b==null?b:Oa(b))}function Tc(a,b){return H(a,1,b)}function Uc(a,b){return Xa(a,7,b==null?b:Oa(b))};var Vc=&quot;platform platformVersion architecture model uaFullVersion bitness fullVersionList wow64&quot;.split(&quot; &quot;);function Wc(a){var b;return(b=a.google_tag_data)!=null?b:a.google_tag_data={}}function Xc(a){var b,c;return typeof((b=a.navigator)==null?void 0:(c=b.userAgentData)==null?void 0:c.getHighEntropyValues)===&quot;function&quot;} function Yc(a){if(!Xc(a))return null;var b=Wc(a);if(b.uach_promise)return b.uach_promise;a=a.navigator.userAgentData.getHighEntropyValues(Vc).then(function(c){b.uach!=null||(b.uach=c);return c});return b.uach_promise=a} function Zc(a){var b;return Sc(Rc(Pc(Mc(Tc(Oc(Uc(Qc(Nc(new Lc,a.architecture||&quot;&quot;),a.bitness||&quot;&quot;),a.mobile||!1),a.model||&quot;&quot;),a.platform||&quot;&quot;),a.platformVersion||&quot;&quot;),a.uaFullVersion||&quot;&quot;),((b=a.fullVersionList)==null?void 0:b.map(function(c){var d=new Kc;d=H(d,1,c.brand);return H(d,2,c.version)}))||[]),a.wow64||!1)}function $c(a){var b,c;return(c=(b=Yc(a))==null?void 0:b.then(function(d){return Zc(d)}))!=null?c:null};function ad(a){return[&quot;omid_v1_present&quot;,&quot;omid_v1_present_web&quot;,&quot;omid_v1_present_app&quot;].some(function(b){try{var c=a.frames&amp;&amp;!!a.frames[b]}catch(d){c=!1}return c})};function bd(){this.g=x.document;this.u=x;this.i=null;this.j=this.l=&quot;&quot;;this.v=cd();dd(this)} function dd(a){var b=[],c=Q(bb)||!!M.aub;if(c||M.aunb){var d=$c(a.u);d&amp;&amp;(d=d.then(function(m){var q=JSON.stringify(E(m));m=[];for(var y=0,t=0;t&lt;q.length;t++){var v=q.charCodeAt(t);v&gt;255&amp;&amp;(m[y++]=v&amp;255,v&gt;&gt;=8);m[y++]=v}q=3;q===void 0&amp;&amp;(q=0);if(!A)for(A={},y=&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&quot;.split(&quot;&quot;),t=[&quot;+/=&quot;,&quot;+/&quot;,&quot;-_=&quot;,&quot;-_.&quot;,&quot;-_&quot;],v=0;v&lt;5;v++){var w=y.concat(t[v].split(&quot;&quot;));ta[v]=w;for(var u=0;u&lt;w.length;u++){var z=w[u];A[z]===void 0&amp;&amp;(A[z]=u)}}q=ta[q];y=Array(Math.floor(m.length/ 3));t=q[64]||&quot;&quot;;for(v=w=0;w&lt;m.length-2;w+=3){var K=m[w],F=m[w+1];z=m[w+2];u=q[K&gt;&gt;2];K=q[(K&amp;3)&lt;&lt;4|F&gt;&gt;4];F=q[(F&amp;15)&lt;&lt;2|z&gt;&gt;6];z=q[z&amp;63];y[v++]=u+K+F+z}u=0;z=t;switch(m.length-w){case 2:u=m[w+1],z=q[(u&amp;15)&lt;&lt;2]||t;case 1:m=m[w],y[v]=q[m&gt;&gt;2]+q[(m&amp;3)&lt;&lt;4|u&gt;&gt;4]+z+t}a.l=y.join(&quot;&quot;)}),c&amp;&amp;b.push(d))}if(Q(ab)||Q(db)){c=Jc();var e;if(c==null?0:(e=c.gmaSdk)==null?0:e.getViewSignals)(e=c.gmaSdk.getViewSignals())&amp;&amp;!Q(db)&amp;&amp;(a.j=&quot;&amp;ms=&quot;+e);else{var g,f;if(c==null?0:(g=c.webkit)==null?0:(f=g.messageHandlers)==null?0:f.getGmaViewSignals){var h, k;Ic(c==null?void 0:(h=c.webkit)==null?void 0:(k=h.messageHandlers)==null?void 0:k.getGmaViewSignals,function(m){Q(db)||(a.j=&quot;&amp;&quot;+m)},function(){})}}}M.umi&amp;&amp;(e=new U(function(m){a.i=m}),b.push(e));if(M.ebrpfa||Q($a)||M.imprtype==&quot;1&quot;||M.imprtype==&quot;2&quot;){var l=Ec();(M.imprtype==&quot;1&quot;?1:M.imprtype==&quot;2&quot;?2:0)!==2&amp;&amp;b.push(l.promise);pb(a.g,function(){tc(a.g.body,l.resolve)})}Gc(a.g)==3&amp;&amp;Gc(a.g)==3&amp;&amp;b.push(ed(a));if(M.opxdv&amp;&amp;a.v){var p=Ec();b.push(p.promise);e=x.omrhp;typeof e===&quot;function&quot;?e(p.resolve):(e=x.document.querySelector(&quot;script[data-jc='86']&quot;))&amp;&amp; e.addEventListener(&quot;load&quot;,function(){x.omrhp(p.resolve)})}a.o=Dc(b)} function fd(a){var b=a;var c=b.search(Vb),d=Ub(b,0,&quot;ase&quot;,c);if(d&lt;0)b=null;else{var e=b.indexOf(&quot;&amp;&quot;,d);if(e&lt;0||e&gt;c)e=c;b=decodeURIComponent(b.slice(d+4,e!==-1?e:0).replace(/\+/g,&quot; &quot;))}if(b===(2).toString()||eb.test(a)){var g=x.document;g=g===void 0?document:g;var f;g=!((f=g.featurePolicy)==null||!f.allowedFeatures().includes(&quot;attribution-reporting&quot;));f=a.search(Vb);b=0;for(d=[];(c=Ub(a,b,&quot;nis&quot;,f))&gt;=0;)d.push(a.substring(b,c)),b=Math.min(a.indexOf(&quot;&amp;&quot;,c)+1||f,f);d.push(a.slice(b));f=d.join(&quot;&quot;).replace(Wb, &quot;$1&quot;);a=g?6:5;(a=&quot;nis&quot;+(a!=null?&quot;=&quot;+encodeURIComponent(String(a)):&quot;&quot;))?(b=f.indexOf(&quot;#&quot;),b&lt;0&amp;&amp;(b=f.length),c=f.indexOf(&quot;?&quot;),c&lt;0||c&gt;b?(c=b,d=&quot;&quot;):d=f.substring(c+1,b),f=[f.slice(0,c),d,f.slice(b)],b=f[1],f[1]=a?b?b+&quot;&amp;&quot;+a:a:b,a=f[0]+(f[1]?&quot;?&quot;+f[1]:&quot;&quot;)+f[2]):a=f;g=Q(cb)?g:!0;f=!1;f=f===void 0?!1:f;g=g===void 0?!1:g;x.fetch?(f={keepalive:!0,credentials:&quot;include&quot;,redirect:&quot;follow&quot;,method:&quot;get&quot;,mode:&quot;no-cors&quot;},g&amp;&amp;(f.mode=&quot;cors&quot;,&quot;setAttributionReporting&quot;in XMLHttpRequest.prototype?f.attributionReporting= {eventSourceEligible:&quot;true&quot;,triggerEligible:&quot;false&quot;}:f.headers={&quot;Attribution-Reporting-Eligible&quot;:&quot;event-source&quot;}),x.fetch(a,f)):P(a,void 0,f,g)}else if(M.atsb){g=g===void 0?!1:g;if(f=x.navigator)f=x.navigator.userAgent,f=/Chrome/.test(f)&amp;&amp;!/Edge/.test(f)?!0:!1;f&amp;&amp;typeof x.navigator.sendBeacon===&quot;function&quot;?x.navigator.sendBeacon(a):P(a,void 0,g)}else P(a)} function cd(){var a=L(x).omid3p,b=!!a&amp;&amp;typeof a.registerSessionObserver===&quot;function&quot;&amp;&amp;typeof a.addEventListener===&quot;function&quot;;b||jb(function(c){ad(c)&amp;&amp;(b=!0);return b},!0);return b}function ed(a){return new U(function(b){var c=Hc(a.g);if(c){var d=function(){Gc(a.g)!=3&amp;&amp;(ob(a.g,c,d),b())};nb(a.g,c,d)}})};function V(){return(new Date).getTime()}function gd(){try{var a=a===void 0?document:a;var b;return!((b=a.featurePolicy)==null||!b.features().includes(&quot;attribution-reporting&quot;))}catch(c){return!1}}var W=new Xb(new cc,!1);function X(a){a.umi=M.umi?1:0;a.eavp=M.eavp?1:0;a.ebrp=M.ebrp?1:0;a.bvst=M.bvst||&quot;n&quot;;a.opxb=M.opxb?1:0;a.aunb=M.aunb?1:0;a.aub=M.aub?1:0;a.fld=M.fld?1:0;a.uffp=M.uffp?1:0;a.espa=M.espa?1:0;a.aifbl=M.aifbl?1:0;a.lrsc=M.lrsc?1:0;Y&amp;&amp;(a.omid=Y.v?1:0)} function hd(a,b){this.L=a;this.u=this.o=this.i=!1;this.R=1;this.j=M.eavp?1:0;this.g=M.ebrp?1:0;this.U=!!M.opxb;this.H=this.B=null;this.K=Ec();this.P=V();this.O=null;this.Z=Math.random()&lt;.001;this.V=M.eeid||&quot;&quot;;this.G=this.l=null;this.aa=(Math.random()+&quot;&quot;).slice(-5);this.v=!1;this.D=null;this.F=0;this.I=this.J=null;this.S=!!M.fld;this.X=M.adsg||&quot;&quot;;this.W=M.admetadata||&quot;&quot;;this.da=!!M.uffp;this.ca=!!M.espa;var c,d;this.Y=((c=x.navigator)==null?void 0:(d=c.userAgent)==null?void 0:d.indexOf(&quot;Firefox&quot;))!= -1;this.T=!!M.lrsc;this.N=!!M.btrb;this.ba=!!M.umi;id(this,b)}var Y;function jd(a,b){a.g!==0&amp;&amp;(b?(a.G=V()-a.P,kd(a,b).then(function(c){c&amp;&amp;(a.B=c);a.u=!0;Z(a)})):!a.ba&amp;&amp;a.T&amp;&amp;kd(a).then(function(){a.u=!0;Z(a)}))}function ld(){try{jb(function(a){a=a.document;if(fb.length&amp;&amp;a.head)for(var b=ma(fb),c=b.next();!c.done;c=b.next())if((c=c.value)&amp;&amp;a.head){var d=N(&quot;META&quot;);a.head.appendChild(d);d.httpEquiv=&quot;origin-trial&quot;;d.content=c}return!1},!1)}catch(a){}} function id(a,b){jd(a,b);ld();a.g!==0||a.j!==0?md(a)?nd(a).then(function(){od(a)}):od(a):a.D=1;ac(bd).o.then(function(){a.i=!0;Z(a)});pd(a);Z(a)}function kd(a,b){return new U(function(c){function d(g,f){a.H=g;c(f)}if(b){Ac(b,d);var e=nc(mc(lc(),a.Y),a.T);tc(b,d,e)}else sc(d)})}function md(a){a.v=cd();a.D=a.v?4:1;return a.v} function nd(a){return new U(function(b){var c=Zb(W,1184,function(e){a.D=3;e&amp;&amp;(a.J=e.src,a.I=e.sdk);b()},null,X),d=x.omrhp;typeof d===&quot;function&quot;?d(c):(d=x.document.querySelector(&quot;script[data-jc='86']&quot;))&amp;&amp;d.addEventListener(&quot;load&quot;,Zb(W,1183,function(){x.omrhp(c)},null,X))})}function od(a){a.o=!0;Z(a)}function qd(a){return!a.U&amp;&amp;a.N?a.i&amp;&amp;a.u:a.i&amp;&amp;a.o&amp;&amp;a.u} function Z(a){if(a.i){var b=null,c=0;a.R!==2?b=0:a.j===1&amp;&amp;a.i&amp;&amp;a.o?b=12:a.g===1&amp;&amp;qd(a)&amp;&amp;(b=11);if(b!=null)a:{if(b===0?a.g===1&amp;&amp;qd(a)?c=2:a.j===1&amp;&amp;a.i&amp;&amp;a.o&amp;&amp;(c=1):b===12&amp;&amp;a.g===1&amp;&amp;qd(a)&amp;&amp;(c=2),a.U&amp;&amp;(a.Z&amp;&amp;a.L!==&quot;&quot;&amp;&amp;a.v&amp;&amp;(a.l||b!==0||rd(a,!0),b!==12&amp;&amp;c!==1&amp;&amp;c!==2||rd(a,!1)),b===0&amp;&amp;c===0))break a;if(!a.N||b!==0||c===2){var d=V(),e=sd(a,b,c,d);b===0&amp;&amp;(a.R=2,a.O=d);if(b===12||c)a.j=2;if(b===11||c===2)a.g=2;if(a.S){e=new Za;H(e,1,a.X);e=JSON.stringify(E(e));d=a.W;if(b===0){var g=L(x),f;g==null||(f=g.fence)== null||f.reportEvent({eventType:&quot;impression&quot;,eventData:e,destination:[&quot;buyer&quot;]});var h;g==null||(h=g.fence)==null||h.reportEvent({eventType:&quot;impression&quot;,eventData:d,destination:[&quot;component-seller&quot;]})}if(b===11||c===2){var k,l;(k=L(x))==null||(l=k.fence)==null||l.reportEvent({eventType:&quot;b2rimpression&quot;,eventData:e,destination:[&quot;buyer&quot;]})}}else e&amp;&amp;(((f=a.ca&amp;&amp;gd())||a.da)&amp;&amp;x.fetch?(h={method:&quot;GET&quot;,keepalive:!0,credentials:&quot;include&quot;},f?&quot;setAttributionReporting&quot;in XMLHttpRequest.prototype?(h.attributionReporting= {eventSourceEligible:!0,triggerEligible:!1},h.mode=&quot;no-cors&quot;):h.headers={&quot;Attribution-Reporting-Eligible&quot;:&quot;event-source&quot;}:h.mode=&quot;no-cors&quot;,x.fetch(gb(e,&quot;&amp;ftch=1&quot;),h)):fd(e));b===0&amp;&amp;a.K.resolve()}}}}function rd(a,b){var c=null;b?a.l=V():c=a.l?V()-a.l:&quot;?&quot;;a=&quot;https://pagead2.googlesyndication.com/pagead/gen_204?id=opxhb&amp;evt=&quot;+(b?&quot;d&quot;:&quot;o&quot;)+(&quot;&amp;eid=&quot;+encodeURIComponent(a.V))+(c==null?&quot;&quot;:&quot;&amp;ttp=&quot;+c);fd(a)} function sd(a,b,c,d){if(a.L===&quot;&quot;)return null;var e={omid:a.v?1:0,rm:a.D,ctpt:d-a.P};b!==0&amp;&amp;(e.vt=b,e.dtpt=d-(a.O||0));c!==0&amp;&amp;(e.cbvp=c);a.H&amp;&amp;(e.dett=a.H);a.B&amp;&amp;(e.beid=a.B.eventId,e.vend=a.B.vendor);a.G!=null&amp;&amp;(e.cstd=a.G);(b=M.bvst)&amp;&amp;(e.cisv=b+(&quot;.&quot;+a.aa));a.F!==0&amp;&amp;(e.vwbs=a.F);a.J&amp;&amp;(e.oprs=a.J);a.I&amp;&amp;(e.opsd=a.I);(b=ac(bd).l)&amp;&amp;(e.uach=b);e.arae=Number(gd());var g=&quot;&quot;;lb(e,function(f,h){g+=&quot;&amp;&quot;+h+&quot;=&quot;+encodeURIComponent(f)});return gb(a.L,g)} function pd(a){var b=a.V;if(b&amp;&amp;(b=x[&quot;bllsn&quot;+b],typeof b===&quot;function&quot;))try{b(function(c){c&amp;&amp;(a.F=c.block?2:1)})}catch(c){}};L().btrp=function(a,b){return Yb(W,1183,function(){var c=Y=new hd(a,b);return Zb(W,1183,function(d){jd(c,d)},X)},X)}; L().pdib3=function(a,b){Yb(W,1185,function(){var c=Y;c.K.promise.then(function(){var d=a,e=L(x),g=gd();if(eb.test(d)){var f=d.lastIndexOf(&quot;;&quot;);d=f===-1?d:d.substring(0,f)+&quot;;tpsrc=cis&quot;+d.substring(f)}var h;c.S&amp;&amp;((h=e.fence)==null?0:h.reportEvent)?e.fence.reportEvent({destinationURL:d}):b?(e=!1,e=e===void 0?!1:e,g=g===void 0?!1:g,rb()?qb(window,d,null,!0,e,g):(f=x.document,f.body?(h=f.getElementById(&quot;goog-srcless-iframe&quot;),h||(h=N(&quot;IFRAME&quot;),h.style.display=&quot;none&quot;,h.id=&quot;goog-srcless-iframe&quot;,f.body.appendChild(h)), f=h):f=null,f&amp;&amp;f.contentWindow&amp;&amp;qb(f.contentWindow,d,null,!0,e,g))):P(d,null,!1,g)})},X)};L().vv=function(){var a=ac(bd);if(!a.i)throw Error(&quot;aiv::err&quot;);a.i()};L().sasrc=function(a){Y.K.promise.then(function(){var b=x.document.createElement(&quot;img&quot;);b.style.display=&quot;none&quot;;b.attributionSrc=a;x.document.body.appendChild(b)})};}).call(this);window.stcc = btrp(&quot;https://pagead2.googlesyndication.com/pcs/view?xai\x3dAKAOjsufgXlJBkoa59SSuNwtMICyjEwF9PANw2i5XdWTkbnbF7lHqNamI6sye00BlHt3GI1KGa5a_RIl_2lvsFofCjJxtp8IMWCoETD143_gv8_FAydtfjPOi4UcxTMf8kJvl8Jz8XX8xtP8-xBWEn2igxKoT6fnG7ktljJ0iX8-9xRSMHKiP_aP4I88YoQuWelMUBFUM-2-UF6w6OYXq_AbVhbWXfW9dOVYRUe1f4NrqvTyxbBASHZdEZXVNhp_WsNm0sX4BelD23ww1dsd_p_lHZX6f81qrKN0QU1yhtXAZOP9acrIW4hXpRxWn3Me32Fa9zIAH0jcyd82Pe-Iol75TDEOxRFqidmEo_9VrXEOSynzUyjwlruAzABTo7ZWwpWDOMMUqzWzSekWEnercWOP3X6BHEbpQjOmL0x3FzGShvJE90czosYqkhK2td4RpEqqeVWQmXech73yIJq6DrGXGxYxYw5iDvatBnuIXz-N7gmJSJctRYujk-lwsB6IMwSlSGtZGhVl1vxffz6GBujzj1n5-JTTjPU_bFN5NrS9x936FrtRl6gJ0CI7lVs7Igw_TChP0B9Y1oIJ5WvRaxoW9v1172YvZqHtiEnzmshQYRs9UyEVY4ZRWZS1ZHbvgqLefuqU3Csv1To7eOQE9DXa1fkp8wr3HzSB3XxOgBFRywfNFcv6kXiAvpT-pAYHxvyZ7uL8yqjPT8Do6x_Tw0xRpgiea87_yC3XLfBZEHDRQLlDLA_mPxFJYNtjMh1atwTaCWI7ecjBY44_A4k67LBAp50LVBaZXtjlbsA2aA0Yi0FCdT2SASBQO8SBzigm4NsMCGetC3pzy9J-PibKcmpUQU0aKvY_FkzmGK7LOmIiKRQGUUNZ7oN_QtQ3c-RPR4CL8nkm-kUo3dR4Y5cSKyuM0KHy3EqTvQZLQB1cvZ66ufOO4qpG4ZOvUrrvVgdKRApGF7NAWDHQfgPKJNr5LWpWR8ughmThC3xeFA3cV_5MpYGBar4Rd90gBRKp12JS9HI9cSC_fHYXWd3grFNl8bHgtlNW2txEj6g_DTnks3HyyfSCHHr1z18C-iNLYDx5ERfQ823I1WtgKikroymDcwB-p8kthx6dItPvZlc6qKN5aE4WKpdsITLqYlKnueebx_nvq0rjUOfaDMjhfRocRDy6_V1xa0E68I7e20MpuvaCcVEVu8KccfxnHR8JrXN2FsP47ufF_oFLn9_8ZcY4g42ZA2bJCIKtiEbyS11ZBnzepN34SVoZ27vyAGz1YRV4Rok00x8vvOORLJM7uS8h5jzc0PTd48gbshIFI3vHOgIyX5S9B2FVNh-6EymOpsJ1eqBRUW5lGeTwK3tO6mBEJUp-iy5Eirw9_nj_Nag7kcpNZJUvZE3D5wRGN6u9YDCeHKvAaz29vslecmSuVJnACT1OiOPepGqT7nZudMKFDMKKwI9-2jvz09JbKaL-3pg7poQYUYOGyJ-crbc4b_qHUwReJ9jj7AreNvss5cc8oP8581rRDE8XiyBNLCm2q4L2WOtErSqJ2IW0IVgAfBJihHhVgVsoXM8PdFrMFS3eywHpQuW_bg55RFYh3qJzo9wanDRTnQFQR3ej791OguR6lIllfpMc4pGg9yMhUlu8XP8p-NMt8A72j3GMpFnMYPH7CgzdeeFAjiczZAnssymuQk4MfHNdG1qE6DrGw08wkRcz8aAfuxMHPYWD9DHnozm3LG7oxE6HFGCM614JJUCcZFtYEsPem7dh_tiR_mCUtXCv3kDuomoHo6RjQCUJxCaPidQQ5R2MdUPnH-ITuRUzYkyfbqJUB7QwQ30ht7_w7jscnbfjwPJw1ydUhqS2U6LpyMfWvSWBkiu9x7IMCcrpV_tSClBs4IENj4z8jLvhIjEIU_UAcgO_1GPaKrMIToAPNMH8xoDjZtuVWI2fR5v_9Zq4oL7XC2lQdmiqio7FTyV9N61XDarWp_ySsWkQWjz5F26znE-Hc03F4PQgPnRby8ueqr6IfFT4GtH2gEZgeQ\x26sai\x3dAMfl-YS7nwi5bFfTvwEp4D4nUPWRs8G18OYRv51B33J6SzjnZ_uWNnSYwgcs6OEw7FxGrBWfwIQ2vA\x26sig\x3dCg0ArKJSzCbjWvNUz6nfEAE\x26uach_m\x3d%5BUACH%5D\x26fbs_aeid\x3d%5Bgw_fbsaeid%5D\x26urlfix\x3d1\x26adurl\x3d&quot;, document.getElementById(&quot;gcc_b403aLL0EI6F9fgPjvOrkQo&quot;));})();(function() {if (!window.GoogleTyFxhY || typeof window.GoogleTyFxhY.push !== 'function') {window.GoogleTyFxhY = [];}window.GoogleTyFxhY.push({'_scs_': 'BeM43b403aLL0EI6F9fgPjvOrkQoAAAAAOAHgBAI','_bgu_': 'https://pagead2.googlesyndication.com/bg/XqTohkhvJ3dD5U3A7x82rH-KtCPhIhUcBrx-RbEJASs.js','_bgp_': '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\x3d','_ifr_': 'false','_isfl_': 'false'});var gsodar = document.createElement('script');gsodar.type = 'text/javascript';gsodar.async = true;gsodar.src = '//tpc.googlesyndication.com/sodar/Q12zgMmT.js';var s = document.getElementsByTagName('script')[0];s.parentNode.insertBefore(gsodar, s);})();&lt;/script&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;script data-jc=&quot;22&quot; src=&quot;https://pagead2.googlesyndication.com/pagead/js/r20250527/r20110914/client/window_focus_fy2021.js&quot; async data-jc-version=&quot;r20250527&quot; data-jcp-url=&quot;https://pagead2.googlesyndication.com/pagead/interaction/?ai=CR4j6b403aLL0EI6F9fgPjvOrkQrY0qGQf6jsj_TjE87TzKy7RhABIPjaxVdg1QWgAf7iz8MpyAEJqQKVCMYK9vCyPqgDAcgDmwSqBLYCT9BfDgZwu8M4qGiDpod1yJYEUhyrVoboqOHq-pch4OIzMFpMvznbIo85ImoCgwtWX8IV2im4mUuOx9hEwajBU7I7zRY_MrjniT1qninRe7sly4lCwqnXK0iTNCQ29_tLQQ-I_VJVmFuoE3JvrwXbYIBeKI20Bmv4FUpUdHF1xuboEQKs1LxBEjz2WAz2Nc9nOqxdVbiUzFUpKMquLCt5PTDz73XSfG6Gcun-40gieocGv963Gb1Nal2Zoh0SMi6I2rhjY9vR1VOxO71gAfpyIMDPrWCnIIzqg4Hf5GILzY4F3s9Zy5tNmXEKKiIh76NDVrfmAQQldhUOjwtG6V-LBWQicM-8VcCZHjWUjxoctTjVc5qcshH8DtRIgY8NOsZ0f3BBoN6kM-o_G34eDq6YPq_2h2edosAEw__2nacF4AQDiAX0u_z5U6AGTIAH_pqgowSoB9XJG6gH2baxAqgHpr4bqAfz0RuoB5bYG6gHqpuxAqgH4L2xAqgHjs4bqAeT2BuoB_DgG6gH7paxAqgH_p6xAqgHr76xAqgHmgaoB_-esQKoB9-fsQKoB_jCsQKoB_vCsQLYBwDSCC0IkeGAcBABGJ0BMgXri4CAIDoMAICAgICAlK7gA6ADSL39wTpY3Yr2zprHjQOACgOYCwHICwGADAGiDAgqBgoE2s-xAqoNAkVT4g0TCN7M9s6ax40DFY5CHQkdjvkqouoNEwiJ-fbOmseNAxWOQh0JHY75KqKwE9qsyxzYEwPYFAHQFQH4FgGAFwGyFzMYAiovLzI0ODQyNDE3Ny9zdGFja292ZXJmbG93LmNvbS9tc2IvcXVlc3Rpb24tcGFnZXOyGAkSAvBZGEwiAQCyGQE1&amp;amp;sigh=cjZb5XoPyMw&quot; data-jcp-gws-id=&quot;&quot; data-jcp-qem-id=&quot;CPLn_M6ax40DFY5CHQkdjvkqog&quot;&gt;&lt;/script&gt;&lt;script data-jc=&quot;23&quot; src=&quot;https://pagead2.googlesyndication.com/pagead/js/r20250527/r20110914/client/qs_click_protection_fy2021.js&quot; data-jc-version=&quot;r20250527&quot; data-jcp-init-data=&quot;[[[[null,500,99,2,9,null,null,null,1]]]]&quot;&gt;&lt;/script&gt;&lt;script&gt;window.parent.postMessage('{&quot;googMsgType&quot;:&quot;pvt&quot;,&quot;token&quot;:&quot;AOrYGskol0wPXiePEmEe8Ai-ELcpu_U_Mbamip4RrMU8MVVvh74jGjPBg07tULmnidvfBwejXKaxAcuhwpMaB2lDV1COC26X&quot;}', '*');&lt;/script&gt;&lt;div style=&quot;bottom:0;right:0;width:300px;height:600px;background:initial !important;position:absolute !important;max-width:100% !important;max-height:100% !important;pointer-events:none !important;image-rendering:pixelated !important;z-index:2147483647;background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACsAAAAWBAMAAACrl3iAAAAABlBMVEUAAAD+AciWmZzWAAAAAnRSTlMAApidrBQAAAB9SURBVBjTbVAJEgAhCMIf+P/XbimQNet02IhIAP8RHSvZyy9kVdeZK/wqBOLcde4KUTvxy/UwOx5uDG7ONj+VKJp16IbwKFwY1VfDU7o9vXYQL1T2N1Mjih3UIu5Lif95dKvvdjBtzt7TQRB5OShjKp8+H02Tm5+s1sdB9n0BWAaCFHAy4AAAAABJRU5ErkJggg==') !important;&quot;&gt;&lt;/div&gt;&lt;script data-jc=&quot;103&quot; data-jc-version=&quot;r20250527&quot; data-jcp-base_url=&quot;https://pagead2.googlesyndication.com/pagead/conversion/?ai=CR4j6b403aLL0EI6F9fgPjvOrkQrY0qGQf6jsj_TjE87TzKy7RhABIPjaxVdg1QWgAf7iz8MpyAEJqQKVCMYK9vCyPqgDAcgDmwSqBLYCT9BfDgZwu8M4qGiDpod1yJYEUhyrVoboqOHq-pch4OIzMFpMvznbIo85ImoCgwtWX8IV2im4mUuOx9hEwajBU7I7zRY_MrjniT1qninRe7sly4lCwqnXK0iTNCQ29_tLQQ-I_VJVmFuoE3JvrwXbYIBeKI20Bmv4FUpUdHF1xuboEQKs1LxBEjz2WAz2Nc9nOqxdVbiUzFUpKMquLCt5PTDz73XSfG6Gcun-40gieocGv963Gb1Nal2Zoh0SMi6I2rhjY9vR1VOxO71gAfpyIMDPrWCnIIzqg4Hf5GILzY4F3s9Zy5tNmXEKKiIh76NDVrfmAQQldhUOjwtG6V-LBWQicM-8VcCZHjWUjxoctTjVc5qcshH8DtRIgY8NOsZ0f3BBoN6kM-o_G34eDq6YPq_2h2edosAEw__2nacF4AQDiAX0u_z5U6AGTIAH_pqgowSoB9XJG6gH2baxAqgHpr4bqAfz0RuoB5bYG6gHqpuxAqgH4L2xAqgHjs4bqAeT2BuoB_DgG6gH7paxAqgH_p6xAqgHr76xAqgHmgaoB_-esQKoB9-fsQKoB_jCsQKoB_vCsQLYBwDSCC0IkeGAcBABGJ0BMgXri4CAIDoMAICAgICAlK7gA6ADSL39wTpY3Yr2zprHjQOACgOYCwHICwGADAGiDAgqBgoE2s-xAqoNAkVT4g0TCN7M9s6ax40DFY5CHQkdjvkqouoNEwiJ-fbOmseNAxWOQh0JHY75KqKwE9qsyxzYEwPYFAHQFQH4FgGAFwGyFzMYAiovLzI0ODQyNDE3Ny9zdGFja292ZXJmbG93LmNvbS9tc2IvcXVlc3Rpb24tcGFnZXOyGAkSAvBZGEwiAQCyGQE1&amp;amp;sigh=cjZb5XoPyMw&quot; data-jcp-cpu_label=&quot;heavy_ad_intervention_cpu&quot; data-jcp-net_label=&quot;heavy_ad_intervention_network&quot;&gt;(function(){'use strict';/*  Copyright The Closure Library Authors. SPDX-License-Identifier: Apache-2.0 */ var h=this||self;function n(a){h.setTimeout(()=&gt;{throw a;},0)};let p=void 0;function u(a,b=!1){return b&amp;&amp;Symbol.for&amp;&amp;a?Symbol.for(a):a!=null?Symbol(a):Symbol()}var v=u(),w=u(&quot;m_m&quot;,!0);const x=u(&quot;jas&quot;,!0);var y={};function z(a,b){return b===void 0?a.h!==A&amp;&amp;!!(2&amp;(a.g[x]|0)):!!(2&amp;b)&amp;&amp;a.h!==A}const A={};const B=BigInt(Number.MIN_SAFE_INTEGER),C=BigInt(Number.MAX_SAFE_INTEGER);function D(a){return a};function E(a,b,e,c){var d=c!==void 0;c=!!c;const l=[];var f=a.length;let g,k=4294967295,H=!1;const r=!!(b&amp;64),q=r?b&amp;128?0:-1:void 0;b&amp;1||(g=f&amp;&amp;a[f-1],g!=null&amp;&amp;typeof g===&quot;object&quot;&amp;&amp;g.constructor===Object?(f--,k=f):g=void 0,!r||b&amp;128||d||(H=!0,k=(F??D)(k-q,q,a,g)+q));b=void 0;for(d=0;d&lt;f;d++){let m=a[d];if(m!=null&amp;&amp;(m=e(m,c))!=null)if(r&amp;&amp;d&gt;=k){const t=d-q;(b??(b={}))[t]=m}else l[d]=m}if(g)for(let m in g){a=g[m];if(a==null||(a=e(a,c))==null)continue;f=+m;let t;r&amp;&amp;!Number.isNaN(f)&amp;&amp;(t=f+q)&lt;k?l[t]=a:(b?? (b={}))[m]=a}b&amp;&amp;(H?l.push(b):l[k]=b);return l}function G(a){switch(typeof a){case &quot;number&quot;:return Number.isFinite(a)?a:&quot;&quot;+a;case &quot;bigint&quot;:return a&gt;=B&amp;&amp;a&lt;=C?Number(a):&quot;&quot;+a;case &quot;boolean&quot;:return a?1:0;case &quot;object&quot;:if(Array.isArray(a)){const b=a[x]|0;return a.length===0&amp;&amp;b&amp;1?void 0:E(a,b,G)}if(a!=null&amp;&amp;a[w]===y)return I(a);return}return a}let F;function I(a){a=a.g;return E(a,a[x]|0,G)};function J(a){if(a==null){var b=32;a=[]}else{if(!Array.isArray(a))throw Error(&quot;narr&quot;);b=a[x]|0;2048&amp;b&amp;&amp;!(2&amp;b)&amp;&amp;K();if(b&amp;256)throw Error(&quot;farr&quot;);if(b&amp;64)return b&amp;2048||(a[x]=b|2048),a;var e=a;b|=64;var c=e.length;if(c){var d=c-1;c=e[d];if(c!=null&amp;&amp;typeof c===&quot;object&quot;&amp;&amp;c.constructor===Object){const l=b&amp;128?0:-1;d-=l;if(d&gt;=1024)throw Error(&quot;pvtlmt&quot;);for(const f in c){const g=+f;if(g&lt;d)e[g+l]=c[f],delete c[f];else break}b=b&amp;-8380417|(d&amp;1023)&lt;&lt;13}}}a[x]=b|2112;return a} function K(){if(v!=null){var a=p??(p={});var b=a[v]||0;b&gt;=5||(a[v]=b+1,a=Error(),a.__closure__error__context__984382||(a.__closure__error__context__984382={}),a.__closure__error__context__984382.severity=&quot;incident&quot;,n(a))}};function L(a,b){if(typeof a!==&quot;object&quot;)return a;if(Array.isArray(a)){var e=a[x]|0;a.length===0&amp;&amp;e&amp;1?a=void 0:e&amp;2||(!b||4096&amp;e||16&amp;e?a=M(a,e,!1,b&amp;&amp;!(e&amp;16)):(a[x]|=34,e&amp;4&amp;&amp;Object.freeze(a)));return a}if(a!=null&amp;&amp;a[w]===y){e=a.g;const c=e[x]|0;z(a,c)||(c&amp;2?b=!0:c&amp;32&amp;&amp;!(c&amp;4096)?(e[x]=c|2,a.h=A,b=!0):b=!1,b?(a=new a.constructor(e),a.m=A):a=M(e,c));return a}}function M(a,b,e,c){c??(c=!!(34&amp;b));a=E(a,b,L,c);c=32;e&amp;&amp;(c|=2);b=b&amp;8380609|c;a[x]=b;return a};function N(a,b,e){if(e!=null&amp;&amp;typeof e!==&quot;string&quot;)throw Error();if(a.h===A){var c=a.g;c=M(c,c[x]|0);c[x]|=2048;a.g=c;a.h=void 0;a.m=void 0;c=!0}else c=!1;if(!c&amp;&amp;z(a,a.g[x]|0))throw Error();a=a.g;a:{var d=a[x]|0;c=b+-1;const l=a.length-1;if(l&gt;=0&amp;&amp;c&gt;=l){const f=a[l];if(f!=null&amp;&amp;typeof f===&quot;object&quot;&amp;&amp;f.constructor===Object){f[b]=e;break a}}c&lt;=l?a[c]=e:e!==void 0&amp;&amp;(d=(d??a[x]|0)&gt;&gt;13&amp;1023||536870912,b&gt;=d?e!=null&amp;&amp;(a[d+-1]={[b]:e}):a[c]=e)}};var O=class{constructor(a){this.g=J(a)}toJSON(){return I(this)}};O.prototype[w]=y;O.prototype.toString=function(){return this.g.toString()};var P=class extends O{};function Q(a=window){return a};var R=/#|$/;const S=function(a,b=null){return b&amp;&amp;b.getAttribute(&quot;data-jc&quot;)===String(a)?b:document.querySelector(`[${&quot;data-jc&quot;}=&quot;${a}&quot;]`)}(103,document.currentScript);if(S==null)throw Error(&quot;JSC not found 103&quot;);const T={},U=S.attributes;for(let a=U.length-1;a&gt;=0;a--){const b=U[a].name;b.indexOf(&quot;data-jcp-&quot;)===0&amp;&amp;(T[b.substring(9)]=U[a].value)} (function(a,b,e){var c=window;a&amp;&amp;b&amp;&amp;e&amp;&amp;c.ReportingObserver&amp;&amp;c.fetch&amp;&amp;(new c.ReportingObserver((d,l)=&gt;{d=d[0];if(d?.body?.id===&quot;HeavyAdIntervention&quot;){d=(d.body.message?.indexOf(&quot;network&quot;)||0)&gt;0?e:b;var f=a.search(R);var g;b:{for(g=0;(g=a.indexOf(&quot;ad_signals&quot;,g))&gt;=0&amp;&amp;g&lt;f;){var k=a.charCodeAt(g-1);if(k==38||k==63)if(k=a.charCodeAt(g+10),!k||k==61||k==38||k==35)break b;g+=11}g=-1}k=g;if(k&lt;0)f=null;else{g=a.indexOf(&quot;&amp;&quot;,k);if(g&lt;0||g&gt;f)g=f;f=decodeURIComponent(a.slice(k+11,g!==-1?g:0).replace(/\+/g,&quot; &quot;))}f? (navigator.sendBeacon(&quot;https://pagead2.googlesyndication.com/pagead/gen_204/?id=fledge_interactions&amp;label=&quot;+d),d={i:f,label:d},f=new P,d!=null&amp;&amp;(d.i!=null&amp;&amp;N(f,1,d.i),d.s!=null&amp;&amp;N(f,3,d.s),d.label!=null&amp;&amp;N(f,6,d.label),d.l!=null&amp;&amp;N(f,7,d.l),d.j!=null&amp;&amp;N(f,8,d.j),d.o!=null&amp;&amp;N(f,11,d.o)),Q(h).fence?.reportEvent({eventType:&quot;interaction&quot;,eventData:JSON.stringify(I(f)),destination:[&quot;buyer&quot;]})):c.fetch(`${a}&amp;label=${d}`,{keepalive:!0,method:&quot;get&quot;,mode:&quot;no-cors&quot;});l.disconnect()}},{types:[&quot;intervention&quot;], buffered:!0})).observe()})(T.base_url,T.cpu_label,T.net_label);}).call(this);&lt;/script&gt;&lt;script id=&quot;googleActiveViewDisplayScript&quot; src=&quot;https://pagead2.googlesyndication.com/pagead/managed/js/activeview/current/ufs_web_display.js&quot;&gt;&lt;/script&gt;&lt;script type=&quot;text/javascript&quot;&gt;osdlfm();&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;{&quot;uid&quot;:&quot;2&quot;,&quot;hostPeerName&quot;:&quot;https://stackoverflow.com&quot;,&quot;initialGeometry&quot;:&quot;{\&quot;windowCoords_t\&quot;:64,\&quot;windowCoords_r\&quot;:2980,\&quot;windowCoords_b\&quot;:768,\&quot;windowCoords_l\&quot;:1930,\&quot;frameCoords_t\&quot;:1448.1875,\&quot;frameCoords_r\&quot;:1011,\&quot;frameCoords_b\&quot;:2048.1875,\&quot;frameCoords_l\&quot;:711,\&quot;styleZIndex\&quot;:\&quot;auto\&quot;,\&quot;allowedExpansion_t\&quot;:0,\&quot;allowedExpansion_r\&quot;:0,\&quot;allowedExpansion_b\&quot;:0,\&quot;allowedExpansion_l\&quot;:0,\&quot;xInView\&quot;:0,\&quot;yInView\&quot;:0}&quot;,&quot;permissions&quot;:&quot;{\&quot;expandByOverlay\&quot;:true,\&quot;expandByPush\&quot;:true,\&quot;readCookie\&quot;:false,\&quot;writeCookie\&quot;:false}&quot;,&quot;metadata&quot;:&quot;{\&quot;shared\&quot;:{\&quot;sf_ver\&quot;:\&quot;1-0-45\&quot;,\&quot;ck_on\&quot;:1,\&quot;flash_ver\&quot;:\&quot;0\&quot;}}&quot;,&quot;reportCreativeGeometry&quot;:false,&quot;isDifferentSourceWindow&quot;:false,&quot;goog_safeframe_hlt&quot;:{}}" scrolling="no" marginwidth="0" marginheight="0" width="300" height="600" data-is-safeframe="true" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" allow="private-state-token-redemption;attribution-reporting" aria-label="Advertisement" tabindex="0" data-google-container-id="2" style="border: 0px; vertical-align: bottom;"/></div></div>
+		<div class="js-report-ad-button-container " style="width: 300px; height: 24px;"><button data-google-event-data="{&quot;serviceName&quot;:&quot;publisher_ads&quot;,&quot;slot&quot;:{},&quot;isEmpty&quot;:false,&quot;slotContentChanged&quot;:true,&quot;size&quot;:[300,600],&quot;advertiserId&quot;:4947982933,&quot;campaignId&quot;:3742256868,&quot;creativeId&quot;:138516575829,&quot;creativeTemplateId&quot;:null,&quot;labelIds&quot;:null,&quot;lineItemId&quot;:6960178706,&quot;sourceAgnosticCreativeId&quot;:138516575829,&quot;sourceAgnosticLineItemId&quot;:6960178706,&quot;isBackfill&quot;:false,&quot;yieldGroupIds&quot;:null,&quot;companyIds&quot;:null,&quot;vast&quot;:null,&quot;responseIdentifier&quot;:&quot;CPLn_M6ax40DFY5CHQkdjvkqog&quot;,&quot;adTransparencyUrl&quot;:null}" data-modal-url="/ads/report-ad" data-ad-unit="dfp-msb" class="js-report-ad s-btn s-btn__link fs-fine mt2 float-right">Report this ad</button></div>
+</div>
+<div id="hireme"/>        
+
+    
+
+
+        <div class="module sidebar-related">
+            <h4 id="h-related">Related</h4>
+            <div class="related js-gps-related-questions" data-tracker="rq=3">
+                    <div class="spacer" data-question-id="3261285">
+                        <a href="https://stackoverflow.com/q/3261285?rq=3" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted default">2</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/3261285/best-way-to-break-up-large-class-into-smaller-ones-in-php?rq=3" class="question-hyperlink">Best way to break up large class into smaller ones in PHP</a>
+                    </div>
+                    <div class="spacer" data-question-id="4607181">
+                        <a href="https://stackoverflow.com/q/4607181?rq=3" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted default">4</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/4607181/why-i-cant-divide-a-class-over-several-files?rq=3" class="question-hyperlink">Why I can't divide a class over several files</a>
+                    </div>
+                    <div class="spacer" data-question-id="4758024">
+                        <a href="https://stackoverflow.com/q/4758024?rq=3" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted default">14</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/4758024/php-oop-each-class-different-file-import-package-etc?rq=3" class="question-hyperlink">php oop - each class different file? import package? etc</a>
+                    </div>
+                    <div class="spacer" data-question-id="6116528">
+                        <a href="https://stackoverflow.com/q/6116528?rq=3" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted default">1</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/6116528/split-extended-classes-over-different-files-php?rq=3" class="question-hyperlink">split extended classes over different files (php)</a>
+                    </div>
+                    <div class="spacer" data-question-id="11188112">
+                        <a href="https://stackoverflow.com/q/11188112?rq=3" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes default">0</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/11188112/including-several-classes-into-one-file?rq=3" class="question-hyperlink">including several classes into one file</a>
+                    </div>
+                    <div class="spacer" data-question-id="16597358">
+                        <a href="https://stackoverflow.com/q/16597358?rq=3" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted default">34</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/16597358/how-to-split-a-php-class-to-separate-files?rq=3" class="question-hyperlink">How to split a PHP class to separate files?</a>
+                    </div>
+                    <div class="spacer" data-question-id="24469164">
+                        <a href="https://stackoverflow.com/q/24469164?rq=3" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes default">10</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/24469164/what-about-using-traits-to-split-code-from-a-big-class-into-several-files?rq=3" class="question-hyperlink">What about using traits to split code from a big class into several files?</a>
+                    </div>
+                    <div class="spacer" data-question-id="35407473">
+                        <a href="https://stackoverflow.com/q/35407473?rq=3" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted default">2</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/35407473/how-to-include-all-php-classes-in-one-file?rq=3" class="question-hyperlink">How to include all php classes in one file?</a>
+                    </div>
+                    <div class="spacer" data-question-id="40488860">
+                        <a href="https://stackoverflow.com/q/40488860?rq=3" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted default">2</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/40488860/php-can-nest-class-in-two-files?rq=3" class="question-hyperlink">PHP can nest class in two files?</a>
+                    </div>
+                    <div class="spacer" data-question-id="58578385">
+                        <a href="https://stackoverflow.com/q/58578385?rq=3" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes default">0</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/58578385/how-to-include-2-class-file-in-a-php-file?rq=3" class="question-hyperlink">How to include 2 class file in a php file</a>
+                    </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+                 $(function() {
+                     $(".js-gps-related-questions .spacer").on("click", function () {
+                        fireRelatedEvent($(this).index() + 1, $(this).data('question-id'));
+                     });
+
+                 function fireRelatedEvent(position, questionId) {
+                     StackExchange.using("gps", function() {
+                         StackExchange.gps.track('related_questions.click',
+                         {
+                             position: position,
+                             originQuestionId: 32399159,
+                             relatedQuestionId: +questionId,
+                             location: 'sidebar',
+                             source: 'Baseline'
+                         });    
+                     });
+                 }
+             });
+         </script>
+
+
+    
+    
+
+    <div id="hot-network-questions" class="module tex2jax_ignore">
+    <h4>
+        <a href="https://stackexchange.com/questions?tab=hot" class="js-gps-track s-link s-link__inherit" data-gps-track="posts_hot_network.click({ item_type:1, location:11 })">
+            Hot Network Questions
+        </a>
+    </h4>
+    <ul>
+            <li>
+                <div class="favicon favicon-philosophy" title="Philosophy Stack Exchange"/><a href="https://philosophy.stackexchange.com/questions/127400/deus-sive-natura-theistic-or-atheistic" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:265 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Deus sive Natura: Theistic or Atheistic?
+                </a>
+
+            </li>
+            <li>
+                <div class="favicon favicon-crypto" title="Cryptography Stack Exchange"/><a href="https://crypto.stackexchange.com/questions/117121/sphincs-with-md5" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:281 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    SPHINCS+ with MD5
+                </a>
+
+            </li>
+            <li>
+                <div class="favicon favicon-langdev" title="Programming Language Design and Implementation Stack Exchange"/><a href="https://langdev.stackexchange.com/questions/4440/what-aspects-of-a-language-design-make-copyability-of-an-object-possible-or-cond" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:716 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What aspects of a language design make copyability of an object possible or conditional to something?
+                </a>
+
+            </li>
+            <li>
+                <div class="favicon favicon-movies" title="Movies &amp; TV Stack Exchange"/><a href="https://movies.stackexchange.com/questions/127378/looking-for-a-movie-about-a-woman-asking-her-best-friend-to-borrow-her-husband" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:367 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Looking for a movie about a woman asking her best friend to “borrow” her husband to have a baby
+                </a>
+
+            </li>
+            <li>
+                <div class="favicon favicon-mechanics" title="Motor Vehicle Maintenance &amp; Repair Stack Exchange"/><a href="https://mechanics.stackexchange.com/questions/99016/do-i-need-a-new-sparkplug" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:224 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Do I need a new sparkplug?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-chemistry" title="Chemistry Stack Exchange"/><a href="https://chemistry.stackexchange.com/questions/189897/using-hydrochloric-acid-in-place-of-nitric-acid-in-the-synthesis-of-ammonium-pho" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:431 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Using hydrochloric acid in place of nitric acid in the synthesis of ammonium phosphomolybdate
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-diy" title="Home Improvement Stack Exchange"/><a href="https://diy.stackexchange.com/questions/319276/how-should-i-reinforce-this-loose-and-cracked-cabinet-joint" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:73 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How should I reinforce this loose and cracked cabinet joint?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-blender" title="Blender Stack Exchange"/><a href="https://blender.stackexchange.com/questions/335884/animate-to-rotate-around-two-centers-of-origin" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:502 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Animate to Rotate around two centers of origin
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-quantumcomputing" title="Quantum Computing Stack Exchange"/><a href="https://quantumcomputing.stackexchange.com/questions/43982/question-about-a-haar-random-state" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:694 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Question about a Haar random state
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-judaism" title="Mi Yodeya"/><a href="https://judaism.stackexchange.com/questions/149791/are-chicharones-fried-pork-rinds-kosher" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:248 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Are chicharones (fried pork rinds) kosher?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-superuser" title="Super User"/><a href="https://superuser.com/questions/1902723/what-is-the-difference-between-env-variables-and-plain-variables" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:3 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What is the difference between env variables and plain variables?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-tex" title="TeX - LaTeX Stack Exchange"/><a href="https://tex.stackexchange.com/questions/745323/zref-clever-make-explicit-all-names-of-referenced-equations" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:85 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    zref-clever: Make explicit all names of referenced equations
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-worldbuilding" title="Worldbuilding Stack Exchange"/><a href="https://worldbuilding.stackexchange.com/questions/267623/what-is-the-maximum-length-of-an-aquatic-invertebrate" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:579 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What is the maximum length of an aquatic invertebrate?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-diy" title="Home Improvement Stack Exchange"/><a href="https://diy.stackexchange.com/questions/319271/dogproofing-a-pantry-door" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:73 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Dogproofing a pantry door
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-physics" title="Physics Stack Exchange"/><a href="https://physics.stackexchange.com/questions/852483/what-is-angular-frequency-and-its-physical-significance" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:151 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What is angular frequency and its physical significance?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-retrocomputing" title="Retrocomputing Stack Exchange"/><a href="https://retrocomputing.stackexchange.com/questions/31707/how-did-1988-pcs-achieve-12-mhz-dram-cycles-with-80-ns-chips" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:648 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How Did 1988 PCs Achieve 12 MHz DRAM Cycles with 80 ns Chips
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-puzzling" title="Puzzling Stack Exchange"/><a href="https://puzzling.stackexchange.com/questions/132016/good-luck-guessing-my-birthday" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:559 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Good luck guessing my birthday
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-german" title="German Language Stack Exchange"/><a href="https://german.stackexchange.com/questions/80242/is-gefindel-the-same-as-gesindel" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:253 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Is "Gefindel" the same as "Gesindel"?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-ell" title="English Language Learners Stack Exchange"/><a href="https://ell.stackexchange.com/questions/366309/a-comma-between-the-subject-and-verb-what-kind-of-english-structure-is-this" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:481 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    A comma between the subject and verb? What kind of English structure is this?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-physics" title="Physics Stack Exchange"/><a href="https://physics.stackexchange.com/questions/852601/relativistic-central-force-problem-and-scattering" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:151 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Relativistic Central Force Problem and Scattering
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-aviation" title="Aviation Stack Exchange"/><a href="https://aviation.stackexchange.com/questions/110631/360-degrees-turn-during-landing-approach-is-it-weird" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:528 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    360 degrees turn during landing approach - is it weird?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-law" title="Law Stack Exchange"/><a href="https://law.stackexchange.com/questions/109827/are-there-any-laws-regarding-using-hand-signals-as-a-pedestrian-in-the-u-s" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:617 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Are there any laws regarding using hand signals as a pedestrian in the U.S.?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-stackoverflow" title="Stack Overflow"/><a href="https://stackoverflow.com/questions/79640301/how-to-manage-perform-n-m-checks-instead-of-n-m-for-constexpr-values" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:1 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How to manage perform n + m checks instead of n * m for constexpr values?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-unix" title="Unix &amp; Linux Stack Exchange"/><a href="https://unix.stackexchange.com/questions/796326/using-the-bc-calculator-with-obase-and-ibase-to-convert-integer-representation" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:106 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    using the bc calculator with obase and ibase to convert integer representation
+                </a>
+
+            </li>
+    </ul>
+
+        
+</div>
+
+                <div id="feed-link" class="js-feed-link">
+        <a href="/feeds/question/32399159" title="Feed of this question and its answers">
+            <svg aria-hidden="true" class="fc-orange-400 svg-icon iconRss" width="18" height="18" viewbox="0 0 18 18"><path d="M3 1a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 1.5c6.9 0 12.5 5.6 12.5 12.5H13C13 9.55 8.45 5 3 5zm0 5c4.09 0 7.5 3.41 7.5 7.5H8c0-2.72-2.28-5-5-5zm0 5c1.36 0 2.5 1.14 2.5 2.5H3z"/></svg>
+            Question feed
+        </a>
+    </div>
+    <aside class="s-modal js-feed-link-modal" tabindex="-1" role="dialog" aria-labelledby="feed-modal-title" aria-describedby="feed-modal-description" aria-hidden="true">
+        <div class="s-modal--dialog js-modal-dialog wmx4" role="document" data-controller="se-draggable">
+            <h1 class="s-modal--header fw-bold js-first-tabbable c-move" id="feed-modal-title" data-se-draggable-target="handle" tabindex="0">
+                Subscribe to RSS
+            </h1>
+            <div class="d-flex gs4 gsy fd-column">
+                <div class="flex--item">
+                    <label class="d-block s-label c-default" for="feed-url">
+                        Question feed
+                        <p class="s-description mt2" id="feed-modal-description">To subscribe to this RSS feed, copy and paste this URL into your RSS reader.</p>
+                    </label>
+                </div>
+                <div class="d-flex ps-relative">
+                    <input class="s-input" type="text" name="feed-url" id="feed-url" readonly="readonly" value="https://stackoverflow.com/feeds/question/32399159"/>
+                    <svg aria-hidden="true" class="s-input-icon fc-orange-400 svg-icon iconRss" width="18" height="18" viewbox="0 0 18 18"><path d="M3 1a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 1.5c6.9 0 12.5 5.6 12.5 12.5H13C13 9.55 8.45 5 3 5zm0 5c4.09 0 7.5 3.41 7.5 7.5H8c0-2.72-2.28-5-5-5zm0 5c1.36 0 2.5 1.14 2.5 2.5H3z"/></svg>
+                </div>
+            </div>
+            <a class="s-modal--close s-btn s-btn__muted js-modal-close js-last-tabbable" href="#" aria-label="Close">
+                <svg aria-hidden="true" class="svg-icon iconClearSm" width="14" height="14" viewbox="0 0 14 14"><path d="M12 3.41 10.59 2 7 5.59 3.41 2 2 3.41 5.59 7 2 10.59 3.41 12 7 8.41 10.59 12 12 10.59 8.41 7z"/></svg>
+            </a>
+        </div>
+    </aside>
+
+</div>
+
+    

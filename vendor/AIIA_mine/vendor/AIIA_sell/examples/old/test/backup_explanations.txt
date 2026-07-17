@@ -1,0 +1,46 @@
+>>> but before we use this and was iterating correctly: #
+...         def __iter__(self):
+...                 return iter(self.tokens)
+The reason why your previous implementation of `__iter__` worked is that in PyTorch, the `DataLoader` uses an iterator to yield batches of data. When 
+you implement `__len__`, it returns the total number of elements in the dataset, but when you don't implement `__iter__`, PyTorch falls back to using 
+the `__getitem__` method to get individual elements.
+
+In your previous case, since you didn't have an implementation for `__iter__`, PyTorch used the `__getitem__` method to yield individual elements from 
+the dataset. This is why your index was incrementing correctly before you switched to implementing `__len__`.
+
+However, if you implement both `__getitem__` and `__iter__`, it can cause issues because `__getitem__` already yields a single element at a time, so 
+calling `__iter__` again will return the same iterator object twice.
+
+In your current implementation, since you have implemented `__len__` but not `__iter__`, PyTorch falls back to using the `__getitem__` method to yield 
+batches of data. This is why you're getting an iterator that yields all elements at once, instead of one element at a time like before.
+
+To resolve this issue, you can remove the implementation for `__iter__` altogether and let PyTorch use the default behavior:
+
+```python
+class BERTDataset(torch.utils.data.Dataset):
+    def __init__(self, tokens, labels=None):
+        self.tokens = tokens  # inputs
+        if labels is not None:
+            self.labels = labels
+
+    def __getitem__(self, idx):
+        ott = self.tokens[idx]  # Note: using idx instead of self.cnt
+        print("__getitem__() START on idx: {}".format( idx ))
+        input_ids      = ott['input_ids'].detach().clone() 
+        attention_mask = ott['attention_mask'].detach().clone() 
+
+        if 'labels' in self:
+            return {
+                    'input_ids': input_ids,
+                    'attention_mask': attention_mask,
+                    'labels': self.labels[idx]
+            }
+        else:
+            return {'input_ids': input_ids, 'attention_mask': attention_mask}
+
+    def __len__(self):
+        # Return the number of elements in the dataset
+        return len(self.tokens)
+```
+
+This should resolve the issue and allow you to use the `DataLoader` correctly.
