@@ -69,7 +69,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <WWW><url>https://...</url><text>true</text></WWW> — Fetch web pages. Your primary research tool. Params: <url>, [<text>], [<links>], [<js>]
 - <SiteScript><site>google.com</site><script>support_search</script><params>{"query":"..."}</params></SiteScript> — Execute per-website JS support scripts. Use <action>list</action> to see supported sites.
 - <UpdateSiteScript><site>google.com</site><script>name</script><content>// JS</content></UpdateSiteScript> — Create or update a per-website JS support script.
-- <Terminal><arg1>ls</arg1><arg2>-l</arg2></Terminal> — Quick one-liner commands. Params: <arg1>, [<arg2>], ...
+- <Terminal><arg1>ls</arg1><arg2>-l</arg2></Terminal> — Quick one-liner commands. Params: <arg1>, [<arg2>], ..., [<timeout>] (seconds, default 30)
 - <ReadFile><fileName>file.txt</fileName></ReadFile> — Read any file. Params: <fileName>
 - <ReadImage><fileName>screenshot.png</fileName><prompt>Describe this</prompt></ReadImage> — Read image (vision model). Params: <fileName>, [<prompt>]
 - <WriteFile><fileName>output.txt</fileName><contentOfFile>content here</contentOfFile></WriteFile> — Write a file. Params: <fileName>, <contentOfFile>

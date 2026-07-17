@@ -78,6 +78,7 @@ Options         = {
 	"COOKIE_FILE"        : None,    # Path to shared cookie file for www/wwwjs web tools (e.g., "tools/cookies.json")
 	#
 	"SITE_SCRIPTS_PATH"  : None,    # Path to per-website JS support scripts (default: project wwwurljssupport/ or ~/.config/aiia/wwwurljssupport/)
+	"SITE_SCRIPT_AUTO_TIP" : True, # Auto-save a tip entry when UpdateSiteScript creates/updates a script
 	#
 	"SERVER_PROFILE"      :"HTTP",      # default server profile (HTTP, HTTPS, WS, V1, V2, ...)
 	"SERVER_HOST"         :"127.0.0.1", # default bind address for -S

@@ -129,7 +129,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <WWW><url>https://example.com</url><links>true</links><js>true</js><browser>true</browser></WWW>: Fetch a web page. Use text=true for readable content, links=true to extract all links. Params: <url>, [<text>], [<links>], [<source>], [<js>], [<browser>]
 - <SiteScript><site>google.com</site><script>support_search</script><params>{"query":"..."}</params></SiteScript>: Execute per-website JS support scripts for structured data extraction. Use <action>list</action> to see supported sites.
 - <UpdateSiteScript><site>google.com</site><script>name</script><content>// JS</content></UpdateSiteScript>: Create or update a per-website JS support script.
-- <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Use for simple file operations or running scripts. Params: <arg1>, [<arg2>], ... (dynamic args)
+- <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Use for simple file operations or running scripts. Params: <arg1>, [<arg2>], ..., [<timeout>] (seconds, default 30)
 - <ReadFile><fileName>file.json</fileName></ReadFile>: Read saved data. Params: <fileName>
 - <WriteFile><fileName>results.json</fileName><contentOfFile>{"key": "value"}</contentOfFile></WriteFile>: Write structured data. Use for content under 4KB. Params: <fileName>, <contentOfFile>
 - <AppendFile><fileName>results.csv</fileName><contentOfFile>col1,col2\nval1,val2</contentOfFile></AppendFile>: Append to a file. Use for adding rows to a CSV or large datasets. Params: <fileName>, <contentOfFile>, [<fromLineNumber>]

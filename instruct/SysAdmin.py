@@ -127,7 +127,7 @@ COMPILATION & BUILD BEST PRACTICES:
 6. After compilation, always verify the binary runs correctly before marking the task complete.
 
 AVAILABLE TOOLS (use exact XML format):
-- <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Primary tool for compilation (make, gcc, cmake, configure). Params: <arg1>, [<arg2>], ... (dynamic args)
+- <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Primary tool for compilation (make, gcc, cmake, configure). Params: <arg1>, [<arg2>], ..., [<timeout>] (seconds, default 30)
 - <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Use to inspect build instructions, config files, or error logs. Params: <fileName>
 - <WriteFile><fileName>README.md</fileName><contentOfFile># Content</contentOfFile></WriteFile>: Write file. Use for creating configuration files or build scripts under 4KB. Params: <fileName>, <contentOfFile>
 - <AppendFile><fileName>file.txt</fileName><contentOfFile># text</contentOfFile><fromLineNumber>1</fromLineNumber></AppendFile>: Append to file. Use for adding to config files. Params: <fileName>, <contentOfFile>, [<fromLineNumber>]

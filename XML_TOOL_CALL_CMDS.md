@@ -214,7 +214,7 @@ Sort lines in a file.
 ## Execution
 
 ### Terminal
-Execute shell commands (one-liners). Args are positional.
+Execute shell commands (one-liners). Args are positional. Optional `<timeout>` param (seconds, default 30, 0 for no limit).
 ```xml
 <Terminal>
 <arg1>ls</arg1>
@@ -224,6 +224,7 @@ Execute shell commands (one-liners). Args are positional.
 <arg1>python3</arg1>
 <arg2>-c</arg2>
 <arg3>print(sum(range(100)))</arg3>
+<timeout>60</timeout>
 </Terminal>
 ```
 

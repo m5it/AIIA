@@ -154,4 +154,30 @@ class UpdateSiteScript():
 		msg = "Saved: %s" % path
 		if backup_info:
 			msg += " (previous version backed up as .v%d.js)" % backup_info[0]
+
+		# Auto-save tip if enabled
+		if Options.get('SITE_SCRIPT_AUTO_TIP', True):
+			self._auto_tip(site, script_name, path)
+
 		return msg
+
+	def _auto_tip(self, site, script_name, path):
+		"""Save a tip entry recording this site script update."""
+		try:
+			import json, time
+			base = Options.get('TIPS_PATH', os.path.expanduser('~/.config/aiia/tips'))
+			title = "site_script_%s_%s" % (site.replace('.', '_'), script_name.replace('.js', ''))
+			content = "Site script '%s' for '%s' saved at %s" % (script_name, site, path)
+			dest = os.path.join(base, 'model', title)
+			os.makedirs(dest, exist_ok=True)
+			ts = int(time.time())
+			data = {
+				'title': title,
+				'source': 'model',
+				'saved_at': ts,
+				'entries': [{'role': 'model', 'content': content}],
+			}
+			with open(os.path.join(dest, "%s.json" % ts), 'w') as f:
+				f.write(json.dumps(data))
+		except Exception:
+			pass  # Don't disrupt the main operation if tip save fails

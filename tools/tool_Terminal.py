@@ -35,6 +35,10 @@ class Terminal():
 						"type":"string", 
 						"description":"(Optional) Fifth argument."
 					},
+					"timeout":{
+						"type":"string", 
+						"description":"(Optional) Timeout in seconds (default: 30). Use 0 for no timeout."
+					},
 				},
 			},
 		}
@@ -68,6 +72,19 @@ class Terminal():
 	#
 	def run(self, **kwargs):
 		print("Terminal.run() STARTING, args: {}".format(kwargs))
+		#
+		# Extract optional timeout (default 30s, 0 or negative = no limit)
+		timeout_val = 30
+		timeout_param = kwargs.get('timeout', None)
+		if timeout_param is not None:
+			try:
+				t = int(timeout_param)
+				if t > 0:
+					timeout_val = t
+				else:
+					timeout_val = None
+			except ValueError:
+				return "Error: timeout must be an integer (seconds), got: '{}'".format(timeout_param)
 		#
 		# Determine working directory from handle options
 		cwd = "."
@@ -117,7 +134,7 @@ class Terminal():
 						[program] + program_args,
 						capture_output=True,
 						text=True,
-						timeout=30,
+						timeout=timeout_val,
 						cwd=cwd,
 						shell=False
 					)
@@ -131,8 +148,9 @@ class Terminal():
 					self.log_command(cmd, output, True)
 					return output if output else "(no output)"
 				except subprocess.TimeoutExpired:
+					limit_str = "{}s".format(timeout_val) if timeout_val else "no limit"
 					self.log_command(cmd, "TIMEOUT", False)
-					return "Error: Command timed out (30s limit)"
+					return "Error: Command timed out ({} limit)".format(limit_str)
 				except Exception as E:
 					self.log_command(cmd, str(E), False)
 					return "Error: {}".format(E)
@@ -219,7 +237,7 @@ class Terminal():
 				cmd,
 				capture_output=True,
 				text=True,
-				timeout=30,
+				timeout=timeout_val,
 				cwd=cwd,
 				shell=False
 			)
@@ -239,8 +257,9 @@ class Terminal():
 			return "(no output) {}".format(cwd_note)
 			#
 		except subprocess.TimeoutExpired:
+			limit_str = "{}s".format(timeout_val) if timeout_val else "no limit"
 			self.log_command(cmd, "TIMEOUT", False)
-			return "Error: Command timed out (30s limit)"
+			return "Error: Command timed out ({} limit)".format(limit_str)
 		except FileNotFoundError:
 			self.log_command(cmd, "NOT_FOUND", False)
 			return "Error: Program '{}' not found in PATH".format(program)
