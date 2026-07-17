@@ -607,6 +607,11 @@ class ToolParser:
 			# Fallthrough to createTask
 
 		if toolName == 'createTask':
+			# Normalize common param name variations the model sends
+			if 'name' in params and 'title' not in params:
+				params['title'] = params.pop('name')
+			if 'description' in params and 'instruction' not in params:
+				params['instruction'] = params.pop('description')
 			title = params.get('title', '')
 			instruction = params.get('instruction', '')
 			if not PlanBase.draft:

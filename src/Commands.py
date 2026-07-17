@@ -727,16 +727,10 @@ class Commands():
 			
 		#--
 		# Update System message with new mode!
-		# Check if last history msgs is role:system then replace it.
-		#       else append as new msg. Ollama support multiple system prompts in one chat history!
-		# Prepare()._get_mode_instructions( 'build' )
+		# Find last system message in history and replace it; append if none.
+		# Ollama support multiple system prompts in one chat history!
 		#--
-		# Replace current system prompt because is last in chat history
-		if self.handle.hHM.msgs and self.handle.hHM.msgs[-1]['role'] == 'system':
-			self.handle.hHM.msgs[-1]['content'] = "{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) )
-		# Append new system prompt
-		else:
-			self.handle.Response('system',{ 'content':"{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) ), })
+		self.handle._replace_system_prompt(self.handle.hPP._get_mode_instructions(self.handle.Options['MODE']))
 		#--
 		# Optionally inject plan-mode tool training
 		if new_mode == 'plan' and self.handle.Options.get('TOOL_TRAINING_PLAN', True):
@@ -769,10 +763,7 @@ class Commands():
 			print("Invalid value: {}. Use true or false.".format(val))
 			return 2
 		# Update system prompt with new thinking setting
-		if self.handle.hHM.msgs and self.handle.hHM.msgs[-1]['role'] == 'system':
-			self.handle.hHM.msgs[-1]['content'] = "{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) )
-		else:
-			self.handle.Response('system',{ 'content':"{}".format( self.handle.hPP._get_mode_instructions( self.handle.Options['MODE'] ) ), })
+		self.handle._replace_system_prompt(self.handle.hPP._get_mode_instructions(self.handle.Options['MODE']))
 		return 2
 
 	def CMD_AUTO_CONTINUE(self, inp=""):
@@ -863,8 +854,13 @@ class Commands():
 		plan_id = parts[1] if len(parts) > 1 else None
 		if plan_id:
 			self.handle.hLG.echo("Loading plan {} and starting build...".format(plan_id), {'color':True, 'colorValue':'cyan'})
+		# Switch mode to build if currently in plan mode
+		if self.handle.Options.get('MODE') == 'plan':
+			self.handle.Options['MODE'] = 'build'
+			self.handle._write_state({'mode': 'build'})
+			self.handle._replace_system_prompt(self.handle.hPP._get_mode_instructions('build'))
 		self.handle.StartBuild(plan_id)
-		return 2
+		return 0
 
 	def CMD_PLAN(self, inp=""):
 		import re

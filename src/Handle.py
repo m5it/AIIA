@@ -442,8 +442,7 @@ class Handle():
 				ans = re.sub(r'[^0-9]', '', ans)
 				if ans == '1':
 					self.Options['MODE'] = 'build'
-					if self.hHM.msgs and self.hHM.msgs[-1]['role'] == 'system':
-						self.hHM.msgs[-1]['content'] = self.hPP._get_mode_instructions('build')
+					self._replace_system_prompt(self.hPP._get_mode_instructions('build'))
 					self.StartBuild()
 					_skip_you = True
 					continue
@@ -1636,6 +1635,15 @@ class Handle():
 		self._last_ai_had_tools = _tools_were_called
 	
 	#
+	def _replace_system_prompt(self, text):
+		"""Replace the last system message in history with `text`.
+		If no system message exists, append a new one."""
+		for i in range(len(self.hHM.msgs) - 1, -1, -1):
+			if self.hHM.msgs[i].get('role') == 'system':
+				self.hHM.msgs[i]['content'] = text
+				return
+		self.Response('system', {'content': text})
+	#
 	def StartBuild(self, plan_id=None):
 		if not PlanBase.draft:
 			if plan_id:
@@ -1670,3 +1678,4 @@ class Handle():
 			self._write_current_task()
 		else:
 			self.hLG.echo("No pending tasks in plan!", {'color':True, 'colorValue':'orange'})
+			self.Response('user', {'content': "Mode changed to BUILD. All tasks in the plan are completed. Waiting for your instruction."})
