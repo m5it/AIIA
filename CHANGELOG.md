@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-18 — v1.0.1
+
+### Auto: Version v1.0.1
+
+- Version auto-incremented from v1.0.0
+- Files changed: src/Commands.py
+
+---
+
+
 ## 2026-07-18 — v1.0.0
 
 ### Changed: v1.0.0 — Stable release

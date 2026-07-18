@@ -846,26 +846,44 @@ class Commands():
 		# Remove internal/non-executable tool names
 		all_tools = [t for t in all_tools if t not in ('startBuild',)]
 		#
-		blocked = set(self.handle.Options.get('TOOL_BLOCKED', []))
-		allowed = [t for t in all_tools if t not in blocked]
-		disallowed = [t for t in all_tools if t in blocked]
+		user_blocked = set(self.handle.Options.get('TOOL_BLOCKED', []))
+		user_allowed = set(self.handle.Options.get('TOOL_ALLOWED', []))
+		plan_blocked = self.handle.hTP._plan_blocked
+		is_plan = self.handle.Options.get('MODE') == 'plan'
+		#
+		def effective_status(tool):
+			if tool in user_blocked:
+				return "User Blocked"
+			if is_plan and tool in plan_blocked and tool not in user_allowed:
+				return "Plan Blocked"
+			if tool in user_allowed:
+				return "User Allowed"
+			return "Allowed"
 		#
 		if action == 'ALLOWED':
+			allowed = [t for t in all_tools if effective_status(t) == 'Allowed' or effective_status(t) == 'User Allowed']
 			print("\n=== Allowed Tools ({}) ===".format(len(allowed)))
 			for t in allowed:
 				print("  {}".format(t))
 		elif action == 'DISALLOWED':
+			disallowed = [t for t in all_tools if effective_status(t) in ('User Blocked', 'Plan Blocked')]
 			if not disallowed:
 				print("\nNo tools disallowed.")
 			else:
 				print("\n=== Disallowed Tools ({}) ===".format(len(disallowed)))
 				for t in disallowed:
-					print("  {}".format(t))
+					print("  {} ({})".format(t, effective_status(t)))
 		else:
-			# Show all with status
+			# Show all with effective status
 			print("\n=== All Tools ({}) ===".format(len(all_tools)))
 			for t in all_tools:
-				status = "Disallowed" if t in blocked else "Allowed"
+				status = effective_status(t)
+				if status == 'User Allowed':
+					status = 'Allowed (override)'
+				elif status == 'Plan Blocked':
+					status = 'Blocked (plan mode)'
+				elif status == 'User Blocked':
+					status = 'Blocked (user)'
 				print("  {} ({})".format(t, status))
 		print("")
 		return 2
