@@ -335,6 +335,16 @@ class ToolParser:
 							break
 					except Exception:
 						continue
+				# Fallback: scan module for any class matching case-insensitively
+				if h is None:
+					import inspect
+					for attr_name, attr_val in inspect.getmembers(mod, inspect.isclass):
+						if attr_name.lower() == toolName.lower():
+							try:
+								h = attr_val()
+								break
+							except Exception:
+								continue
 				#
 				if h is None:
 					return "Failed to initialize tool `{}`".format(toolName)

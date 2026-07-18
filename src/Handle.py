@@ -892,26 +892,6 @@ class Handle():
 			self._last_failed_tool = None
 			self._last_failed_tool_count = 0
 			self.Response('user',{'content':inp})
-		
-		# Handle model tool calls
-		tool_invocations = self.hTP.ParseTextToolInvocation(inp)
-		
-		if tool_invocations:
-			self.hLG.echo("Handle.You() detected {} tool invocation(s) in text — executing directly, skipping AI".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
-			#
-			self._direct_tool_results = []
-			self.hTP.FireToolInvocation(tool_invocations)
-			#
-			# Collect results from history for SSE / caller use
-			for msg in reversed(self.hHM.msgs):
-				if msg.get('role') == 'tool' and msg.get('name'):
-					self._direct_tool_results.append({
-						'name': msg['name'],
-						'content': msg.get('content', '')
-					})
-				if len(self._direct_tool_results) >= len(tool_invocations):
-					break
-			return 1 # tool was executed — skip AI
 		return 0 # Input without command or successed command with input data
 	
 	#
