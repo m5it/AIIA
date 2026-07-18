@@ -33,38 +33,28 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 
 class OurAIServer():
-	"""HTTP SSE server that wraps the AIIA Handle.
-	
-	Runs the full AIIA chat loop and AI engine.
-	Accepts chat messages via POST /chat (SSE stream).
-	Accepts direct tool calls via POST /execute.
-	Serves project files via /api/files/* endpoints.
-	"""
+	"""HTTP SSE server that wraps the AIIA Handle."""
 	
 	def __init__(self, host, port, Options):
+		print(f"DEBUG: OurAIServer.__init__ host={host}, port={port}")
 		self.host = host
 		self.port = port
 		self.Options = Options
 		self.handle = None
 		self._lock = threading.Lock()
-		# Global fallback auth settings
 		self.global_auth_enabled = Options.get("SERVER_AUTH_ENABLED", False)
 		self.global_username = Options.get("SERVER_USERNAME", "admin")
 		self.global_password = Options.get("SERVER_PASSWORD", "aiia")
-		# Project root (where files are served from)
 		self.project_root = Options.get("working_dir", os.getcwd())
+		print(f"DEBUG: project_root={self.project_root}")
 	
 	def _load_project_auth(self, project_path):
-		"""Load authentication credentials from project's .aiia/auth.json.
-		
-		Returns: (enabled, username, password) or (False, None, None) if no auth
-		"""
+		"""Load authentication credentials from project's .aiia/auth.json."""
 		if not project_path or not os.path.isdir(project_path):
 			return (self.global_auth_enabled, self.global_username, self.global_password)
 		
 		auth_file = os.path.join(project_path, ".aiia", "auth.json")
 		if not os.path.exists(auth_file):
-			# No project-specific auth, use global settings
 			return (self.global_auth_enabled, self.global_username, self.global_password)
 		
 		try:
@@ -75,9 +65,8 @@ class OurAIServer():
 			password = auth_data.get('password', '')
 			return (enabled, username, password)
 		except (json.JSONDecodeError, IOError, KeyError) as e:
-			# Error reading auth file, deny access
 			print(f"Warning: Error reading auth file for {project_path}: {e}")
-			return (True, None, None)  # Auth required but invalid
+			return (True, None, None)
 	
 	def _build_auth_hash(self, username, password):
 		"""Build expected Authorization header value for Basic Auth."""
@@ -85,23 +74,12 @@ class OurAIServer():
 		return base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
 	
 	def check_auth(self, headers, project_path=None):
-		"""Check if request is authenticated for the specified project.
-		
-		Args:
-			headers: HTTP headers dict
-			project_path: Optional project path from X-Project-Path header
-			
-		Returns:
-			(True, None) if authenticated or no auth required
-			(False, error_message) if authentication failed
-		"""
-		# Load project-specific or global auth settings
+		"""Check if request is authenticated for the specified project."""
 		enabled, expected_user, expected_pass = self._load_project_auth(project_path)
 		
 		if not enabled:
 			return (True, None)
 		
-		# Auth required but no valid credentials configured
 		if not expected_user or not expected_pass:
 			return (False, "Authentication required but credentials not configured")
 		
@@ -109,7 +87,7 @@ class OurAIServer():
 		if not auth_header.startswith('Basic '):
 			return (False, "Basic authentication required")
 		
-		provided_hash = auth_header[6:]  # Remove "Basic " prefix
+		provided_hash = auth_header[6:]
 		expected_hash = self._build_auth_hash(expected_user, expected_pass)
 		
 		if provided_hash != expected_hash:
@@ -128,16 +106,16 @@ class OurAIServer():
 			"message": message
 		}).encode('utf-8'))
 	
-	def _get_safe_path(self, requested_path):
+	def _get_safe_path(self, requested_path, root=None):
 		"""Get safe absolute path within project root."""
-		# Normalize and make absolute
+		base_root = root if root else self.project_root
+		
 		if requested_path.startswith('/'):
 			requested_path = requested_path[1:]
 		
-		full_path = os.path.abspath(os.path.join(self.project_root, requested_path))
+		full_path = os.path.abspath(os.path.join(base_root, requested_path))
 		
-		# Security check: ensure path is within project root
-		if not full_path.startswith(os.path.abspath(self.project_root)):
+		if not full_path.startswith(os.path.abspath(base_root)):
 			return None
 		
 		return full_path
@@ -158,9 +136,11 @@ class OurAIServer():
 		except (OSError, IOError):
 			return None
 	
-	def list_files(self, path="", recursive=False):
+	def list_files(self, path="", recursive=False, root=None):
 		"""List files in project directory."""
-		safe_path = self._get_safe_path(path or ".")
+		effective_root = root if root else self.project_root
+		
+		safe_path = self._get_safe_path(path or ".", root=root)
 		if safe_path is None or not os.path.exists(safe_path):
 			return {"error": "Path not found"}
 		
@@ -170,13 +150,12 @@ class OurAIServer():
 		files = []
 		
 		if recursive:
-			for root, dirs, filenames in os.walk(safe_path):
-				# Skip hidden dirs and common noise
+			for root_dir, dirs, filenames in os.walk(safe_path):
 				dirs[:] = [d for d in dirs if not d.startswith('.') 
 						  and d not in ('__pycache__', 'node_modules', '.venv', '.git')]
 				for filename in filenames:
-					full = os.path.join(root, filename)
-					rel = os.path.relpath(full, self.project_root)
+					full = os.path.join(root_dir, filename)
+					rel = os.path.relpath(full, effective_root)
 					info = self._file_to_dict(full, rel)
 					if info:
 						files.append(info)
@@ -187,18 +166,18 @@ class OurAIServer():
 					if item.startswith('.'):
 						continue
 					full = os.path.join(safe_path, item)
-					rel = os.path.relpath(full, self.project_root)
+					rel = os.path.relpath(full, effective_root)
 					info = self._file_to_dict(full, rel)
 					if info:
 						files.append(info)
 			except (OSError, IOError) as e:
 				return {"error": str(e)}
 		
-		return {"files": files, "path": path or ".", "project_root": self.project_root}
+		return {"files": files, "path": path or ".", "project_root": effective_root}
 	
-	def read_file(self, path):
+	def read_file(self, path, root=None):
 		"""Read file content."""
-		safe_path = self._get_safe_path(path)
+		safe_path = self._get_safe_path(path, root=root)
 		if safe_path is None:
 			return {"error": "Access denied", "success": False}
 		
@@ -212,7 +191,6 @@ class OurAIServer():
 			with open(safe_path, 'r', encoding='utf-8', errors='replace') as f:
 				content = f.read()
 			
-			# Detect language for syntax highlighting hint
 			ext = os.path.splitext(path)[1].lower()
 			lang_map = {
 				'.py': 'python', '.js': 'javascript', '.ts': 'typescript',
@@ -240,7 +218,6 @@ class OurAIServer():
 			return {"error": "File already exists", "success": False}
 		
 		try:
-			# Ensure parent directory exists
 			parent = os.path.dirname(safe_path)
 			if parent and not os.path.exists(parent):
 				os.makedirs(parent, exist_ok=True)
@@ -290,41 +267,62 @@ class OurAIServer():
 		if os.path.exists(safe_new):
 			return {"error": "Destination already exists", "success": False}
 		
-		try:
-			# Ensure parent directory exists
-			parent = os.path.dirname(safe_new)
-			if parent and not os.path.exists(parent):
-				os.makedirs(parent, exist_ok=True)
-			
-			os.rename(safe_old, safe_new)
-			return {"success": True, "old_path": old_path, "new_path": new_path}
-		except (OSError, IOError) as e:
-			return {"error": str(e), "success": False}
-	
 	def start(self):
-		from src.Handle import Handle
-		self.Options['AI_QUICK'] = True
-		self.handle = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", self.Options)
-		self.handle.Init()
-		self.handle.hPP.Prepare()
-		#
-		_SSEHandler.ai_server = self
-		server = ThreadedHTTPServer((self.host, self.port), _SSEHandler)
-		#
-		print("\n" + "="*60)
-		print("  {} server listening on http://{}:{}".format(
-			self.Options.get('VERSION_NAME', 'AIIA'), self.host, self.port))
-		print("  📁 Project root: {}".format(self.project_root))
-		print("  🔐 Per-project authentication: ENABLED")
-		print("  Global fallback: {}".format("ENABLED" if self.global_auth_enabled else "DISABLED"))
-		print("  Connect with: run.py --connect {}:{}".format(self.host, self.port))
-		print("  API docs:     GET http://{}:{}/".format(self.host, self.port))
-		print("="*60 + "\n")
+		"""Start the server."""
+		print("DEBUG: OurAIServer.start() called")
 		try:
-			server.serve_forever()
+			from src.Handle import Handle
+			print("DEBUG: Importing Handle...")
+			self.Options['AI_QUICK'] = True
+			print("DEBUG: Creating handle...")
+			self.handle = initmodule(importmodule("Handle",True,{'path':'src'}),"Handle", self.Options)
+			print("DEBUG: Initializing handle...")
+			self.handle.Init()
+			print("DEBUG: Preparing handle...")
+			self.handle.hPP.Prepare()
+			print("DEBUG: Handle ready")
+			
+			_SSEHandler.ai_server = self
+			print(f"DEBUG: Creating ThreadedHTTPServer on {self.host}:{self.port}")
+			server = ThreadedHTTPServer((self.host, self.port), _SSEHandler)
+			
+			print("\n" + "="*60)
+			print("  {} server listening on http://{}:{}".format(
+				self.Options.get('VERSION_NAME', 'AIIA'), self.host, self.port))
+			print("  📁 Project root: {}".format(self.project_root))
+			print("  🔐 Per-project authentication: ENABLED")
+			print("  Global fallback: {}".format("ENABLED" if self.global_auth_enabled else "DISABLED"))
+			print("  Connect with: run.py --connect {}:{}".format(self.host, self.port))
+			print("  API docs:     GET http://{}:{}/".format(self.host, self.port))
+			print("="*60 + "\n")
+			
+			print("DEBUG: About to call server.serve_forever()...")
+			try:
+				server.serve_forever()
+				print("DEBUG: serve_forever() returned normally")
+			except KeyboardInterrupt:
+				print("\nServer shutting down.")
+				server.shutdown()
+			except Exception as e:
+				print(f"DEBUG: Exception in serve_forever: {e}")
+				import traceback
+				traceback.print_exc()
+				raise
+				
+		except Exception as e:
+			print(f"DEBUG: Exception in start(): {e}")
+			import traceback
+			traceback.print_exc()
+			raise
+			
 		except KeyboardInterrupt:
 			print("\nServer shutting down.")
 			server.shutdown()
+		except Exception as e:
+			print(f"DEBUG: Exception in start(): {e}")
+			import traceback
+			traceback.print_exc()
+			raise
 	
 	def chat(self, message, write_event):
 		with self._lock:
@@ -424,7 +422,10 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		path = params.get('path', [''])[0]
 		recursive = params.get('recursive', ['false'])[0].lower() == 'true'
 		
-		result = self.ai_server.list_files(path, recursive)
+		# Get optional root override from header
+		root_override = self.headers.get('X-Project-Path')
+		
+		result = self.ai_server.list_files(path, recursive, root=root_override)
 		if "error" in result:
 			self._send_json(404 if result["error"] == "Path not found" else 400, result)
 		else:
@@ -441,76 +442,143 @@ class _SSEHandler(BaseHTTPRequestHandler):
 			self._send_json(400, {"error": "Missing path parameter", "success": False})
 			return
 		
-		result = self.ai_server.read_file(path)
+		# Get optional root override from header
+		root_override = self.headers.get('X-Project-Path')
+		
+		result = self.ai_server.read_file(path, root=root_override)
 		if not result.get("success"):
-			self._send_json(404 if "not found" in result.get("error", "") else 400, result)
+			self._send_json(404 if result.get("error") == "File not found" else 400, result)
 		else:
 			self._send_json(200, result)
 	
+	def _get_api_index(self):
+		"""Return API documentation."""
+		return {
+			"name": "AIIA HTTP Server",
+			"endpoints": {
+				"GET /health": "Health check",
+				"POST /chat": "Chat with AI (SSE stream)",
+				"POST /execute": "Execute tools directly",
+				"GET /api/files/list?path=...": "List files",
+				"GET /api/files/read?path=...": "Read file",
+				"POST /api/files/write": "Write file",
+				"POST /api/files/create": "Create file",
+				"POST /api/files/rename": "Rename file",
+				"DELETE /api/files/delete": "Delete file"
+			},
+			"headers": {
+				"Authorization": "Basic auth (optional)",
+				"X-Project-Path": "Project path override (optional)"
+			}
+		}
+	
 	def do_POST(self):
-		# Check auth for all endpoints
+		# Check auth
 		if not self._check_auth():
 			return
 		
-		# File API endpoints
-		if self.path == '/api/files/write':
+		if self.path == '/chat':
+			self._handle_chat()
+		elif self.path == '/execute':
+			self._handle_execute()
+		elif self.path == '/api/files/write':
 			self._handle_file_write()
 		elif self.path == '/api/files/create':
 			self._handle_file_create()
 		elif self.path == '/api/files/rename':
 			self._handle_file_rename()
-		# AI endpoints
-		elif self.path == '/chat':
-			self._handle_chat()
-		elif self.path == '/execute':
-			self._handle_execute()
 		else:
 			self.send_response(404)
 			self.end_headers()
 	
+	def _handle_chat(self):
+		"""Handle POST /chat with SSE streaming."""
+		body = self._get_request_body()
+		if body is None:
+			self.send_response(400)
+			self.end_headers()
+			return
+			
+		message = body.get('message', '')
+		
+		self.send_response(200)
+		self.send_header('Content-Type', 'text/event-stream')
+	def _handle_file_list(self):
+		"""Handle GET /api/files/list?path=...&recursive=true"""
+		from urllib.parse import urlparse, parse_qs
+		parsed = urlparse(self.path)
+		params = parse_qs(parsed.query)
+		
+		path = params.get('path', [''])[0]
+		recursive = params.get('recursive', ['false'])[0].lower() == 'true'
+		
+		# Get optional root override from header
+		root_override = self.headers.get('X-Project-Path')
+		print(f"DEBUG: X-Project-Path header = {root_override}")
+		print(f"DEBUG: Using path = {path}")
+		
+		result = self.ai_server.list_files(path, recursive, root=root_override)
+	
+	def _handle_execute(self):
+		"""Handle POST /execute for direct tool calls."""
+		body = self._get_request_body()
+		if body is None:
+			self.send_response(400)
+			self.end_headers()
+			return
+		
+		tool_xml = body.get('tool', '')
+		
+		# Import and execute tool
+		from src.tools import ToolManager
+		tm = ToolManager(self.ai_server.handle.hParams)
+		result = tm.run(tool_xml)
+		
+		self._send_json(200, {"result": result})
+	
 	def _handle_file_write(self):
-		"""Handle POST /api/files/write {path, content}"""
-		data = self._get_request_body()
-		if data is None:
+		"""Handle POST /api/files/write"""
+		body = self._get_request_body()
+		if body is None:
 			self._send_json(400, {"error": "Invalid JSON", "success": False})
 			return
 		
-		path = data.get('path', '')
-		content = data.get('content', '')
+		path = body.get('path', '')
+		content = body.get('content', '')
 		
 		if not path:
 			self._send_json(400, {"error": "Missing path", "success": False})
 			return
 		
-		result = self.ai_server.write_file(path, content, create_only=False)
+		result = self.ai_server.write_file(path, content)
 		self._send_json(200 if result.get("success") else 400, result)
 	
 	def _handle_file_create(self):
-		"""Handle POST /api/files/create {path, content}"""
-		data = self._get_request_body()
-		if data is None:
+		"""Handle POST /api/files/create"""
+		body = self._get_request_body()
+		if body is None:
 			self._send_json(400, {"error": "Invalid JSON", "success": False})
 			return
 		
-		path = data.get('path', '')
-		content = data.get('content', '')
+		path = body.get('path', '')
+		content = body.get('content', '')
 		
 		if not path:
 			self._send_json(400, {"error": "Missing path", "success": False})
 			return
 		
 		result = self.ai_server.write_file(path, content, create_only=True)
-		self._send_json(201 if result.get("success") else 400, result)
+		self._send_json(200 if result.get("success") else 400, result)
 	
 	def _handle_file_rename(self):
-		"""Handle POST /api/files/rename {old_path, new_path}"""
-		data = self._get_request_body()
-		if data is None:
+		"""Handle POST /api/files/rename"""
+		body = self._get_request_body()
+		if body is None:
 			self._send_json(400, {"error": "Invalid JSON", "success": False})
 			return
 		
-		old_path = data.get('old_path', '')
-		new_path = data.get('new_path', '')
+		old_path = body.get('old_path', '')
+		new_path = body.get('new_path', '')
 		
 		if not old_path or not new_path:
 			self._send_json(400, {"error": "Missing old_path or new_path", "success": False})
@@ -520,186 +588,109 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		self._send_json(200 if result.get("success") else 400, result)
 	
 	def do_DELETE(self):
-		# Check auth for all endpoints
+		# Check auth
 		if not self._check_auth():
 			return
 		
-		if self.path == '/api/files/delete':
+		if self.path.startswith('/api/files/delete'):
 			self._handle_file_delete()
 		else:
 			self.send_response(404)
 			self.end_headers()
 	
-	def _handle_file_delete(self):
-		"""Handle DELETE /api/files/delete {path}"""
-		data = self._get_request_body()
-		if data is None:
-			# Try to get from query string
-			from urllib.parse import urlparse, parse_qs
-			parsed = urlparse(self.path)
-			params = parse_qs(parsed.query)
-			path = params.get('path', [''])[0]
-		else:
-			path = data.get('path', '')
-		
-		if not path:
-			self._send_json(400, {"error": "Missing path", "success": False})
-			return
-		
-		result = self.ai_server.delete_file(path)
-		self._send_json(200 if result.get("success") else 400, result)
+class HTTPServerWrapper:
+	"""Wrapper that provides serve_forever/shutdown interface for OurAIServer."""
 	
-	def _get_api_index(self):
-		"""Return API index with available endpoints."""
-		project_path = self._get_project_path()
-		auth_info = "per-project"
-		if self.ai_server:
-			enabled, user, _ = self.ai_server._load_project_auth(project_path)
-			auth_info = "required" if enabled else "disabled"
+	def __init__(self, our_server):
+		print("DEBUG: HTTPServerWrapper.__init__ called")
+		self.our_server = our_server
+		self._thread = None
+		self._running = False
 		
-		return {
-			'service': 'AIIA Agentic AI',
-			'version': self.ai_server.Options.get('VERSION', '0.0.0') if self.ai_server else 'unknown',
-			'profile': 'HTTP',
-			'authentication': auth_info,
-			'auth_method': 'Basic Auth with X-Project-Path header',
-			'endpoints': [
-				{'method': 'GET',  'path': '/',         'description': 'This index'},
-				{'method': 'GET',  'path': '/health',   'description': 'Health check'},
-				{'method': 'POST', 'path': '/chat',     'description': 'Send message, receive SSE stream of AI tokens'},
-				{'method': 'POST', 'path': '/execute',  'description': 'Direct tool execution (no AI)'},
-				# File API
-				{'method': 'GET',  'path': '/api/files/list',   'description': 'List files in project directory'},
-				{'method': 'GET',  'path': '/api/files/read',   'description': 'Read file content'},
-				{'method': 'POST', 'path': '/api/files/write',  'description': 'Write/overwrite file'},
-				{'method': 'POST', 'path': '/api/files/create', 'description': 'Create new file (fails if exists)'},
-				{'method': 'POST', 'path': '/api/files/rename', 'description': 'Rename/move file'},
-				{'method': 'DELETE','path': '/api/files/delete', 'description': 'Delete file or directory'},
-			],
-			'headers': {
-				'Authorization': 'Basic base64(username:password)',
-				'X-Project-Path': '/path/to/project (optional, uses server default)',
-			},
-			'links': {
-				'chat':    'POST /chat    {"message":"your text"}',
-				'execute': 'POST /execute {"tool":"<ToolName>...</ToolName>"}',
-			},
-		}
-	
-	def _handle_chat(self):
-		content_length = int(self.headers.get('Content-Length', 0))
-		body = self.rfile.read(content_length)
+	def serve_forever(self):
+		"""Start server in a thread and block."""
+		print("DEBUG: HTTPServerWrapper.serve_forever called")
+		import threading
+		self._running = True
+		print(f"DEBUG: _running = {self._running}")
+		
+		self._thread = threading.Thread(target=self._our_server_start, daemon=True)
+		self._thread.start()
+		print(f"DEBUG: Thread started")
+		
+		# Block until shutdown
+		import time
 		try:
-			data = json.loads(body)
-			message = data.get('message', '')
-		except (json.JSONDecodeError, UnicodeDecodeError):
-			self._send_json(400, {"error":"invalid JSON"})
-			return
-		#
-		self.send_response(200)
-		self.send_header('Content-Type', 'text/event-stream')
-		self.send_header('Cache-Control', 'no-cache')
-		self.send_header('Connection', 'keep-alive')
-		self.send_header('Access-Control-Allow-Origin', '*')
-		self.send_header('X-Accel-Buffering', 'no')
-		self.end_headers()
-		#
-		def write_event(event):
-			try:
-				self.wfile.write("data: {}\n\n".format(json.dumps(event)).encode())
-				self.wfile.flush()
-			except (BrokenPipeError, ConnectionResetError):
-				pass
-		#
-		self.ai_server.chat(message, write_event)
-		write_event({'type':'done'})
-	
-	def _handle_execute(self):
-		handle = self.ai_server.handle if self.ai_server else None
-		if not handle or not hasattr(handle, 'hTP'):
-			self._send_json(503, {
-				'success': False,
-				'error': 'Server handle not ready'
-			})
-			return
-		#
-		content_length = int(self.headers.get('Content-Length', 0))
-		body = self.rfile.read(content_length)
-		try:
-			data = json.loads(body)
-		except (json.JSONDecodeError, UnicodeDecodeError):
-			self._send_json(400, {
-				'success': False,
-				'error': 'Invalid JSON'
-			})
-			return
-		#
-		tool_xml = data.get('tool', '')
-		if not tool_xml:
-			self._send_json(400, {
-				'success': False,
-				'error': 'Missing "tool" field'
-			})
-			return
-		#
-		tool_name = ''
-		try:
-			invocations = handle.hTP.ParseTextToolInvocation(tool_xml)
-			if not invocations:
-				self._send_json(400, {
-					'success': False,
-					'error': 'No tool invocation found in XML'
-				})
-				return
-			#
-			inv = invocations[0]
-			tool_name = inv['name']
-			params = inv.get('parameters', {})
-			#
-			result = handle.hTP.ExecuteTextTool(tool_name, params)
-			#
-			is_error = str(result).startswith('Error:') if result else False
-			self._send_json(200, {
-				'success': not is_error,
-				'tool': tool_name,
-				'result': str(result) if result else '',
-			})
+			print("DEBUG: Entering wait loop")
+			while self._running:
+				time.sleep(0.1)
+			print("DEBUG: Exited wait loop (_running is False)")
+		except KeyboardInterrupt:
+			print("\nDEBUG: KeyboardInterrupt received")
 		except Exception as e:
-			self._send_json(500, {
-				'success': False,
-				'tool': tool_name or 'unknown',
-				'error': str(e),
-			})
-	
-	def log_message(self, format, *args):
+			print(f"DEBUG: Exception in wait loop: {e}")
+			import traceback
+			traceback.print_exc()
+		
+		print("DEBUG: serve_forever returning")
+		
+	def _our_server_start(self):
+		"""Wrapper to catch exceptions."""
+		print("DEBUG: _our_server_start started")
+		try:
+			self.our_server.start()
+			print("DEBUG: our_server.start() returned normally")
+		except Exception as e:
+			print(f"DEBUG: Server error in thread: {e}")
+			import traceback
+			traceback.print_exc()
+		finally:
+			print("DEBUG: Setting _running = False")
+			self._running = False
+		
+	def shutdown(self):
+		"""Shutdown the server."""
+		print("DEBUG: shutdown called")
+		self._running = False
+		
+	def _our_server_start(self):
+		"""Wrapper to catch exceptions."""
+		try:
+			self.our_server.start()
+		except Exception as e:
+			print(f"DEBUG: Server error in thread: {e}")
+			import traceback
+			traceback.print_exc()
+		
+	def shutdown(self):
+		"""Shutdown the server."""
+		print("DEBUG: shutdown called")
 		pass
 
 
 class HTTP(ServerProfile):
-	"""HTTP SSE Server — default AIIA API server for editor clients and AI tools."""
+	"""HTTP Server Profile for AIIA."""
 	
 	name = "HTTP"
-	description = "HTTP SSE server with /chat, /execute, /health, and file API endpoints (per-project Basic Auth)"
+	description = "HTTP SSE server for AIIA editor clients"
 	default_port = 9877
 	
 	@classmethod
 	def create_server(cls, host, port, Options):
+		"""Create and return HTTP server instance."""
+		print(f"DEBUG: HTTP.create_server called host={host}, port={port}")
+		try:
+			server = OurAIServer(host, port, Options)
+			print(f"DEBUG: OurAIServer created, project_root={server.project_root}")
+			return HTTPServerWrapper(server)
+		except Exception as e:
+			print(f"DEBUG: Error creating server: {e}")
+			import traceback
+			traceback.print_exc()
+			raise
+	
+	def run(self, host, port, Options):
+		"""Run the server (legacy method)."""
+		print(f"DEBUG: HTTP.run called")
 		server = OurAIServer(host, port, Options)
 		server.start()
-		return server
-	
-	@classmethod
-	def get_endpoints(cls):
-		return [
-			{'method': 'GET',  'path': '/',         'description': 'API index with available endpoints'},
-			{'method': 'GET',  'path': '/health',   'description': 'Health check returning {"status":"ok"}'},
-			{'method': 'POST', 'path': '/chat',     'description': 'Send message (JSON), receive SSE stream of AI tokens'},
-			{'method': 'POST', 'path': '/execute',  'description': 'Direct tool execution via XML, returns JSON result'},
-			# File API
-			{'method': 'GET',  'path': '/api/files/list',   'description': 'List files in project directory'},
-			{'method': 'GET',  'path': '/api/files/read',   'description': 'Read file content'},
-			{'method': 'POST', 'path': '/api/files/write',  'description': 'Write/overwrite file'},
-			{'method': 'POST', 'path': '/api/files/create', 'description': 'Create new file'},
-			{'method': 'POST', 'path': '/api/files/rename', 'description': 'Rename/move file'},
-			{'method': 'DELETE','path': '/api/files/delete', 'description': 'Delete file or directory'},
-		]

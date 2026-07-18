@@ -22,5 +22,18 @@ def start_server(host='127.0.0.1', port=9877, Options=None, profile=None):
 	if profile is None:
 		profile = Options.get('SERVER_PROFILE', 'HTTP')
 	
+	print(f"DEBUG: Starting server profile={profile} on {host}:{port}")
+	
 	factory = ServerFactory(Options)
-	return factory.create_server(profile, host, port)
+	server = factory.create_server(profile, host, port)
+	
+	print(f"DEBUG: Server created, calling serve_forever...")
+	
+	# Start the server (blocking)
+	try:
+		server.serve_forever()
+	except KeyboardInterrupt:
+		print("\nServer shutting down.")
+		server.shutdown()
+	
+	return server
