@@ -8,6 +8,7 @@ from src.Log import Log
 from src.PlanManager import PlanBase, Plan, PlanTask
 from src.PlanSaver import PlanSaver
 from src.PathApprover import PathApprover
+from src.TimerManager import TimerManager
 #
 class Handle():
 	#
@@ -91,6 +92,8 @@ class Handle():
 		#
 		self.hPP.GetSessionId()
 		self.hPP.UpdateFileNames()
+		#
+		self.hTMR = TimerManager(self)
 		#
 		self.Options['handle_tools']  = {}
 		self.Options['current_tools'] = []
@@ -400,6 +403,11 @@ class Handle():
 				# Check if tool training was injected mid-session — skip You() prompt
 				if getattr(self, '_train_skip_you', False):
 					self._train_skip_you = False
+					_skip_you = True
+					continue
+				# Check if timer message was injected — skip You() prompt
+				if getattr(self, '_timer_skip_you', False):
+					self._timer_skip_you = False
 					_skip_you = True
 					continue
 				x = self.You() # return: 0, 1, 2=continue, 3=break, 5=start build, 6=new session
@@ -885,7 +893,7 @@ class Handle():
 		if inp==None:
 			self.hLG.echo("You: ",{ 'end':'', 'flush':True, 'color':True, 'colorValue':'green', 'debugOnly':False, 'streamDone':True})
 			try:
-				inp = user_input({'quit_with_ctrlx':True})
+				inp = user_input({'quit_with_ctrlx':True, 'poll_callback': self.hTMR.poll})
 			except Exception as E:
 				sys.exit(1)
 		
@@ -1412,6 +1420,11 @@ class Handle():
 					return True
 				if choice == 3:
 					return 3
+			
+			# Check for timer injection at iteration boundary
+			if self.hTMR.check_interrupt():
+				self.hLG.echo("\n[Timer message injected]",
+					{'color':True, 'colorValue':'cyan','debugOnly':False})
 				# choice 1: continue loop
 
 			# Short-circuit: ≥3 consecutive tool errors → break loop with recovery
