@@ -168,6 +168,77 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		self.send_response(404)
 		self.end_headers()
 	
+	def do_POST(self):
+		"""Handle POST requests."""
+		try:
+			self._do_POST_impl()
+		except Exception as e:
+			print('ERROR in do_POST: {}'.format(e), file=sys.stderr)
+			import traceback
+			traceback.print_exc(file=sys.stderr)
+			try:
+				self.send_response(500)
+				self.end_headers()
+			except:
+				pass
+	
+	def _do_POST_impl(self):
+		"""Implementation of POST handling."""
+		content_len = int(self.headers.get('Content-Length', 0))
+		body = self.rfile.read(content_len).decode('utf-8') if content_len > 0 else '{}'
+		
+		try:
+			data = json.loads(body)
+		except json.JSONDecodeError:
+			self._send_json(400, {'error': 'Invalid JSON'})
+			return
+		
+		if self.path == '/chat':
+			self._handle_chat(data)
+		else:
+			self._send_json(404, {'error': 'Unknown endpoint'})
+	
+	def _handle_chat(self, data):
+		"""Handle chat requests with SSE streaming."""
+		try:
+			message = data.get('message', '')
+			if not message:
+				self._send_json(400, {'error': 'Missing message'})
+				return
+			
+			# Stream response
+			self._send_sse_stream(message)
+				
+		except Exception as e:
+			print('ERROR in _handle_chat: {}'.format(e), file=sys.stderr)
+			self._send_json(500, {'error': str(e)})
+	
+	def _send_sse_stream(self, message):
+		"""Send SSE streaming response."""
+		self.send_response(200)
+		self.send_header('Content-Type', 'text/event-stream')
+		self.send_header('Cache-Control', 'no-cache')
+		self.send_header('Access-Control-Allow-Origin', '*')
+		self.end_headers()
+		
+		try:
+			# Simple token-by-token response
+			response = 'Hello! You said: "{}". This is a response from the AIIA server.'.format(message[:50])
+			for word in response.split():
+				event = {'type': 'token', 'text': word + ' '}
+				self.wfile.write('data: {}\n\n'.format(json.dumps(event)).encode('utf-8'))
+				self.wfile.flush()
+			
+			# Send done event
+			self.wfile.write('data: {}\n\n'.format(json.dumps({'type': 'done'})).encode('utf-8'))
+			self.wfile.flush()
+			
+		except Exception as e:
+			print('ERROR in SSE stream: {}'.format(e), file=sys.stderr)
+			error_event = {'type': 'error', 'message': str(e)}
+			self.wfile.write('data: {}\n\n'.format(json.dumps(error_event)).encode('utf-8'))
+			self.wfile.flush()
+	
 	def _send_json(self, status_code, data):
 		self.send_response(status_code)
 		self.send_header('Content-Type', 'application/json; charset=UTF-8')
