@@ -538,21 +538,37 @@ class ToolParser:
 							self.handle.Response('tool', {'content': err, 'name': toolName})
 							blocked = True
 							break
-					if blocked:
-						continue
+						if blocked:
+							continue
 			#
-			# PLAN mode guard — block write/execute tools and intercept startBuild
-			if is_plan_mode and (toolName in self._plan_blocked or toolName == 'startBuild'):
-				if toolName == 'startBuild':
-					err = "Model requested build mode via <startBuild/>. Switch to BUILD mode to start executing."
-				else:
-					err = ("Error: {} cannot be used in PLAN mode. "
-						   "Switch to BUILD mode with !MODE build to use this tool."
-						   .format(toolName))
+			# User tool allow/disallow guard — user overrides plan blocking
+			user_blocked = set(self.handle.Options.get('TOOL_BLOCKED', []))
+			user_allowed = set(self.handle.Options.get('TOOL_ALLOWED', []))
+			if toolName in user_blocked:
+				err = "Error: Tool '{}' is disallowed by user configuration. Use !TOOL ALLOW {} to enable it.".format(toolName, toolName)
 				self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
 				self.handle.Response('tool', {'content': err, 'name': toolName})
-				self.handle._plan_blocked_tool = toolName
 				break
+			#
+			# PLAN mode guard — block write/execute tools and intercept startBuild
+			# (user's TOOL_ALLOWED overrides plan blocking)
+			if is_plan_mode and (toolName in self._plan_blocked or toolName == 'startBuild'):
+				if toolName in user_allowed:
+					pass  # user explicitly allowed — skip plan block
+				elif toolName == 'startBuild':
+					err = "Model requested build mode via <startBuild/>. Switch to BUILD mode to start executing."
+					self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
+					self.handle.Response('tool', {'content': err, 'name': toolName})
+					self.handle._plan_blocked_tool = toolName
+					break
+				else:
+					err = ("Error: {} cannot be used in PLAN mode. "
+						   "Switch to BUILD mode with !MODE build to use this tool, "
+						   "or use !TOOL ALLOW {} to override.".format(toolName, toolName))
+					self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
+					self.handle.Response('tool', {'content': err, 'name': toolName})
+					self.handle._plan_blocked_tool = toolName
+					break
 			#
 			# Route to plan tools if in plan mode, or build tools (like LogProgress)
 			if (is_plan_mode and toolName in plan_tools) or (toolName in build_tools):

@@ -176,6 +176,16 @@ class Handle():
 			self.Options['AUTO_CONTINUE_TASKS'] = auto_continue
 			self.Options['AUTO_CONTINUE_ALL_TASKS'] = auto_continue
 
+		# Restore tool allow/disallow lists
+		saved_blocked = state.get('tool_blocked', [])
+		saved_allowed = state.get('tool_allowed', [])
+		if saved_blocked:
+			self.Options['TOOL_BLOCKED'] = set(saved_blocked)
+			self.hLG.echo("Restored tool blocked list: {} tool(s)".format(len(saved_blocked)),
+				{'color': True, 'colorValue': 'cyan'})
+		if saved_allowed:
+			self.Options['TOOL_ALLOWED'] = set(saved_allowed)
+
 		# Load plan from PLAN.md
 		plan_data = PlanSaver.load_plan(working_dir, framework_dir)
 		if plan_data and plan_data.get('id'):
@@ -815,11 +825,21 @@ class Handle():
 		be aborted early. Returns a reason string or None."""
 		mode = self.Options.get('MODE', '')
 
+		# User-blocked tools — abort in both plan and build modes
+		user_blocked = set(self.Options.get('TOOL_BLOCKED', []))
+		if user_blocked:
+			for m in re.finditer(r'<(\w+)[\s>]', partial_response):
+				name = m.group(1)
+				if name in user_blocked:
+					return "'{}' is disallowed by user configuration".format(name)
+
 		# In PLAN mode, abort on opening tag of blocked execution tools
+		# (user's TOOL_ALLOWED overrides plan blocking)
+		user_allowed = set(self.Options.get('TOOL_ALLOWED', []))
 		if mode == 'plan':
 			for m in re.finditer(r'<(\w+)[\s>]', partial_response):
 				name = m.group(1)
-				if name in self.hTP._plan_blocked:
+				if name in self.hTP._plan_blocked and name not in user_allowed:
 					return "'{}' cannot be used in PLAN mode".format(name)
 
 		return None
@@ -886,6 +906,11 @@ class Handle():
 		
 		# Append user content
 		if inp != None:
+			# Prepend pending tool notice if any
+			notice = getattr(self, '_pending_tool_notice', None)
+			if notice:
+				inp = notice + "\n\n" + inp
+				self._pending_tool_notice = None
 			self._last_response_hash = None
 			# Reset consecutive error tracking on new user input
 			self.tool_errors = 0

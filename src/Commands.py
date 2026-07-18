@@ -265,6 +265,20 @@ class Commands():
 				"usage"      :"!HELP",
 				"func"       :self.CMD_HELP,
 			},
+		"TOOLS":{
+				"name"       :"Tools",
+				"description":"Show tool allow/disallow status.",
+				"regex"      :r"^!TOOLS(\s+(ALLOWED|DISALLOWED))?$",
+				"usage"      :"!TOOLS [ALLOWED|DISALLOWED]",
+				"func"       :self.CMD_TOOLS,
+			},
+		"TOOL":{
+				"name"       :"Tool Allow/Disallow",
+				"description":"Allow or disallow a specific tool.",
+				"regex"      :r"^!TOOL\s+(ALLOW|DISALLOW)\s+(\S+)$",
+				"usage"      :"!TOOL ALLOW|DISALLOW <toolName>",
+				"func"       :self.CMD_TOOL,
+			},
 		}
 	#--
 	#
@@ -786,6 +800,92 @@ class Commands():
 		else:
 			print("Invalid. Use true or false.")
 			return 2
+		return 2
+
+	def CMD_TOOLS(self, inp=""):
+		parts = inp.strip().split()
+		action = parts[1].upper() if len(parts) > 1 else 'ALL'
+		#
+		# Get all known tool names
+		all_tools = sorted(self.handle.hTP.get_known_tools())
+		# Remove internal/non-executable tool names
+		all_tools = [t for t in all_tools if t not in ('startBuild',)]
+		#
+		blocked = set(self.handle.Options.get('TOOL_BLOCKED', []))
+		allowed = [t for t in all_tools if t not in blocked]
+		disallowed = [t for t in all_tools if t in blocked]
+		#
+		if action == 'ALLOWED':
+			print("\n=== Allowed Tools ({}) ===".format(len(allowed)))
+			for t in allowed:
+				print("  {}".format(t))
+		elif action == 'DISALLOWED':
+			if not disallowed:
+				print("\nNo tools disallowed.")
+			else:
+				print("\n=== Disallowed Tools ({}) ===".format(len(disallowed)))
+				for t in disallowed:
+					print("  {}".format(t))
+		else:
+			# Show all with status
+			print("\n=== All Tools ({}) ===".format(len(all_tools)))
+			for t in all_tools:
+				status = "Disallowed" if t in blocked else "Allowed"
+				print("  {} ({})".format(t, status))
+		print("")
+		return 2
+
+	def CMD_TOOL(self, inp=""):
+		parts = inp.strip().split()
+		if len(parts) < 3:
+			print("Usage: !TOOL ALLOW|DISALLOW <toolName>")
+			return 2
+		action = parts[1].upper()
+		tool_name = parts[2]
+		#
+		# Find the canonical tool name (case-insensitive match)
+		all_tools = self.handle.hTP.get_known_tools()
+		canonical = None
+		for t in all_tools:
+			if t.lower() == tool_name.lower():
+				canonical = t
+				break
+		if not canonical:
+			print("Tool '{}' not found. Use !TOOLS to see available tools.".format(tool_name))
+			return 2
+		#
+		blocked = set(self.handle.Options.get('TOOL_BLOCKED', []))
+		allowed = set(self.handle.Options.get('TOOL_ALLOWED', []))
+		#
+		if action == 'DISALLOW':
+			if canonical in ('startBuild',):
+				print("Cannot disallow internal tool '{}'.".format(canonical))
+				return 2
+			blocked.add(canonical)
+			allowed.discard(canonical)
+			self.handle.Options['TOOL_BLOCKED'] = blocked
+			self.handle.Options['TOOL_ALLOWED'] = allowed
+			self.handle._write_state({'tool_blocked': list(blocked), 'tool_allowed': list(allowed)})
+			self.handle._pending_tool_notice = (
+				"[Auto notice: Tool '{}' is now DISALLOWED. "
+				"It cannot be used until re-enabled with !TOOL ALLOW {}.]"
+				.format(canonical, canonical))
+			print("Tool '{}' DISALLOWED. ({} allowed, {} disallowed)".format(
+				canonical, len(all_tools) - len(blocked), len(blocked)))
+		elif action == 'ALLOW':
+			blocked.discard(canonical)
+			allowed.add(canonical)
+			self.handle.Options['TOOL_BLOCKED'] = blocked
+			self.handle.Options['TOOL_ALLOWED'] = allowed
+			self.handle._write_state({'tool_blocked': list(blocked), 'tool_allowed': list(allowed)})
+			self.handle._pending_tool_notice = (
+				"[Auto notice: Tool '{}' is now ALLOWED. "
+				"You may use it in your next response.]"
+				.format(canonical))
+			print("Tool '{}' ALLOWED. ({} allowed, {} disallowed)".format(
+				canonical, len(all_tools) - len(blocked), len(blocked)))
+		else:
+			print("Unknown action '{}'. Use ALLOW or DISALLOW.".format(action))
 		return 2
 
 	def CMD_INSTRUCT_LIST(self, inp=""):
