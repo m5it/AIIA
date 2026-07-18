@@ -25,7 +25,7 @@ python run_worker.py --connect localhost:9876 --name w1 -m gemma3:12b  # start w
 git config core.hooksPath hooks   # enable auto-versioning on every commit
 ```
 
-Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `0.90` → `0.90.1`) and prepends an entry to `CHANGELOG.md` with the date, new version, and changed files. Merge commits are skipped.
+Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `1.0.0` → `1.0.1`) and prepends an entry to `CHANGELOG.md` with the date, new version, and changed files. Merge commits are skipped.
 
 ## User Commands
 

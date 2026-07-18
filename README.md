@@ -1,8 +1,8 @@
 # AIIA — AI Interactive Agent
 
-**Version 0.90.4** | Until version 1.0 is released, please **treat** this as a beta version. | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, and persistent session management.
+**Version 1.0.0** | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, HTTP SSE server for editor integration, and persistent session management.
 
-> **Recent updates:** Ctrl+D AI loop interrupt, auto-versioning via git pre-commit hook, `planDone` replaces `!MODE build`, task monitoring via `current_task.txt`, all menu colors changed to blue. See [CHANGELOG.md](CHANGELOG.md) for details.
+> **Recent updates:** v1.0.0 stable release — HTTP server wired to real AI with SSE streaming, `/api/files/write` and `/execute` endpoints, auth enforcement, tool allow/disallow system, ReplaceLine two-phase verification. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Features
 

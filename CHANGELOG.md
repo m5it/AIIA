@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-07-18 — v1.0.0
+
+### Changed: v1.0.0 — Stable release
+
+**HTTP Server — Real AI Integration**
+- `/chat` SSE endpoint wired to Handle AI with `stream_callback` — tokens stream in real-time
+- `/api/files/write` endpoint for editor file saving
+- `/execute` endpoint for direct tool XML execution
+- Auth enforcement via Basic auth headers
+- CORS preflight (`do_OPTIONS`)
+- Log timestamps (`[HH:MM:SS]`) on all HTTP handler logs
+
+**Bug Fixes**
+- `!START_BUILD` now switches MODE and updates system prompt
+- `createTask` param normalization (`name→title`, `description→instruction`)
+- HTML tags in user input no longer parsed as tool invocations
+- `tool_Head` case-insensitive lookup (lowercase `<head>` now works)
+- ReplaceLine two-phase enforcement with SHA256 file hash verification
+- Tool allow/disallow system (`!TOOLS`, `!TOOL ALLOW/DISALLOW`)
+
+**Files:** AUTOVERSION.py, CHANGELOG.md, README.md, AGENTS.md, server_profiles/HTTP.py, src/Commands.py, src/Handle.py, src/ToolParser.py, tools/tool_ReplaceLine.py
+
+---
+
+
 ## 2026-07-15 — v0.90.14
 
 ### Auto: Version v0.90.14

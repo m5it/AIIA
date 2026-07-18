@@ -1,7 +1,7 @@
 """HTTP SSE Server Profile — default AIIA server."""
 
 import sys
-import json, os, threading, base64, mimetypes
+import json, os, threading, base64, mimetypes, time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 from server_profiles._ServerBase import ServerProfile
@@ -110,6 +110,34 @@ class OurAIServer():
 		except (OSError, IOError) as e:
 			return {"error": str(e), "success": False}
 	
+	def write_file(self, path, content, root=None):
+		"""Write content to a file."""
+		safe_path = self._get_safe_path(path, root=root)
+		if safe_path is None:
+			return {"error": "Access denied", "success": False}
+		try:
+			os.makedirs(os.path.dirname(safe_path), exist_ok=True)
+			with open(safe_path, 'w', encoding='utf-8') as f:
+				f.write(content)
+			return {"success": True, "path": path, "size": len(content)}
+		except (OSError, IOError) as e:
+			return {"error": str(e), "success": False}
+	
+	def execute_tool(self, tool_xml):
+		"""Execute a tool invocation from XML string."""
+		handle = self.handle
+		if handle is None:
+			return {"error": "Handle not initialized", "success": False}
+		with self._lock:
+			try:
+				invocations = handle.hTP.ParseTextToolInvocation(tool_xml)
+				if not invocations:
+					return {"error": "No tool invocation found in XML", "success": False}
+				handle.hTP.FireToolInvocation(invocations)
+				return {"success": True}
+			except Exception as e:
+				return {"error": str(e), "success": False}
+	
 	def start(self):
 		"""Start the server."""
 		from src.Handle import Handle
@@ -137,13 +165,18 @@ class _SSEHandler(BaseHTTPRequestHandler):
 	ai_server = None
 	
 	def log_message(self, format, *args):
-		print(format % args, file=sys.stderr)
+		ts = time.strftime('%H:%M:%S')
+		print('[{}] {}'.format(ts, format % args), file=sys.stderr)
+	
+	def _log_err(self, msg):
+		ts = time.strftime('%H:%M:%S')
+		print('[{}] {}'.format(ts, msg), file=sys.stderr)
 	
 	def do_GET(self):
 		try:
 			self._do_GET_impl()
 		except Exception as e:
-			print("ERROR in do_GET: {}".format(e), file=sys.stderr)
+			self._log_err("ERROR in do_GET: {}".format(e))
 			import traceback
 			traceback.print_exc(file=sys.stderr)
 			try:
@@ -153,6 +186,10 @@ class _SSEHandler(BaseHTTPRequestHandler):
 				pass
 	
 	def _do_GET_impl(self):
+		if not self._check_auth():
+			self._send_json(401, {'error': 'Unauthorized'})
+			return
+		
 		if self.path == '/health':
 			self._send_json(200, {"status": "ok"})
 			return
@@ -173,7 +210,7 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		try:
 			self._do_POST_impl()
 		except Exception as e:
-			print('ERROR in do_POST: {}'.format(e), file=sys.stderr)
+			self._log_err("ERROR in do_POST: {}".format(e))
 			import traceback
 			traceback.print_exc(file=sys.stderr)
 			try:
@@ -182,8 +219,20 @@ class _SSEHandler(BaseHTTPRequestHandler):
 			except:
 				pass
 	
+	def do_OPTIONS(self):
+		"""Handle CORS preflight."""
+		self.send_response(204)
+		self.send_header('Access-Control-Allow-Origin', '*')
+		self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+		self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Project-Path')
+		self.end_headers()
+	
 	def _do_POST_impl(self):
 		"""Implementation of POST handling."""
+		if not self._check_auth():
+			self._send_json(401, {'error': 'Unauthorized'})
+			return
+		
 		content_len = int(self.headers.get('Content-Length', 0))
 		body = self.rfile.read(content_len).decode('utf-8') if content_len > 0 else '{}'
 		
@@ -195,6 +244,10 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		
 		if self.path == '/chat':
 			self._handle_chat(data)
+		elif self.path == '/api/files/write':
+			self._handle_file_write(data)
+		elif self.path == '/execute':
+			self._handle_execute(data)
 		else:
 			self._send_json(404, {'error': 'Unknown endpoint'})
 	
@@ -210,34 +263,80 @@ class _SSEHandler(BaseHTTPRequestHandler):
 			self._send_sse_stream(message)
 				
 		except Exception as e:
-			print('ERROR in _handle_chat: {}'.format(e), file=sys.stderr)
+			self._log_err("ERROR in _handle_chat: {}".format(e))
+			self._send_json(500, {'error': str(e)})
+	
+	def _handle_file_write(self, data):
+		"""Handle file write requests."""
+		try:
+			path = data.get('path', '')
+			content = data.get('content', '')
+			if not path:
+				self._send_json(400, {'error': 'Missing path'})
+				return
+			root_override = self.headers.get('X-Project-Path')
+			result = self.ai_server.write_file(path, content, root=root_override)
+			self._send_json(200 if result.get('success') else 500, result)
+		except Exception as e:
+			self._log_err("ERROR in _handle_file_write: {}".format(e))
+			self._send_json(500, {'error': str(e)})
+	
+	def _handle_execute(self, data):
+		"""Handle tool execution requests."""
+		try:
+			tool_xml = data.get('tool', '')
+			if not tool_xml:
+				self._send_json(400, {'error': 'Missing tool XML'})
+				return
+			result = self.ai_server.execute_tool(tool_xml)
+			self._send_json(200 if result.get('success') else 500, result)
+		except Exception as e:
+			self._log_err("ERROR in _handle_execute: {}".format(e))
 			self._send_json(500, {'error': str(e)})
 	
 	def _send_sse_stream(self, message):
-		"""Send SSE streaming response."""
+		"""Send SSE streaming response via Handle AI."""
 		self.send_response(200)
 		self.send_header('Content-Type', 'text/event-stream')
 		self.send_header('Cache-Control', 'no-cache')
 		self.send_header('Access-Control-Allow-Origin', '*')
 		self.end_headers()
 		
-		try:
-			# Simple token-by-token response
-			response = 'Hello! You said: "{}". This is a response from the AIIA server.'.format(message[:50])
-			for word in response.split():
-				event = {'type': 'token', 'text': word + ' '}
+		handle = self.ai_server.handle
+		if handle is None:
+			self._send_json(503, {'error': 'Handle not initialized'})
+			return
+		
+		def sse_write(event):
+			try:
 				self.wfile.write('data: {}\n\n'.format(json.dumps(event)).encode('utf-8'))
 				self.wfile.flush()
-			
-			# Send done event
-			self.wfile.write('data: {}\n\n'.format(json.dumps({'type': 'done'})).encode('utf-8'))
-			self.wfile.flush()
-			
+			except Exception:
+				pass
+		
+		try:
+			with self.ai_server._lock:
+				handle.Response('user', {'content': message})
+				handle.AI(opts={'stream_callback': sse_write})
+			sse_write({'type': 'done'})
+		except BrokenPipeError:
+			pass
 		except Exception as e:
-			print('ERROR in SSE stream: {}'.format(e), file=sys.stderr)
-			error_event = {'type': 'error', 'message': str(e)}
-			self.wfile.write('data: {}\n\n'.format(json.dumps(error_event)).encode('utf-8'))
-			self.wfile.flush()
+			self._log_err("ERROR in SSE stream: {}".format(e))
+			sse_write({'type': 'error', 'message': str(e)})
+	
+	def _check_auth(self):
+		"""Check Basic auth header."""
+		if not self.ai_server.global_auth_enabled:
+			return True
+		auth = self.headers.get('Authorization', '')
+		if not auth:
+			return False
+		expected = 'Basic {}'.format(base64.b64encode(
+			'{}:{}'.format(self.ai_server.global_username,
+			               self.ai_server.global_password).encode()
+		).decode())
+		return auth == expected
 	
 	def _send_json(self, status_code, data):
 		self.send_response(status_code)
@@ -264,7 +363,7 @@ class _SSEHandler(BaseHTTPRequestHandler):
 				self._send_json(200, result)
 				
 		except Exception as e:
-			print("ERROR in _handle_file_list: {}".format(e), file=sys.stderr)
+			self._log_err("ERROR in _handle_file_list: {}".format(e))
 			import traceback
 			traceback.print_exc(file=sys.stderr)
 			self._send_json(500, {"error": str(e)})
@@ -289,7 +388,7 @@ class _SSEHandler(BaseHTTPRequestHandler):
 				self._send_json(200, result)
 				
 		except Exception as e:
-			print("ERROR in _handle_file_read: {}".format(e), file=sys.stderr)
+			self._log_err("ERROR in _handle_file_read: {}".format(e))
 			self._send_json(500, {"error": str(e)})
 
 
@@ -317,7 +416,7 @@ class HTTPServerWrapper:
 		try:
 			self.our_server.start()
 		except Exception as e:
-			print("ERROR in server thread: {}".format(e), file=sys.stderr)
+			print("[HTTP] ERROR in server thread: {}".format(e), file=sys.stderr)
 			import traceback
 			traceback.print_exc(file=sys.stderr)
 		finally:

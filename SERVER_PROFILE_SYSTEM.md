@@ -155,7 +155,7 @@ Response:
 ```json
 {
   "service": "AIIA Agentic AI",
-  "version": "0.90.0",
+  "version": "1.0.0",
   "profile": "HTTP",
   "endpoints": [
     {"method": "GET",  "path": "/",         "description": "This index"},
