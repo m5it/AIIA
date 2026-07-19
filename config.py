@@ -34,6 +34,7 @@ Options         = {
 	"AI_LIVE"             :True,
 	"AI_MAX_ITERATIONS"   :10, # max tool-call rounds per AI() turn (overridable by persona)
 	"AI_MODEL_TIMEOUT"    :120, # seconds before model API call times out (0 = no timeout)
+	"STREAM_CHUNK_TIMEOUT":120, # seconds — abort stream if no chunk arrives (prevents indefinite hangs)
 	"AI_MODEL_RETRIES"    :3,   # max retries on failed model calls before recommending switch
 	"AI_CONTEXT_LIMIT"    :262144, # model's max context window in tokens (per-model)
 	"AI_CLEAR_THRESHOLD"  :0.8,    # fraction of context limit that triggers summarization/clear

@@ -5,7 +5,7 @@ class ReplaceLine():
 	def __init__(self):
 		self.info = {
 			"name":"ReplaceLine",
-			"description":"Replace a specific line or range of lines in a file with new content. Lines are 1-indexed. First call always previews; second call with confirmed=true executes the replacement.",
+			"description":"Replace a specific line or range of lines in a file with new content. Lines are 1-indexed. First call previews; second call with confirmed=true executes. If confirmed=true without a prior preview, preview + execute happen in one pass.",
 			"parameters":{
 				"returnType":"string",
 				"required":["fileName","fromLine","replacement"],
@@ -65,6 +65,7 @@ class ReplaceLine():
 				replacement.rstrip('\n'))
 	#
 	def run(self, fileName="", fromLine=None, toLine=None, replacement="", confirmed="false"):
+		preview_text = None
 		if not fileName or fromLine is None:
 			return "Error: fileName and fromLine are required.\nUsage: <ReplaceLine><fileName>path</fileName><fromLine>10</fromLine><replacement>new text</replacement></ReplaceLine>"
 		try:
@@ -102,24 +103,19 @@ class ReplaceLine():
 
 		# --- Two-phase enforcement ---
 		if confirmed:
-			# Check 1: was a matching preview shown?
-			if self._preview_key != current_key:
-				# No matching preview — ignore confirmed, force preview
-				self._preview_key = current_key
-				self._saved_hash = self._compute_hash(full_path)
-				return ("⚠ confirmed=true ignored — no matching preview found. "
-					"This is the FIRST call for this edit.\n\n") + self._preview(fileName, fl, tl, replacement, old_text)
-			# Check 2: has the file changed since preview?
-			current_hash = self._compute_hash(full_path)
-			if current_hash != self._saved_hash:
-				# File changed — reject, force fresh preview
-				self._preview_key = current_key
-				self._saved_hash = current_hash
-				return ("⚠ File changed since preview (another tool or process modified it). "
-					"Showing fresh preview.\n\n") + self._preview(fileName, fl, tl, replacement, old_text)
-			# All checks passed — consume token and execute
+			# Check: has the file changed since a prior preview?
+			if self._preview_key == current_key:
+				current_hash = self._compute_hash(full_path)
+				if current_hash != self._saved_hash:
+					# File changed — reject, force fresh preview
+					self._preview_key = current_key
+					self._saved_hash = current_hash
+					return ("⚠ File changed since preview (another tool or process modified it). "
+						"Showing fresh preview.\n\n") + self._preview(fileName, fl, tl, replacement, old_text)
+			# No matching preview OR file unchanged — preview + execute in one pass
 			self._preview_key = None
 			self._saved_hash = None
+			preview_text = self._preview(fileName, fl, tl, replacement, old_text)
 		else:
 			# First call (or non-matching) — store preview token
 			self._preview_key = current_key
@@ -154,8 +150,11 @@ class ReplaceLine():
 		#
 		count = tl - fl + 1
 		new_count = len(repl_lines)
-		return "Replaced line{} {}-{} in '{}'. ({} old line{} -> {} new line{}). Old content: {}".format(
+		result = "Replaced line{} {}-{} in '{}'. ({} old line{} -> {} new line{}). Old content: {}".format(
 			's' if count > 1 else '', fl, tl, fileName,
 			count, 's' if count != 1 else '',
 			new_count, 's' if new_count != 1 else '',
 			old_text.replace('\n', '\\n')[:200])
+		if preview_text:
+			return preview_text + "\n\n" + result
+		return result

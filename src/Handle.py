@@ -1,4 +1,4 @@
-import json, sys, time, os, copy, threading, hashlib, re
+import json, sys, time, os, copy, threading, queue, hashlib, re
 from datetime import date
 from ollama import ChatResponse, Client, chat
 from src.functions import *
@@ -752,6 +752,41 @@ class Handle():
 		return converted
 	
 	#
+	def _stream_with_timeout(self, iterator, chunk_timeout):
+		"""Yield items from `iterator` with a per-chunk timeout.
+		Emits a waiting notification every 15s while stalled.
+		If no chunk arrives within `chunk_timeout` seconds, raises
+		TimeoutError so the caller can abort gracefully."""
+		q = queue.Queue()
+		def _reader():
+			try:
+				for item in iterator:
+					q.put(item)
+			except Exception as e:
+				q.put(e)
+			q.put(None)
+		t = threading.Thread(target=_reader, daemon=True)
+		t.start()
+		ping_interval = 15
+		while True:
+			try:
+				item = q.get(timeout=min(ping_interval, chunk_timeout))
+			except queue.Empty:
+				chunk_timeout -= ping_interval
+				if chunk_timeout <= 0:
+					raise TimeoutError(
+						"Stream stalled — no chunk received within {}s".format(
+							self.Options.get('STREAM_CHUNK_TIMEOUT', 120)))
+				self.hLG.echo("Stream waiting... ({}s left)".format(chunk_timeout),
+					{'color':True, 'colorValue':'yellow', 'debugOnly':False})
+				continue
+			if item is None:
+				break
+			if isinstance(item, Exception):
+				raise item
+			yield item
+
+	#
 	def Stream(self, res, color, stream_callback=None):
 		response         = "" # speaking data
 		thinking         = "" # thinking data
@@ -762,8 +797,9 @@ class Handle():
 		abort_reason     = None
 		#
 		_stream_chunk_count = 0
+		chunk_timeout = self.Options.get('STREAM_CHUNK_TIMEOUT', 120)
 		try:
-			for chunk in res:
+			for chunk in self._stream_with_timeout(res, chunk_timeout):
 				_stream_chunk_count += 1
 				# Periodic Ctrl+D check during streaming (every 5 chunks)
 				if _stream_chunk_count % 5 == 0:
@@ -825,6 +861,8 @@ class Handle():
 				response_tokens = last_chunk.eval_count or 0
 		except Exception as e:
 			self.hLG.echo("Stream error: {}".format(str(e)), {'color':True, 'colorValue':'red','debugOnly':False,})
+			self.bg_log("Stream error: {} (got {} chunks, {} response chars)".format(
+				str(e), _stream_chunk_count, len(response)), "WARN")
 			return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':0, 'response_tokens':0, 'error':str(e), 'early_abort':abort_reason}
 		return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':prompt_tokens, 'response_tokens':response_tokens, 'early_abort':abort_reason}
 

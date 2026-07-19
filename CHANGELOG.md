@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-19 — v1.0.2
+
+### Auto: Version v1.0.2
+
+- Version auto-incremented from v1.0.1
+- Files changed: config.py, src/Handle.py, tools/tool_ReplaceLine.py
+
+---
+
+
 ## 2026-07-18 — v1.0.1
 
 ### Auto: Version v1.0.1
