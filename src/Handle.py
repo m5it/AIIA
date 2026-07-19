@@ -1444,6 +1444,7 @@ class Handle():
 		iteration = 0
 		_tools_were_called = False
 		_tools_last_error = False
+		_alt_model_index = 0  # index into ALTERNATIVE_MODELS list
 
 		while iteration < max_iterations:
 			iteration += 1
@@ -1605,11 +1606,39 @@ class Handle():
 				result.get('response_tokens', 0) or self.Options.get('NUM_LAST_RESPONSE_TOKENS', 0)))
 
 			# Stop loop on persistent stream errors (429/rate-limit) — let user decide
+			# On stream stall — try cascading alternative models before giving up
 			if result.get('stream_error'):
 				err = result['stream_error'].lower()
 				if '429' in err or 'usage limit' in err or 'rate limit' in err:
 					self.hLG.echo("Stream rate-limited — stopping AI loop.",
 						{'color':True, 'colorValue':'red','debugOnly':False})
+					self._last_ai_had_tools = _tools_were_called
+					return True
+				if 'stream stalled' in err or 'timeout' in err:
+					alt_models = self.Options.get('ALTERNATIVE_MODELS', [])
+					switched = False
+					while _alt_model_index < len(alt_models):
+						alt_model = alt_models[_alt_model_index]
+						_alt_model_index += 1
+						if self.Options['AI_MODEL'] != alt_model:
+							prev_model = self.Options['AI_MODEL']
+							self.hLG.echo("Stream stalled — switching to {}...".format(alt_model),
+								{'color':True, 'colorValue':'cyan','debugOnly':False})
+							self.bg_log("Stream stall fallback: {} → {} (attempt {}/{})".format(
+								prev_model, alt_model, _alt_model_index, len(alt_models)), "WARN")
+							self.Options['AI_MODEL'] = alt_model
+							self.Response('user', {'content':
+								"[System: The previous model ({}) timed out. "
+								"Switched to '{}'. "
+								"Please continue from where you left off.]".format(prev_model, alt_model)})
+							switched = True
+							break
+					if switched:
+						continue
+					# No more alternatives — stop
+					self.hLG.echo("Stream stalled — no more fallback models, stopping AI loop.",
+						{'color':True, 'colorValue':'red','debugOnly':False})
+					self.bg_log("Stream stall — all fallback models exhausted, stopping.", "WARN")
 					self._last_ai_had_tools = _tools_were_called
 					return True
 

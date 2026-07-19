@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-19 — v1.0.4
+
+### Auto: Version v1.0.4
+
+- Version auto-incremented from v1.0.3
+- Files changed: config.py, src/Handle.py
+
+---
+
+
 ## 2026-07-19 — v1.0.3
 
 ### Auto: Version v1.0.3
