@@ -95,6 +95,10 @@ Options         = {
 	"SERVER_USERNAME"     :"admin",      # Default username (change in production!)
 	"SERVER_PASSWORD"     :"aiia",       # Default password (change in production!)
 	#
+	# Multi-client / Event Broadcast Settings
+	"SERVER_MAX_CLIENTS"  :10,           # Max simultaneous registered clients
+	"SERVER_EVENT_HISTORY":100,          # Max events kept in history buffer per session
+	#
 	"BACKGROUND_LOG"      :None,     # Path to background.log (per-project, set in Handle.Init)
 	#
 	"TIPS_PATH"           :"{}/tips".format(os.path.expanduser("~/.config/aiia")),

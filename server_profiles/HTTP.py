@@ -1,11 +1,12 @@
 """HTTP SSE Server Profile — default AIIA server."""
 
 import sys
-import json, os, threading, base64, mimetypes, time
+import json, os, threading, base64, mimetypes, time, uuid
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 from server_profiles._ServerBase import ServerProfile
 from src.functions import *
+from src.EventBus import EventBus
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
@@ -25,6 +26,8 @@ class OurAIServer():
 		self.global_username = Options.get("SERVER_USERNAME", "admin")
 		self.global_password = Options.get("SERVER_PASSWORD", "aiia")
 		self.project_root = Options.get("working_dir", os.getcwd())
+		self.event_bus = EventBus()
+		self._clients = {}  # client_id -> {name, type, connected_at, last_seen}
 	
 	def _get_safe_path(self, requested_path, root=None):
 		"""Get safe absolute path within project root."""
@@ -137,6 +140,58 @@ class OurAIServer():
 				return {"success": True}
 			except Exception as e:
 				return {"error": str(e), "success": False}
+
+	def register_client(self, client_name="", client_type="unknown"):
+		"""Register a new client, returns client_id."""
+		client_id = "client_{}".format(uuid.uuid4().hex[:8])
+		with self._lock:
+			self._clients[client_id] = {
+				"name": client_name or client_id,
+				"type": client_type,
+				"connected_at": time.time(),
+				"last_seen": time.time(),
+			}
+		self.event_bus.publish({
+			"type": "client_joined",
+			"client_id": client_id,
+			"client_name": client_name,
+			"client_type": client_type,
+		})
+		return client_id
+
+	def unregister_client(self, client_id):
+		"""Remove a client."""
+		info = None
+		with self._lock:
+			info = self._clients.pop(client_id, None)
+		self.event_bus.unsubscribe(client_id)
+		if info:
+			self.event_bus.publish({
+				"type": "client_left",
+				"client_id": client_id,
+				"client_name": info.get("name", client_id),
+			})
+
+	def get_clients(self):
+		"""Return list of connected clients."""
+		with self._lock:
+			return dict(self._clients)
+
+	def get_history(self, limit=100):
+		"""Return conversation history from Handle."""
+		if self.handle is None:
+			return []
+		msgs = self.handle.hHM.msgs
+		result = []
+		for msg in msgs[-limit:]:
+			entry = {"role": msg.get("role", "unknown")}
+			content = msg.get("content", "")
+			if isinstance(content, str):
+				entry["content"] = content[:2000]
+			elif isinstance(content, list):
+				entry["content"] = content
+			result.append(entry)
+		return result
 	
 	def start(self):
 		"""Start the server."""
@@ -191,7 +246,13 @@ class _SSEHandler(BaseHTTPRequestHandler):
 			return
 		
 		if self.path == '/health':
-			self._send_json(200, {"status": "ok"})
+			resp = {"status": "ok", "project_root": self.ai_server.project_root}
+			try:
+				from config import Options as _Opts
+				resp["version"] = _Opts.get("VERSION", "unknown")
+			except Exception:
+				pass
+			self._send_json(200, resp)
 			return
 		
 		if self.path.startswith('/api/files/list'):
@@ -200,6 +261,18 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		
 		if self.path.startswith('/api/files/read'):
 			self._handle_file_read()
+			return
+		
+		if self.path.startswith('/events'):
+			self._handle_events()
+			return
+		
+		if self.path.startswith('/history'):
+			self._handle_history()
+			return
+		
+		if self.path.startswith('/sessions'):
+			self._handle_sessions()
 			return
 		
 		self.send_response(404)
@@ -248,6 +321,10 @@ class _SSEHandler(BaseHTTPRequestHandler):
 			self._handle_file_write(data)
 		elif self.path == '/execute':
 			self._handle_execute(data)
+		elif self.path == '/register':
+			self._handle_register(data)
+		elif self.path == '/unregister':
+			self._handle_unregister(data)
 		else:
 			self._send_json(404, {'error': 'Unknown endpoint'})
 	
@@ -255,12 +332,21 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		"""Handle chat requests with SSE streaming."""
 		try:
 			message = data.get('message', '')
+			client_id = data.get('client_id', '')
 			if not message:
 				self._send_json(400, {'error': 'Missing message'})
 				return
 			
+			# Broadcast chat_started
+			if client_id:
+				self.ai_server.event_bus.publish({
+					"type": "chat_started",
+					"client_id": client_id,
+					"message": message[:200],
+				})
+			
 			# Stream response
-			self._send_sse_stream(message)
+			self._send_sse_stream(message, client_id=client_id)
 				
 		except Exception as e:
 			self._log_err("ERROR in _handle_chat: {}".format(e))
@@ -271,12 +357,24 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		try:
 			path = data.get('path', '')
 			content = data.get('content', '')
+			client_id = data.get('client_id', '')
 			if not path:
 				self._send_json(400, {'error': 'Missing path'})
 				return
 			root_override = self.headers.get('X-Project-Path')
 			result = self.ai_server.write_file(path, content, root=root_override)
-			self._send_json(200 if result.get('success') else 500, result)
+			success = result.get('success', False)
+
+			# Broadcast file_written
+			if success and client_id:
+				self.ai_server.event_bus.publish({
+					"type": "file_written",
+					"client_id": client_id,
+					"path": path,
+					"size": len(content),
+				})
+
+			self._send_json(200 if success else 500, result)
 		except Exception as e:
 			self._log_err("ERROR in _handle_file_write: {}".format(e))
 			self._send_json(500, {'error': str(e)})
@@ -285,16 +383,36 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		"""Handle tool execution requests."""
 		try:
 			tool_xml = data.get('tool', '')
+			client_id = data.get('client_id', '')
 			if not tool_xml:
 				self._send_json(400, {'error': 'Missing tool XML'})
 				return
+
+			# Broadcast tool_started
+			if client_id:
+				self.ai_server.event_bus.publish({
+					"type": "tool_started",
+					"client_id": client_id,
+					"tool_xml": tool_xml[:500],
+				})
+
 			result = self.ai_server.execute_tool(tool_xml)
-			self._send_json(200 if result.get('success') else 500, result)
+			success = result.get('success', False)
+
+			# Broadcast tool_completed
+			if client_id:
+				self.ai_server.event_bus.publish({
+					"type": "tool_completed",
+					"client_id": client_id,
+					"success": success,
+				})
+
+			self._send_json(200 if success else 500, result)
 		except Exception as e:
 			self._log_err("ERROR in _handle_execute: {}".format(e))
 			self._send_json(500, {'error': str(e)})
 	
-	def _send_sse_stream(self, message):
+	def _send_sse_stream(self, message, client_id=""):
 		"""Send SSE streaming response via Handle AI."""
 		self.send_response(200)
 		self.send_header('Content-Type', 'text/event-stream')
@@ -313,17 +431,115 @@ class _SSEHandler(BaseHTTPRequestHandler):
 				self.wfile.flush()
 			except Exception:
 				pass
+
+		def broadcast_or_sse(event):
+			sse_write(event)
+			if client_id:
+				# Broadcast to other subscribers (not back to sender via bus)
+				self.ai_server.event_bus.publish(event)
 		
 		try:
 			with self.ai_server._lock:
 				handle.Response('user', {'content': message})
-				handle.AI(opts={'stream_callback': sse_write})
+				handle.AI(opts={'stream_callback': broadcast_or_sse})
 			sse_write({'type': 'done'})
+			if client_id:
+				self.ai_server.event_bus.publish({
+					"type": "chat_done",
+					"client_id": client_id,
+				})
 		except BrokenPipeError:
 			pass
 		except Exception as e:
 			self._log_err("ERROR in SSE stream: {}".format(e))
 			sse_write({'type': 'error', 'message': str(e)})
+	
+	def _handle_events(self):
+		"""Handle persistent SSE event stream for a client."""
+		from urllib.parse import urlparse, parse_qs
+		parsed = urlparse(self.path)
+		params = parse_qs(parsed.query)
+		client_id = params.get('client_id', [''])[0]
+		
+		if not client_id:
+			self._send_json(400, {'error': 'Missing client_id parameter'})
+			return
+		
+		# Send headers
+		self.send_response(200)
+		self.send_header('Content-Type', 'text/event-stream')
+		self.send_header('Cache-Control', 'no-cache')
+		self.send_header('Access-Control-Allow-Origin', '*')
+		self.end_headers()
+		
+		def sse_write(event):
+			try:
+				self.wfile.write('data: {}\n\n'.format(json.dumps(event)).encode('utf-8'))
+				self.wfile.flush()
+			except Exception:
+				pass
+		
+		# Subscribe to event bus
+		q = self.ai_server.event_bus.subscribe(client_id)
+		
+		# Send recent history first
+		history = self.ai_server.event_bus.get_history(limit=20)
+		for event in history:
+			sse_write(event)
+		
+		# Keep connection alive, forwarding events
+		try:
+			while True:
+				try:
+					event = q.get(timeout=30)
+					sse_write(event)
+				except Exception:
+					# Send keepalive comment
+					self.wfile.write(b': keepalive\n\n')
+					self.wfile.flush()
+		except (BrokenPipeError, ConnectionResetError):
+			pass
+		finally:
+			self.ai_server.event_bus.unsubscribe(client_id, q)
+
+	def _handle_history(self):
+		"""Return conversation history."""
+		from urllib.parse import urlparse, parse_qs
+		parsed = urlparse(self.path)
+		params = parse_qs(parsed.query)
+		limit = int(params.get('limit', ['100'])[0])
+		result = self.ai_server.get_history(limit=limit)
+		self._send_json(200, {"history": result, "count": len(result)})
+
+	def _handle_sessions(self):
+		"""Return active sessions info."""
+		clients = self.ai_server.get_clients()
+		result = {
+			"clients": clients,
+			"client_count": len(clients),
+			"subscriber_count": self.ai_server.event_bus.get_subscriber_count(),
+		}
+		self._send_json(200, result)
+
+	def _handle_register(self, data):
+		"""Register a new client."""
+		client_name = data.get('name', '')
+		client_type = data.get('type', 'unknown')
+		client_id = self.ai_server.register_client(client_name, client_type)
+		self._send_json(200, {
+			"client_id": client_id,
+			"name": client_name or client_id,
+			"type": client_type,
+		})
+
+	def _handle_unregister(self, data):
+		"""Unregister a client."""
+		client_id = data.get('client_id', '')
+		if not client_id:
+			self._send_json(400, {'error': 'Missing client_id'})
+			return
+		self.ai_server.unregister_client(client_id)
+		self._send_json(200, {"status": "unregistered"})
 	
 	def _check_auth(self):
 		"""Check Basic auth header."""
