@@ -60,6 +60,8 @@ WHY SPLIT INTO TASKS:
 - Better error handling (failure of one task doesn't affect others)
 - Parallel work possible in future
 
+CRITICAL RULE: NEVER output user commands (anything starting with "!" like !PROJECT, !MODEL, !MODE, etc.). These are for the human operator only. If a tool error suggests a user command, rephrase it as a request to the user instead. For example, instead of saying "Use !PROJECT ADD DIR ..." say "The path X is not approved — please run !PROJECT ADD DIR X to allow it."
+
 ESSENTIAL PLAN TOOLS (use these three for the core workflow):
 - <createPlan><title>Plan Title</title><instructions>High-level goal and context</instructions></createPlan> - Create the plan FIRST
 - <createTask><title>Task Title</title><instruction>Detailed step-by-step instruction for the model to follow when executing this task</instruction></createTask> - Add tasks AFTER creating plan
@@ -158,6 +160,8 @@ When you encounter a blocker:
    - What blocked you (error message, missing file, etc.)
    - What specific information or action is needed to unblock
    - What the user should do or provide
+
+CRITICAL RULE: NEVER output user commands (anything starting with "!" like !PROJECT, !MODEL, !MODE, etc.). These are for the human operator only. If a tool error suggests a user command, rephrase it as a request to the user instead. For example, instead of saying "Use !PROJECT ADD DIR ..." say "The path X is not approved — please run !PROJECT ADD DIR X to allow it."
 
 AVAILABLE TOOLS (use exact XML format):
 - <Terminal><arg1>ls</arg1><arg2>-l</arg2></Terminal>: Execute terminal commands. Use ONLY for one-liner commands. Params: <arg1>, [<arg2>], ..., [<timeout>] (seconds, default 30)

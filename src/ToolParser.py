@@ -572,8 +572,8 @@ class ToolParser:
 					for param in _path_tools[toolName]:
 						raw = params.get(param, '')
 						if raw and not _path_approver.is_allowed(raw):
-							err = ("Error: {} param '{}' = '{}' is not in the approved paths. "
-								   "Use !PROJECT ADD DIR <dir> or !PROJECT ADD FILE <file> to approve it."
+							err = ("Error: {} param '{}' = '{}' is not in an approved path. "
+								   "Ask the user to approve this path via the !PROJECT command."
 								   .format(toolName, param, raw))
 							self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
 							self.handle.Response('tool', {'content': err, 'name': toolName})
@@ -586,7 +586,7 @@ class ToolParser:
 			user_blocked = set(self.handle.Options.get('TOOL_BLOCKED', []))
 			user_allowed = set(self.handle.Options.get('TOOL_ALLOWED', []))
 			if toolName in user_blocked:
-				err = "Error: Tool '{}' is disallowed by user configuration. Use !TOOL ALLOW {} to enable it.".format(toolName, toolName)
+				err = "Error: Tool '{}' is disallowed by user configuration. Ask the user to allow it via the !TOOL command.".format(toolName, toolName)
 				self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
 				self.handle.Response('tool', {'content': err, 'name': toolName})
 				break
