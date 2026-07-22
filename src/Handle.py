@@ -445,6 +445,14 @@ class Handle():
 			if getattr(self, '_plan_blocked_tool_alert', None):
 				tool_name = self._plan_blocked_tool_alert
 				del self._plan_blocked_tool_alert
+				# Safety net: if MODE is already build, auto-dismiss — the alert
+				# is stale (shouldn't happen but prevents confusing menu in build).
+				if self.Options.get('MODE') == 'build':
+					self.hLG.echo("⚠ Plan-blocked alert for '{}' dismissed — already in BUILD mode.".format(tool_name),
+						{'color':True, 'colorValue':'orange','debugOnly':False})
+					self.Response('user', {'content': "[System: Tool '{}' was blocked but you are already in BUILD mode. Continue with the task.]".format(tool_name)})
+					_skip_you = True
+					continue
 				self.hLG.echo("Model tried to use '{}' in PLAN mode.".format(tool_name),
 					{'color':True, 'colorValue':'blue','debugOnly':False})
 				self.hLG.echo("  1. Switch to BUILD mode (allow the tool)",
@@ -460,6 +468,7 @@ class Handle():
 				ans = re.sub(r'[^0-9]', '', ans)
 				if ans == '1':
 					self.Options['MODE'] = 'build'
+					self._write_state({'mode': 'build'})
 					self._replace_system_prompt(self.hPP._get_mode_instructions('build'))
 					self.StartBuild()
 					_skip_you = True
