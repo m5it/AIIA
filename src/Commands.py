@@ -161,9 +161,9 @@ class Commands():
 		},
 		"PLAN":{
 			"name"       :"Plan",
-			"description":"View or modify plan status. Use CLEAR/DELETE/RESET to remove plans, DONE to finalize.",
+			"description":"View or modify plan status. Use LIST to see all plans, CLEAR/DELETE/RESET to remove, DONE to finalize.",
 			"regex"      :r"^!PLAN(\s+[A-Za-z]+)?(\s+[\d\.]+)?$",
-			"usage"      :"!PLAN [PREVIEW|VIEW|TASKS|STATUS|CLEAR|DELETE|RESET|DONE] [task_id]",
+			"usage"      :"!PLAN [PREVIEW|VIEW|TASKS|STATUS|LIST|CLEAR|DELETE|RESET|DONE]",
 			"func"       :self.CMD_PLAN,
 		},
 		"START_BUILD":{
@@ -558,11 +558,51 @@ class Commands():
 		return 2
 
 	def CMD_PREVIEW_HISTORY(self, inp=""):
-		self.handle.hLG.echo("Handle.Commands.CMD_PREVIEW_HISTORY START!, history.len: {}".format( len(self.handle.hHM.msgs) ))
-		i=0
-		for msg in self.handle.hHM.msgs:
-			self.handle.hLG.echo("{}.) {}".format( i, msg ),{'debugOnly':self.handle.Options['QUIET']})
-			i+=1
+		"""!PH — compact color-coded preview of chat history."""
+		from datetime import datetime
+		msgs = self.handle.hHM.msgs
+		if not msgs:
+			print("No history.")
+			return 2
+		R = '\033[0m'     # reset
+		G = '\033[1;32m'  # green — assistant
+		C = '\033[1;36m'  # cyan — user
+		Y = '\033[1;33m'  # yellow — system
+		B = '\033[1;34m'  # blue — tool
+		W = '\033[1;37m'  # white — header
+		D = '\033[2m'     # dim
+		print("\n{}=== CHAT HISTORY ({} messages) ==={}\n".format(W, len(msgs), R))
+		for i, msg in enumerate(msgs):
+			role = msg.get('role', '?')
+			content = msg.get('content', '')
+			ts = msg.get('timestamp', 0)
+			tool_name = msg.get('name', '')
+			time_str = datetime.fromtimestamp(ts).strftime('%H:%M') if ts else '??:??'
+			# Pick color and label by role
+			if role == 'user':
+				color = C
+				label = 'USER'
+			elif role == 'assistant':
+				color = G
+				label = 'ASSISTANT'
+			elif role == 'system':
+				color = Y
+				label = 'SYSTEM'
+			elif role == 'tool':
+				color = B
+				label = 'TOOL:{}'.format(tool_name) if tool_name else 'TOOL'
+			else:
+				color = R
+				label = role.upper()
+			# Truncate content to 80 chars, single-line
+			preview = content.replace('\n', ' ').replace('\r', '')
+			if len(preview) > 80:
+				preview = preview[:80] + '...'
+			elif not preview:
+				preview = '(empty)'
+			print(" {:>3} {}[{}]{} {:<14} {}".format(
+				i, D, time_str, R, color + label + R, D + preview + R))
+		print()
 		return 2
 	#
 	def CMD_TIP_LIST(self, inp=""):
@@ -1086,6 +1126,81 @@ class Commands():
 			else:
 				print("\nNo active plan.")
 
+		elif action == 'LIST':
+			from datetime import datetime
+			G = '\033[1;32m'  # green
+			C = '\033[1;36m'  # cyan
+			Y = '\033[1;33m'  # yellow/orange
+			R = '\033[0m'     # reset
+			all_plans = []
+			# Active draft
+			if PlanBase.draft:
+				p = PlanBase.draft
+				pending = sum(1 for t in p.tasks.values() if t.status == 'pending')
+				completed = sum(1 for t in p.tasks.values() if t.status == 'completed')
+				blocked = sum(1 for t in p.tasks.values() if t.status == 'blocked')
+				in_prog = sum(1 for t in p.tasks.values() if t.status == 'in_progress')
+				total = len(p.tasks)
+				parts = []
+				if completed: parts.append("{} done".format(completed))
+				if in_prog: parts.append("{} active".format(in_prog))
+				if pending: parts.append("{} pending".format(pending))
+				if blocked: parts.append("{} blocked".format(blocked))
+				counts = " ({} tasks: {})".format(total, ", ".join(parts)) if total else ""
+				created = datetime.fromtimestamp(p.startTimestamp).strftime('%Y-%m-%d %H:%M') if p.startTimestamp else "?"
+				all_plans.append(("draft", p.id, p.title or "(untitled)", counts, created, None))
+			# Completed plans from done dict
+			for pid, pdata in PlanBase.done.items():
+				tasks = pdata.get("tasks", {})
+				total = len(tasks)
+				done_count = sum(1 for t in tasks.values() if t.get("status") == "completed")
+				parts = ["{} done".format(done_count)] if done_count else []
+				remaining = total - done_count
+				if remaining: parts.append("{} other".format(remaining))
+				counts = " ({} tasks: {})".format(total, ", ".join(parts)) if total else ""
+				created = datetime.fromtimestamp(pdata.get("startTimestamp", 0)).strftime('%Y-%m-%d %H:%M') if pdata.get("startTimestamp") else "?"
+				completed_at = datetime.fromtimestamp(pdata.get("endTimestamp", 0)).strftime('%Y-%m-%d %H:%M') if pdata.get("endTimestamp") else None
+				all_plans.append(("done", pid, pdata.get("title", "(untitled)"), counts, created, completed_at))
+			# Scan plans/ dir for any not in done dict
+			if os.path.exists(plans_path):
+				for f in os.listdir(plans_path):
+					if f.endswith(".json"):
+						plan_id = f[:-5]
+						if plan_id not in PlanBase.done and (not PlanBase.draft or PlanBase.draft.id != plan_id):
+							try:
+								plan = Plan.load(plan_id, plans_path)
+								if plan:
+									tasks = plan.tasks
+									total = len(tasks)
+									done_count = sum(1 for t in tasks.values() if t.status == "completed")
+									parts = ["{} done".format(done_count)] if done_count else []
+									remaining = total - done_count
+									if remaining: parts.append("{} other".format(remaining))
+									counts = " ({} tasks: {})".format(total, ", ".join(parts)) if total else ""
+									created = datetime.fromtimestamp(plan.startTimestamp).strftime('%Y-%m-%d %H:%M') if plan.startTimestamp else "?"
+									status = "done" if plan.endTimestamp else "archived"
+									all_plans.append((status, plan.id, plan.title or "(untitled)", counts, created, None))
+							except Exception:
+								pass
+			if not all_plans:
+				print("\nNo plans found.")
+			else:
+				print("\n=== ALL PLANS ({}) ===\n".format(len(all_plans)))
+				for status, pid, title, counts, created, completed_at in all_plans:
+					if status == "draft":
+						label = "{}[DRAFT]{}{}".format(C, R, title)
+					elif status == "done":
+						label = "{}[DONE]{}{}".format(G, R, title)
+					else:
+						label = "{}[{}]{}{}".format(Y, status.upper(), R, title)
+					print("  {}{}".format(label, counts))
+					date_str = "    Created: {}".format(created)
+					if completed_at:
+						date_str += " | Completed: {}".format(completed_at)
+					print(date_str)
+					print("    ID: {}".format(pid))
+					print()
+
 		elif action == 'CLEAR':
 			if PlanBase.draft:
 				count = len(PlanBase.draft.tasks)
@@ -1118,11 +1233,12 @@ class Commands():
 				print("\nNo active plan to mark as done.")
 
 		else:
-			print("\nUsage: !PLAN [PREVIEW|VIEW|TASKS|STATUS|CLEAR|DELETE|RESET|DONE]")
+			print("\nUsage: !PLAN [PREVIEW|VIEW|TASKS|STATUS|LIST|CLEAR|DELETE|RESET|DONE]")
 			print("  PREVIEW  - Show plan overview (default)")
 			print("  VIEW     - Show all tasks with details")
 			print("  TASKS    - Same as VIEW")
 			print("  STATUS   - Show quick status")
+			print("  LIST     - Show all plans (active + completed)")
 			print("  CLEAR    - Remove all tasks from current plan")
 			print("  DELETE   - Delete current plan entirely")
 			print("  RESET    - Same as DELETE")
