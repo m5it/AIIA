@@ -443,6 +443,47 @@ class ToolParser:
 		return usage
 	
 	#
+	_write_tools_validate = {'WriteFile', 'CreateFile', 'AppendFile', 'ReplaceLine', 'Sed'}
+	#
+	@staticmethod
+	def _validate_file(path):
+		"""Check syntax of a file after write-tools edit it. Returns warning string or None."""
+		if not path or not os.path.isfile(path):
+			return None
+		ext = os.path.splitext(path)[1].lower()
+		# Read validate mapping from config
+		try:
+			from config import Options as _opts
+			mapping = _opts.get('TOOL_CODE_VALIDATE_EXT', {'.py': 'python', '.js': 'javascript', '.sh': 'bash'})
+		except Exception:
+			mapping = {'.py': 'python', '.js': 'javascript', '.sh': 'bash'}
+		vtype = mapping.get(ext)
+		if not vtype:
+			return None
+		try:
+			if vtype == 'python':
+				import py_compile
+				py_compile.compile(path, doraise=True)
+			elif vtype == 'javascript':
+				import subprocess
+				r = subprocess.run(['node', '--check', path],
+					capture_output=True, text=True, timeout=10)
+				if r.returncode != 0:
+					return "⚠ Syntax error in '{}' (JS): {}".format(
+						os.path.basename(path), r.stderr.strip() or r.stdout.strip())
+			elif vtype == 'bash':
+				import subprocess
+				r = subprocess.run(['bash', '-n', path],
+					capture_output=True, text=True, timeout=10)
+				if r.returncode != 0:
+					return "⚠ Syntax error in '{}' (Bash): {}".format(
+						os.path.basename(path), r.stderr.strip() or r.stdout.strip())
+		except py_compile.PyCompileError as e:
+			return "⚠ Syntax error in '{}': {}".format(os.path.basename(path), str(e))
+		except Exception:
+			pass  # validator not available (e.g. node not installed) — skip silently
+		return None
+	#
 	def FireToolInvocation(self, tool_invocations):
 		#
 		is_plan_mode = self.handle.Options.get('MODE') == 'plan'
@@ -576,6 +617,17 @@ class ToolParser:
 			else:
 				result = self.ExecuteTextTool(toolName, params)
 			last_result = result
+			#
+			# Post-write syntax validation — warn model immediately if edit broke syntax
+			if (toolName in self._write_tools_validate
+				and not str(result).startswith('Error')
+				and self.handle.Options.get('TOOL_CODE_VALIDATE', True)):
+				file_path = params.get('fileName', '')
+				if file_path:
+					warn = self._validate_file(file_path)
+					if warn:
+						result = warn + "\n" + str(result)
+						last_result = result
 			#
 			# Show loaded message with timing and sizes (verbose mode)
 			if show_load:

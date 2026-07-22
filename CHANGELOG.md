@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-22 — v1.0.5
+
+### Auto: Version v1.0.5
+
+- Version auto-incremented from v1.0.4
+- Files changed: config.py, src/ToolParser.py
+
+---
+
+
 ## 2026-07-19 — v1.0.4
 
 ### Auto: Version v1.0.4

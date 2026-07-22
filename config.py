@@ -112,6 +112,14 @@ Options         = {
 	# Tool result format (priority: system > user > tool)
 	"TOOL_RESULT_AS_SYSTEM": False, # When True, tool results use role: system instead of role: tool
 	"TOOL_RESULT_AS_USER": False,   # When True, tool results use role: user instead of role: tool
+	#
+	# Post-write syntax validation (runs after ReplaceLine, WriteFile, AppendFile, Sed)
+	"TOOL_CODE_VALIDATE"    :True,   # enable post-write syntax checking
+	"TOOL_CODE_VALIDATE_EXT":{       # extension -> validator type mapping
+		".py" :"python",
+		".js" :"javascript",
+		".sh" :"bash",
+	},
 
 	# Token counting (populated dynamically by Handle.py on each response)
 	"NUM_PROMPT_TOKENS"       :0,  # cumulative prompt tokens across session
