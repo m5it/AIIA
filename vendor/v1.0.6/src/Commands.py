@@ -1,0 +1,1538 @@
+#--
+# class Commands
+import os, json, time
+import ollama
+from src.functions import fread, fwrite, pmatch
+class Commands():
+	#
+	def __init__(self, opts={}):
+		#print("Handle.Commands.__init__() START")
+		#
+		self.handle = opts['handle'] if 'handle' in opts else None # to master class / Handle()
+		#
+		self.cmds    = {
+			"NEW_SESSION":{
+				"name"       :"New Session",
+				"description":"Reset everything and start fresh with Prepare().",
+				"regex"      :r"^!NEW_SESSION$",
+				"usage"      :"!NEW SESSION",
+				"func"       :self.CMD_NEW_SESSION,
+			},
+			"CLEAR":{
+				"name"       :"Clear History",
+				"description":"Clear chat history but keep system prompt and persona.",
+				"regex"      :r"^!CLEAR$",
+				"usage"      :"!CLEAR",
+				"func"       :self.CMD_CLEAR,
+			},
+			"REMOVE":{
+				"name"       :"Remove Row",
+				"description":"Remove a specific row from chat history by number (use !PH to see row numbers).",
+				"regex"      :r"^!RM\s+\d+$",
+				"usage"      :"!RM <row_num>",
+				"func"       :self.CMD_REMOVE,
+			},
+			"STATS":{
+				"name"       :"Stats",
+				"description":"Display statistics for program",
+				"regex"      :r"^!STATS$",
+				"usage"      :"!STATS",
+				"func"       :self.CMD_STATS,
+			},
+
+		"SUMMARIZE":{
+			"name"       :"Summarize",
+			"description":"Clear chat history (keeps system messages). Use when context gets too large.",
+			"regex"      :r"^!SUMMARIZE$",
+			"usage"      :"!SUMMARIZE",
+			"func"       :self.CMD_SUMMARIZE,
+		},
+		"PREVIEW_HISTORY":{
+			"name"       :"Preview History",
+			"description":"Preview current chat history",
+			"regex"      :r"^!PH$",
+			"usage"      :"!PH",
+			"func"       :self.CMD_PREVIEW_HISTORY,
+		},
+		"TIP_LIST":{
+			"name"       :"Tip List",
+			"description":"List all saved tip titles with entry counts.",
+			"regex"      :r"^!TL(\s+(user|model))?$",
+			"usage"      :"!TL [user|model]",
+			"func"       :self.CMD_TIP_LIST,
+		},
+		"TIP_SAVE":{
+			"name"       :"Tip Save",
+			"description":"Save the last exchange or a specific history row as a tip under a title.",
+			"regex"      :r"^!TS(\s+\d+)?\s+\S+$",
+			"usage"      :"!TS [history_num] <title>",
+			"func"       :self.CMD_TIP_SAVE,
+		},
+		"TIP_VIEW":{
+			"name"       :"Tip View",
+			"description":"View saved tip entries under a title.",
+			"regex"      :r"^!TV\s+\S+$",
+			"usage"      :"!TV <title>",
+			"func"       :self.CMD_TIP_VIEW,
+		},
+		"TIP_REINSERT":{
+			"name"       :"Tip Reinsert",
+			"description":"Reinsert saved tip entries into current chat history.",
+			"regex"      :r"^!TR\s+\S+$",
+			"usage"      :"!TR <title>",
+			"func"       :self.CMD_TIP_REINSERT,
+		},
+		"TIP_DELETE":{
+			"name"       :"Tip Delete",
+			"description":"Delete all entries under a tip title.",
+			"regex"      :r"^!TD\s+\S+$",
+			"usage"      :"!TD <title>",
+			"func"       :self.CMD_TIP_DELETE,
+		},
+		"TIP_DELETE_ENTRY":{
+			"name"       :"Tip Delete Entry",
+			"description":"Delete a specific tip entry by number under a title.",
+			"regex"      :r"^!TDR\s+\S+\s+\d+$",
+			"usage"      :"!TDR <title> <entry_num>",
+			"func"       :self.CMD_TIP_DELETE_ENTRY,
+		},
+		"TIP_DELETE_ALL":{
+			"name"       :"Tip Delete All",
+			"description":"Delete all saved tips (optionally by source).",
+			"regex"      :r"^!TDA(\s+(user|model))?$",
+			"usage"      :"!TDA [user|model]",
+			"func"       :self.CMD_TIP_DELETE_ALL,
+		},
+		"MODE":{
+			"name"       :"Mode",
+			"description":"Switch between plan and build mode. Shows current mode if no argument given.",
+			"regex"      :r"^!MODE(\s+(plan|build))?$",
+			"usage"      :"!MODE [plan|build]",
+			"func"       :self.CMD_MODE,
+		},
+		"OLLAMA_LIST":{
+			"name"       :"Models",
+			"description":"List available Ollama models, with previously used ones at top.",
+			"regex"      :r"^!MODELS$",
+			"usage"      :"!MODELS",
+			"func"       :self.CMD_OLLAMA_LIST,
+		},
+		"MODEL":{
+			"name"       :"Model",
+			"description":"Switch AI model. Shows current model if no argument.",
+			"regex"      :r"^!MODEL(\s+\S+)?$",
+			"usage"      :"!MODEL [model_name]",
+			"func"       :self.CMD_MODEL,
+		},
+		"SITE_LIST":{
+			"name"       :"Site List",
+			"description":"List all websites with available JS support scripts.",
+			"regex"      :r"^!SITE_LIST$",
+			"usage"      :"!SITE_LIST",
+			"func"       :self.CMD_SITE_LIST,
+		},
+		"SITE":{
+			"name"       :"Site Info",
+			"description":"Show available scripts for a specific website domain. Usage: !SITE <domain> or !SITE <url>",
+			"regex"      :r"^!SITE\s+.+$",
+			"usage"      :"!SITE <domain>",
+			"func"       :self.CMD_SITE,
+		},
+		"SITE_UPDATE":{
+			"name"       :"Site Script Update",
+			"description":"Create or update a JS support script for a website. Usage: !SITE_UPDATE <domain> <script_name> [content or reads clipboard/file]",
+			"regex"      :r"^!SITE_UPDATE\s+.+$",
+			"usage"      :"!SITE_UPDATE <domain> <script_name>",
+			"func"       :self.CMD_SITE_UPDATE,
+		},
+		"NAME_HISTORY":{
+			"name"       :"Name History",
+			"description":"Give a human-readable name to the current history session.",
+			"regex"      :r"^!NH\s+.+$",
+			"usage"      :"!NH <name>",
+			"func"       :self.CMD_NAME_HISTORY,
+		},
+		"VIEW_HISTORY":{
+			"name"       :"Available History",
+			"description":"List all available history files with sizes and display names.",
+			"regex"      :r"^!AH$",
+			"usage"      :"!AH",
+			"func"       :self.CMD_VIEW_HISTORY,
+		},
+		"PLAN":{
+			"name"       :"Plan",
+			"description":"View or modify plan status. Use LIST to see all plans, CLEAR/DELETE/RESET to remove, DONE to finalize.",
+			"regex"      :r"^!PLAN(\s+[A-Za-z]+)?(\s+[\d\.]+)?$",
+			"usage"      :"!PLAN [PREVIEW|VIEW|TASKS|STATUS|LIST|CLEAR|DELETE|RESET|DONE]",
+			"func"       :self.CMD_PLAN,
+		},
+		"START_BUILD":{
+			"name"       :"Start Build",
+			"description":"Start building from current draft or specific plan by ID.",
+			"regex"      :r"^!START_BUILD(\s+[\d\.]+)?$",
+			"usage"      :"!START_BUILD [planId]",
+			"func"       :self.CMD_START_BUILD,
+		},
+
+			"UPDATE_HANDLE":{
+				"name"       :"Update Handle",
+				"description":"Reinit code of program. Used after program update so there is no need to stop the program.",
+				"regex"      :r"^!UPDATE_HANDLE$",
+				"usage"      :"!UPDATE HANDLE",
+				"func"       :self.CMD_UPDATE_HANDLE,
+			},
+"QUIT":{
+				"name"       :"Quit",
+				"description":"Quit the program.",
+				"regex"      :r"^!QUIT$",
+				"usage"      :"!QUIT",
+				"func"       :self.CMD_QUIT,
+			},
+		"INSTRUCT_LIST":{
+			"name"       :"Instruct List",
+			"description":"List available instruct personas.",
+			"regex"      :r"^!INSTRUCT_LIST$",
+			"usage"      :"!INSTRUCT_LIST",
+			"func"       :self.CMD_INSTRUCT_LIST,
+		},
+		"INSTRUCT_SWITCH":{
+			"name"       :"Instruct Switch",
+			"description":"Switch to a different instruct persona without clearing history.",
+			"regex"      :r"^!INSTRUCT_SWITCH\s+\S+$",
+			"usage"      :"!INSTRUCT_SWITCH <persona_name>",
+			"func"       :self.CMD_INSTRUCT_SWITCH,
+		},
+		"WORKERS":{
+			"name"       :"Workers",
+			"description":"List connected orchestra workers and their status.",
+			"regex"      :r"^!WORKERS$",
+			"usage"      :"!WORKERS",
+			"func"       :self.CMD_WORKERS,
+		},
+		"DISPATCH":{
+			"name"       :"Dispatch",
+			"description":"Dispatch pending tasks to orchestra workers.",
+			"regex"      :r"^!DISPATCH$",
+			"usage"      :"!DISPATCH",
+			"func"       :self.CMD_DISPATCH,
+		},
+		"PLAN_WORKER":{
+			"name"       :"Plan Worker",
+			"description":"Set or show which worker handles planning. Use 'off' to plan locally.",
+			"regex"      :r"^!PLAN_WORKER(\s+\S+)?$",
+			"usage"      :"!PLAN_WORKER <name|off>",
+			"func"       :self.CMD_PLAN_WORKER,
+		},
+		"BUILD_THINK":{
+			"name"       :"Build Think",
+			"description":"Enable or disable thinking in build mode.",
+			"regex"      :r"^!BUILD_THINK(\s+(true|false))?$",
+			"usage"      :"!BUILD_THINK [true|false]",
+			"func"       :self.CMD_BUILD_THINK,
+		},
+		"AUTO_CONTINUE":{
+			"name"       :"Auto Continue",
+			"description":"Enable or disable auto-continue (re-enter AI loop when plan tasks remain)",
+			"regex"      :r"^!AUTO_CONTINUE(\s+(true|false))?$",
+			"usage"      :"!AUTO_CONTINUE [true|false]",
+			"func"       :self.CMD_AUTO_CONTINUE,
+		},
+		"CACHE_CLEAR":{
+			"name"       :"Clear Cache",
+			"description":"Clear all cached tool results.",
+			"regex"      :r"^!CACHE_CLEAR$",
+			"usage"      :"!CACHE_CLEAR",
+			"func"       :self.CMD_CACHE_CLEAR,
+		},
+		"INSTALL_DEPS":{
+			"name"       :"Install Persona Dependencies",
+			"description":"Install missing dependencies for the current persona.",
+			"regex"      :r"^!INSTALL_DEPS(\s+\S+)?$",
+			"usage"      :"!INSTALL_DEPS [persona_name]",
+			"func"       :self.CMD_INSTALL_DEPS,
+		},
+		"PROJECT":{
+			"name"       :"Project",
+			"description":"View or modify project path approvals (directories/files the model can access).",
+			"regex"      :r"^!PROJECT(\s+(ADD|DENY|REMOVE|RESET)(\s+(DIR|FILE))?\s*.+)?$",
+			"usage"      :"!PROJECT [ADD DIR|FILE <path>] [DENY <path>] [REMOVE DIR|FILE <path>] [RESET]",
+			"func"       :self.CMD_PROJECT,
+		},
+		"HELP":{
+				"name"       :"Help",
+				"description":"Display help and available commands.",
+				"regex"      :r"^!HELP$",
+				"usage"      :"!HELP",
+				"func"       :self.CMD_HELP,
+			},
+		"TOOLS":{
+				"name"       :"Tools",
+				"description":"Show tool allow/disallow status.",
+				"regex"      :r"^!TOOLS(\s+(ALLOWED|DISALLOWED))?$",
+				"usage"      :"!TOOLS [ALLOWED|DISALLOWED]",
+				"func"       :self.CMD_TOOLS,
+			},
+		"TOOL":{
+				"name"       :"Tool Allow/Disallow",
+				"description":"Allow or disallow a specific tool.",
+				"regex"      :r"^!TOOL\s+(ALLOW|DISALLOW)\s+(\S+)$",
+				"usage"      :"!TOOL ALLOW|DISALLOW <toolName>",
+				"func"       :self.CMD_TOOL,
+			},
+		"TIMER_ONCE":{
+				"name"       :"Timer Once",
+				"description":"Set a one-shot timer. Fires after delay, injects text into chat.",
+				"regex"      :r"^!TIMER_ONCE\s+\S+",
+				"usage"      :"!TIMER_ONCE <time> [text after newline]",
+				"func"       :self.CMD_TIMER_ONCE,
+			},
+		"TIMER_REPEAT":{
+				"name"       :"Timer Repeat",
+				"description":"Set a repeat timer. Fires N times at interval, injects text each time.",
+				"regex"      :r"^!TIMER_REPEAT\s+\d+\s+\S+",
+				"usage"      :"!TIMER_REPEAT <count> <interval> [text after newline]",
+				"func"       :self.CMD_TIMER_REPEAT,
+			},
+		"TIMER_LOOP":{
+				"name"       :"Timer Loop",
+				"description":"Set a loop timer. Fires at interval until stopped.",
+				"regex"      :r"^!TIMER_LOOP(\s+\S+(\s+\S+)?)?",
+				"usage"      :"!TIMER_LOOP [delay] [duration] [text after newline]",
+				"func"       :self.CMD_TIMER_LOOP,
+			},
+		"TIMER_STOP":{
+				"name"       :"Timer Stop",
+				"description":"Cancel a specific timer by index, or all if no index given.",
+				"regex"      :r"^!TIMER_STOP(\s+\d+)?$",
+				"usage"      :"!TIMER_STOP [index]",
+				"func"       :self.CMD_TIMER_STOP,
+			},
+		"TIMER_LIST":{
+				"name"       :"Timer List",
+				"description":"List all active timers with details.",
+				"regex"      :r"^!TIMER_LIST$",
+				"usage"      :"!TIMER_LIST",
+				"func"       :self.CMD_TIMER_LIST,
+			},
+		}
+	#--
+	#
+	def CMD_HELP(self, inp=""):
+		print("\nAvailable user commands (Ex.: !CMD): ")
+		#self.handle.hLG.echo("\nAvailable user commands (Ex.: !CMD): \n",{'color':True,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True})
+		for k in self.cmds:
+			print("{} - {} Usage: {}".format( self.cmds[k]['name'], self.cmds[k]['description'], self.cmds[k]['usage'] ))
+			#self.handle.hLG.echo("{} - {} Usage: {}".format( self.cmds[k]['name'], self.cmds[k]['description'], self.cmds[k]['usage'] ),{'color':True,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True})
+		print("\n")
+		return 2
+	#
+	def CMD_NEW_SESSION(self, inp):
+		# Clear in-memory history
+		self.handle.hHM.msgs = []
+		# Clear main history file on disk
+		history_path = "{}/{}".format("{}/history".format(self.handle.Options.get('path', '')), self.handle.Options['AI_FILE_HISTORY'])
+		try:
+			os.remove(history_path)
+		except Exception:
+			pass
+		# Clear project HISTORY.md
+		proj_dir = self.handle.Options.get('working_dir')
+		framework_dir = self.handle.Options.get('path', '').rstrip('/')
+		if proj_dir and proj_dir != framework_dir:
+			proj_history = os.path.join(proj_dir, 'HISTORY.md')
+			try:
+				os.remove(proj_history)
+			except Exception:
+				pass
+		# Reset counters
+		self.handle.Options['AI_ROW_ID'] = 0
+		self.handle.Options['NUM_PROMPT_TOKENS'] = 0
+		self.handle.Options['NUM_RESPONSE_TOKENS'] = 0
+		self.handle.Options['NUM_LAST_PROMPT_TOKENS'] = 0
+		self.handle.Options['NUM_LAST_RESPONSE_TOKENS'] = 0
+		# Reset tools
+		self.handle.Options['current_tools'] = []
+		self.handle.Options['handle_tools'] = {}
+		self.handle.hTC.selected = []
+		self.handle.hTC.prepared = []
+		# Clear plan state
+		from src.PlanManager import PlanBase
+		PlanBase.draft = None
+		PlanBase.done = {}
+		# Reset draft response
+		self.handle.Options['DRAFT_CONTENT'] = None
+		self.handle.Options['DRAFT_RESPONSE'] = None
+		# Reset continuation flags
+		self.handle.Options['CONTINUING'] = False
+		self.handle.Options['AI_FILE_LOAD_HISTORY'] = False
+		# Clear caches and consumed tips
+		self.handle.hTM.clear_all_caches()
+		self.handle._consumed_tips = set()
+		return 6
+	#
+	def CMD_CLEAR(self, inp):
+		from src.PlanSaver import PlanSaver
+		# Archive raw history before clearing — preserves training data
+		msg_count = len(self.handle.hHM.msgs)
+		archive_name = self.handle._archive_history('cleared')
+		if archive_name:
+			self.handle._save_clear_tip(archive_name, msg_count)
+		# Keep system message(s), clear everything else
+		system_msgs = [m for m in self.handle.hHM.msgs if m['role'] == 'system']
+		self.handle.hHM.msgs = system_msgs[:]
+		# Clear main history file on disk and rewrite system msgs
+		main_path = "{}/{}".format("{}/history".format(self.handle.Options.get('path', '')), self.handle.Options['AI_FILE_HISTORY'])
+		try:
+			os.remove(main_path)
+		except Exception:
+			pass
+		for m in system_msgs:
+			fwrite(main_path, "{}\n".format(json.dumps(m)), False)
+		# Rewrite project HISTORY.md with system msgs only
+		proj_dir = self.handle.Options.get('working_dir')
+		framework_dir = self.handle.Options.get('path', '').rstrip('/')
+		if proj_dir and proj_dir != framework_dir:
+			proj_history = os.path.join(proj_dir, 'HISTORY.md')
+			PlanSaver.rebuild_history(proj_history, system_msgs)
+		# Reset row ID and tokens
+		self.handle.Options['AI_ROW_ID'] = 0
+		self.handle.Options['NUM_PROMPT_TOKENS'] = 0
+		self.handle.Options['NUM_RESPONSE_TOKENS'] = 0
+		self.handle.Options['NUM_LAST_PROMPT_TOKENS'] = 0
+		self.handle.Options['NUM_LAST_RESPONSE_TOKENS'] = 0
+		print("Chat history cleared. System prompt preserved.")
+		return 2
+	#
+	def CMD_REMOVE(self, inp):
+		from src.PlanSaver import PlanSaver
+		a = inp.strip().split()
+		if len(a) < 2:
+			print("Usage: !RM <row_num>")
+			return 2
+		try:
+			num = int(a[1])
+		except ValueError:
+			print("Row number must be an integer.")
+			return 2
+		if num < 0 or num >= len(self.handle.hHM.msgs):
+			print("Row {} does not exist. History has {} rows.".format(num, len(self.handle.hHM.msgs)))
+			return 2
+		removed = self.handle.hHM.msgs.pop(num)
+		print("Removed row {}: [{}] {}".format(num, removed.get('role','?'), removed.get('content','')[:80]))
+		# Rebuild main history file on disk
+		main_path = "{}/{}".format("{}/history".format(self.handle.Options.get('path', '')), self.handle.Options['AI_FILE_HISTORY'])
+		try:
+			os.remove(main_path)
+		except Exception:
+			pass
+		for m in self.handle.hHM.msgs:
+			fwrite(main_path, "{}\n".format(json.dumps(m)), False)
+		# Rebuild project HISTORY.md
+		proj_dir = self.handle.Options.get('working_dir')
+		framework_dir = self.handle.Options.get('path', '').rstrip('/')
+		if proj_dir and proj_dir != framework_dir:
+			proj_history = os.path.join(proj_dir, 'HISTORY.md')
+			PlanSaver.rebuild_history(proj_history, self.handle.hHM.msgs)
+		return 2
+	#
+	#
+	def CMD_STATS(self, inp):
+		print("Stats            :")
+		print("-----------------")
+		print("history.msgs.len : {}".format( len(self.handle.hHM.msgs) ))
+		print("row_id           : {}".format( self.handle.Options['AI_ROW_ID'] ))
+		print("sess_id          : {}_{}".format( self.handle.Options['AI_SESS_PREFIX'], self.handle.Options['AI_SESS_ID'] ))
+		print("history          : {} / {}".format( self.handle.Options['AI_FILE_HISTORY'], self.handle.hHM.history ))
+		_fname = self.handle.Options.get('AI_FILE_HISTORY', '')
+		if _fname:
+			_key = _fname[:-4] if _fname.endswith('.dbk') else _fname
+			_alias = self.handle.hHM.get_name(_key)
+			if _alias:
+				print("  display name   : {}".format(_alias))
+		print("user.history     : {}".format( self.handle.Options['AI_USER_HISTORY'] ))
+		#
+		print("available history: {}".format( len(self.handle.hHM.available) ))
+		print("available tools  : {}".format( len(self.handle.hTC.available) ))
+		print("imported tools   : {}".format( len(self.handle.hTC.prepared) ))
+		print("-----------------")
+		print("Tokens          :")
+		print("  last_prompt    : {}".format( self.handle.Options['NUM_LAST_PROMPT_TOKENS'] ))
+		print("  last_response  : {}".format( self.handle.Options['NUM_LAST_RESPONSE_TOKENS'] ))
+		print("  total_prompt   : {}".format( self.handle.Options['NUM_PROMPT_TOKENS'] ))
+		print("  total_response : {}".format( self.handle.Options['NUM_RESPONSE_TOKENS'] ))
+		print("  context_usage  :")
+		_limit = self.handle.Options.get('AI_CONTEXT_LIMIT', 262144)
+		_estimate = self.handle._estimate_tokens(self.handle.hHM.msgs) if hasattr(self.handle, '_estimate_tokens') else 0
+		_pct = _estimate / _limit * 100 if _limit else 0
+		print("    estimate / limit: {}/{} ({:.1f}%)".format(_estimate, _limit, _pct))
+		print("-----------------")
+		print("Options         :")
+		print("-----------------")
+		for k in self.handle.Options:
+			print("{} => {}".format( k, self.handle.Options[ k ] ))
+		return 2 # as continue
+	#
+	def CMD_PROJECT(self, inp=""):
+		"""!PROJECT — view or modify project path approvals"""
+		pa = self.handle.Options.get('path_approver')
+		if not pa:
+			print("No path approver configured.")
+			return 2
+		parts = inp.strip().split()
+		if len(parts) < 2:
+			print("Project Path Approvals:")
+			print("  Working dir:", pa.working_dir)
+			print("  Approved dirs: {}".format(sorted(pa.approved_dirs) if pa.approved_dirs else "(none - defaults to .)"))
+			print("  Approved files: {}".format(sorted(pa.approved_files) if pa.approved_files else "(none)"))
+			print("  Denied paths: {}".format(sorted(pa.denied_paths) if pa.denied_paths else "(none)"))
+			return 2
+		action = parts[1].upper()
+		if action == 'ADD' and len(parts) >= 4:
+			kind = parts[2].upper()
+			path = ' '.join(parts[3:])
+			if kind == 'DIR':
+				pa.add_dir(path)
+				pa.save()
+				print("Approved directory '{}'".format(path))
+			elif kind == 'FILE':
+				pa.add_file(path)
+				pa.save()
+				print("Approved file '{}'".format(path))
+			else:
+				print("Usage: !PROJECT ADD DIR <path> or !PROJECT ADD FILE <path>")
+		elif action == 'DENY' and len(parts) >= 3:
+			path = ' '.join(parts[2:])
+			pa.deny(path)
+			pa.save()
+			print("Denied path '{}'".format(path))
+		elif action == 'REMOVE' and len(parts) >= 4:
+			kind = parts[2].upper()
+			path = ' '.join(parts[3:])
+			if kind == 'DIR':
+				pa.approved_dirs.discard(path)
+				pa.save()
+				print("Removed approved directory '{}'".format(path))
+			elif kind == 'FILE':
+				pa.approved_files.discard(path)
+				pa.save()
+				print("Removed approved file '{}'".format(path))
+			else:
+				print("Usage: !PROJECT REMOVE DIR <path> or !PROJECT REMOVE FILE <path>")
+		elif action == 'RESET':
+			pa.approved_dirs = {'.'}
+			pa.approved_files = set()
+			pa.denied_paths = set()
+			pa.save()
+			print("Path approvals reset to default (only working directory).")
+		else:
+			print("Unknown command. Usage:")
+			print("  !PROJECT — show current approvals")
+			print("  !PROJECT ADD DIR <path> — approve a directory")
+			print("  !PROJECT ADD FILE <path> — approve a file")
+			print("  !PROJECT DENY <path> — block a path")
+			print("  !PROJECT REMOVE DIR|FILE <path> — remove an approval")
+			print("  !PROJECT RESET — reset to defaults")
+		return 2
+	#
+	def CMD_NAME_HISTORY(self, inp=""):
+		"""!NH <name> — give a human-readable name to the current history session."""
+		parts = inp.strip().split()
+		if len(parts) < 2:
+			print("Usage: !NH <name>")
+			print("  name   — human-readable label (spaces become underscores)")
+			return 2
+		name = ' '.join(parts[1:])
+		result = self.handle.hHM.set_current_name(name)
+		print(result)
+		return 2
+	#
+	def CMD_VIEW_HISTORY(self, inp=""):
+		"""!AH — list all available history files with sizes and display names."""
+		self.handle.hHM.Available()
+		return 2
+	#
+	def CMD_SUMMARIZE(self, inp=""):
+		self.handle.hLG.echo("Summarizing — clearing history, keeping system messages...",
+			{'color':True, 'colorValue':'orange','debugOnly':False})
+		self.handle._auto_clear()
+		return 2
+
+	def CMD_PREVIEW_HISTORY(self, inp=""):
+		"""!PH — compact color-coded preview of chat history."""
+		from datetime import datetime
+		msgs = self.handle.hHM.msgs
+		if not msgs:
+			print("No history.")
+			return 2
+		R = '\033[0m'     # reset
+		G = '\033[1;32m'  # green — assistant
+		C = '\033[1;36m'  # cyan — user
+		Y = '\033[1;33m'  # yellow — system
+		B = '\033[1;34m'  # blue — tool
+		W = '\033[1;37m'  # white — header
+		D = '\033[2m'     # dim
+		print("\n{}=== CHAT HISTORY ({} messages) ==={}\n".format(W, len(msgs), R))
+		for i, msg in enumerate(msgs):
+			role = msg.get('role', '?')
+			content = msg.get('content', '')
+			ts = msg.get('timestamp', 0)
+			tool_name = msg.get('name', '')
+			time_str = datetime.fromtimestamp(ts).strftime('%H:%M') if ts else '??:??'
+			# Pick color and label by role
+			if role == 'user':
+				color = C
+				label = 'USER'
+			elif role == 'assistant':
+				color = G
+				label = 'ASSISTANT'
+			elif role == 'system':
+				color = Y
+				label = 'SYSTEM'
+			elif role == 'tool':
+				color = B
+				label = 'TOOL:{}'.format(tool_name) if tool_name else 'TOOL'
+			else:
+				color = R
+				label = role.upper()
+			# Truncate content to 80 chars, single-line
+			preview = content.replace('\n', ' ').replace('\r', '')
+			if len(preview) > 80:
+				preview = preview[:80] + '...'
+			elif not preview:
+				preview = '(empty)'
+			print(" {:>3} {}[{}]{} {:<14} {}".format(
+				i, D, time_str, R, color + label + R, D + preview + R))
+		print()
+		return 2
+	#
+	def CMD_TIP_LIST(self, inp=""):
+		a = inp.split()
+		source = a[1].strip().lower() if len(a) > 1 and a[1].strip().lower() in ('user','model') else None
+		tips = self.handle.hTM.list(source)
+		if not tips:
+			print("No tips saved.")
+			return 2
+		print("Tips:")
+		for key, info in sorted(tips.items()):
+			print("  {}/{} -> {} entries".format(info['source'], info['title'], info['count']))
+		return 2
+	#
+	def CMD_TIP_SAVE(self, inp):
+		a = inp.split()
+		if len(a) < 2:
+			print("Usage: !TS [history_num] <title>")
+			return 2
+		title = a[-1]
+		if len(a) == 2:
+			entries = self.handle.hTM.get_last_exchange()
+			if entries is None:
+				print("No exchange found to save.")
+				return 2
+		else:
+			try:
+				num = int(a[1])
+			except ValueError:
+				print("Usage: !TS [history_num] <title>")
+				return 2
+			entries = self.handle.hTM.get_exchange_at(num)
+			if entries is None:
+				print("Invalid history row number.")
+				return 2
+		self.handle.hTM.save(title, 'user', entries)
+		self.handle.hLG.echo("Saved {} message(s) as tip '{}'".format(len(entries), title),{'color':True,'colorValue':'green'})
+		return 2
+	#
+	def CMD_TIP_VIEW(self, inp):
+		a = inp.split()
+		if len(a) < 2:
+			print("Usage: !TV <title>")
+			return 2
+		title = a[1]
+		entries = self.handle.hTM.get(title)
+		if not entries:
+			print("No tips found for title '{}'".format(title))
+			return 2
+		print("Tips for '{}':".format(title))
+		for i, data in enumerate(entries):
+			print("\n--- Entry {} ({} source, session {}) ---".format(i, data.get('source','?'), data.get('sessionId','?')))
+			for msg in data.get('entries', []):
+				role = msg.get('role','?')
+				content = msg.get('content','')
+				trunc = content[:200].replace('\n',' ') + ('...' if len(content)>200 else '')
+				print("  [{}] {}".format(role, trunc))
+		return 2
+	#
+	def CMD_TIP_REINSERT(self, inp):
+		a = inp.split()
+		if len(a) < 2:
+			print("Usage: !TR <title>")
+			return 2
+		title = a[1]
+		if title in self.handle._consumed_tips:
+			print("Tip '{}' was already reinserted this session.".format(title))
+			return 2
+		count = self.handle.hTM.reinsert(title)
+		if count > 0:
+			self.handle.hLG.echo("Reinserted {} message(s) from tip '{}'".format(count, title),{'color':True,'colorValue':'green'})
+		else:
+			print("No entries found for tip title '{}'.".format(title))
+		return 2
+	#
+	def CMD_TIP_DELETE(self, inp):
+		a = inp.split()
+		if len(a) < 2:
+			print("Usage: !TD <title>")
+			return 2
+		title = a[1]
+		removed = self.handle.hTM.delete(title)
+		if removed:
+			self.handle.hLG.echo("Deleted tip '{}'".format(title),{'color':True,'colorValue':'orange'})
+		else:
+			print("No tip titled '{}' found.".format(title))
+		return 2
+	#
+	def CMD_TIP_DELETE_ENTRY(self, inp):
+		a = inp.split()
+		if len(a) < 3:
+			print("Usage: !TDR <title> <entry_num>")
+			return 2
+		title = a[1]
+		try:
+			num = int(a[2])
+		except ValueError:
+			print("Entry number must be an integer.")
+			return 2
+		if self.handle.hTM.delete_entry(title, num):
+			self.handle.hLG.echo("Deleted entry {} from tip '{}'".format(num, title),{'color':True,'colorValue':'orange'})
+		else:
+			print("Entry not found.")
+		return 2
+	#
+	def CMD_TIP_DELETE_ALL(self, inp=""):
+		a = inp.split()
+		source = a[1].strip().lower() if len(a) > 1 and a[1].strip().lower() in ('user','model') else None
+		removed = self.handle.hTM.delete_all(source)
+		self.handle.hLG.echo("Deleted {} tip title(s)".format(removed),{'color':True,'colorValue':'orange'})
+		return 2
+	#
+	def CMD_CACHE_CLEAR(self, inp=""):
+		count = self.handle.hTM.clear_all_caches()
+		self.handle._consumed_tips = set()
+		self.handle.hLG.echo("Cleared {} cached tool result(s) and reset consumed tips.".format(count),{'color':True,'colorValue':'orange'})
+		return 2
+	#
+	def CMD_INSTALL_DEPS(self, inp=""):
+		parts = inp.strip().split()
+		name = parts[1] if len(parts) > 1 else self.handle.Options.get('INSTRUCT_CLASS', '')
+		if not name:
+			print("No persona specified and no current persona set.")
+			return 2
+		cls_path = self.handle.Options.get('INSTRUCT_PATH', 'instruct')
+		mod = importmodule(name, False, {'path': cls_path})
+		if not mod:
+			print("Persona '{}' not found.".format(name))
+			return 2
+		cls = None
+		for n in [name, name.lower(), name.upper()]:
+			try:
+				cls = getattr(mod, n)
+				if cls:
+					break
+			except Exception:
+				continue
+		if not cls:
+			print("Could not load persona '{}'.".format(name))
+			return 2
+		requirements = getattr(cls, 'requirements', None)
+		if not requirements:
+			print("Persona '{}' has no dependency requirements.".format(name))
+			return 2
+		try:
+			req_dict = requirements(cls)
+		except Exception:
+			print("Failed to read requirements for '{}'.".format(name))
+			return 2
+		if not req_dict:
+			print("Persona '{}' has no dependency requirements.".format(name))
+			return 2
+		self.handle.hLG.echo("Installing dependencies for '{}'...".format(name),
+			{'color':True, 'colorValue':'cyan','debugOnly':False})
+		from src.DependencyInstaller import install as install_deps
+		ok = install_deps(name, req_dict, self.handle)
+		if ok:
+			self.handle.hLG.echo("All dependencies installed for '{}'.".format(name),
+				{'color':True, 'colorValue':'green','debugOnly':False})
+		else:
+			self.handle.hLG.echo("Some dependencies failed. Run !INSTALL_DEPS {} to retry.".format(name),
+				{'color':True, 'colorValue':'orange','debugOnly':False})
+		return 2
+	#
+	def CMD_UPDATE_HANDLE(self, inp):
+		self.handle.hTM.clear_all_caches()
+		self.handle._consumed_tips = set()
+		return 4 # update class Handle()
+	#
+	def CMD_QUIT(self, inp):
+		self.handle.Options['AI_LIVE']=False
+		return 3 # as break
+	#
+	#
+	def CMD_MODE(self, inp=""):
+		print("CMD_MODE() START, inp: {}".format(inp))
+		#
+		ret = 2 # 2=repeat You(), 5=Start Build
+		a = inp.split(" ")
+		if len(a) < 2:
+			# Show current mode
+			mode = self.handle.Options.get('MODE', 'build')
+			print("Current mode: {}".format(mode))
+			return ret
+		#
+		new_mode = a[1].strip().lower()
+		if new_mode not in ['plan', 'build']:
+			print("Invalid mode: {}. Use 'plan' or 'build'".format(new_mode))
+			return ret
+		#
+		if new_mode == 'plan':
+			if self.handle.Options['MODE']=='plan':
+				print("ERROR: Already in plan mode. Skip.")
+				return ret
+			self.handle.Options['MODE'] = 'plan'
+			print("Mode changed to PLAN. You are now in read-only mode.")
+		else:  # build
+			if self.handle.Options['MODE']=='build':
+				print("ERROR: Already in build mode. Skip.")
+				return ret
+			self.handle.Options['MODE'] = 'build'
+			print("Mode changed to BUILD. You can now make changes.")
+			# Check if plan has tasks - if yes, return 5 to trigger startBuild
+			from src.PlanManager import PlanBase
+			if PlanBase.draft and len(PlanBase.draft.tasks) > 0:
+				ret = 5  # startBuild signal
+				print("Plan has {} tasks. Starting build...".format(len(PlanBase.draft.tasks)))
+			
+		# Persist mode to state
+		self.handle._write_state({'mode': new_mode})
+			
+		#--
+		# Update System message with new mode!
+		# Find last system message in history and replace it; append if none.
+		# Ollama support multiple system prompts in one chat history!
+		#--
+		self.handle._replace_system_prompt(self.handle.hPP._get_mode_instructions(self.handle.Options['MODE']))
+		#--
+		# Optionally inject plan-mode tool training
+		if new_mode == 'plan' and self.handle.Options.get('TOOL_TRAINING_PLAN', True):
+			self.handle.Response('user', {'content':
+				"[Tool Training — Plan Mode]\n"
+				"You are now in PLAN mode. List all tools available to you in plan mode "
+				"and demonstrate at least 3 of them with complete XML examples showing "
+				"the required parameters. "
+				"Do NOT use GetTip — use TreeView, ReadFile, and WriteFile instead."})
+			self.handle._train_skip_you = True
+		# Depend if plan contain tasks then StartBuild() || <startBuild/> and auto continue to AI
+		return ret
+
+	def CMD_BUILD_THINK(self, inp=""):
+		parts = inp.strip().split()
+		if len(parts) < 2:
+			current = self.handle.Options.get('BUILD_THINKING_DISABLED', True)
+			print("Build thinking disabled: {}".format(current))
+			print("Usage: !BUILD_THINK true  (disable thinking)")
+			print("       !BUILD_THINK false (enable thinking)")
+			return 2
+		val = parts[1].strip().lower()
+		if val == 'true':
+			self.handle.Options['BUILD_THINKING_DISABLED'] = True
+			print("Build thinking DISABLED. Model will be concise and direct.")
+		elif val == 'false':
+			self.handle.Options['BUILD_THINKING_DISABLED'] = False
+			print("Build thinking ENABLED. Model can reason step by step.")
+		else:
+			print("Invalid value: {}. Use true or false.".format(val))
+			return 2
+		# Update system prompt with new thinking setting
+		self.handle._replace_system_prompt(self.handle.hPP._get_mode_instructions(self.handle.Options['MODE']))
+		return 2
+
+	def CMD_AUTO_CONTINUE(self, inp=""):
+		parts = inp.strip().split()
+		if len(parts) < 2:
+			current = self.handle.Options.get('AUTO_CONTINUE_ALL_TASKS', True)
+			print("Auto-continue: {}".format("enabled" if current else "disabled"))
+			return 2
+		val = parts[1].strip().lower()
+		if val == 'true':
+			self.handle.Options['AUTO_CONTINUE_TASKS'] = True
+			self.handle.Options['AUTO_CONTINUE_ALL_TASKS'] = True
+			self.handle._write_state({'auto_continue': True})
+			print("Auto-continue ENABLED")
+		elif val == 'false':
+			self.handle.Options['AUTO_CONTINUE_TASKS'] = False
+			self.handle.Options['AUTO_CONTINUE_ALL_TASKS'] = False
+			self.handle._write_state({'auto_continue': False})
+			print("Auto-continue DISABLED — user input required after each task")
+		else:
+			print("Invalid. Use true or false.")
+			return 2
+		return 2
+
+	def CMD_TOOLS(self, inp=""):
+		parts = inp.strip().split()
+		action = parts[1].upper() if len(parts) > 1 else 'ALL'
+		#
+		# Get all known tool names
+		all_tools = sorted(self.handle.hTP.get_known_tools())
+		# Remove internal/non-executable tool names
+		all_tools = [t for t in all_tools if t not in ('startBuild',)]
+		#
+		user_blocked = set(self.handle.Options.get('TOOL_BLOCKED', []))
+		user_allowed = set(self.handle.Options.get('TOOL_ALLOWED', []))
+		plan_blocked = self.handle.hTP._plan_blocked
+		is_plan = self.handle.Options.get('MODE') == 'plan'
+		#
+		def effective_status(tool):
+			if tool in user_blocked:
+				return "User Blocked"
+			if is_plan and tool in plan_blocked and tool not in user_allowed:
+				return "Plan Blocked"
+			if tool in user_allowed:
+				return "User Allowed"
+			return "Allowed"
+		#
+		if action == 'ALLOWED':
+			allowed = [t for t in all_tools if effective_status(t) == 'Allowed' or effective_status(t) == 'User Allowed']
+			print("\n=== Allowed Tools ({}) ===".format(len(allowed)))
+			for t in allowed:
+				print("  {}".format(t))
+		elif action == 'DISALLOWED':
+			disallowed = [t for t in all_tools if effective_status(t) in ('User Blocked', 'Plan Blocked')]
+			if not disallowed:
+				print("\nNo tools disallowed.")
+			else:
+				print("\n=== Disallowed Tools ({}) ===".format(len(disallowed)))
+				for t in disallowed:
+					print("  {} ({})".format(t, effective_status(t)))
+		else:
+			# Show all with effective status
+			print("\n=== All Tools ({}) ===".format(len(all_tools)))
+			for t in all_tools:
+				status = effective_status(t)
+				if status == 'User Allowed':
+					status = 'Allowed (override)'
+				elif status == 'Plan Blocked':
+					status = 'Blocked (plan mode)'
+				elif status == 'User Blocked':
+					status = 'Blocked (user)'
+				print("  {} ({})".format(t, status))
+		print("")
+		return 2
+
+	def CMD_TOOL(self, inp=""):
+		parts = inp.strip().split()
+		if len(parts) < 3:
+			print("Usage: !TOOL ALLOW|DISALLOW <toolName>")
+			return 2
+		action = parts[1].upper()
+		tool_name = parts[2]
+		#
+		# Find the canonical tool name (case-insensitive match)
+		all_tools = self.handle.hTP.get_known_tools()
+		canonical = None
+		for t in all_tools:
+			if t.lower() == tool_name.lower():
+				canonical = t
+				break
+		if not canonical:
+			print("Tool '{}' not found. Use !TOOLS to see available tools.".format(tool_name))
+			return 2
+		#
+		blocked = set(self.handle.Options.get('TOOL_BLOCKED', []))
+		allowed = set(self.handle.Options.get('TOOL_ALLOWED', []))
+		#
+		if action == 'DISALLOW':
+			if canonical in ('startBuild',):
+				print("Cannot disallow internal tool '{}'.".format(canonical))
+				return 2
+			blocked.add(canonical)
+			allowed.discard(canonical)
+			self.handle.Options['TOOL_BLOCKED'] = blocked
+			self.handle.Options['TOOL_ALLOWED'] = allowed
+			self.handle._write_state({'tool_blocked': list(blocked), 'tool_allowed': list(allowed)})
+			self.handle._pending_tool_notice = (
+				"[Auto notice: Tool '{}' is now DISALLOWED. "
+				"It cannot be used until re-enabled with !TOOL ALLOW {}.]"
+				.format(canonical, canonical))
+			print("Tool '{}' DISALLOWED. ({} allowed, {} disallowed)".format(
+				canonical, len(all_tools) - len(blocked), len(blocked)))
+		elif action == 'ALLOW':
+			blocked.discard(canonical)
+			allowed.add(canonical)
+			self.handle.Options['TOOL_BLOCKED'] = blocked
+			self.handle.Options['TOOL_ALLOWED'] = allowed
+			self.handle._write_state({'tool_blocked': list(blocked), 'tool_allowed': list(allowed)})
+			self.handle._pending_tool_notice = (
+				"[Auto notice: Tool '{}' is now ALLOWED. "
+				"You may use it in your next response.]"
+				.format(canonical))
+			print("Tool '{}' ALLOWED. ({} allowed, {} disallowed)".format(
+				canonical, len(all_tools) - len(blocked), len(blocked)))
+		else:
+			print("Unknown action '{}'. Use ALLOW or DISALLOW.".format(action))
+		return 2
+
+	def CMD_INSTRUCT_LIST(self, inp=""):
+		print("Available personas:")
+		self.handle.hIM.Available()
+		return 2
+
+	def CMD_INSTRUCT_SWITCH(self, inp=""):
+		parts = inp.strip().split()
+		if len(parts) < 2:
+			print("Usage: !INSTRUCT_SWITCH <persona_name>")
+			return 2
+		name = parts[1]
+		if not self.handle.hIM.Exists(name):
+			print("Persona '{}' not found. Use !INSTRUCT_LIST to see available personas.".format(name))
+			return 2
+		self.handle.Options['INSTRUCT_CLASS'] = name
+		self.handle.hIM.ApplyPersonaModel(name)
+		mode = self.handle.Options.get('MODE', 'build')
+		system_content = self.handle.hPP._get_mode_instructions(mode)
+		if self.handle.hHM.msgs and self.handle.hHM.msgs[-1]['role'] == 'system':
+			self.handle.hHM.msgs[-1]['content'] = system_content
+		else:
+			self.handle.Response('system', {'content': system_content})
+		self.handle.hLG.echo("Switched persona to '{}'".format(name), {'color':True, 'colorValue':'green'})
+		return 2
+
+	def CMD_WORKERS(self, inp=""):
+		if hasattr(self.handle, 'hOD') and self.handle.hOD:
+			print(self.handle.hOD.get_status_str())
+		else:
+			print("Orchestra not available in this mode.")
+		return 2
+
+	def CMD_DISPATCH(self, inp=""):
+		if not hasattr(self.handle, 'hOD') or not self.handle.hOD:
+			print("Orchestra not available in this mode.")
+			return 2
+		self.handle.hOD.enter_dispatch_mode()
+		return 2
+
+	def CMD_PLAN_WORKER(self, inp=""):
+		if not hasattr(self.handle, 'hOD') or not self.handle.hOD:
+			print("Orchestra not available in this mode.")
+			return 2
+		parts = inp.strip().split()
+		if len(parts) < 2:
+			current = self.handle.Options.get('PLAN_WORKER', None)
+			if current:
+				print("Plan worker: {} (use !PLAN_WORKER off to disable)".format(current))
+			else:
+				print("No plan worker set. Director plans locally.")
+			return 2
+		name = parts[1].strip().lower()
+		if name == 'off':
+			self.handle.hOD.set_plan_worker(None)
+			return 2
+		ok = self.handle.hOD.set_plan_worker(name)
+		if not ok:
+			print("Worker '{}' not found. Use !WORKERS to see connected workers.".format(name))
+		return 2
+
+	def CMD_START_BUILD(self, inp=""):
+		from src.PlanManager import PlanBase, Plan
+		parts = inp.strip().split()
+		plan_id = parts[1] if len(parts) > 1 else None
+		if plan_id:
+			self.handle.hLG.echo("Loading plan {} and starting build...".format(plan_id), {'color':True, 'colorValue':'cyan'})
+		# Switch mode to build if currently in plan mode
+		if self.handle.Options.get('MODE') == 'plan':
+			self.handle.Options['MODE'] = 'build'
+			self.handle._write_state({'mode': 'build'})
+			self.handle._replace_system_prompt(self.handle.hPP._get_mode_instructions('build'))
+		self.handle.StartBuild(plan_id)
+		return 0
+
+	def CMD_PLAN(self, inp=""):
+		import re
+		from src.PlanManager import PlanBase, Plan, PlanTask
+		from src.PlanSaver import PlanSaver
+
+		plans_path = self.handle.Options.get('plans_path', 'plans')
+		working_dir = self.handle.Options.get('working_dir')
+
+		# Parse command
+		parts = inp.strip().split()
+		action = parts[1].upper() if len(parts) > 1 else 'PREVIEW'
+		task_id = parts[2] if len(parts) > 2 else None
+
+		if action == 'PREVIEW' or action == '':
+			# Show current plan overview
+			if PlanBase.draft:
+				plan = PlanBase.draft
+				print("\n=== CURRENT PLAN ===")
+				print("Plan ID: {}".format(plan.id))
+				print("Title: {}".format(plan.title))
+				print("Status: {}".format("DRAFT (in progress)" if plan.endTimestamp is None else "COMPLETED"))
+				print("\n--- TASKS ---")
+				pending = completed = blocked = 0
+				for tid, task in plan.tasks.items():
+					status = task.status
+					if status == 'pending': pending += 1
+					elif status == 'completed': completed += 1
+					elif status == 'blocked': blocked += 1
+				print("Pending: {} | Completed: {} | Blocked: {}".format(pending, completed, blocked))
+				if pending > 0:
+					for tid, task in plan.tasks.items():
+						if task.status == 'pending':
+							print("\nNEXT TASK:")
+							print("  ID: {}".format(tid))
+							print("  Instruction: {}".format(task.instruction[:100] + "..." if len(task.instruction) > 100 else task.instruction))
+							break
+			else:
+				print("\nNo active plan.")
+				print("Plans in history: {}".format(len(PlanBase.done)))
+
+		elif action == 'VIEW' or action == 'TASKS':
+			if PlanBase.draft:
+				plan = PlanBase.draft
+				print("\n=== PLAN TASKS ===")
+				for tid, task in plan.tasks.items():
+					status_icon = {'pending': '⏳', 'completed': '✓', 'blocked': '✗'}.get(task.status, '?')
+					print("\n{} Task ID: {}".format(status_icon, tid))
+					print("   Status: {}".format(task.status))
+					print("   Instruction: {}".format(task.instruction[:80] + "..." if len(task.instruction) > 80 else task.instruction))
+					if task.log:
+						print("   Log entries: {}".format(len(task.log)))
+			else:
+				print("\nNo active plan.")
+
+		elif action == 'STATUS':
+			if PlanBase.draft:
+				plan = PlanBase.draft
+				print("\n=== PLAN STATUS ===")
+				print("MODE: {}".format(self.handle.Options.get('MODE', 'build')))
+				print("Plan ID: {}".format(plan.id))
+				print("Tasks: {} total".format(len(plan.tasks)))
+				for tid, task in plan.tasks.items():
+					if task.status == 'pending':
+						print("- [PENDING] {}".format(tid))
+					elif task.status == 'completed':
+						print("- [DONE] {}".format(tid))
+					elif task.status == 'blocked':
+						print("- [BLOCKED] {}".format(tid))
+			else:
+				print("\nNo active plan.")
+
+		elif action == 'LIST':
+			from datetime import datetime
+			G = '\033[1;32m'  # green
+			C = '\033[1;36m'  # cyan
+			Y = '\033[1;33m'  # yellow/orange
+			R = '\033[0m'     # reset
+			all_plans = []
+			# Active draft
+			if PlanBase.draft:
+				p = PlanBase.draft
+				pending = sum(1 for t in p.tasks.values() if t.status == 'pending')
+				completed = sum(1 for t in p.tasks.values() if t.status == 'completed')
+				blocked = sum(1 for t in p.tasks.values() if t.status == 'blocked')
+				in_prog = sum(1 for t in p.tasks.values() if t.status == 'in_progress')
+				total = len(p.tasks)
+				parts = []
+				if completed: parts.append("{} done".format(completed))
+				if in_prog: parts.append("{} active".format(in_prog))
+				if pending: parts.append("{} pending".format(pending))
+				if blocked: parts.append("{} blocked".format(blocked))
+				counts = " ({} tasks: {})".format(total, ", ".join(parts)) if total else ""
+				created = datetime.fromtimestamp(p.startTimestamp).strftime('%Y-%m-%d %H:%M') if p.startTimestamp else "?"
+				all_plans.append(("draft", p.id, p.title or "(untitled)", counts, created, None))
+			# Completed plans from done dict
+			for pid, pdata in PlanBase.done.items():
+				tasks = pdata.get("tasks", {})
+				total = len(tasks)
+				done_count = sum(1 for t in tasks.values() if t.get("status") == "completed")
+				parts = ["{} done".format(done_count)] if done_count else []
+				remaining = total - done_count
+				if remaining: parts.append("{} other".format(remaining))
+				counts = " ({} tasks: {})".format(total, ", ".join(parts)) if total else ""
+				created = datetime.fromtimestamp(pdata.get("startTimestamp", 0)).strftime('%Y-%m-%d %H:%M') if pdata.get("startTimestamp") else "?"
+				completed_at = datetime.fromtimestamp(pdata.get("endTimestamp", 0)).strftime('%Y-%m-%d %H:%M') if pdata.get("endTimestamp") else None
+				all_plans.append(("done", pid, pdata.get("title", "(untitled)"), counts, created, completed_at))
+			# Scan plans/ dir for any not in done dict
+			if os.path.exists(plans_path):
+				for f in os.listdir(plans_path):
+					if f.endswith(".json"):
+						plan_id = f[:-5]
+						if plan_id not in PlanBase.done and (not PlanBase.draft or PlanBase.draft.id != plan_id):
+							try:
+								plan = Plan.load(plan_id, plans_path)
+								if plan:
+									tasks = plan.tasks
+									total = len(tasks)
+									done_count = sum(1 for t in tasks.values() if t.status == "completed")
+									parts = ["{} done".format(done_count)] if done_count else []
+									remaining = total - done_count
+									if remaining: parts.append("{} other".format(remaining))
+									counts = " ({} tasks: {})".format(total, ", ".join(parts)) if total else ""
+									created = datetime.fromtimestamp(plan.startTimestamp).strftime('%Y-%m-%d %H:%M') if plan.startTimestamp else "?"
+									status = "done" if plan.endTimestamp else "archived"
+									all_plans.append((status, plan.id, plan.title or "(untitled)", counts, created, None))
+							except Exception:
+								pass
+			if not all_plans:
+				print("\nNo plans found.")
+			else:
+				print("\n=== ALL PLANS ({}) ===\n".format(len(all_plans)))
+				for status, pid, title, counts, created, completed_at in all_plans:
+					if status == "draft":
+						label = "{}[DRAFT]{}{}".format(C, R, title)
+					elif status == "done":
+						label = "{}[DONE]{}{}".format(G, R, title)
+					else:
+						label = "{}[{}]{}{}".format(Y, status.upper(), R, title)
+					print("  {}{}".format(label, counts))
+					date_str = "    Created: {}".format(created)
+					if completed_at:
+						date_str += " | Completed: {}".format(completed_at)
+					print(date_str)
+					print("    ID: {}".format(pid))
+					print()
+
+		elif action == 'CLEAR':
+			if PlanBase.draft:
+				count = len(PlanBase.draft.tasks)
+				PlanBase.draft.tasks = {}
+				PlanBase.draft.save(plans_path)
+				print("Cleared {} tasks from current plan.".format(count))
+			else:
+				print("No active plan.")
+
+		elif action == 'DELETE' or action == 'RESET':
+			if PlanBase.draft:
+				plan_id = PlanBase.draft.id
+				PlanBase.draft = None
+				PlanBase.Delete(plan_id, plans_path)
+				print("Plan {} deleted.".format(plan_id))
+			else:
+				print("No active plan.")
+
+		elif action == 'DONE':
+			if PlanBase.draft:
+				plan = PlanBase.draft
+				plan_id = plan.id
+				plan.endTimestamp = time.time()
+				PlanBase.done[str(plan_id)] = plan.to_dict()
+				PlanBase.draft = None
+				plan.save(plans_path)
+				PlanSaver.save_plan(plan, working_dir)
+				print("\nPlan '{}' marked as DONE and saved.".format(plan.title or plan_id))
+			else:
+				print("\nNo active plan to mark as done.")
+
+		else:
+			print("\nUsage: !PLAN [PREVIEW|VIEW|TASKS|STATUS|LIST|CLEAR|DELETE|RESET|DONE]")
+			print("  PREVIEW  - Show plan overview (default)")
+			print("  VIEW     - Show all tasks with details")
+			print("  TASKS    - Same as VIEW")
+			print("  STATUS   - Show quick status")
+			print("  LIST     - Show all plans (active + completed)")
+			print("  CLEAR    - Remove all tasks from current plan")
+			print("  DELETE   - Delete current plan entirely")
+			print("  RESET    - Same as DELETE")
+			print("  DONE     - Mark current plan as completed and save (keeps plan)")
+
+		return 2
+
+	def CMD_SITE_LIST(self, inp=""):
+		"""List all sites with available scripts."""
+		from tools._site_script_resolver import list_sites
+		sites = list_sites(self.handle.Options)
+		if not sites:
+			print("No site scripts found. Use <UpdateSiteScript> to create one.")
+			return 2
+		print("Supported websites (%d):" % len(sites))
+		for s in sites:
+			scripts = ", ".join(s['scripts']) if s['scripts'] else "(no scripts yet)"
+			print("  %s: %s" % (s['domain'], scripts))
+		return 2
+
+	def CMD_SITE(self, inp=""):
+		"""Show info for a specific site."""
+		a = inp.strip().split(None, 1)
+		if len(a) < 2:
+			print("Usage: !SITE <domain>")
+			print("Example: !SITE google.com")
+			return 2
+		from tools._site_script_resolver import get_site_info
+		info = get_site_info(a[1], self.handle.Options)
+		if not info:
+			print("No site scripts found for '%s'." % a[1])
+			print("Use <UpdateSiteScript> to create one.")
+			return 2
+		print("Site: %s" % info['domain'])
+		print("Path: %s" % info['path'])
+		if info['info']:
+			print("\n--- info.md ---")
+			print(info['info'])
+		if info['scripts']:
+			print("\nScripts (%d):" % len(info['scripts']))
+			for s in info['scripts']:
+				meta = s.get('meta', {})
+				desc = meta.get('description', '') or ''
+				print("  %s%s" % (s['name'], " — %s" % desc if desc else ""))
+		else:
+			print("\nNo scripts yet. Use !SITE_UPDATE %s <script_name> to add one." % info['domain'])
+		return 2
+
+	def CMD_SITE_UPDATE(self, inp=""):
+		"""Create or update a site script from stdin or interactively."""
+		a = inp.strip().split(None, 2)
+		if len(a) < 3:
+			print("Usage: !SITE_UPDATE <domain> <script_name>")
+			print("Example: !SITE_UPDATE google.com support_search")
+			print("Then paste the JS content and end with Ctrl+D (or Ctrl+Z on Windows).")
+			return 2
+		domain = a[1]
+		script = a[2]
+		from tools._site_script_resolver import write_script
+		print("Paste JS content (end with Ctrl+D on a new line, or Ctrl+C to cancel):")
+		lines = []
+		try:
+			while True:
+				line = input()
+				lines.append(line)
+		except (EOFError, KeyboardInterrupt):
+			pass
+		content = "\n".join(lines)
+		if not content.strip():
+			print("No content provided. Aborting.")
+			return 2
+		try:
+			path = write_script(domain, script, content, self.handle.Options)
+			print("Saved: %s" % path)
+		except Exception as e:
+			print("Error: %s" % e)
+		return 2
+
+	def CMD_OLLAMA_LIST(self, inp=""):
+		"""List available Ollama models, with previously used ones at top."""
+		try:
+			used = self.handle.Options.get('used_models', [])
+			res = ollama.list()
+
+			if used:
+				print("Previously used models:")
+				for m in used:
+					print("  ★ {}".format(m))
+				print("")
+
+			print("All available Ollama models:")
+			all_names = [m.model for m in res.models]
+			for name in all_names:
+				if name not in used:
+					print("  {}".format(name))
+		except Exception as e:
+			print("Error listing models: {}".format(e))
+		return 2
+
+	def CMD_MODEL(self, inp=""):
+		"""Switch AI model mid-session."""
+		a = inp.strip().split()
+		if len(a) < 2:
+			print("Current model: {}".format(self.handle.Options.get('AI_MODEL', '(not set)')))
+			print("Usage: !MODEL <model_name>")
+			print("Tip: use !MODELS to see available models")
+			return 2
+		new_model = a[1].strip()
+		old = self.handle.Options.get('AI_MODEL', '')
+		if new_model == old:
+			print("Already using '{}'".format(old))
+			return 2
+		self.handle.Options['AI_MODEL'] = new_model
+		# Track in used_models
+		models = self.handle.Options.get('used_models', [])
+		if new_model not in models:
+			models.append(new_model)
+			self.handle._save_used_models(models)
+		print("Model changed: '{}' -> '{}'".format(old, new_model))
+		# Apply model registry
+		from src.ModelRegistry import apply as apply_registry
+		reg_changes = apply_registry(self.handle.Options, new_model)
+		if reg_changes:
+			for c in reg_changes:
+				print("  {}".format(c))
+		# Stop any loaded model that differs from the new one (free GPU memory)
+		try:
+			import subprocess
+			r = subprocess.run(['ollama', 'ps'], capture_output=True, text=True, timeout=10)
+			if r.returncode == 0:
+				for line in r.stdout.strip().split('\n')[1:]:
+					parts = line.split()
+					if parts and parts[0] and parts[0] != new_model:
+						subprocess.run(['ollama', 'stop', parts[0]], capture_output=True, timeout=10)
+						print("  Freed memory: stopped {}".format(parts[0]))
+		except Exception:
+			pass
+		return 2
+
+	def _parse_timer_input(self, inp):
+		"""Parse timer command input. Returns (time_str, text)."""
+		lines = inp.strip().split('\n', 1)
+		first_line = lines[0].strip()
+		text = lines[1].strip() if len(lines) > 1 else ''
+		return first_line, text
+
+	def CMD_TIMER_ONCE(self, inp=""):
+		first_line, text = self._parse_timer_input(inp)
+		parts = first_line.split(None, 1)
+		if len(parts) < 2:
+			print("Usage: !TIMER_ONCE <time> [text after newline]")
+			print("  Examples: !TIMER_ONCE 5m")
+			print("            !TIMER_ONCE 30s\nCheck server status")
+			return 2
+		tm = self.handle.hTMR
+		delay = tm.parse_time(parts[1])
+		if delay is None:
+			print("Invalid time format: '{}'".format(parts[1]))
+			print("  Examples: 5m, 30s, 1h, 1h30m, 1.5m")
+			return 2
+		name = tm.set_once(text, delay)
+		print("Timer '{}' set: fires once in {}".format(name, self._format_duration(delay)))
+		if text:
+			print("  Text: {}".format(text[:80] + ('...' if len(text) > 80 else '')))
+		return 2
+
+	def CMD_TIMER_REPEAT(self, inp=""):
+		first_line, text = self._parse_timer_input(inp)
+		parts = first_line.split(None, 2)
+		if len(parts) < 3:
+			print("Usage: !TIMER_REPEAT <count> <interval> [text after newline]")
+			print("  Examples: !TIMER_REPEAT 5 10m")
+			print("            !TIMER_REPEAT 3 30s\nCheck status")
+			return 2
+		tm = self.handle.hTMR
+		try:
+			count = int(parts[1])
+		except ValueError:
+			print("Invalid count: '{}'".format(parts[1]))
+			return 2
+		interval = tm.parse_time(parts[2])
+		if interval is None:
+			print("Invalid interval: '{}'".format(parts[2]))
+			print("  Examples: 5m, 30s, 1h, 1h30m")
+			return 2
+		name = tm.set_repeat(text, interval, count)
+		print("Timer '{}' set: {}x every {}".format(name, count, self._format_duration(interval)))
+		if text:
+			print("  Text: {}".format(text[:80] + ('...' if len(text) > 80 else '')))
+		return 2
+
+	def CMD_TIMER_LOOP(self, inp=""):
+		first_line, text = self._parse_timer_input(inp)
+		parts = first_line.split(None, 1)[1:] if len(first_line.split()) > 1 else []
+		tm = self.handle.hTMR
+		default_interval = 60  # 1 minute default
+
+		if not parts:
+			# !TIMER_LOOP — no args, default interval, forever
+			name = tm.set_loop(text, default_interval)
+			print("Timer '{}' set: loops every 1m (use !TIMER_STOP to cancel)".format(name))
+		elif len(parts) == 1:
+			# !TIMER_LOOP 10m — delay before first fire
+			delay = tm.parse_time(parts[0])
+			if delay is None:
+				print("Invalid time: '{}'".format(parts[0]))
+				return 2
+			name = tm.set_loop(text, default_interval, delay_sec=delay)
+			print("Timer '{}' set: starts in {}, loops every 1m (use !TIMER_STOP to cancel)".format(
+				name, self._format_duration(delay)))
+		else:
+			# !TIMER_LOOP 10m 30m — delay + duration
+			delay = tm.parse_time(parts[0])
+			duration = tm.parse_time(parts[1])
+			if delay is None:
+				print("Invalid start delay: '{}'".format(parts[0]))
+				return 2
+			if duration is None:
+				print("Invalid duration: '{}'".format(parts[1]))
+				return 2
+			name = tm.set_loop(text, default_interval, delay_sec=delay, duration_sec=duration)
+			print("Timer '{}' set: starts in {}, stops after {}, loops every 1m".format(
+				name, self._format_duration(delay), self._format_duration(duration)))
+
+		if text:
+			print("  Text: {}".format(text[:60] + ('...' if len(text) > 60 else '')))
+		return 2
+
+	def CMD_TIMER_STOP(self, inp=""):
+		tm = self.handle.hTMR
+		parts = inp.strip().split()
+		# !TIMER_STOP <index> — stop specific timer
+		if len(parts) > 1:
+			try:
+				index = int(parts[1])
+			except ValueError:
+				print("Usage: !TIMER_STOP [index]")
+				print("  Use !TIMER_LIST to see available indices.")
+				return 2
+			name, ok = tm.stop_by_index(index)
+			if ok:
+				print("Timer '{}' (index {}) stopped.".format(name, index))
+			else:
+				names = tm.list_active()
+				if not names:
+					print("No active timers.")
+				else:
+					print("Invalid index: {}. Use !TIMER_LIST to see available indices.".format(index))
+			return 2
+		# !TIMER_STOP — stop all
+		active = tm.list_active()
+		count = tm.stop_all()
+		if count == 0:
+			print("No active timers.")
+		else:
+			for name in active:
+				print("Timer '{}' stopped.".format(name))
+			print("{} timer(s) cancelled.".format(count))
+		return 2
+
+	def CMD_TIMER_LIST(self, inp=""):
+		tm = self.handle.hTMR
+		details = tm.list_active_details()
+		if not details:
+			print("No active timers.")
+			return 2
+		print("Active timers ({}):".format(len(details)))
+		for i, d in enumerate(details):
+			interval_str = self._format_duration(d['interval']) if d['interval'] else '?'
+			type_str = d['type'].upper()
+			fired = d['fired']
+			total = d.get('total')
+			if type_str == 'ONCE':
+				status = "in {}".format(interval_str)
+			elif type_str == 'REPEAT':
+				status = "every {} (fired {}/{})".format(interval_str, fired, total)
+			else:
+				status = "every {}".format(interval_str)
+			text_preview = d.get('text', '')
+			print("  [{}] {} — {} {}".format(i, d['name'], type_str, status))
+			if text_preview:
+				preview = text_preview[:60] + ('...' if len(text_preview) > 60 else '')
+				print("       Text: {}".format(preview))
+		return 2
+
+	def _format_duration(self, seconds):
+		"""Format seconds into human-readable duration."""
+		if seconds < 60:
+			return "{}s".format(int(seconds))
+		elif seconds < 3600:
+			m = int(seconds // 60)
+			s = int(seconds % 60)
+			return "{}m{}s".format(m, s) if s else "{}m".format(m)
+		else:
+			h = int(seconds // 3600)
+			m = int((seconds % 3600) // 60)
+			return "{}h{}m".format(h, m) if m else "{}h".format(h)

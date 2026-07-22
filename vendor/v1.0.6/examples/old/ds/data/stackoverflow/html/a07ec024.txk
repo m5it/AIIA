@@ -1,0 +1,1972 @@
+
+        
+
+            <div id="question-header" class="d-flex sm:fd-column">
+                        <h1 itemprop="name" class="fs-headline1 ow-anywhere mb8 flex--item fl1"><a href="/questions/79640301/how-to-manage-perform-n-m-checks-instead-of-n-m-for-constexpr-values" class="question-hyperlink">How to manage perform n + m checks instead of n * m for constexpr values?</a></h1>
+
+                <div class="ml12 aside-cta flex--item sm:ml0 sm:mb12 sm:order-first d-flex jc-end">
+
+                        <div class="ml12 aside-cta flex--item print:d-none">
+                                <a href="/questions/ask" class="ws-nowrap s-btn s-btn__filled">
+        Ask Question
+    </a>
+
+                        </div>
+                </div>
+            </div>
+            <div class="d-flex fw-wrap pb8 mb16 bb bc-black-200">
+                    <div class="flex--item ws-nowrap mr16 mb8" title="2025-05-27 10:37:41Z">
+                        <span class="fc-black-400 mr2">Asked</span>
+                        <time itemprop="dateCreated" datetime="2025-05-27 10:37:41Z">yesterday</time>
+                    </div>
+                    <div class="flex--item ws-nowrap mr16 mb8">
+                        <span class="fc-black-400 mr2">Modified</span>
+                        <a href="?lastactivity" class="s-link s-link__inherit" title="2025-05-28 12:00:19Z">today</a>
+                    </div>
+                    <div class="flex--item ws-nowrap mb8" title="Viewed 884 times">
+                        <span class="fc-black-400 mr2">Viewed</span>
+                        884 times
+                    </div>
+            </div>
+
+
+
+            <div id="mainbar" role="main" aria-label="question and answers">
+                
+<div class="question js-question" data-questionid="79640301" data-position-on-page="0" data-score="11" data-author-reputation="2310" id="question">
+    <style>
+    </style>
+<div class="js-zone-container zone-container-main">
+    <div id="dfp-tlb" class="everyonelovesstackoverflow everyoneloves__top-leaderboard everyoneloves__leaderboard" style="min-height: auto; height: auto; display: none;"/>
+		<div class="js-report-ad-button-container " style="width: 728px"/>
+</div>
+
+    <div class="post-layout ">
+        <div class="votecell post-layout--left">
+            
+<div class="js-voting-container d-flex jc-center fd-column ai-center gs4 fc-black-300" data-post-id="79640301" data-referrer="None">
+        <button class="js-vote-up-btn flex--item s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="upvote-btn-79640301" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-pressed="false" aria-label="Up vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" aria-describedby="--stacks-s-tooltip-47sj3peu">
+            <svg aria-hidden="true" class="svg-icon iconArrowUp" width="18" height="18" viewbox="0 0 18 18"><path d="M1 12h16L9 4z"/></svg>
+        </button><div id="--stacks-s-tooltip-47sj3peu" class="s-popover s-popover__tooltip" role="tooltip">This question shows research effort; it is useful and clear<div class="s-popover--arrow"/></div>
+        <input type="hidden" id="voteUpHash" value="70:3:31e,16:39184993506f11ec,10:1748471378,16:e1275ea56f699848,8:79640301,093d3b2c16ffd03b0265f9fb9f1ef66228d574acc21bae4380638f3a52010f25"/>
+        <div class="js-vote-count flex--item d-flex fd-column ai-center fc-theme-body-font fw-bold fs-subheading py4" itemprop="upvoteCount" data-value="11">
+11        </div>
+        <button class="js-vote-down-btn js-vote-down-question flex--item mb8 s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="downvote-btn-79640301" title="This question does not show any research effort; it is unclear or not useful" aria-pressed="false" aria-label="Down vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200">
+            <svg aria-hidden="true" class="svg-icon iconArrowDown" width="18" height="18" viewbox="0 0 18 18"><path d="M1 6h16l-8 8z"/></svg>
+        </button>
+        <input type="hidden" id="voteDownHash" value="70:3:31e,16:6ba58754c06f47b5,10:1748471378,16:6f4ba3123d70f5b9,8:79640301,97c458fd5ffa0bc73f1bcddb5cb1b9933f5a46c47613f82c3b4d2736a39dde5b"/>
+
+
+        
+<button class="js-saves-btn s-btn s-btn__unset c-pointer py4" type="button" id="saves-btn-79640301" data-controller="s-tooltip" data-s-tooltip-placement="right" data-s-popover-placement="" data-is-saved="false" aria-label="Save" data-post-id="79640301" data-post-type-id="1" data-user-privilege-for-post-click="0" aria-controls="" data-s-popover-auto-show="false" aria-describedby="--stacks-s-tooltip-4hfnrusc">
+    <svg aria-hidden="true" class="fc-theme-primary-400 js-saves-btn-selected d-none svg-icon iconBookmark" width="18" height="18" viewbox="0 0 18 18"><path d="M3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+    <svg aria-hidden="true" class="js-saves-btn-unselected svg-icon iconBookmarkAlt" width="18" height="18" viewbox="0 0 18 18"><path d="m9 10.6 4 2.66V3H5v10.26zM3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+</button><div id="--stacks-s-tooltip-4hfnrusc" class="s-popover s-popover__tooltip" role="tooltip">Save this question.<div class="s-popover--arrow"/></div>
+
+
+
+
+
+
+
+
+    
+    <a class="js-post-issue flex--item s-btn s-btn__unset c-pointer py6 mx-auto" href="/posts/79640301/timeline" data-shortcut="T" data-ks-title="timeline" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-label="Timeline" aria-describedby="--stacks-s-tooltip-1igvtq8p"><svg aria-hidden="true" class="mln2 mr0 svg-icon iconHistory" width="19" height="18" viewbox="0 0 19 18"><path d="M3 9a8 8 0 1 1 3.73 6.77L8.2 14.3A6 6 0 1 0 5 9l3.01-.01-4 4-4-4zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10z"/></svg></a><div id="--stacks-s-tooltip-1igvtq8p" class="s-popover s-popover__tooltip" role="tooltip">Show activity on this post.<div class="s-popover--arrow"/></div>
+
+</div>
+
+        </div>
+
+        
+
+<div class="postcell post-layout--right">
+    
+    <div class="s-prose js-post-body" itemprop="text">
+                
+<p>I'm building a low-latency system, in which I have functions with more than one enum value as template parameters.</p>
+<p>Sometimes I need to resolve the enum values at runtime, but I don't want to check for them everywhere; instead, just check once, then pass it as a template argument for the rest of the functions. My actual example is distracting, so here is a MRE:</p>
+<pre class="lang-cpp s-code-block"><code data-highlighted="yes" class="hljs language-cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span>
+
+<span class="hljs-keyword">enum class</span> <span class="hljs-title class_">Color</span> {
+    Red,
+    Green,
+    Blue
+};
+
+<span class="hljs-keyword">enum class</span> <span class="hljs-title class_">Type</span> {
+    Car,
+    Bus,
+    Truck
+};
+
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">Vehicle</span> {
+    Color color;
+    Type type;
+};
+
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> Func&gt;
+<span class="hljs-function"><span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">auto</span> <span class="hljs-title">perform</span><span class="hljs-params">(Vehicle&amp; vehicle, Func&amp;&amp; func)</span> </span>{
+    <span class="hljs-comment">// Ideally, we'd want something like this:</span>
+    <span class="hljs-comment">// constexpr auto color = [&amp;] {</span>
+    <span class="hljs-comment">//     if (vehicle.color == Color::Red) return Color::Red;</span>
+    <span class="hljs-comment">//     if (vehicle.color == Color::Green) return Color::Green;</span>
+    <span class="hljs-comment">//     return Color::Blue;</span>
+    <span class="hljs-comment">// }();</span>
+    <span class="hljs-comment">//</span>
+    <span class="hljs-comment">// constexpr auto type = [&amp;] {</span>
+    <span class="hljs-comment">//     if (vehicle.type == Type::Car) return Type::Car;</span>
+    <span class="hljs-comment">//     if (vehicle.type == Type::Bus) return Type::Bus;</span>
+    <span class="hljs-comment">//     return Type::Truck;</span>
+    <span class="hljs-comment">// }();</span>
+    <span class="hljs-comment">//</span>
+    <span class="hljs-comment">// return func.template operator()&lt;color, type&gt;();</span>
+
+    <span class="hljs-keyword">if</span> (vehicle.color == Color::Red) {
+        <span class="hljs-keyword">if</span> (vehicle.type == Type::Car) {
+            <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;Color::Red, Type::Car&gt;();
+        } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (vehicle.type == Type::Bus) {
+            <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;Color::Red, Type::Bus&gt;();
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;Color::Red, Type::Truck&gt;();
+        }
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (vehicle.color == Color::Green) {
+        <span class="hljs-keyword">if</span> (vehicle.type == Type::Car) {
+            <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;Color::Green, Type::Car&gt;();
+        } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (vehicle.type == Type::Bus) {
+            <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;Color::Green, Type::Bus&gt;();
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;Color::Green, Type::Truck&gt;();
+        }
+    }
+
+    <span class="hljs-keyword">if</span> (vehicle.type == Type::Car) {
+        <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;Color::Blue, Type::Car&gt;();
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (vehicle.type == Type::Bus) {
+        <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;Color::Blue, Type::Bus&gt;();
+    }
+
+    <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;Color::Blue, Type::Truck&gt;();
+}
+
+<span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+
+    Vehicle v { Color::Red, Type::Car };
+
+    <span class="hljs-keyword">auto</span> func = [&amp;] &lt;Color color, Type type&gt; {
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">constexpr</span> (color == Color::Red) {
+            std::cout &lt;&lt; <span class="hljs-string">"Red "</span>;
+        } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">constexpr</span> (color == Color::Green) {
+            std::cout &lt;&lt; <span class="hljs-string">"Green "</span>;
+        } <span class="hljs-keyword">else</span> {
+            std::cout &lt;&lt; <span class="hljs-string">"Blue "</span>;
+        }
+
+        <span class="hljs-function"><span class="hljs-keyword">if</span> <span class="hljs-title">constexpr</span> <span class="hljs-params">(type == Type::Car)</span> </span>{
+            std::cout &lt;&lt; <span class="hljs-string">"Car"</span>;
+        } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">constexpr</span> (type == Type::Bus) {
+            std::cout &lt;&lt; <span class="hljs-string">"Bus"</span>;
+        } <span class="hljs-keyword">else</span> {
+            std::cout &lt;&lt; <span class="hljs-string">"Truck"</span>;
+        }
+    };
+
+    <span class="hljs-built_in">perform</span>(v, func);
+}
+</code></pre>
+<p>How to write the <code>perform</code> function in a way similar to the commented code?</p>
+    </div>
+
+        <div class="mt24 mb12">
+            <div class="post-taglist d-flex gs4 gsy fd-column">
+                <div class="d-flex ps-relative fw-wrap">
+                    
+                    <ul class="ml0 list-ls-none js-post-tag-list-wrapper d-inline"><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/c%2b%2b" class="s-tag post-tag js-gps-track" title="show questions tagged 'c++'" aria-label="show questions tagged 'c++'" rel="tag" aria-labelledby="tag-c++-tooltip-container" data-tag-menu-origin="Unknown">c++</a></li><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/templates" class="s-tag post-tag js-gps-track" title="show questions tagged 'templates'" aria-label="show questions tagged 'templates'" rel="tag" aria-labelledby="tag-templates-tooltip-container" data-tag-menu-origin="Unknown">templates</a></li><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/lambda" class="s-tag post-tag js-gps-track" title="show questions tagged 'lambda'" aria-label="show questions tagged 'lambda'" rel="tag" aria-labelledby="tag-lambda-tooltip-container" data-tag-menu-origin="Unknown">lambda</a></li><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/constexpr" class="s-tag post-tag js-gps-track" title="show questions tagged 'constexpr'" aria-label="show questions tagged 'constexpr'" rel="tag" aria-labelledby="tag-constexpr-tooltip-container" data-tag-menu-origin="Unknown">constexpr</a></li></ul>
+                </div>
+            </div>
+        </div>
+
+    <div class="mb0 ">
+        <div class="mt16 d-flex gs8 gsy fw-wrap jc-end ai-start pt4 mb16">
+            <div class="flex--item mr16 fl1 w96">
+                
+
+
+<div class="js-post-menu pt2" data-post-id="79640301" data-post-type-id="1">
+
+    <div class="d-flex gs8 s-anchors s-anchors__muted fw-wrap">
+
+        <div class="flex--item">
+            <a href="/q/79640301" rel="nofollow" itemprop="url" class="js-share-link js-gps-track" title="Short permalink to this question" data-gps-track="post.click({ item: 2, priv: 0, post_type: 1 })" data-controller="se-share-sheet s-popover" data-se-share-sheet-title="Share a link to this question" data-se-share-sheet-subtitle="" data-se-share-sheet-post-type="question" data-se-share-sheet-social="facebook twitter devto" data-se-share-sheet-location="1" data-se-share-sheet-license-url="https%3a%2f%2fcreativecommons.org%2flicenses%2fby-sa%2f4.0%2f" data-se-share-sheet-license-name="CC BY-SA 4.0" data-s-popover-placement="bottom-start" aria-controls="se-share-sheet-0" data-action=" s-popover#toggle se-share-sheet#preventNavigation s-popover:show-&gt;se-share-sheet#willShow s-popover:shown-&gt;se-share-sheet#didShow" aria-expanded="false">Share</a><div class="s-popover z-dropdown s-anchors s-anchors__default" style="width: unset; max-width: 28em;" id="se-share-sheet-0"><div class="s-popover--arrow"/><div><label for="share-sheet-input-se-share-sheet-0"><span class="js-title fw-bold">Share a link to this question</span> <span class="js-subtitle"/></label></div><div class="my8"><input type="text" id="share-sheet-input-se-share-sheet-0" class="js-input s-input wmn3 sm:wmn-initial bc-black-300 bg-white fc-black-600" readonly=""/></div><div class="d-flex jc-space-between ai-center mbn4"><button class="js-copy-link-btn s-btn s-btn__link js-gps-track" data-gps-track="">Copy link</button><a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license" class="js-license s-block-link w-auto" target="_blank" title="The current license for this post: CC BY-SA 4.0">CC BY-SA 4.0</a><div class="js-social-container d-none"/></div></div>
+        </div>
+
+
+                    <div class="flex--item">
+                        <a href="/posts/79640301/edit" class="js-suggest-edit-post js-gps-track" data-gps-track="post.click({ item: 6, priv: 0, post_type: 1 })" title="">Improve this question</a>
+                    </div>
+
+                <div class="flex--item">
+                    <button type="button" id="btnFollowPost-79640301" class="s-btn s-btn__link js-follow-post js-follow-question js-gps-track" data-gps-track="post.click({ item: 14, priv: 0, post_type: 1 })" data-controller="s-tooltip " data-s-tooltip-placement="bottom" data-s-popover-placement="bottom" aria-controls="" aria-describedby="--stacks-s-tooltip-0o75dvya">
+                        Follow
+                        <input type="hidden" id="voteFollowHash" value="70:3:31e,16:6be23e7d38d2d7d3,10:1748471378,16:ef7a2d500b07ed5a,8:79640301,33e92ee206f91eed9bb47218ea1993c1d2205b72ba6a7f3a5f8d7af2b6bbd6dd"/>
+                    </button><div id="--stacks-s-tooltip-0o75dvya" class="s-popover s-popover__tooltip" role="tooltip">Follow this question to receive notifications<div class="s-popover--arrow"/></div>
+                </div>
+
+
+
+
+
+
+    </div>
+    <div class="js-menu-popup-container"/>
+</div>
+            </div>
+
+            <div class="post-signature owner flex--item">
+                <div class="user-info ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            asked <span title="2025-05-27 10:37:41Z" class="relativetime">yesterday</span>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/9140652/osama-ahmad"><div class="gravatar-wrapper-32"><img src="https://i.sstatic.net/Wx7ccmkw.jpg?s=64" alt="Osama Ahmad's user avatar" width="32" height="32" class="bar-sm"/></div></a>
+    </div>
+    <div class="user-details" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <a href="/users/9140652/osama-ahmad" itemprop="url" dir="auto">Osama Ahmad</a><span class="d-none" itemprop="name">Osama Ahmad</span>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score " dir="ltr">2,310</span><span title="12 silver badges" aria-hidden="true"><span class="badge2"/><span class="badgecount">12</span></span><span class="v-visible-sr">12 silver badges</span><span title="36 bronze badges" aria-hidden="true"><span class="badge3"/><span class="badgecount">36</span></span><span class="v-visible-sr">36 bronze badges</span>
+        </div>
+    </div>
+</div>
+
+
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+
+
+
+            
+
+<span class="d-none" itemprop="commentCount"/> 
+    <div class="post-layout--right js-post-comments-component">
+        <div id="comments-79640301" class="comments js-comments-container bt bc-black-200 mt12  dno" data-post-id="79640301" data-min-length="15">
+            <ul class="comments-list js-comments-list" data-remaining-comments-count="0" data-canpost="false" data-cansee="true" data-comments-unavailable="false" data-addlink-disabled="true">
+
+            </ul>
+	    </div>
+
+        <div id="comments-link-79640301" data-rep="40" data-anon="true">
+                        <a class="js-add-link comments-link disabled-link" title="Use comments to ask for more information or suggest improvements. Avoid answering questions in comments." href="#" role="button">Add a comment</a>
+                    <span class="js-link-separator dno"> | </span>
+            <a class="js-show-link comments-link dno" title="Expand to show all comments on this post" href="#" onclick="" role="button"/>
+        </div>         
+    </div>
+
+<script defer="" src="https://cdn.sstatic.net/Js/webpack-chunks/svelte.en.js?v=0e13e4096c72"/><script defer="" src="https://cdn.sstatic.net/Js/webpack-chunks/stacks-svelte.en.js?v=03b2ad419921"/><script defer="" src="https://cdn.sstatic.net/Js/webpack-chunks/1130.en.js?v=70fcdc9ce0b0"/><script defer="" src="https://cdn.sstatic.net/Js/islands/comment-popover.en.js?v=9ad112c440af"/>    </div>
+
+</div>
+
+
+<div class="js-zone-container zone-container-responsive">
+    <div id="dfp-isb" class="everyonelovesstackoverflow everyoneloves__inline-sidebar mx-auto" style="min-height: auto; height: auto; display: none;"/>
+		<div class="js-report-ad-button-container mx-auto" style="width: 300px"/>
+</div>
+
+                
+                <div id="answers">
+                    <a name="tab-top"/>
+                    <div id="answers-header">
+                        <div class="answers-subheader d-flex ai-center mb8">
+                            <div class="flex--item fl1">
+                                <h2 class="mb0" data-answercount="4">
+                                        4 Answers
+                                    <span style="display:none;" itemprop="answerCount">4</span>
+                                </h2>
+                            </div>
+                            <div class="flex--item">
+                                
+
+<div class="d-flex g4 gsx ai-center sm:fd-column sm:ai-start">
+    <div class="d-flex fd-column ai-end sm:ai-start">
+        <label class="flex--item fs-caption" for="answer-sort-dropdown-select-menu">
+            Sorted by:
+        </label>
+        <a class="js-sort-preference-change s-link flex--item fs-fine d-none" data-value="ScoreDesc" href="/questions/79640301/how-to-manage-perform-n-m-checks-instead-of-n-m-for-constexpr-values?answertab=scoredesc#tab-top">
+            Reset to default
+        </a>
+    </div>
+    <div class="flex--item s-select">
+        <select id="answer-sort-dropdown-select-menu">
+                    <option value="scoredesc" selected="selected">
+                        Highest score (default)
+                    </option>
+                    <option value="trending">
+                        Trending (recent votes count more)
+                    </option>
+                    <option value="modifieddesc">
+                        Date modified (newest first)
+                    </option>
+                    <option value="createdasc">
+                        Date created (oldest first)
+                    </option>
+        </select>
+    </div>
+</div>
+
+
+                            </div>
+                        </div>
+                            
+                    </div>
+
+
+                                        
+<a name="79640328"/>
+<div id="answer-79640328" class="answer js-answer" data-answerid="79640328" data-parentid="79640301" data-score="6" data-position-on-page="1" data-highest-scored="1" data-question-has-accepted-highest-score="0" data-author-reputation="2310" itemprop="acceptedAnswer" itemscope="" itemtype="https://schema.org/Answer">
+        <div class="post-layout">
+            <div class="votecell post-layout--left">
+                
+<div class="js-voting-container d-flex jc-center fd-column ai-center gs4 fc-black-300" data-post-id="79640328" data-referrer="None">
+        <button class="js-vote-up-btn flex--item s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="upvote-btn-79640328" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-pressed="false" aria-label="Up vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" aria-describedby="--stacks-s-tooltip-mu66xd73">
+            <svg aria-hidden="true" class="svg-icon iconArrowUp" width="18" height="18" viewbox="0 0 18 18"><path d="M1 12h16L9 4z"/></svg>
+        </button><div id="--stacks-s-tooltip-mu66xd73" class="s-popover s-popover__tooltip" role="tooltip">This answer is useful<div class="s-popover--arrow"/></div>
+        <input type="hidden" id="voteUpHash" value="70:3:31e,16:797c96e6b62f2093,10:1748471378,16:c6951bd47944e9a3,8:79640328,74536e88187da4562f21be414e0e34ddcf182c8abdb3e94b7d3e32a9410e8149"/>
+        <div class="js-vote-count flex--item d-flex fd-column ai-center fc-theme-body-font fw-bold fs-subheading py4" itemprop="upvoteCount" data-value="6">
+6        </div>
+        <button class="js-vote-down-btn flex--item mb8 s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="downvote-btn-79640328" title="This answer is not useful" aria-pressed="false" aria-label="Down vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200">
+            <svg aria-hidden="true" class="svg-icon iconArrowDown" width="18" height="18" viewbox="0 0 18 18"><path d="M1 6h16l-8 8z"/></svg>
+        </button>
+        <input type="hidden" id="voteDownHash" value="70:3:31e,16:a29a3ed272b6c0fc,10:1748471378,16:ca2ac63f51079e26,8:79640328,3971e3b7cd9f7b3be2cc7ad30604b3e7e7029767bc2b698357a13f8a35c3975a"/>
+
+
+        
+<button class="js-saves-btn s-btn s-btn__unset c-pointer py4" type="button" id="saves-btn-79640328" data-controller="s-tooltip" data-s-tooltip-placement="right" data-s-popover-placement="" data-is-saved="false" aria-label="Save" data-post-id="79640328" data-post-type-id="2" data-user-privilege-for-post-click="0" aria-controls="" data-s-popover-auto-show="false" aria-describedby="--stacks-s-tooltip-hgmmusdj">
+    <svg aria-hidden="true" class="fc-theme-primary-400 js-saves-btn-selected d-none svg-icon iconBookmark" width="18" height="18" viewbox="0 0 18 18"><path d="M3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+    <svg aria-hidden="true" class="js-saves-btn-unselected svg-icon iconBookmarkAlt" width="18" height="18" viewbox="0 0 18 18"><path d="m9 10.6 4 2.66V3H5v10.26zM3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+</button><div id="--stacks-s-tooltip-hgmmusdj" class="s-popover s-popover__tooltip" role="tooltip">Save this answer.<div class="s-popover--arrow"/></div>
+
+
+
+
+
+
+
+            <div class="js-accepted-answer-indicator flex--item fc-green-400 py6 mtn8 d-none" data-s-tooltip-placement="right" title="Loading when this answer was accepted…" tabindex="0" role="note" aria-label="Accepted">
+                <div class="ta-center">
+                    <svg aria-hidden="true" class="svg-icon iconCheckmarkLg" width="36" height="36" viewbox="0 0 36 36"><path d="m6 14 8 8L30 6v8L14 30l-8-8z"/></svg>
+                </div>
+            </div>
+
+    
+    <a class="js-post-issue flex--item s-btn s-btn__unset c-pointer py6 mx-auto" href="/posts/79640328/timeline" data-shortcut="T" data-ks-title="timeline" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-label="Timeline" aria-describedby="--stacks-s-tooltip-risy3yg2"><svg aria-hidden="true" class="mln2 mr0 svg-icon iconHistory" width="19" height="18" viewbox="0 0 19 18"><path d="M3 9a8 8 0 1 1 3.73 6.77L8.2 14.3A6 6 0 1 0 5 9l3.01-.01-4 4-4-4zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10z"/></svg></a><div id="--stacks-s-tooltip-risy3yg2" class="s-popover s-popover__tooltip" role="tooltip">Show activity on this post.<div class="s-popover--arrow"/></div>
+
+</div>
+
+            </div>
+
+            
+
+<div class="answercell post-layout--right">
+    
+    <div class="s-prose js-post-body" itemprop="text">
+<p>We can chain calls with lambdas:</p>
+<pre class="lang-cpp s-code-block"><code data-highlighted="yes" class="hljs language-cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> Func&gt;
+<span class="hljs-function"><span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">auto</span> <span class="hljs-title">perform</span><span class="hljs-params">(Vehicle&amp; vehicle, Func&amp;&amp; func)</span> </span>{
+    <span class="hljs-keyword">auto</span> f = [&amp;] &lt;Color color&gt; () {
+        <span class="hljs-keyword">if</span> (vehicle.type == Type::Car)
+            <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;color, Type::Car&gt;();
+        <span class="hljs-keyword">if</span> (vehicle.type == Type::Bus)
+            <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;color, Type::Bus&gt;();
+        <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;color, Type::Truck&gt;();
+    };
+
+
+    <span class="hljs-keyword">if</span> (vehicle.color == Color::Red) <span class="hljs-keyword">return</span> f.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;Color::Red&gt;();
+
+    <span class="hljs-keyword">if</span> (vehicle.color == Color::Green) <span class="hljs-keyword">return</span> f.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;Color::Green&gt;();
+
+    <span class="hljs-keyword">return</span> f.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;Color::Blue&gt;();
+}
+</code></pre>
+    </div>
+    <div class="mt24">
+        <div class="d-flex fw-wrap ai-start jc-end gs8 gsy">
+            <time itemprop="dateCreated" datetime="2025-05-27 10:54:32Z"/>
+            <div class="flex--item mr16" style="flex: 1 1 100px;">
+                
+
+
+<div class="js-post-menu pt2" data-post-id="79640328" data-post-type-id="2">
+
+    <div class="d-flex gs8 s-anchors s-anchors__muted fw-wrap">
+
+        <div class="flex--item">
+            <a href="/a/79640328" rel="nofollow" itemprop="url" class="js-share-link js-gps-track" title="Short permalink to this answer" data-gps-track="post.click({ item: 2, priv: 0, post_type: 2 })" data-controller="se-share-sheet s-popover" data-se-share-sheet-title="Share a link to this answer" data-se-share-sheet-subtitle="" data-se-share-sheet-post-type="answer" data-se-share-sheet-social="facebook twitter devto" data-se-share-sheet-location="2" data-se-share-sheet-license-url="https%3a%2f%2fcreativecommons.org%2flicenses%2fby-sa%2f4.0%2f" data-se-share-sheet-license-name="CC BY-SA 4.0" data-s-popover-placement="bottom-start" aria-controls="se-share-sheet-1" data-action=" s-popover#toggle se-share-sheet#preventNavigation s-popover:show-&gt;se-share-sheet#willShow s-popover:shown-&gt;se-share-sheet#didShow" aria-expanded="false">Share</a><div class="s-popover z-dropdown s-anchors s-anchors__default" style="width: unset; max-width: 28em;" id="se-share-sheet-1"><div class="s-popover--arrow"/><div><label for="share-sheet-input-se-share-sheet-1"><span class="js-title fw-bold">Share a link to this answer</span> <span class="js-subtitle"/></label></div><div class="my8"><input type="text" id="share-sheet-input-se-share-sheet-1" class="js-input s-input wmn3 sm:wmn-initial bc-black-300 bg-white fc-black-600" readonly=""/></div><div class="d-flex jc-space-between ai-center mbn4"><button class="js-copy-link-btn s-btn s-btn__link js-gps-track" data-gps-track="">Copy link</button><a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license" class="js-license s-block-link w-auto" target="_blank" title="The current license for this post: CC BY-SA 4.0">CC BY-SA 4.0</a><div class="js-social-container d-none"/></div></div>
+        </div>
+
+
+                    <div class="flex--item">
+                        <a href="/posts/79640328/edit" class="js-suggest-edit-post js-gps-track" data-gps-track="post.click({ item: 6, priv: 0, post_type: 2 })" title="">Improve this answer</a>
+                    </div>
+
+                <div class="flex--item">
+                    <button type="button" id="btnFollowPost-79640328" class="s-btn s-btn__link js-follow-post js-follow-answer js-gps-track" data-gps-track="post.click({ item: 14, priv: 0, post_type: 2 })" data-controller="s-tooltip " data-s-tooltip-placement="bottom" data-s-popover-placement="bottom" aria-controls="" aria-describedby="--stacks-s-tooltip-w4m5xh17">
+                        Follow
+                        <input type="hidden" id="voteFollowHash" value="70:3:31e,16:2b51c45e23e4984e,10:1748471378,16:ac3610da54244a60,8:79640328,0b7716e5b8c00631bec49be8cecfb3396f0cff1e5241ae2fcbddbb2b2e859337"/>
+                    </button><div id="--stacks-s-tooltip-w4m5xh17" class="s-popover s-popover__tooltip" role="tooltip">Follow this answer to receive notifications<div class="s-popover--arrow"/></div>
+                </div>
+
+
+
+
+
+
+    </div>
+    <div class="js-menu-popup-container"/>
+</div>
+            </div>
+            <div class="post-signature flex--item fl0">
+<div class="user-info ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            <a href="/posts/79640328/revisions" title="show all edits to this post" class="js-gps-track" data-gps-track="post.click({ item: 4, priv: 0, post_type: 2 })">edited <span title="2025-05-27 11:17:21Z" class="relativetime">yesterday</span></a>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        
+        <div class="-flair">
+            
+        </div>
+    </div>
+</div>
+            </div>
+
+
+            <div class="post-signature owner flex--item fl0">
+                <div class="user-info ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            answered <span title="2025-05-27 10:54:32Z" class="relativetime">yesterday</span>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/9140652/osama-ahmad"><div class="gravatar-wrapper-32"><img src="https://i.sstatic.net/Wx7ccmkw.jpg?s=64" alt="Osama Ahmad's user avatar" width="32" height="32" class="bar-sm"/></div></a>
+    </div>
+    <div class="user-details" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <a href="/users/9140652/osama-ahmad" itemprop="url" dir="auto">Osama Ahmad</a><span class="d-none" itemprop="name">Osama Ahmad</span>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score " dir="ltr">2,310</span><span title="12 silver badges" aria-hidden="true"><span class="badge2"/><span class="badgecount">12</span></span><span class="v-visible-sr">12 silver badges</span><span title="36 bronze badges" aria-hidden="true"><span class="badge3"/><span class="badgecount">36</span></span><span class="v-visible-sr">36 bronze badges</span>
+        </div>
+    </div>
+</div>
+
+
+            </div>
+        </div>
+        
+    
+    </div>
+    
+</div>
+
+
+
+
+                
+
+<span class="d-none" itemprop="commentCount"/> 
+    <div class="post-layout--right js-post-comments-component">
+        <div id="comments-79640328" class="comments js-comments-container bt bc-black-200 mt12  dno" data-post-id="79640328" data-min-length="15">
+            <ul class="comments-list js-comments-list" data-remaining-comments-count="0" data-canpost="false" data-cansee="true" data-comments-unavailable="false" data-addlink-disabled="true">
+
+            </ul>
+	    </div>
+
+        <div id="comments-link-79640328" data-rep="40" data-anon="true">
+                        <a class="js-add-link comments-link disabled-link" title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." href="#" role="button">Add a comment</a>
+                    <span class="js-link-separator dno"> | </span>
+            <a class="js-show-link comments-link dno" title="Expand to show all comments on this post" href="#" onclick="" role="button"/>
+        </div>         
+    </div>
+
+        </div>
+</div>
+<div class="js-zone-container zone-container-main">
+    <div id="dfp-mlb" class="everyonelovesstackoverflow everyoneloves__mid-leaderboard everyoneloves__leaderboard" style="min-height: auto; height: auto; display: none;"/>
+		<div class="js-report-ad-button-container " style="width: 728px"/>
+</div>
+                                        
+<a name="79640480"/>
+<div id="answer-79640480" class="answer js-answer" data-answerid="79640480" data-parentid="79640301" data-score="5" data-position-on-page="2" data-highest-scored="0" data-question-has-accepted-highest-score="0" data-author-reputation="221873" itemprop="suggestedAnswer" itemscope="" itemtype="https://schema.org/Answer">
+        <div class="post-layout">
+            <div class="votecell post-layout--left">
+                
+<div class="js-voting-container d-flex jc-center fd-column ai-center gs4 fc-black-300" data-post-id="79640480" data-referrer="None">
+        <button class="js-vote-up-btn flex--item s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="upvote-btn-79640480" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-pressed="false" aria-label="Up vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" aria-describedby="--stacks-s-tooltip-mmswxcud">
+            <svg aria-hidden="true" class="svg-icon iconArrowUp" width="18" height="18" viewbox="0 0 18 18"><path d="M1 12h16L9 4z"/></svg>
+        </button><div id="--stacks-s-tooltip-mmswxcud" class="s-popover s-popover__tooltip" role="tooltip">This answer is useful<div class="s-popover--arrow"/></div>
+        <input type="hidden" id="voteUpHash" value="70:3:31e,16:bbfb4935f99283c2,10:1748471378,16:b065c20e662cbb75,8:79640480,5e7c8e9d91049fb70b175a7e285c876dbecaf42cf470d19aff7f124e7496792b"/>
+        <div class="js-vote-count flex--item d-flex fd-column ai-center fc-theme-body-font fw-bold fs-subheading py4" itemprop="upvoteCount" data-value="5">
+5        </div>
+        <button class="js-vote-down-btn flex--item mb8 s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="downvote-btn-79640480" title="This answer is not useful" aria-pressed="false" aria-label="Down vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200">
+            <svg aria-hidden="true" class="svg-icon iconArrowDown" width="18" height="18" viewbox="0 0 18 18"><path d="M1 6h16l-8 8z"/></svg>
+        </button>
+        <input type="hidden" id="voteDownHash" value="70:3:31e,16:9e0fb888a88e4d56,10:1748471378,16:f5c751835cbf8eef,8:79640480,c36c66410dcba511d47923274be9e7cc7a341fb63368a3e028d1937ded9708d8"/>
+
+
+        
+<button class="js-saves-btn s-btn s-btn__unset c-pointer py4" type="button" id="saves-btn-79640480" data-controller="s-tooltip" data-s-tooltip-placement="right" data-s-popover-placement="" data-is-saved="false" aria-label="Save" data-post-id="79640480" data-post-type-id="2" data-user-privilege-for-post-click="0" aria-controls="" data-s-popover-auto-show="false" aria-describedby="--stacks-s-tooltip-pd9zya1x">
+    <svg aria-hidden="true" class="fc-theme-primary-400 js-saves-btn-selected d-none svg-icon iconBookmark" width="18" height="18" viewbox="0 0 18 18"><path d="M3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+    <svg aria-hidden="true" class="js-saves-btn-unselected svg-icon iconBookmarkAlt" width="18" height="18" viewbox="0 0 18 18"><path d="m9 10.6 4 2.66V3H5v10.26zM3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+</button><div id="--stacks-s-tooltip-pd9zya1x" class="s-popover s-popover__tooltip" role="tooltip">Save this answer.<div class="s-popover--arrow"/></div>
+
+
+
+
+
+
+
+            <div class="js-accepted-answer-indicator flex--item fc-green-400 py6 mtn8 d-none" data-s-tooltip-placement="right" title="Loading when this answer was accepted…" tabindex="0" role="note" aria-label="Accepted">
+                <div class="ta-center">
+                    <svg aria-hidden="true" class="svg-icon iconCheckmarkLg" width="36" height="36" viewbox="0 0 36 36"><path d="m6 14 8 8L30 6v8L14 30l-8-8z"/></svg>
+                </div>
+            </div>
+
+    
+    <a class="js-post-issue flex--item s-btn s-btn__unset c-pointer py6 mx-auto" href="/posts/79640480/timeline" data-shortcut="T" data-ks-title="timeline" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-label="Timeline" aria-describedby="--stacks-s-tooltip-x3oi42y6"><svg aria-hidden="true" class="mln2 mr0 svg-icon iconHistory" width="19" height="18" viewbox="0 0 19 18"><path d="M3 9a8 8 0 1 1 3.73 6.77L8.2 14.3A6 6 0 1 0 5 9l3.01-.01-4 4-4-4zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10z"/></svg></a><div id="--stacks-s-tooltip-x3oi42y6" class="s-popover s-popover__tooltip" role="tooltip">Show activity on this post.<div class="s-popover--arrow"/></div>
+
+</div>
+
+            </div>
+
+            
+
+<div class="answercell post-layout--right">
+    
+    <div class="s-prose js-post-body" itemprop="text">
+<p>To turn runtime value to compile value, I tend to use <a href="https://en.cppreference.com/w/cpp/utility/variant.html" rel="noreferrer"><code>std::variant</code></a> of <a href="https://en.cppreference.com/w/cpp/types/integral_constant" rel="noreferrer"><code>std::integral_constant</code></a> and then use <a href="https://en.cppreference.com/w/cpp/utility/variant/visit2.html" rel="noreferrer"><code>std::visit</code></a>:</p>
+<pre class="lang-cpp s-code-block"><code data-highlighted="yes" class="hljs language-cpp"><span class="hljs-keyword">using</span> ColorVariant = std::variant&lt;
+    std::integral_constant&lt;Color, Color::Red&gt;,
+    std::integral_constant&lt;Color, Color::Green&gt;,
+    std::integral_constant&lt;Color, Color::Blue&gt;
+&gt;;
+
+<span class="hljs-function">ColorVariant <span class="hljs-title">ToColorVariant</span><span class="hljs-params">(Color color)</span>
+</span>{
+    <span class="hljs-keyword">switch</span> (color) {
+        <span class="hljs-keyword">case</span> Color::Red: <span class="hljs-keyword">return</span> std::integral_constant&lt;Color, Color::Red&gt;{};
+        <span class="hljs-keyword">case</span> Color::Green: <span class="hljs-keyword">return</span> std::integral_constant&lt;Color, Color::Green&gt;{};
+        <span class="hljs-keyword">case</span> Color::Blue: <span class="hljs-keyword">return</span> std::integral_constant&lt;Color, Color::Blue&gt;{};
+    }
+    <span class="hljs-keyword">throw</span> std::<span class="hljs-built_in">runtime_error</span>(<span class="hljs-string">"Unsupported enum value"</span>);
+}
+
+<span class="hljs-comment">// Similarly for other enums</span>
+</code></pre>
+<p>and then</p>
+<pre class="lang-cpp s-code-block"><code data-highlighted="yes" class="hljs language-cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> Func&gt;
+<span class="hljs-function"><span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">auto</span> <span class="hljs-title">perform</span><span class="hljs-params">(<span class="hljs-type">const</span> Vehicle&amp; vehicle, Func&amp;&amp; func)</span>
+</span>{
+    <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">visit</span>([](<span class="hljs-keyword">auto</span> color, <span class="hljs-keyword">auto</span> type) {
+        <span class="hljs-keyword">return</span> func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;<span class="hljs-built_in">color</span>(), <span class="hljs-built_in">type</span>()&gt;();
+    }, <span class="hljs-built_in">ToColorVariant</span>(vehicle.color), <span class="hljs-built_in">ToTypeVariant</span>(vehicle.type));
+}
+</code></pre>
+<p>To avoid <code>func.template operator()&lt;color(), type()&gt;()</code> notation,
+I tend to expect lambda of the form <code>[]&lt;Color color, Type type&gt;(std::integral_constant&lt;Color, color&gt;, std::integral_constant&lt;Type, type&gt;){/*...*/}</code> (with deducible type) (which might even be written as <code>[](auto color, auto type) {/*...*/}</code>), instead of <code>[]&lt;Color color, Type type&gt;(){/*...*/}</code></p>
+    </div>
+    <div class="mt24">
+        <div class="d-flex fw-wrap ai-start jc-end gs8 gsy">
+            <time itemprop="dateCreated" datetime="2025-05-27 12:25:57Z"/>
+            <div class="flex--item mr16" style="flex: 1 1 100px;">
+                
+
+
+<div class="js-post-menu pt2" data-post-id="79640480" data-post-type-id="2">
+
+    <div class="d-flex gs8 s-anchors s-anchors__muted fw-wrap">
+
+        <div class="flex--item">
+            <a href="/a/79640480" rel="nofollow" itemprop="url" class="js-share-link js-gps-track" title="Short permalink to this answer" data-gps-track="post.click({ item: 2, priv: 0, post_type: 2 })" data-controller="se-share-sheet s-popover" data-se-share-sheet-title="Share a link to this answer" data-se-share-sheet-subtitle="" data-se-share-sheet-post-type="answer" data-se-share-sheet-social="facebook twitter devto" data-se-share-sheet-location="2" data-se-share-sheet-license-url="https%3a%2f%2fcreativecommons.org%2flicenses%2fby-sa%2f4.0%2f" data-se-share-sheet-license-name="CC BY-SA 4.0" data-s-popover-placement="bottom-start" aria-controls="se-share-sheet-2" data-action=" s-popover#toggle se-share-sheet#preventNavigation s-popover:show-&gt;se-share-sheet#willShow s-popover:shown-&gt;se-share-sheet#didShow" aria-expanded="false">Share</a><div class="s-popover z-dropdown s-anchors s-anchors__default" style="width: unset; max-width: 28em;" id="se-share-sheet-2"><div class="s-popover--arrow"/><div><label for="share-sheet-input-se-share-sheet-2"><span class="js-title fw-bold">Share a link to this answer</span> <span class="js-subtitle"/></label></div><div class="my8"><input type="text" id="share-sheet-input-se-share-sheet-2" class="js-input s-input wmn3 sm:wmn-initial bc-black-300 bg-white fc-black-600" readonly=""/></div><div class="d-flex jc-space-between ai-center mbn4"><button class="js-copy-link-btn s-btn s-btn__link js-gps-track" data-gps-track="">Copy link</button><a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license" class="js-license s-block-link w-auto" target="_blank" title="The current license for this post: CC BY-SA 4.0">CC BY-SA 4.0</a><div class="js-social-container d-none"/></div></div>
+        </div>
+
+
+                    <div class="flex--item">
+                        <a href="/posts/79640480/edit" class="js-suggest-edit-post js-gps-track" data-gps-track="post.click({ item: 6, priv: 0, post_type: 2 })" title="">Improve this answer</a>
+                    </div>
+
+                <div class="flex--item">
+                    <button type="button" id="btnFollowPost-79640480" class="s-btn s-btn__link js-follow-post js-follow-answer js-gps-track" data-gps-track="post.click({ item: 14, priv: 0, post_type: 2 })" data-controller="s-tooltip " data-s-tooltip-placement="bottom" data-s-popover-placement="bottom" aria-controls="" aria-describedby="--stacks-s-tooltip-1dw8sv41">
+                        Follow
+                        <input type="hidden" id="voteFollowHash" value="70:3:31e,16:dbff88ac5d805a46,10:1748471378,16:23739fb58091d32b,8:79640480,224c89e7e7d20cdbe4aa4cc9ff87592e17c85f67fb6ca59fa9a45de04368bb02"/>
+                    </button><div id="--stacks-s-tooltip-1dw8sv41" class="s-popover s-popover__tooltip" role="tooltip">Follow this answer to receive notifications<div class="s-popover--arrow"/></div>
+                </div>
+
+
+
+
+
+
+    </div>
+    <div class="js-menu-popup-container"/>
+</div>
+            </div>
+            <div class="post-signature flex--item fl0">
+<div class="user-info ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            <a href="/posts/79640480/revisions" title="show all edits to this post" class="js-gps-track" data-gps-track="post.click({ item: 4, priv: 0, post_type: 2 })">edited <span title="2025-05-27 12:31:10Z" class="relativetime">yesterday</span></a>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        
+        <div class="-flair">
+            
+        </div>
+    </div>
+</div>
+            </div>
+
+
+            <div class="post-signature flex--item fl0">
+                <div class="user-info user-hover ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            answered <span title="2025-05-27 12:25:57Z" class="relativetime">yesterday</span>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/2684539/jarod42"><div class="gravatar-wrapper-32"><img src="https://i.sstatic.net/xTMIL.jpg?s=64" alt="Jarod42's user avatar" width="32" height="32" class="bar-sm"/></div></a>
+    </div>
+    <div class="user-details" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <a href="/users/2684539/jarod42" itemprop="url" dir="auto">Jarod42</a><span class="d-none" itemprop="name">Jarod42</span>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score 221,873" dir="ltr">222k</span><span title="15 gold badges" aria-hidden="true"><span class="badge1"/><span class="badgecount">15</span></span><span class="v-visible-sr">15 gold badges</span><span title="203 silver badges" aria-hidden="true"><span class="badge2"/><span class="badgecount">203</span></span><span class="v-visible-sr">203 silver badges</span><span title="337 bronze badges" aria-hidden="true"><span class="badge3"/><span class="badgecount">337</span></span><span class="v-visible-sr">337 bronze badges</span>
+        </div>
+    </div>
+</div>
+
+
+            </div>
+        </div>
+        
+    
+    </div>
+    
+</div>
+
+
+
+
+                
+
+<span class="d-none" itemprop="commentCount"/> 
+    <div class="post-layout--right js-post-comments-component">
+        <div id="comments-79640480" class="comments js-comments-container bt bc-black-200 mt12  dno" data-post-id="79640480" data-min-length="15">
+            <ul class="comments-list js-comments-list" data-remaining-comments-count="0" data-canpost="false" data-cansee="true" data-comments-unavailable="false" data-addlink-disabled="true">
+
+            </ul>
+	    </div>
+
+        <div id="comments-link-79640480" data-rep="40" data-anon="true">
+                        <a class="js-add-link comments-link disabled-link" title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." href="#" role="button">Add a comment</a>
+                    <span class="js-link-separator dno"> | </span>
+            <a class="js-show-link comments-link dno" title="Expand to show all comments on this post" href="#" onclick="" role="button"/>
+        </div>         
+    </div>
+
+        </div>
+</div>
+                                        
+<a name="79640538"/>
+<div id="answer-79640538" class="answer js-answer accepted-answer js-accepted-answer" data-answerid="79640538" data-parentid="79640301" data-score="4" data-position-on-page="3" data-highest-scored="0" data-question-has-accepted-highest-score="0" data-author-reputation="3204" itemprop="suggestedAnswer" itemscope="" itemtype="https://schema.org/Answer">
+        <div class="post-layout">
+            <div class="votecell post-layout--left">
+                
+<div class="js-voting-container d-flex jc-center fd-column ai-center gs4 fc-black-300" data-post-id="79640538" data-referrer="None">
+        <button class="js-vote-up-btn flex--item s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="upvote-btn-79640538" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-pressed="false" aria-label="Up vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" aria-describedby="--stacks-s-tooltip-t35w3q73">
+            <svg aria-hidden="true" class="svg-icon iconArrowUp" width="18" height="18" viewbox="0 0 18 18"><path d="M1 12h16L9 4z"/></svg>
+        </button><div id="--stacks-s-tooltip-t35w3q73" class="s-popover s-popover__tooltip" role="tooltip">This answer is useful<div class="s-popover--arrow"/></div>
+        <input type="hidden" id="voteUpHash" value="70:3:31e,16:55bccc2a36b2cdbd,10:1748471378,16:7907ac63a0cb916b,8:79640538,46c5b47afd2b529be6cc1774c9867d1ffc160074ee2ea8c47acdff1f8b734562"/>
+        <div class="js-vote-count flex--item d-flex fd-column ai-center fc-theme-body-font fw-bold fs-subheading py4" itemprop="upvoteCount" data-value="4">
+4        </div>
+        <button class="js-vote-down-btn flex--item mb8 s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="downvote-btn-79640538" title="This answer is not useful" aria-pressed="false" aria-label="Down vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200">
+            <svg aria-hidden="true" class="svg-icon iconArrowDown" width="18" height="18" viewbox="0 0 18 18"><path d="M1 6h16l-8 8z"/></svg>
+        </button>
+        <input type="hidden" id="voteDownHash" value="70:3:31e,16:ad2dcb7380448303,10:1748471378,16:d3d48cf0744ec00e,8:79640538,b9622bb762bf550e6572ad0fef391095c68a8cdc19dbd8a7dd35dcb1add90665"/>
+
+
+        
+<button class="js-saves-btn s-btn s-btn__unset c-pointer py4" type="button" id="saves-btn-79640538" data-controller="s-tooltip" data-s-tooltip-placement="right" data-s-popover-placement="" data-is-saved="false" aria-label="Save" data-post-id="79640538" data-post-type-id="2" data-user-privilege-for-post-click="0" aria-controls="" data-s-popover-auto-show="false" aria-describedby="--stacks-s-tooltip-sxzqbgsr">
+    <svg aria-hidden="true" class="fc-theme-primary-400 js-saves-btn-selected d-none svg-icon iconBookmark" width="18" height="18" viewbox="0 0 18 18"><path d="M3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+    <svg aria-hidden="true" class="js-saves-btn-unselected svg-icon iconBookmarkAlt" width="18" height="18" viewbox="0 0 18 18"><path d="m9 10.6 4 2.66V3H5v10.26zM3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+</button><div id="--stacks-s-tooltip-sxzqbgsr" class="s-popover s-popover__tooltip" role="tooltip">Save this answer.<div class="s-popover--arrow"/></div>
+
+
+
+
+
+
+
+            <div class="js-accepted-answer-indicator flex--item fc-green-400 py6 mtn8" data-s-tooltip-placement="right" title="Loading when this answer was accepted…" tabindex="0" role="note" aria-label="Accepted">
+                <div class="ta-center">
+                    <svg aria-hidden="true" class="svg-icon iconCheckmarkLg" width="36" height="36" viewbox="0 0 36 36"><path d="m6 14 8 8L30 6v8L14 30l-8-8z"/></svg>
+                </div>
+            </div>
+
+    
+    <a class="js-post-issue flex--item s-btn s-btn__unset c-pointer py6 mx-auto" href="/posts/79640538/timeline" data-shortcut="T" data-ks-title="timeline" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-label="Timeline" aria-describedby="--stacks-s-tooltip-0u87zoht"><svg aria-hidden="true" class="mln2 mr0 svg-icon iconHistory" width="19" height="18" viewbox="0 0 19 18"><path d="M3 9a8 8 0 1 1 3.73 6.77L8.2 14.3A6 6 0 1 0 5 9l3.01-.01-4 4-4-4zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10z"/></svg></a><div id="--stacks-s-tooltip-0u87zoht" class="s-popover s-popover__tooltip" role="tooltip">Show activity on this post.<div class="s-popover--arrow"/></div>
+
+</div>
+
+            </div>
+
+            
+
+<div class="answercell post-layout--right">
+    
+    <div class="s-prose js-post-body" itemprop="text">
+<p>This solution (also) relies on <a href="https://en.cppreference.com/w/cpp/utility/variant/" rel="nofollow noreferrer"><code>std::variant</code></a> and <a href="https://en.cppreference.com/w/cpp/types/integral_constant" rel="nofollow noreferrer"><code>std::integral_constant</code></a>  (I was writing the answer and didn't see <a href="https://stackoverflow.com/a/79640480/4117728">the other answer</a> based on the same arguments but this one is a little bit more generic).</p>
+<p>Here, a <code>Selector</code> class manages the "runtime to compile time" selection, e.g. one could write things like:</p>
+<pre class="lang-cpp s-code-block"><code data-highlighted="yes" class="hljs language-cpp">Selector&lt;ColorArr&gt;{v.color}
+</code></pre>
+<p>where <code>ColorArr</code> is a <code>std::array</code> made of all values of <code>Color</code>. This selector assigns the runtime value <code>v.color</code> to a <code>std::variant</code> made of <code>std::integral_constant</code> types, one per enum value.</p>
+<p>With this <code>Selector</code>, one can write:</p>
+<pre class="lang-cpp s-code-block"><code data-highlighted="yes" class="hljs language-cpp"><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span>
+</span>{
+    Vehicle v { Color::Blue, Type::Bus, Dummy::Bar };
+
+    <span class="hljs-keyword">auto</span> func = [&amp;] &lt;Color color, Type type, Dummy dummy&gt; {
+             <span class="hljs-keyword">if</span> <span class="hljs-built_in">constexpr</span> (color == Color::Red)   { std::cout &lt;&lt; <span class="hljs-string">"Red "</span>;   }
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">constexpr</span> (color == Color::Green) { std::cout &lt;&lt; <span class="hljs-string">"Green "</span>; }
+        <span class="hljs-keyword">else</span>                                      { std::cout &lt;&lt; <span class="hljs-string">"Blue "</span>;  }
+
+             <span class="hljs-function"><span class="hljs-keyword">if</span> <span class="hljs-title">constexpr</span> <span class="hljs-params">(type == Type::Car)</span> </span>{ std::cout &lt;&lt; <span class="hljs-string">"Car"</span>;   }
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">constexpr</span> (type == Type::Bus) { std::cout &lt;&lt; <span class="hljs-string">"Bus"</span>;   }
+        <span class="hljs-keyword">else</span>                                  { std::cout &lt;&lt; <span class="hljs-string">"Truck"</span>; }
+    };
+
+    <span class="hljs-comment">// Now, we can use the std::visit with as many enum values as we want.</span>
+    <span class="hljs-comment">// Each value is encapsulated by a Selector instance</span>
+    std::<span class="hljs-built_in">visit</span>([&amp;](<span class="hljs-keyword">auto</span>...args) {
+        func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;args...&gt; ();
+    }, Selector&lt;ColorArr&gt;{v.color}(), Selector&lt;TypeArr&gt;{v.type}(), Selector&lt;DummyArr&gt;{v.dummy}());
+}
+</code></pre>
+<p>where adding a new enum (like <code>Dummy</code>) becomes quite easy.</p>
+<p>Now, here is the <code>Selector</code> class; it takes as non type template argument an array <code>arr</code> (<code>c++20</code> required) made of all values of an enumeration.</p>
+<pre class="lang-cpp s-code-block"><code data-highlighted="yes" class="hljs language-cpp"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">auto</span> arr, std::<span class="hljs-type">size_t</span> Nmax=arr.<span class="hljs-built_in">size</span>()&gt;
+<span class="hljs-keyword">class</span> Selector
+{
+<span class="hljs-keyword">public</span>:
+
+    <span class="hljs-comment">// We get the type of array items</span>
+    <span class="hljs-keyword">using</span> value_type = <span class="hljs-keyword">typename</span> <span class="hljs-keyword">decltype</span>(arr)::value_type;
+
+    <span class="hljs-comment">// We build a std::variant whose types are integral constants made of each values in the array</span>
+    <span class="hljs-keyword">using</span> alltypes = <span class="hljs-keyword">decltype</span> ([] &lt;std::<span class="hljs-type">size_t</span>...Is&gt; (std::index_sequence&lt;Is...&gt;) {
+        <span class="hljs-keyword">return</span> std::variant &lt;std::integral_constant&lt;value_type,arr[Is]&gt;...&gt; {};
+    } (std::make_index_sequence&lt;Nmax&gt;{}));
+
+    <span class="hljs-comment">// The constructor takes an enum value as entry and set the std::variant</span>
+    <span class="hljs-built_in">Selector</span> (value_type val)  : <span class="hljs-built_in">value</span> (<span class="hljs-built_in">select</span>&lt;Nmax&gt;(val))  {}
+
+    <span class="hljs-comment">// Return the std::variant</span>
+    <span class="hljs-function"><span class="hljs-keyword">auto</span> <span class="hljs-title">operator</span><span class="hljs-params">()</span> <span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>{  <span class="hljs-keyword">return</span> value;  }
+
+<span class="hljs-keyword">private</span>:
+
+    <span class="hljs-function"><span class="hljs-keyword">template</span>&lt;<span class="hljs-type">int</span> N</span>=Nmax, <span class="hljs-type">int</span> Pending=<span class="hljs-number">0</span>&gt;
+    <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">auto</span> <span class="hljs-built_in">select</span> (value_type val)  {
+        <span class="hljs-keyword">if</span> <span class="hljs-built_in">constexpr</span> (N &gt; <span class="hljs-number">0</span>)  {
+            <span class="hljs-keyword">if</span> (val==arr[Pending])  {
+                <span class="hljs-keyword">return</span> alltypes {std::integral_constant&lt;value_type,arr[Pending]&gt;{}};
+            }
+            <span class="hljs-keyword">else</span> {
+                <span class="hljs-keyword">return</span> select &lt;N<span class="hljs-number">-1</span>,Pending+<span class="hljs-number">1</span>&gt; (val);
+            }
+        }
+        <span class="hljs-keyword">else</span>  {  <span class="hljs-keyword">return</span> alltypes{};  }
+    }
+
+    alltypes value;
+};
+</code></pre>
+<p>The drawback of this approach is that one needs to define a <code>std::array</code> holding the values of each enum:</p>
+<pre class="lang-cpp s-code-block"><code data-highlighted="yes" class="hljs language-cpp"><span class="hljs-keyword">constexpr</span> std::array ColorArr = { Color::Red, Color::Green, Color::Blue };
+<span class="hljs-keyword">constexpr</span> std::array TypeArr  = { Type::Car, Type::Bus, Type::Truck };
+<span class="hljs-keyword">constexpr</span> std::array DummyArr = { Dummy::Foo, Dummy::Bar };
+</code></pre>
+<p><a href="https://godbolt.org/z/Mf5YosY5x" rel="nofollow noreferrer">Demo</a></p>
+<hr/>
+<p><strong>Update</strong></p>
+<p>I just removed the useless <code>n</code> parameter in <code>select</code> function (redundant with the template parameter <code>Pending</code>)</p>
+    </div>
+    <div class="mt24">
+        <div class="d-flex fw-wrap ai-start jc-end gs8 gsy">
+            <time itemprop="dateCreated" datetime="2025-05-27 13:00:13Z"/>
+            <div class="flex--item mr16" style="flex: 1 1 100px;">
+                
+
+
+<div class="js-post-menu pt2" data-post-id="79640538" data-post-type-id="2">
+
+    <div class="d-flex gs8 s-anchors s-anchors__muted fw-wrap">
+
+        <div class="flex--item">
+            <a href="/a/79640538" rel="nofollow" itemprop="url" class="js-share-link js-gps-track" title="Short permalink to this answer" data-gps-track="post.click({ item: 2, priv: 0, post_type: 2 })" data-controller="se-share-sheet s-popover" data-se-share-sheet-title="Share a link to this answer" data-se-share-sheet-subtitle="" data-se-share-sheet-post-type="answer" data-se-share-sheet-social="facebook twitter devto" data-se-share-sheet-location="2" data-se-share-sheet-license-url="https%3a%2f%2fcreativecommons.org%2flicenses%2fby-sa%2f4.0%2f" data-se-share-sheet-license-name="CC BY-SA 4.0" data-s-popover-placement="bottom-start" aria-controls="se-share-sheet-3" data-action=" s-popover#toggle se-share-sheet#preventNavigation s-popover:show-&gt;se-share-sheet#willShow s-popover:shown-&gt;se-share-sheet#didShow" aria-expanded="false">Share</a><div class="s-popover z-dropdown s-anchors s-anchors__default" style="width: unset; max-width: 28em;" id="se-share-sheet-3"><div class="s-popover--arrow"/><div><label for="share-sheet-input-se-share-sheet-3"><span class="js-title fw-bold">Share a link to this answer</span> <span class="js-subtitle"/></label></div><div class="my8"><input type="text" id="share-sheet-input-se-share-sheet-3" class="js-input s-input wmn3 sm:wmn-initial bc-black-300 bg-white fc-black-600" readonly=""/></div><div class="d-flex jc-space-between ai-center mbn4"><button class="js-copy-link-btn s-btn s-btn__link js-gps-track" data-gps-track="">Copy link</button><a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license" class="js-license s-block-link w-auto" target="_blank" title="The current license for this post: CC BY-SA 4.0">CC BY-SA 4.0</a><div class="js-social-container d-none"/></div></div>
+        </div>
+
+
+                    <div class="flex--item">
+                        <a href="/posts/79640538/edit" class="js-suggest-edit-post js-gps-track" data-gps-track="post.click({ item: 6, priv: 0, post_type: 2 })" title="">Improve this answer</a>
+                    </div>
+
+                <div class="flex--item">
+                    <button type="button" id="btnFollowPost-79640538" class="s-btn s-btn__link js-follow-post js-follow-answer js-gps-track" data-gps-track="post.click({ item: 14, priv: 0, post_type: 2 })" data-controller="s-tooltip " data-s-tooltip-placement="bottom" data-s-popover-placement="bottom" aria-controls="" aria-describedby="--stacks-s-tooltip-dwjjshug">
+                        Follow
+                        <input type="hidden" id="voteFollowHash" value="70:3:31e,16:0a8868e0ec4153bf,10:1748471378,16:a76d23ab59988e7a,8:79640538,0310940e6772a6141e09ae72d7b80064b49ce3dc27c36958189f402812d4f984"/>
+                    </button><div id="--stacks-s-tooltip-dwjjshug" class="s-popover s-popover__tooltip" role="tooltip">Follow this answer to receive notifications<div class="s-popover--arrow"/></div>
+                </div>
+
+
+
+
+
+
+    </div>
+    <div class="js-menu-popup-container"/>
+</div>
+            </div>
+            <div class="post-signature flex--item fl0">
+<div class="user-info ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            <a href="/posts/79640538/revisions" title="show all edits to this post" class="js-gps-track" data-gps-track="post.click({ item: 4, priv: 0, post_type: 2 })">edited <span title="2025-05-28 08:12:35Z" class="relativetime">14 hours ago</span></a>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        
+        <div class="-flair">
+            
+        </div>
+    </div>
+</div>
+            </div>
+
+
+            <div class="post-signature flex--item fl0">
+                <div class="user-info ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            answered <span title="2025-05-27 13:00:13Z" class="relativetime">yesterday</span>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/2229039/abcdefg"><div class="gravatar-wrapper-32"><img src="https://i.sstatic.net/jtpuKjLF.png?s=64" alt="abcdefg's user avatar" width="32" height="32" class="bar-sm"/></div></a>
+    </div>
+    <div class="user-details" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <a href="/users/2229039/abcdefg" itemprop="url" dir="auto">abcdefg</a><span class="d-none" itemprop="name">abcdefg</span>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score " dir="ltr">3,204</span><span title="1 gold badge" aria-hidden="true"><span class="badge1"/><span class="badgecount">1</span></span><span class="v-visible-sr">1 gold badge</span><span title="15 silver badges" aria-hidden="true"><span class="badge2"/><span class="badgecount">15</span></span><span class="v-visible-sr">15 silver badges</span><span title="25 bronze badges" aria-hidden="true"><span class="badge3"/><span class="badgecount">25</span></span><span class="v-visible-sr">25 bronze badges</span>
+        </div>
+    </div>
+</div>
+
+
+            </div>
+        </div>
+        
+    
+    </div>
+    
+</div>
+
+
+
+
+                
+
+<span class="d-none" itemprop="commentCount">5</span> 
+    <div class="post-layout--right js-post-comments-component">
+        <div id="comments-79640538" class="comments js-comments-container bt bc-black-200 mt12 " data-post-id="79640538" data-min-length="15">
+            <ul class="comments-list js-comments-list" data-remaining-comments-count="0" data-canpost="false" data-cansee="true" data-comments-unavailable="false" data-addlink-disabled="true">
+
+                        <li id="comment-140462638" class="comment js-comment " data-comment-id="140462638" data-comment-owner-id="2684539" data-comment-score="0">
+        <div class="js-comment-actions comment-actions">
+            <div class="comment-score js-comment-score js-comment-edit-hide">
+            </div>
+        </div>
+        <div class="comment-text  js-comment-text-and-form">
+            <div class="comment-body js-comment-edit-hide">
+                
+                <span class="comment-copy">Defining <code>array</code> seems simpler that defining the <code>switch</code> <code>case</code> though ;-)</span>
+                
+                <div class="d-inline-flex ai-center">
+– <a href="/users/2684539/jarod42" title="221,873 reputation" class="comment-user">Jarod42</a>
+                </div>
+                <span class="comment-date" dir="ltr"><a class="comment-link" href="#comment140462638_79640538">
+                    <span class="v-visible-sr">Commented</span>
+                    <span title="2025-05-27 13:32:31Z, License: CC BY-SA 4.0" class="relativetime-clean">yesterday</span>
+                </a></span>
+            </div>
+        </div>
+    </li>
+    <li id="comment-140462678" class="comment js-comment " data-comment-id="140462678" data-comment-owner-id="2684539" data-comment-score="0">
+        <div class="js-comment-actions comment-actions">
+            <div class="comment-score js-comment-score js-comment-edit-hide">
+            </div>
+        </div>
+        <div class="comment-text  js-comment-text-and-form">
+            <div class="comment-body js-comment-edit-hide">
+                
+                <span class="comment-copy"><code>select</code> does a linear search though :/</span>
+                
+                <div class="d-inline-flex ai-center">
+– <a href="/users/2684539/jarod42" title="221,873 reputation" class="comment-user">Jarod42</a>
+                </div>
+                <span class="comment-date" dir="ltr"><a class="comment-link" href="#comment140462678_79640538">
+                    <span class="v-visible-sr">Commented</span>
+                    <span title="2025-05-27 13:38:16Z, License: CC BY-SA 4.0" class="relativetime-clean">yesterday</span>
+                </a></span>
+            </div>
+        </div>
+    </li>
+    <li id="comment-140462737" class="comment js-comment " data-comment-id="140462737" data-comment-owner-id="2229039" data-comment-score="0">
+        <div class="js-comment-actions comment-actions">
+            <div class="comment-score js-comment-score js-comment-edit-hide">
+            </div>
+        </div>
+        <div class="comment-text  js-comment-text-and-form">
+            <div class="comment-body js-comment-edit-hide">
+                
+                <span class="comment-copy">@Jarod42, yes indeed. I didn't try but a binary search could be done here if one supposes that <code>arr</code> is sorted (which could be statically checked I guess)</span>
+                
+                <div class="d-inline-flex ai-center">
+– <a href="/users/2229039/abcdefg" title="3,204 reputation" class="comment-user">abcdefg</a>
+                </div>
+                <span class="comment-date" dir="ltr"><a class="comment-link" href="#comment140462737_79640538">
+                    <span class="v-visible-sr">Commented</span>
+                    <span title="2025-05-27 13:50:06Z, License: CC BY-SA 4.0" class="relativetime-clean">yesterday</span>
+                </a></span>
+            </div>
+        </div>
+    </li>
+    <li id="comment-140462749" class="comment js-comment " data-comment-id="140462749" data-comment-owner-id="2684539" data-comment-score="2">
+        <div class="js-comment-actions comment-actions">
+            <div class="comment-score js-comment-score js-comment-edit-hide">
+                    <span title="number of 'useful comment' votes received" class="cool">2</span>
+            </div>
+        </div>
+        <div class="comment-text  js-comment-text-and-form">
+            <div class="comment-body js-comment-edit-hide">
+                
+                <span class="comment-copy">Without gaps in enum, a count might replace the array, and give direct access. :-)</span>
+                
+                <div class="d-inline-flex ai-center">
+– <a href="/users/2684539/jarod42" title="221,873 reputation" class="comment-user">Jarod42</a>
+                </div>
+                <span class="comment-date" dir="ltr"><a class="comment-link" href="#comment140462749_79640538">
+                    <span class="v-visible-sr">Commented</span>
+                    <span title="2025-05-27 13:54:01Z, License: CC BY-SA 4.0" class="relativetime-clean">yesterday</span>
+                </a></span>
+            </div>
+        </div>
+    </li>
+    <li id="comment-140465693" class="comment js-comment " data-comment-id="140465693" data-comment-owner-id="2610810" data-comment-score="0">
+        <div class="js-comment-actions comment-actions">
+            <div class="comment-score js-comment-score js-comment-edit-hide">
+            </div>
+        </div>
+        <div class="comment-text  js-comment-text-and-form">
+            <div class="comment-body js-comment-edit-hide">
+                
+                <span class="comment-copy"><a href="https://github.com/Neargye/magic_enum/blob/master/doc/reference.md#enum_values" rel="nofollow noreferrer">magic_enum::enum_values</a> will give you a sorted array</span>
+                
+                <div class="d-inline-flex ai-center">
+– <a href="/users/2610810/caleth" title="64,746 reputation" class="comment-user">Caleth</a>
+                </div>
+                <span class="comment-date" dir="ltr"><a class="comment-link" href="#comment140465693_79640538">
+                    <span class="v-visible-sr">Commented</span>
+                    <span title="2025-05-28 11:14:49Z, License: CC BY-SA 4.0" class="relativetime-clean">11 hours ago</span>
+                </a></span>
+            </div>
+        </div>
+    </li>
+
+            </ul>
+	    </div>
+
+        <div id="comments-link-79640538" data-rep="40" data-anon="true">
+                        <a class="js-add-link comments-link disabled-link" title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." href="#" role="button">Add a comment</a>
+                    <span class="js-link-separator dno"> | </span>
+            <a class="js-show-link comments-link dno" title="Expand to show all comments on this post" href="#" onclick="" role="button"/>
+        </div>         
+    </div>
+
+        </div>
+</div>
+<div class="js-zone-container zone-container-main">
+    <div id="dfp-smlb" class="everyonelovesstackoverflow everyoneloves__mid-second-leaderboard everyoneloves__leaderboard" style="min-height: auto; height: auto; display: none;"/>
+		<div class="js-report-ad-button-container " style="width: 728px"/>
+</div>
+                                        
+<a name="79642059"/>
+<div id="answer-79642059" class="answer js-answer" data-answerid="79642059" data-parentid="79640301" data-score="3" data-position-on-page="4" data-highest-scored="0" data-question-has-accepted-highest-score="0" data-author-reputation="64746" itemprop="suggestedAnswer" itemscope="" itemtype="https://schema.org/Answer">
+        <div class="post-layout">
+            <div class="votecell post-layout--left">
+                
+<div class="js-voting-container d-flex jc-center fd-column ai-center gs4 fc-black-300" data-post-id="79642059" data-referrer="None">
+        <button class="js-vote-up-btn flex--item s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="upvote-btn-79642059" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-pressed="false" aria-label="Up vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" aria-describedby="--stacks-s-tooltip-nk5awtco">
+            <svg aria-hidden="true" class="svg-icon iconArrowUp" width="18" height="18" viewbox="0 0 18 18"><path d="M1 12h16L9 4z"/></svg>
+        </button><div id="--stacks-s-tooltip-nk5awtco" class="s-popover s-popover__tooltip" role="tooltip">This answer is useful<div class="s-popover--arrow"/></div>
+        <input type="hidden" id="voteUpHash" value="70:3:31e,16:4c4071e011b4b838,10:1748471378,16:b4d1d68180ec2455,8:79642059,59c71481f7c342cdb7e35537d3246bc7677a257853a2eb6237db65a8f85306d0"/>
+        <div class="js-vote-count flex--item d-flex fd-column ai-center fc-theme-body-font fw-bold fs-subheading py4" itemprop="upvoteCount" data-value="3">
+3        </div>
+        <button class="js-vote-down-btn flex--item mb8 s-btn s-btn__muted s-btn__outlined bar-pill bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200" id="downvote-btn-79642059" title="This answer is not useful" aria-pressed="false" aria-label="Down vote" data-selected-classes="fc-theme-primary bc-theme-primary bg-theme-primary-100" data-unselected-classes="bc-black-225 f:bc-theme-secondary-400 f:bg-theme-secondary-400 f:fc-black-050 h:bg-theme-primary-200">
+            <svg aria-hidden="true" class="svg-icon iconArrowDown" width="18" height="18" viewbox="0 0 18 18"><path d="M1 6h16l-8 8z"/></svg>
+        </button>
+        <input type="hidden" id="voteDownHash" value="70:3:31e,16:9073452425bd36f3,10:1748471378,16:f80f774ec6efe385,8:79642059,3fb50171e874eff1e4ffe48a52482e330087a531ae98f2e3d70d672294447c94"/>
+
+
+        
+<button class="js-saves-btn s-btn s-btn__unset c-pointer py4" type="button" id="saves-btn-79642059" data-controller="s-tooltip" data-s-tooltip-placement="right" data-s-popover-placement="" data-is-saved="false" aria-label="Save" data-post-id="79642059" data-post-type-id="2" data-user-privilege-for-post-click="0" aria-controls="" data-s-popover-auto-show="false" aria-describedby="--stacks-s-tooltip-cn59f7jc">
+    <svg aria-hidden="true" class="fc-theme-primary-400 js-saves-btn-selected d-none svg-icon iconBookmark" width="18" height="18" viewbox="0 0 18 18"><path d="M3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+    <svg aria-hidden="true" class="js-saves-btn-unselected svg-icon iconBookmarkAlt" width="18" height="18" viewbox="0 0 18 18"><path d="m9 10.6 4 2.66V3H5v10.26zM3 17V3c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v14l-6-4z"/></svg>
+</button><div id="--stacks-s-tooltip-cn59f7jc" class="s-popover s-popover__tooltip" role="tooltip">Save this answer.<div class="s-popover--arrow"/></div>
+
+
+
+
+
+
+
+            <div class="js-accepted-answer-indicator flex--item fc-green-400 py6 mtn8 d-none" data-s-tooltip-placement="right" title="Loading when this answer was accepted…" tabindex="0" role="note" aria-label="Accepted">
+                <div class="ta-center">
+                    <svg aria-hidden="true" class="svg-icon iconCheckmarkLg" width="36" height="36" viewbox="0 0 36 36"><path d="m6 14 8 8L30 6v8L14 30l-8-8z"/></svg>
+                </div>
+            </div>
+
+    
+    <a class="js-post-issue flex--item s-btn s-btn__unset c-pointer py6 mx-auto" href="/posts/79642059/timeline" data-shortcut="T" data-ks-title="timeline" data-controller="s-tooltip" data-s-tooltip-placement="right" aria-label="Timeline" aria-describedby="--stacks-s-tooltip-lxz3lt2q"><svg aria-hidden="true" class="mln2 mr0 svg-icon iconHistory" width="19" height="18" viewbox="0 0 19 18"><path d="M3 9a8 8 0 1 1 3.73 6.77L8.2 14.3A6 6 0 1 0 5 9l3.01-.01-4 4-4-4zm7-4h1.01L11 9.36l3.22 2.1-.6.93L10 10z"/></svg></a><div id="--stacks-s-tooltip-lxz3lt2q" class="s-popover s-popover__tooltip" role="tooltip">Show activity on this post.<div class="s-popover--arrow"/></div>
+
+</div>
+
+            </div>
+
+            
+
+<div class="answercell post-layout--right">
+    
+    <div class="s-prose js-post-body" itemprop="text">
+<p>Another variation of <code>std::visit</code> based dispatch, this time we assume that the enums are a contiguous range, or that gaps are uncommon enough to not be problematic, code-size wise.</p>
+<pre class="lang-cpp s-code-block"><code data-highlighted="yes" class="hljs language-cpp"><span class="hljs-keyword">namespace</span> detail {
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> E&gt;
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">enum_range</span>;
+
+<span class="hljs-keyword">template</span>&lt;&gt;
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">enum_range</span>&lt;Color&gt; 
+{
+    <span class="hljs-type">static</span> <span class="hljs-keyword">constexpr</span> Color min = Color::Red;
+    <span class="hljs-type">static</span> <span class="hljs-keyword">constexpr</span> Color max = Color::Blue;
+};
+
+<span class="hljs-keyword">template</span>&lt;&gt;
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">enum_range</span>&lt;Type&gt; 
+{
+    <span class="hljs-type">static</span> <span class="hljs-keyword">constexpr</span> Type min = Type::Car;
+    <span class="hljs-type">static</span> <span class="hljs-keyword">constexpr</span> Type max = Type::Truck;
+};
+
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> E&gt;
+<span class="hljs-function">std::<span class="hljs-type">size_t</span> <span class="hljs-title">to_index</span><span class="hljs-params">(E Value)</span>
+</span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">static_cast</span>&lt;std::<span class="hljs-type">size_t</span>&gt;(Value) - <span class="hljs-built_in">static_cast</span>&lt;std::<span class="hljs-type">size_t</span>&gt;(enum_range&lt;E&gt;::min);
+}
+
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> E, E Value&gt;
+<span class="hljs-function"><span class="hljs-keyword">constexpr</span> std::<span class="hljs-type">size_t</span> <span class="hljs-title">to_size</span><span class="hljs-params">()</span>
+</span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">static_cast</span>&lt;std::<span class="hljs-type">size_t</span>&gt;(Value) - <span class="hljs-built_in">static_cast</span>&lt;std::<span class="hljs-type">size_t</span>&gt;(enum_range&lt;E&gt;::min);
+}
+
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> E, std::<span class="hljs-type">size_t</span> Value&gt;
+<span class="hljs-function"><span class="hljs-keyword">constexpr</span> E <span class="hljs-title">from_size</span><span class="hljs-params">()</span>
+</span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">static_cast</span>&lt;E&gt;(Value + <span class="hljs-built_in">static_cast</span>&lt;std::<span class="hljs-type">size_t</span>&gt;(enum_range&lt;E&gt;::min));
+}
+
+<span class="hljs-function"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> E&gt;
+<span class="hljs-keyword">constexpr</span> std::<span class="hljs-type">size_t</span> <span class="hljs-title">enum_size</span><span class="hljs-params">()</span>
+</span>{
+    <span class="hljs-keyword">return</span> to_size&lt;E, enum_range&lt;E&gt;::max&gt;() + <span class="hljs-number">1</span>;
+}
+
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> E&gt;
+<span class="hljs-keyword">using</span> indices = std::make_index_sequence&lt;<span class="hljs-built_in">enum_size</span>&lt;E&gt;()&gt;;
+
+<span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> E, std::<span class="hljs-type">size_t</span>... Is&gt;
+std::variant&lt;std::integral_constant&lt;E, from_size&lt;E, Is&gt;()&gt;...&gt; <span class="hljs-built_in">make_variant</span>(std::index_sequence&lt;Is...&gt;)
+{
+    <span class="hljs-keyword">return</span> {}; 
+}
+
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> E&gt;
+<span class="hljs-keyword">using</span> enum_variant = <span class="hljs-keyword">decltype</span>(<span class="hljs-built_in">make_variant</span>&lt;E&gt;(indices&lt;E&gt;{}));
+
+<span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> E, std::<span class="hljs-type">size_t</span>... Is&gt;
+std::array&lt;enum_variant&lt;E&gt;, <span class="hljs-built_in">enum_size</span>&lt;E&gt;()&gt; <span class="hljs-built_in">make_array</span>(std::index_sequence&lt;Is...&gt;)
+{
+    <span class="hljs-keyword">return</span> { std::integral_constant&lt;E, <span class="hljs-built_in">from_size</span>&lt;E, Is&gt;()&gt;{}... };
+}
+}
+
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> E&gt;
+<span class="hljs-function">detail::enum_variant&lt;E&gt; <span class="hljs-title">select</span><span class="hljs-params">(E value)</span>
+</span>{
+    <span class="hljs-type">static</span> <span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> enum_array = detail::<span class="hljs-built_in">make_array</span>&lt;E&gt;(detail::indices&lt;E&gt;{});
+    <span class="hljs-keyword">return</span> enum_array[detail::<span class="hljs-built_in">to_index</span>(value)];
+}
+
+<span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span>
+</span>{
+    Vehicle v { Color::Blue, Type::Bus };
+
+    <span class="hljs-keyword">auto</span> func = [&amp;] &lt;Color color, Type type&gt; {
+             <span class="hljs-keyword">if</span> <span class="hljs-built_in">constexpr</span> (color == Color::Red)   { std::cout &lt;&lt; <span class="hljs-string">"Red "</span>;   }
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">constexpr</span> (color == Color::Green) { std::cout &lt;&lt; <span class="hljs-string">"Green "</span>; }
+        <span class="hljs-keyword">else</span>                                      { std::cout &lt;&lt; <span class="hljs-string">"Blue "</span>;  }
+
+             <span class="hljs-function"><span class="hljs-keyword">if</span> <span class="hljs-title">constexpr</span> <span class="hljs-params">(type == Type::Car)</span> </span>{ std::cout &lt;&lt; <span class="hljs-string">"Car"</span>;   }
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">constexpr</span> (type == Type::Bus) { std::cout &lt;&lt; <span class="hljs-string">"Bus"</span>;   }
+        <span class="hljs-keyword">else</span>                                  { std::cout &lt;&lt; <span class="hljs-string">"Truck"</span>; }
+    };
+
+    <span class="hljs-comment">// Now, we can use the std::visit with as many enum values as we want.</span>
+    <span class="hljs-comment">// Each value is wrapped by a call to select</span>
+    std::<span class="hljs-built_in">visit</span>([&amp;](<span class="hljs-keyword">auto</span>...args) {
+        func.<span class="hljs-keyword">template</span> <span class="hljs-built_in">operator</span>()&lt;args...&gt; ();
+    }, <span class="hljs-built_in">select</span>(v.color), <span class="hljs-built_in">select</span>(v.type));
+}
+</code></pre>
+<p>This can be greatly simplified with the library <a href="https://github.com/Neargye/magic_enum/tree/master" rel="nofollow noreferrer">magic_enum</a>, which also resolves the issue of non-contiguous enumerators</p>
+<pre class="lang-cpp s-code-block"><code data-highlighted="yes" class="hljs language-cpp"><span class="hljs-keyword">namespace</span> detail {
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> E&gt;
+<span class="hljs-keyword">using</span> indices = std::make_index_sequence&lt;magic_enum::<span class="hljs-built_in">enum_count</span>&lt;E&gt;()&gt;;
+
+<span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> E, std::<span class="hljs-type">size_t</span>... Is&gt;
+std::variant&lt;std::integral_constant&lt;E, magic_enum::enum_value&lt;E, Is&gt;()&gt;...&gt; <span class="hljs-built_in">make_variant</span>(std::index_sequence&lt;Is...&gt;)
+{
+    <span class="hljs-keyword">return</span> {}; 
+}
+
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> E&gt;
+<span class="hljs-keyword">using</span> enum_variant = <span class="hljs-keyword">decltype</span>(<span class="hljs-built_in">make_variant</span>&lt;E&gt;(indices&lt;E&gt;{}));
+
+<span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> E, std::<span class="hljs-type">size_t</span>... Is&gt;
+std::array&lt;enum_variant&lt;E&gt;, magic_enum::<span class="hljs-built_in">enum_count</span>&lt;E&gt;()&gt; <span class="hljs-built_in">make_array</span>(std::index_sequence&lt;Is...&gt;)
+{
+    <span class="hljs-keyword">return</span> { std::integral_constant&lt;E, magic_enum::<span class="hljs-built_in">enum_value</span>&lt;E, Is&gt;()&gt;{}... };
+}
+}
+
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> E&gt;
+<span class="hljs-function">detail::enum_variant&lt;E&gt; <span class="hljs-title">select</span><span class="hljs-params">(E value)</span>
+</span>{
+    <span class="hljs-type">static</span> <span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> enum_array = detail::<span class="hljs-built_in">make_array</span>&lt;E&gt;(detail::indices&lt;E&gt;{});
+    <span class="hljs-keyword">return</span> enum_array[magic_enum::<span class="hljs-built_in">enum_index</span>(value).<span class="hljs-built_in">value_or</span>(<span class="hljs-number">0</span>)];
+}
+</code></pre>
+    </div>
+    <div class="mt24">
+        <div class="d-flex fw-wrap ai-start jc-end gs8 gsy">
+            <time itemprop="dateCreated" datetime="2025-05-28 10:57:48Z"/>
+            <div class="flex--item mr16" style="flex: 1 1 100px;">
+                
+
+
+<div class="js-post-menu pt2" data-post-id="79642059" data-post-type-id="2">
+
+    <div class="d-flex gs8 s-anchors s-anchors__muted fw-wrap">
+
+        <div class="flex--item">
+            <a href="/a/79642059" rel="nofollow" itemprop="url" class="js-share-link js-gps-track" title="Short permalink to this answer" data-gps-track="post.click({ item: 2, priv: 0, post_type: 2 })" data-controller="se-share-sheet s-popover" data-se-share-sheet-title="Share a link to this answer" data-se-share-sheet-subtitle="" data-se-share-sheet-post-type="answer" data-se-share-sheet-social="facebook twitter devto" data-se-share-sheet-location="2" data-se-share-sheet-license-url="https%3a%2f%2fcreativecommons.org%2flicenses%2fby-sa%2f4.0%2f" data-se-share-sheet-license-name="CC BY-SA 4.0" data-s-popover-placement="bottom-start" aria-controls="se-share-sheet-4" data-action=" s-popover#toggle se-share-sheet#preventNavigation s-popover:show-&gt;se-share-sheet#willShow s-popover:shown-&gt;se-share-sheet#didShow" aria-expanded="false">Share</a><div class="s-popover z-dropdown s-anchors s-anchors__default" style="width: unset; max-width: 28em;" id="se-share-sheet-4"><div class="s-popover--arrow"/><div><label for="share-sheet-input-se-share-sheet-4"><span class="js-title fw-bold">Share a link to this answer</span> <span class="js-subtitle"/></label></div><div class="my8"><input type="text" id="share-sheet-input-se-share-sheet-4" class="js-input s-input wmn3 sm:wmn-initial bc-black-300 bg-white fc-black-600" readonly=""/></div><div class="d-flex jc-space-between ai-center mbn4"><button class="js-copy-link-btn s-btn s-btn__link js-gps-track" data-gps-track="">Copy link</button><a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license" class="js-license s-block-link w-auto" target="_blank" title="The current license for this post: CC BY-SA 4.0">CC BY-SA 4.0</a><div class="js-social-container d-none"/></div></div>
+        </div>
+
+
+                    <div class="flex--item">
+                        <a href="/posts/79642059/edit" class="js-suggest-edit-post js-gps-track" data-gps-track="post.click({ item: 6, priv: 0, post_type: 2 })" title="">Improve this answer</a>
+                    </div>
+
+                <div class="flex--item">
+                    <button type="button" id="btnFollowPost-79642059" class="s-btn s-btn__link js-follow-post js-follow-answer js-gps-track" data-gps-track="post.click({ item: 14, priv: 0, post_type: 2 })" data-controller="s-tooltip " data-s-tooltip-placement="bottom" data-s-popover-placement="bottom" aria-controls="" aria-describedby="--stacks-s-tooltip-veows9w8">
+                        Follow
+                        <input type="hidden" id="voteFollowHash" value="70:3:31e,16:1e6d07d1aeaa3ca0,10:1748471378,16:176b6429f112852d,8:79642059,f6d77e0ebde0c91dbd84f94699e556dc25f5aeafa7913dbd8aa3f81dccf5e52d"/>
+                    </button><div id="--stacks-s-tooltip-veows9w8" class="s-popover s-popover__tooltip" role="tooltip">Follow this answer to receive notifications<div class="s-popover--arrow"/></div>
+                </div>
+
+
+
+
+
+
+    </div>
+    <div class="js-menu-popup-container"/>
+</div>
+            </div>
+            <div class="post-signature flex--item fl0">
+<div class="user-info ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            <a href="/posts/79642059/revisions" title="show all edits to this post" class="js-gps-track" data-gps-track="post.click({ item: 4, priv: 0, post_type: 2 })">edited <span title="2025-05-28 12:00:19Z" class="relativetime">10 hours ago</span></a>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        
+    </div>
+    <div class="user-details">
+        
+        <div class="-flair">
+            
+        </div>
+    </div>
+</div>
+            </div>
+
+
+            <div class="post-signature flex--item fl0">
+                <div class="user-info ">
+    <div class="d-flex ">
+        <div class="user-action-time fl-grow1">
+            answered <span title="2025-05-28 10:57:48Z" class="relativetime">11 hours ago</span>
+        </div>
+        
+    </div>
+    <div class="user-gravatar32">
+        <a href="/users/2610810/caleth"><div class="gravatar-wrapper-32"><img src="https://www.gravatar.com/avatar/c8c6433073e71478e8da278a188e1d15?s=64&amp;d=identicon&amp;r=PG" alt="Caleth's user avatar" width="32" height="32" class="bar-sm"/></div></a>
+    </div>
+    <div class="user-details" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <a href="/users/2610810/caleth" itemprop="url" dir="auto">Caleth</a><span class="d-none" itemprop="name">Caleth</span>
+        <div class="-flair">
+            <span class="reputation-score" title="reputation score 64,746" dir="ltr">64.7k</span><span title="2 gold badges" aria-hidden="true"><span class="badge1"/><span class="badgecount">2</span></span><span class="v-visible-sr">2 gold badges</span><span title="49 silver badges" aria-hidden="true"><span class="badge2"/><span class="badgecount">49</span></span><span class="v-visible-sr">49 silver badges</span><span title="95 bronze badges" aria-hidden="true"><span class="badge3"/><span class="badgecount">95</span></span><span class="v-visible-sr">95 bronze badges</span>
+        </div>
+    </div>
+</div>
+
+
+            </div>
+        </div>
+        
+    
+    </div>
+    
+</div>
+
+
+
+
+                
+
+<span class="d-none" itemprop="commentCount"/> 
+    <div class="post-layout--right js-post-comments-component">
+        <div id="comments-79642059" class="comments js-comments-container bt bc-black-200 mt12  dno" data-post-id="79642059" data-min-length="15">
+            <ul class="comments-list js-comments-list" data-remaining-comments-count="0" data-canpost="false" data-cansee="true" data-comments-unavailable="false" data-addlink-disabled="true">
+
+            </ul>
+	    </div>
+
+        <div id="comments-link-79642059" data-rep="40" data-anon="true">
+                        <a class="js-add-link comments-link disabled-link" title="Use comments to ask for more information or suggest improvements. Avoid comments like “+1” or “thanks”." href="#" role="button">Add a comment</a>
+                    <span class="js-link-separator dno"> | </span>
+            <a class="js-show-link comments-link dno" title="Expand to show all comments on this post" href="#" onclick="" role="button"/>
+        </div>         
+    </div>
+
+        </div>
+</div>
+
+                        <a name="new-answer"/>
+                            <form id="post-form" action="/questions/79640301/answer/submit" method="post" class="js-add-answer-component post-form">
+                                <input type="hidden" id="post-id" value="79640301"/>
+                                <input type="hidden" id="qualityBanWarningShown" name="qualityBanWarningShown" value="false"/>
+                                <input type="hidden" name="referrer" value=""/>
+                                    <input type="hidden" name="referrer-id" value="0"/>
+                                <h2 class="space" id="your-answer-header">
+                                    Your Answer
+                                </h2>
+                                    
+
+
+
+<script>
+    StackExchange.ready(function() {
+        var channelOptions = {
+            tags: "".split(" "),
+            id: "1"
+        };
+        initTagRenderer("".split(" "), "".split(" "), channelOptions);
+
+        StackExchange.using("externalEditor", function() {
+            // Have to fire editor after snippets, if snippets enabled
+            if (StackExchange.settings.snippets.snippetsEnabled) {
+                StackExchange.using("snippets", function() {
+                    createEditor();
+                });
+            }
+            else {
+                createEditor();
+            }
+        });
+
+        function createEditor() {   
+            StackExchange.prepareEditor({
+                useStacksEditor: true,
+                heartbeatType: 'answer',
+                autoActivateHeartbeat: false,
+                convertImagesToLinks: true,
+                noModals: true,
+                showLowRepImageUploadWarning: true,
+                reputationToPostImages: 10,
+                bindNavPrevention: true,
+                postfix: "",
+                imageUploadEnabled: false,
+                imageUploader: {
+                    brandingHtml: "",
+                    contentPolicyHtml: "User contributions licensed under \u003ca href=\"https://stackoverflow.com/help/licensing\"\u003eCC BY-SA\u003c/a\u003e \u003ca href=\"https://stackoverflow.com/legal/acceptable-use-policy\"\u003e(content policy)\u003c/a\u003e",
+                    allowUrls: true,
+                },
+                onDemand: true,
+                discardSelector: ".discard-answer",
+                enableTables: true,
+                isStacksEditorPreviewEnabled: true,
+                tabindex: 103,
+                highlightingLanguages: ["html","perl","dfm","ml","gyp","javascript","rss","jsp","scss","objc","bsh","kts","gemspec","wl","objective-c++","objectivec","https","el","h++","hs","plist","lua","xml","obj-c++","clojure","none","hh","vbs","ruby","kt","http","sh","typescript","vb","py","c#","mkd","xhtml","php","xjb","shellsession","sql","fs","ss","css","cson","pm","edn","mts","kotlin","coffeescript","pl","pas","tex","rust","csh","jsx","protobuf","delphi","matlab","m","s","xsl","mathematica","mak","mma","irb","md","cxx","atom","ts","lsp","cl","yaml","wsf","erlang","obj-c","rkt","golang","latex","ipython","svg","ini","toml","julia","cv","shell","makefile","dpr","scm","rc","vbnet","cpp","rs","cc","swift","vhd","c++","c-like","r","mjs","make","h","hpp","erl","iced","c","python","pascal","less","dart","podspec","scala","php-template","yml","markdown","bash","clj","java","cyc","coffee","json","cjs","go","hxx","ocaml","proto","cs","csharp","lisp","rb","console","cts","mkdown","mm","js","mk","tsx","haskell","scheme","thor","vhdl","xsd"]
+                ,enableTables:true
+            });
+                    }
+    });
+</script>
+<div id="post-editor" class="post-editor js-post-editor d-flex fd-column g4">
+
+
+    <input type="hidden" name="stacksEditorEnabled" value="True"/>
+
+        <input type="hidden" id="stacksEditorView" name="stacksEditorView"/>
+        <div class="js-stacks-validation">
+            <textarea id="js-stacks-editor-content" name="post-text" class="d-none js-stacks-editor-backing-textarea js-post-body-field" data-editor-type="stacks-editor" data-post-type-id="2" data-min-length="" aria-labelledby="your-answer-header"/>
+
+            <div id="js-stacks-editor-container" class="js-stacks-editor-container mb8">
+                <div class="js-fake-stacks-editor s-textarea s-input__readonly overflow-auto hmn2 w100 p0 d-flex fd-column pe-none">
+  <div class="py6 bg-inherit btr-sm w100">
+    <div class="d-flex overflow-x-auto ai-center px12 py4 pb0">
+      <div class="d-flex g16 fl-grow1 ai-center">
+        <div class="s-editor-menu-block d-flex g2">
+          <div>
+            <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+              <span class="svg-icon-bg iconHeader"/>
+            </button>
+          </div>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconBold"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconItalic"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconCode"/>
+          </button>
+        </div>
+        <div class="s-editor-menu-block d-flex g2">
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconLink"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconQuote"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconCodeblock"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconImage"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconTable"/>
+          </button>
+        </div>
+        <div class="s-editor-menu-block d-flex g2">
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconOrderedList"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconUnorderedList"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconHorizontalRule"/>
+          </button>
+        </div>
+        <div class="s-editor-menu-block d-flex g2 sm:d-inline-flex d-none">
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconUndo"/>
+          </button>
+          <button class="s-editor-btn s-btn is-disabled" disabled="" type="button">
+            <span class="svg-icon-bg iconRefresh"/>
+          </button>
+        </div>
+        <div class="s-editor-menu-block d-flex g2">
+          <a class="s-editor-btn s-btn is-disabled" tabindex="-1" href="#" target="_blank">
+            <span class="svg-icon-bg iconHelp"/>
+          </a>
+        </div>
+      </div>
+      <div class="flex--item d-flex ai-center ml24 fc-black-500">
+        <div class="s-btn-group--radio">
+          <label class="s-btn s-editor-btn px6">
+            <span class="svg-icon-bg iconRichText"/>
+          </label>
+          <label class="s-btn s-editor-btn px6">
+            <span class="svg-icon-bg iconMarkdown"/>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class=" fl-grow1 outline-none p12 pt6 w100 s-prose ProseMirror">
+  </div>
+</div>
+
+            </div>
+            <div id="js-stacks-editor-container-validation-message" class="s-input-message mt4 js-stacks-validation-message d-none"/>
+        </div>
+
+    <aside class="d-flex ai-start jc-space-between js-answer-help s-notice s-notice__warning pb0 pr4 pt4 mb8 d-none" role="status" aria-hidden="true">
+    <div class="flex--item pt8">
+        <p>Thanks for contributing an answer to Stack Overflow!</p><ul><li>Please be sure to <em>answer the question</em>. Provide details and share your research!</li></ul><p>But <em>avoid</em> …</p><ul><li>Asking for help, clarification, or responding to other answers.</li><li>Making statements based on opinion; back them up with references or personal experience.</li></ul><p>To learn more, see our <a href="/help/how-to-answer">tips on writing great answers</a>.</p>
+    </div>
+    <button class="flex--item js-answer-help-close-btn s-btn s-btn__muted fc-black-600">
+        <svg aria-hidden="true" class="svg-icon iconClear" width="18" height="18" viewbox="0 0 18 18"><path d="M15 4.41 13.59 3 9 7.59 4.41 3 3 4.41 7.59 9 3 13.59 4.41 15 9 10.41 13.59 15 15 13.59 10.41 9z"/></svg>
+    </button>
+</aside>
+
+
+
+    <div>
+        <div id="draft-saved" class="fc-success h24" style="display:none;">Draft saved</div>
+        <div id="draft-discarded" class="fc-error h24" style="display:none;">Draft discarded</div>
+    </div>
+
+
+
+        <div class="edit-block">
+            <input id="fkey" name="fkey" type="hidden" value="4e63a3da78dea56c2ee921d42a4d897c8b67670bbabcb0ee11160b2facc87a76"/>
+            <input id="author" name="author" type="text"/>
+        </div>
+
+</div>
+
+
+                                <div class="ps-relative">
+                                               <div class="form-item new-post-login p0 my16">
+                <div class="d-flex gs16 md:fd-column new-login-form">
+                    <div class="d-flex fd-column w50 md:w-auto gsy gs8 jc-space-between new-login-left">
+                        <h3 class="flex--item fs-title">Sign up or <a id="login-link" href="/users/login?ssrc=question_page&amp;returnurl=https%3a%2f%2fstackoverflow.com%2fquestions%2f79640301%2fhow-to-manage-perform-n-m-checks-instead-of-n-m-for-constexpr-values%23new-answer">log in</a></h3>
+                        <script>
+                            StackExchange.ready(function () {
+                                StackExchange.helpers.onClickDraftSave('#login-link');
+                            });
+                        </script>
+                        <div class="flex--item s-btn s-btn__muted s-btn__outlined s-btn__icon google-login" data-ga="[&quot;sign up&quot;,&quot;Sign Up Started - Google&quot;,&quot;New Post&quot;,null,null]">
+                            <svg aria-hidden="true" class="native svg-icon iconGoogle" width="18" height="18" viewbox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.8 4.8 0 0 1 4.48-3.3"/></svg> Sign up using Google
+                        </div>
+                        <div class="flex--item s-btn s-btn__muted s-btn__outlined s-btn__icon stackexchange-login" data-ga="[&quot;sign up&quot;,&quot;Sign Up Navigation&quot;,&quot;New Post&quot;,null,null]">
+                            <svg aria-hidden="true" class="native svg-icon iconGlyphXSm" width="18" height="18" viewbox="0 0 18 18"><path fill="#BCBBBB" d="M14 16v-5h2v7H2v-7h2v5z"/><path fill="#F48024" d="m12.09.72-1.21.9 4.5 6.07 1.22-.9zM5 15h8v-2H5zm9.15-5.87L8.35 4.3l.96-1.16 5.8 4.83zm-7.7-1.47 6.85 3.19.63-1.37-6.85-3.2zm6.53 5L5.4 11.39l.38-1.67 7.42 1.48z"/></svg> Sign up using Email and Password
+                        </div>
+                    </div>
+                    <input type="hidden" name="use-facebook" class="use-facebook" value="false"/>
+                    <input type="hidden" name="use-google" class="use-google" value="false"/>
+                    <button type="button" class="d-none js-submit-openid">Submit</button>
+                    <div class="d-flex gsy gs8 fd-column w50 md:w-auto new-login-right form-item p0">
+                                <h3 class="flex--item fs-title">Post as a guest</h3>
+            <div class="flex--item">
+                <div class="d-flex gs4 gsy fd-column">
+                    <label class="s-label" for="display-name">Name</label>
+                    <div class="d-flex ps-relative">
+                        <input class="s-input" id="display-name" name="display-name" maxlength="30" type="text" value="" tabindex="105" placeholder=""/>
+                    </div>
+                </div>
+            </div>
+            <div class="flex--item">
+                <div class="d-flex gs4 gsy fd-column">
+                    <div class="flex--item">
+                        <div class="d-flex gs2 gsy fd-column">
+                            <label class="flex--item s-label" for="m-address">Email</label>
+                            <p class="flex--item s-description">Required, but never shown</p>
+                        </div>
+                    </div>
+                    <div class="d-flex ps-relative">
+                        <input class="s-input js-post-email-field" id="m-address" name="m-address" type="text" value="" size="40" tabindex="106" placeholder=""/>
+                    </div>
+                </div>
+            </div>
+
+                    </div>
+                </div>
+            </div>
+            <script>
+                StackExchange.ready(
+                    function () {
+                        StackExchange.openid.initPostLogin('.new-post-login', 'https%3a%2f%2fstackoverflow.com%2fquestions%2f79640301%2fhow-to-manage-perform-n-m-checks-instead-of-n-m-for-constexpr-values%23new-answer', 'question_page');
+                    }
+                );
+            </script>
+            <noscript>
+                        <h3 class="flex--item fs-title">Post as a guest</h3>
+            <div class="flex--item">
+                <div class="d-flex gs4 gsy fd-column">
+                    <label class="s-label" for="display-name">Name</label>
+                    <div class="d-flex ps-relative">
+                        <input class="s-input" id="display-name" name="display-name" maxlength="30" type="text" value="" tabindex="105" placeholder=""/>
+                    </div>
+                </div>
+            </div>
+            <div class="flex--item">
+                <div class="d-flex gs4 gsy fd-column">
+                    <div class="flex--item">
+                        <div class="d-flex gs2 gsy fd-column">
+                            <label class="flex--item s-label" for="m-address">Email</label>
+                            <p class="flex--item s-description">Required, but never shown</p>
+                        </div>
+                    </div>
+                    <div class="d-flex ps-relative">
+                        <input class="s-input js-post-email-field" id="m-address" name="m-address" type="text" value="" size="40" tabindex="106" placeholder=""/>
+                    </div>
+                </div>
+            </div>
+
+            </noscript>
+
+                                </div>
+
+                                    <div class="form-submit clear-both d-flex sm:fd-column sm:jc-stretch gs4 ai-center mb24">
+                                        <button id="submit-button" class="flex--item fl-shrink0 s-btn s-btn__filled sm:w100" type="submit" tabindex="120" autocomplete="off">
+                                            Post Your Answer
+                                        </button>
+                                        <button class="flex--item s-btn s-btn__danger fl-shrink0 sm:w100 discard-answer d-none">
+                                            Discard
+                                        </button>
+                                            <p class="flex--item mb0 fs-italic ml12 sm:ml0">
+                                                By clicking “Post Your Answer”, you agree to our <a href="https://stackoverflow.com/legal/terms-of-service/public" name="tos" target="_blank" class="-link">terms of service</a> and acknowledge you have read our <a href="https://stackoverflow.com/legal/privacy-policy" name="privacy" target="_blank" class="-link">privacy policy</a>.<input type="hidden" name="legalLinksShown" value="1"/>
+                                            </p>
+                                    </div>
+                                    <div class="js-general-error general-error clear-both d-none" aria-live="polite"/>
+                            </form>
+
+
+                            <div class="js-bottom-notice d-flex w100 md:mb12 md:fd-column ac-stretch" data-loc="1">
+                                <div class="flex--item ba bc-black-200 bar-md p24 md:p16 mr12 md:mb12 md:mr0 w50 md:w100">
+                                    <div class="d-flex fd-column">
+                                        <p class="flex--item fs-body2 fw-bold fc-black-500 mb8">Start asking to get answers</p>
+                                        <p class="flex--item fs-body1 fc-black-400 mb16">Find the answer to your question by asking.</p>
+                                        <a class="flex--item s-btn s-btn__outlined as-start px32 md:px16" href="/questions/ask">Ask question</a>
+                                    </div>
+                                </div>
+                                <div class="flex--item ba bc-black-200 bar-md p24 md:p16 w50 md:w100">
+                                    <div class="d-flex fd-column gsy g16">
+                                        <p class="flex--item fs-body2 fw-bold fc-black-500 mb0">Explore related questions</p>
+                                        <div class="flex--item mb0"><ul class="ml0 list-ls-none js-post-tag-list-wrapper d-inline"><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/c%2b%2b" class="s-tag post-tag js-gps-track" title="show questions tagged 'c++'" aria-label="show questions tagged 'c++'" rel="tag" aria-labelledby="tag-c++-tooltip-container" data-tag-menu-origin="Unknown">c++</a></li><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/templates" class="s-tag post-tag js-gps-track" title="show questions tagged 'templates'" aria-label="show questions tagged 'templates'" rel="tag" aria-labelledby="tag-templates-tooltip-container" data-tag-menu-origin="Unknown">templates</a></li><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/lambda" class="s-tag post-tag js-gps-track" title="show questions tagged 'lambda'" aria-label="show questions tagged 'lambda'" rel="tag" aria-labelledby="tag-lambda-tooltip-container" data-tag-menu-origin="Unknown">lambda</a></li><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/constexpr" class="s-tag post-tag js-gps-track" title="show questions tagged 'constexpr'" aria-label="show questions tagged 'constexpr'" rel="tag" aria-labelledby="tag-constexpr-tooltip-container" data-tag-menu-origin="Unknown">constexpr</a></li></ul></div>
+                                        <p class="flex--item fs-body1 fc-black-400 mb0">See similar questions with these tags.</p>
+                                    </div>
+                                </div>
+                            </div>
+                </div>
+            </div>
+
+            
+<div id="sidebar" class="show-votes" role="complementary" aria-label="sidebar">
+        
+
+    
+    <div class="s-sidebarwidget s-sidebarwidget__yellow s-anchors s-anchors__grayscale mb16" data-tracker="cb=1">
+            <ul class="s-sidebarwidget--content s-sidebarwidget__items p0">
+                        <li class="s-sidebarwidget--header">
+                            The Overflow Blog
+                        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<svg aria-hidden="true" class="va-text-top svg-icon iconPencilSm" width="14" height="14" viewbox="0 0 14 14"><path fill="#F1B600" d="m2 10.12 6.37-6.43 1.88 1.88L3.88 12H2z"/><path fill="#E87C87" d="m11.1 1.71 1.13 1.12c.2.2.2.51 0 .71L11.1 4.7 9.21 2.86l1.17-1.15c.2-.2.51-.2.71 0"/></svg>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://stackoverflow.blog/2025/05/27/the-future-is-agents-building-a-platform-for-rag-agents/?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;The Overflow Blog&quot;,&quot;https://stackoverflow.blog/2025/05/27/the-future-is-agents-building-a-platform-for-rag-agents/&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 1, position: 0, location: questionpage })">“The future is agents”: Building a platform for RAG agents</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<svg aria-hidden="true" class="va-text-top svg-icon iconPencilSm" width="14" height="14" viewbox="0 0 14 14"><path fill="#F1B600" d="m2 10.12 6.37-6.43 1.88 1.88L3.88 12H2z"/><path fill="#E87C87" d="m11.1 1.71 1.13 1.12c.2.2.2.51 0 .71L11.1 4.7 9.21 2.86l1.17-1.15c.2-.2.51-.2.71 0"/></svg>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://stackoverflow.blog/2025/05/28/a-deep-dive-into-building-an-agent-framework-for-salesforce/?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;The Overflow Blog&quot;,&quot;https://stackoverflow.blog/2025/05/28/a-deep-dive-into-building-an-agent-framework-for-salesforce/&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 1, position: 1, location: questionpage })">A deep dive into building an agent framework for Salesforce</a>
+            </div>
+        </li>
+                        <li class="s-sidebarwidget--header">
+                            Upcoming Events
+                        </li>
+    <li class="s-sidebarwidget--item d-flex px16">
+        <div class="flex--item1 fl-shrink0">
+            <div class="favicon favicon-stackoverflow" title="Stack Overflow"/>
+        </div>
+        <div class="flex--item wmn0 ow-break-word">
+            <a href="https://stackoverflow.com/election?cb=1" class="fc-danger js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Upcoming Events&quot;,&quot;https://stackoverflow.com/election&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 5, position: 2, location: questionpage })">2025 Community Moderator Election</a>
+            <div>ends <span title="2025-06-11 20:00:00Z">June 11</span></div>
+        </div>
+    </li>
+                        <li class="s-sidebarwidget--header">
+                            Featured on Meta
+                        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackexchangemeta" title="Meta Stack Exchange"/>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackexchange.com/questions/408998/two-new-chat-rooms-experiment-geared-towards-new-users?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackexchange.com/questions/408998/two-new-chat-rooms-experiment-geared-towards-new-users&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 3, position: 3, location: questionpage })">Two New Chat Rooms Experiment Geared Towards New Users</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackexchangemeta" title="Meta Stack Exchange"/>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackexchange.com/questions/410212/how-can-we-bring-more-fun-to-the-stack-ecosystem-community-ideas-welcome?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackexchange.com/questions/410212/how-can-we-bring-more-fun-to-the-stack-ecosystem-community-ideas-welcome&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 3, position: 4, location: questionpage })">How Can We Bring More Fun to the Stack Ecosystem? Community Ideas Welcome!</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackoverflowmeta" title="Meta Stack Overflow"/>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackoverflow.com/questions/433957/how-can-i-revert-the-style-layout-changes-to-comments?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackoverflow.com/questions/433957/how-can-i-revert-the-style-layout-changes-to-comments&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 6, position: 5, location: questionpage })">How can I revert the style/layout changes to comments?</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackoverflowmeta" title="Meta Stack Overflow"/>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackoverflow.com/questions/421831/policy-generative-ai-e-g-chatgpt-is-banned?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackoverflow.com/questions/421831/policy-generative-ai-e-g-chatgpt-is-banned&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 6, position: 6, location: questionpage })">Policy: Generative AI (e.g., ChatGPT) is banned</a>
+            </div>
+        </li>
+        <li class="s-sidebarwidget--item d-flex px16">
+            <div class="flex--item1 fl-shrink0">
+<div class="favicon favicon-stackoverflowmeta" title="Meta Stack Overflow"/>            </div>
+            <div class="flex--item wmn0 ow-break-word">
+                <a href="https://meta.stackoverflow.com/questions/434022/experimenting-with-the-commenting-reputation-requirement?cb=1" class="js-gps-track" data-ga="[&quot;community bulletin board&quot;,&quot;Featured on Meta&quot;,&quot;https://meta.stackoverflow.com/questions/434022/experimenting-with-the-commenting-reputation-requirement&quot;,null,null]" data-gps-track="communitybulletin.click({ priority: 6, position: 7, location: questionpage })">Experimenting with the Commenting Reputation Requirement</a>
+            </div>
+        </li>
+        </ul>
+    </div>
+
+
+<div class="js-zone-container zone-container-sidebar" style="min-height: auto; height: auto;">
+    <div id="dfp-tsb" class="everyonelovesstackoverflow everyoneloves__top-sidebar" data-dfp-zone="true" style="min-height: auto; height: auto;" data-google-query-id="CLLi47ubx40DFWAy-wMdYssxNA"><div id="google_ads_iframe_/248424177/stackoverflow.com/sb/question-pages_0__container__" style="border: 0pt none; display: inline-block; width: 300px; height: 250px;"><iframe frameborder="0" src="https://56e8e84ed48a336d1d3840f06c270195.safeframe.googlesyndication.com/safeframe/1-0-45/html/container.html" id="google_ads_iframe_/248424177/stackoverflow.com/sb/question-pages_0" title="3rd party ad content" name="" scrolling="no" marginwidth="0" marginheight="0" width="300" height="250" data-is-safeframe="true" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" allow="private-state-token-redemption;attribution-reporting" aria-label="Advertisement" tabindex="0" data-google-container-id="1" style="border: 0px; vertical-align: bottom;" data-load-complete="true"/></div></div>
+		<div class="js-report-ad-button-container " style="width: 300px; height: 24px;"><button data-google-event-data="{&quot;serviceName&quot;:&quot;publisher_ads&quot;,&quot;slot&quot;:{},&quot;isEmpty&quot;:false,&quot;slotContentChanged&quot;:true,&quot;size&quot;:[300,250],&quot;advertiserId&quot;:4925262915,&quot;campaignId&quot;:3737618614,&quot;creativeId&quot;:138511881015,&quot;creativeTemplateId&quot;:null,&quot;labelIds&quot;:null,&quot;lineItemId&quot;:6952373973,&quot;sourceAgnosticCreativeId&quot;:138511881015,&quot;sourceAgnosticLineItemId&quot;:6952373973,&quot;isBackfill&quot;:false,&quot;yieldGroupIds&quot;:null,&quot;companyIds&quot;:null,&quot;vast&quot;:null,&quot;responseIdentifier&quot;:&quot;CLLi47ubx40DFWAy-wMdYssxNA&quot;,&quot;adTransparencyUrl&quot;:null}" data-modal-url="/ads/report-ad" data-ad-unit="dfp-tsb" class="js-report-ad s-btn s-btn__link fs-fine mt2 float-right">Report this ad</button></div>
+</div>
+<div class="js-zone-container zone-container-sidebar mt16" style="min-height: auto; height: auto;">
+    <div id="dfp-msb" class="everyonelovesstackoverflow everyoneloves__mid-sidebar" data-dfp-zone="true" style="min-height: auto; height: auto;" data-google-query-id="CIzX47ubx40DFR5PpAQdq5U2Ow"><div id="google_ads_iframe_/248424177/stackoverflow.com/msb/question-pages_0__container__" style="border: 0pt none; display: inline-block; width: 300px; height: 250px;"><iframe frameborder="0" src="https://56e8e84ed48a336d1d3840f06c270195.safeframe.googlesyndication.com/safeframe/1-0-45/html/container.html" id="google_ads_iframe_/248424177/stackoverflow.com/msb/question-pages_0" title="3rd party ad content" name="" scrolling="no" marginwidth="0" marginheight="0" width="300" height="250" data-is-safeframe="true" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" allow="private-state-token-redemption;attribution-reporting" aria-label="Advertisement" tabindex="0" data-google-container-id="2" style="border: 0px; vertical-align: bottom;" data-load-complete="true"/></div></div>
+		<div class="js-report-ad-button-container " style="width: 300px; height: 24px;"><button data-google-event-data="{&quot;serviceName&quot;:&quot;publisher_ads&quot;,&quot;slot&quot;:{},&quot;isEmpty&quot;:false,&quot;slotContentChanged&quot;:true,&quot;size&quot;:[300,250],&quot;advertiserId&quot;:4925262915,&quot;campaignId&quot;:3737618614,&quot;creativeId&quot;:138512619496,&quot;creativeTemplateId&quot;:null,&quot;labelIds&quot;:null,&quot;lineItemId&quot;:6952373973,&quot;sourceAgnosticCreativeId&quot;:138512619496,&quot;sourceAgnosticLineItemId&quot;:6952373973,&quot;isBackfill&quot;:false,&quot;yieldGroupIds&quot;:null,&quot;companyIds&quot;:null,&quot;vast&quot;:null,&quot;responseIdentifier&quot;:&quot;CIzX47ubx40DFR5PpAQdq5U2Ow&quot;,&quot;adTransparencyUrl&quot;:null}" data-modal-url="/ads/report-ad" data-ad-unit="dfp-msb" class="js-report-ad s-btn s-btn__link fs-fine mt2 float-right">Report this ad</button></div>
+</div>
+<div id="hireme"/>        
+
+    
+
+
+        <div class="module sidebar-related">
+            <h4 id="h-related">Related</h4>
+            <div class="related js-gps-related-questions" data-tracker="rq=1">
+                    <div class="spacer" data-question-id="4748083">
+                        <a href="https://stackoverflow.com/q/4748083?rq=1" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted large">399</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/4748083/should-i-declare-a-constant-instead-of-writing-a-constexpr-function?rq=1" class="question-hyperlink">Should I declare a constant instead of writing a constexpr function?</a>
+                    </div>
+                    <div class="spacer" data-question-id="62645630">
+                        <a href="https://stackoverflow.com/q/62645630?rq=1" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted default">2</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/62645630/specify-function-return-type-as-template-parameter-in-c?rq=1" class="question-hyperlink">Specify function return type as template parameter in c++</a>
+                    </div>
+                    <div class="spacer" data-question-id="28257745">
+                        <a href="https://stackoverflow.com/q/28257745?rq=1" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes default">0</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/28257745/templates-typeinfo-and-inheritance?rq=1" class="question-hyperlink">Templates, typeinfo and inheritance</a>
+                    </div>
+                    <div class="spacer" data-question-id="15481425">
+                        <a href="https://stackoverflow.com/q/15481425?rq=1" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes default">1</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/15481425/return-type-deduction-what-method-is-preferred?rq=1" class="question-hyperlink">Return type deduction: What method is preferred?</a>
+                    </div>
+                    <div class="spacer" data-question-id="38950107">
+                        <a href="https://stackoverflow.com/q/38950107?rq=1" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted default">4</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/38950107/how-to-return-vector-of-enum-outside-the-class?rq=1" class="question-hyperlink">How to return vector of enum outside the class?</a>
+                    </div>
+                    <div class="spacer" data-question-id="30208685">
+                        <a href="https://stackoverflow.com/q/30208685?rq=1" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted default">99</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/30208685/how-to-declare-constexpr-extern?rq=1" class="question-hyperlink">How to declare constexpr extern?</a>
+                    </div>
+                    <div class="spacer" data-question-id="25686048">
+                        <a href="https://stackoverflow.com/q/25686048?rq=1" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes default">3</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/25686048/implement-something-that-has-both-enum-and-class-behavior?rq=1" class="question-hyperlink">Implement something that has both enum and class behavior</a>
+                    </div>
+                    <div class="spacer" data-question-id="19470873">
+                        <a href="https://stackoverflow.com/q/19470873?rq=1" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted large">521</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/19470873/why-does-gcc-generate-15-20-faster-code-if-i-optimize-for-size-instead-of-speed?rq=1" class="question-hyperlink">Why does GCC generate 15-20% faster code if I optimize for size instead of speed?</a>
+                    </div>
+                    <div class="spacer" data-question-id="17333">
+                        <a href="https://stackoverflow.com/q/17333?rq=1" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes large">675</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/17333/how-do-you-compare-float-and-double-while-accounting-for-precision-loss?rq=1" class="question-hyperlink">How do you compare float and double while accounting for precision loss?</a>
+                    </div>
+                    <div class="spacer" data-question-id="41011900">
+                        <a href="https://stackoverflow.com/q/41011900?rq=1" title="Question score (upvotes - downvotes)">
+                            <div class="answer-votes answered-accepted default">83</div>
+                        </a>
+                        <a href="https://stackoverflow.com/questions/41011900/equivalent-ternary-operator-for-constexpr-if?rq=1" class="question-hyperlink">Equivalent ternary operator for constexpr if?</a>
+                    </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+                 $(function() {
+                     $(".js-gps-related-questions .spacer").on("click", function () {
+                        fireRelatedEvent($(this).index() + 1, $(this).data('question-id'));
+                     });
+
+                 function fireRelatedEvent(position, questionId) {
+                     StackExchange.using("gps", function() {
+                         StackExchange.gps.track('related_questions.click',
+                         {
+                             position: position,
+                             originQuestionId: 79640301,
+                             relatedQuestionId: +questionId,
+                             location: 'sidebar',
+                             source: 'Baseline_Fallback'
+                         });    
+                     });
+                 }
+             });
+         </script>
+
+
+    
+    
+
+    <div id="hot-network-questions" class="module tex2jax_ignore">
+    <h4>
+        <a href="https://stackexchange.com/questions?tab=hot" class="js-gps-track s-link s-link__inherit" data-gps-track="posts_hot_network.click({ item_type:1, location:11 })">
+            Hot Network Questions
+        </a>
+    </h4>
+    <ul>
+            <li>
+                <div class="favicon favicon-scifi" title="Science Fiction &amp; Fantasy Stack Exchange"/><a href="https://scifi.stackexchange.com/questions/296824/a-fantasy-short-story-about-an-old-woman-on-an-island-who-never-crossed-to-the" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:186 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    A Fantasy short story about an old woman, on an island, who never crossed to the continent across a very narrow strait
+                </a>
+
+            </li>
+            <li>
+                <div class="favicon favicon-codereview" title="Code Review Stack Exchange"/><a href="https://codereview.stackexchange.com/questions/297209/arbitrary-layout-floating-point-number-conversion-library" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:196 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Arbitrary-layout Floating-point Number conversion library
+                </a>
+
+            </li>
+            <li>
+                <div class="favicon favicon-scifi" title="Science Fiction &amp; Fantasy Stack Exchange"/><a href="https://scifi.stackexchange.com/questions/296842/story-identification-about-parasite-in-fruit" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:186 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Story identification about parasite in fruit
+                </a>
+
+            </li>
+            <li>
+                <div class="favicon favicon-politics" title="Politics Stack Exchange"/><a href="https://politics.stackexchange.com/questions/92768/what-evidence-would-academics-give-to-discredit-curtis-yarvin-and-the-neoreactio" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:475 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What Evidence Would Academics Give to Discredit Curtis Yarvin and the Neoreactionary movement?
+                </a>
+
+            </li>
+            <li>
+                <div class="favicon favicon-unix" title="Unix &amp; Linux Stack Exchange"/><a href="https://unix.stackexchange.com/questions/796338/does-any-organisation-standardise-system-management-fundamentals" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:106 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Does any organisation standardise system management fundamentals?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-travel" title="Travel Stack Exchange"/><a href="https://travel.stackexchange.com/questions/198308/what-do-from-and-to-mean-on-a-schengen-visa" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:273 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What do from: and to: mean on a Schengen visa?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-dba" title="Database Administrators Stack Exchange"/><a href="https://dba.stackexchange.com/questions/346684/what-are-the-reasons-why-show-advanced-options-is-a-security-threat-when-left-en" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:182 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    what are the reasons why show advanced options is a security threat when left enabled?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-german" title="German Language Stack Exchange"/><a href="https://german.stackexchange.com/questions/80246/can-zuletzt-mean-recently" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:253 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Can "zuletzt" mean "recently"?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-electronics" title="Electrical Engineering Stack Exchange"/><a href="https://electronics.stackexchange.com/questions/748826/mt3608-boost-converter-shorts-gnd-and-vin-killing-the-usb" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:135 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    MT3608 boost converter shorts GND and VIN, killing the USB
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-worldbuilding" title="Worldbuilding Stack Exchange"/><a href="https://worldbuilding.stackexchange.com/questions/267623/what-is-the-maximum-length-of-an-aquatic-invertebrate" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:579 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What is the maximum length of an aquatic invertebrate?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-puzzling" title="Puzzling Stack Exchange"/><a href="https://puzzling.stackexchange.com/questions/132045/what-words-were-uttered-upon-the-death" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:559 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What words were uttered upon the death?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-blender" title="Blender Stack Exchange"/><a href="https://blender.stackexchange.com/questions/335891/does-the-duplicate-node-or-compare-node-have-a-bug" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:502 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Does the Duplicate Node or Compare Node have a bug?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-electronics" title="Electrical Engineering Stack Exchange"/><a href="https://electronics.stackexchange.com/questions/748848/identify-two-terminal-smd-component-with-marking-2x2" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:135 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Identify two-terminal SMD component with marking 2X2
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-mathoverflow" title="MathOverflow"/><a href="https://mathoverflow.net/questions/495308/a-generalization-of-jensens-inequality" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:504 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    A generalization of Jensen's inequality
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-electronics" title="Electrical Engineering Stack Exchange"/><a href="https://electronics.stackexchange.com/questions/748786/how-much-headroom-for-absolute-maximum-values" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:135 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    How much headroom for "absolute maximum" values?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-scifi" title="Science Fiction &amp; Fantasy Stack Exchange"/><a href="https://scifi.stackexchange.com/questions/296845/animated-movie-from-the-70s-dealing-with-feeling-like-you-are-not-like-anyone-el" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:186 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Animated movie from the 70s dealing with feeling like you are not like anyone else
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-aviation" title="Aviation Stack Exchange"/><a href="https://aviation.stackexchange.com/questions/110631/360-degrees-turn-during-landing-approach-is-it-weird" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:528 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    360 degrees turn during landing approach - is it weird?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-superuser" title="Super User"/><a href="https://superuser.com/questions/1902762/why-is-it-that-2-4-ghz-wi-fi-is-not-visible-working-on-channel-1-to-4-on-my-dray" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:3 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Why is it that 2.4 GHz Wi-Fi is not visible/working on channel 1 to 4 on my Draytek Vigor 2860n+ router?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-christianity" title="Christianity Stack Exchange"/><a href="https://christianity.stackexchange.com/questions/107419/under-what-circumstances-would-a-non-catholic-marriage-be-considered-invalid-by" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:304 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Under what circumstances would a non-Catholic marriage be considered invalid by the Catholic Church?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-unix" title="Unix &amp; Linux Stack Exchange"/><a href="https://unix.stackexchange.com/questions/796326/using-the-bc-calculator-with-obase-and-ibase-to-convert-integer-representation" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:106 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    using the bc calculator with obase and ibase to convert integer representation
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-electronics" title="Electrical Engineering Stack Exchange"/><a href="https://electronics.stackexchange.com/questions/748867/whose-company-logo-is-this" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:135 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Whose company logo is this?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-tex" title="TeX - LaTeX Stack Exchange"/><a href="https://tex.stackexchange.com/questions/745323/zref-clever-make-explicit-all-names-of-referenced-equations" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:85 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    zref-clever: Make explicit all names of referenced equations
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-academia" title="Academia Stack Exchange"/><a href="https://academia.stackexchange.com/questions/219687/which-p-value-should-be-included-in-figure-caption-of-scientific-paper" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:415 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    Which p-value should be included in figure caption of scientific paper?
+                </a>
+
+            </li>
+            <li class="js-hidden" style="">
+                <div class="favicon favicon-bicycles" title="Bicycles Stack Exchange"/><a href="https://bicycles.stackexchange.com/questions/96817/what-are-the-tolerances-around-seat-tube-seat-post-diameters" class="js-gps-track question-hyperlink mb0" data-gps-track="site.switch({ item_type:11, target_site:126 }); posts_hot_network.click({ item_type:2, location:11 })">
+                    What are the tolerances around seat tube/seat post diameters?
+                </a>
+
+            </li>
+    </ul>
+
+        
+</div>
+
+                <div id="feed-link" class="js-feed-link">
+        <a href="/feeds/question/79640301" title="Feed of this question and its answers">
+            <svg aria-hidden="true" class="fc-orange-400 svg-icon iconRss" width="18" height="18" viewbox="0 0 18 18"><path d="M3 1a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 1.5c6.9 0 12.5 5.6 12.5 12.5H13C13 9.55 8.45 5 3 5zm0 5c4.09 0 7.5 3.41 7.5 7.5H8c0-2.72-2.28-5-5-5zm0 5c1.36 0 2.5 1.14 2.5 2.5H3z"/></svg>
+            Question feed
+        </a>
+    </div>
+    <aside class="s-modal js-feed-link-modal" tabindex="-1" role="dialog" aria-labelledby="feed-modal-title" aria-describedby="feed-modal-description" aria-hidden="true">
+        <div class="s-modal--dialog js-modal-dialog wmx4" role="document" data-controller="se-draggable">
+            <h1 class="s-modal--header fw-bold js-first-tabbable c-move" id="feed-modal-title" data-se-draggable-target="handle" tabindex="0">
+                Subscribe to RSS
+            </h1>
+            <div class="d-flex gs4 gsy fd-column">
+                <div class="flex--item">
+                    <label class="d-block s-label c-default" for="feed-url">
+                        Question feed
+                        <p class="s-description mt2" id="feed-modal-description">To subscribe to this RSS feed, copy and paste this URL into your RSS reader.</p>
+                    </label>
+                </div>
+                <div class="d-flex ps-relative">
+                    <input class="s-input" type="text" name="feed-url" id="feed-url" readonly="readonly" value="https://stackoverflow.com/feeds/question/79640301"/>
+                    <svg aria-hidden="true" class="s-input-icon fc-orange-400 svg-icon iconRss" width="18" height="18" viewbox="0 0 18 18"><path d="M3 1a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 1.5c6.9 0 12.5 5.6 12.5 12.5H13C13 9.55 8.45 5 3 5zm0 5c4.09 0 7.5 3.41 7.5 7.5H8c0-2.72-2.28-5-5-5zm0 5c1.36 0 2.5 1.14 2.5 2.5H3z"/></svg>
+                </div>
+            </div>
+            <a class="s-modal--close s-btn s-btn__muted js-modal-close js-last-tabbable" href="#" aria-label="Close">
+                <svg aria-hidden="true" class="svg-icon iconClearSm" width="14" height="14" viewbox="0 0 14 14"><path d="M12 3.41 10.59 2 7 5.59 3.41 2 2 3.41 5.59 7 2 10.59 3.41 12 7 8.41 10.59 12 12 10.59 8.41 7z"/></svg>
+            </a>
+        </div>
+    </aside>
+
+</div>
+
+    

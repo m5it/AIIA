@@ -1,0 +1,15 @@
+{"time":"2025-06-06T06:20:11.062810992+01:00","level":"INFO","msg":"stream: starting","core version":"0.20.1","symlink path":"/home/t3ch/Projects/Hobies/OurAI/examples/wandb/offline-run-20250606_062010-alhzau2j/logs/debug-core.log"}
+{"time":"2025-06-06T06:20:11.173767621+01:00","level":"WARN","msg":"GraphQL client is nil, skipping feature loading"}
+{"time":"2025-06-06T06:20:11.174261645+01:00","level":"INFO","msg":"stream: created new stream","id":"alhzau2j"}
+{"time":"2025-06-06T06:20:11.174347787+01:00","level":"INFO","msg":"stream: started","id":"alhzau2j"}
+{"time":"2025-06-06T06:20:11.174581726+01:00","level":"INFO","msg":"handler: started","stream_id":"alhzau2j"}
+{"time":"2025-06-06T06:20:11.174520458+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"alhzau2j"}
+{"time":"2025-06-06T06:20:11.174622862+01:00","level":"INFO","msg":"sender: started","stream_id":"alhzau2j"}
+{"time":"2025-06-06T06:20:11.188591416+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-06-06T06:20:12.194060744+01:00","level":"INFO","msg":"stream: closing","id":"alhzau2j"}
+{"time":"2025-06-06T06:20:12.194223608+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-06-06T06:20:12.194559832+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-06-06T06:20:12.195104212+01:00","level":"INFO","msg":"handler: closed","stream_id":"alhzau2j"}
+{"time":"2025-06-06T06:20:12.195168963+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"alhzau2j"}
+{"time":"2025-06-06T06:20:12.195194964+01:00","level":"INFO","msg":"sender: closed","stream_id":"alhzau2j"}
+{"time":"2025-06-06T06:20:12.195468919+01:00","level":"INFO","msg":"stream: closed","id":"alhzau2j"}
