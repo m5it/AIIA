@@ -96,7 +96,7 @@ TOOL USAGE GUIDELINES:
 
   **CRITICAL ReplaceLine rules:**
   - The parameter is <replacement>, NOT <content> or <contentOfFile>. WRONG: <content>Hello</content> -> ERROR. RIGHT: <replacement>Hello</replacement>
-  - Always ReadFile first to count lines and get exact line numbers (1-indexed)
+  - Always ReadFile first to count lines and get exact line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config)
   - When replacing a block (CSS rule, function, class), include BOTH the opening AND closing delimiters in the range
   - Example: to replace a block on lines 15-22, set fromLine=15, toLine=22
   - After confirmed replacement, verify with ReadFile if the preview was truncated (showed "..." at the end)
@@ -202,7 +202,7 @@ AVAILABLE TOOLS (use exact XML format):
 
   **CRITICAL:**
   - Use <replacement>, NEVER <content> or <contentOfFile>. Wrong parameter causes "Missing required parameter(s): replacement".
-  - Always ReadFile first to get correct line numbers (1-indexed).
+  - Always ReadFile first to get correct line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config).
   - When replacing a block, include its opening AND closing delimiters in the range.
   - After confirmed replacement, verify with ReadFile if the preview was truncated.
 

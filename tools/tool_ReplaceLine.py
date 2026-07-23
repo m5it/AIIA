@@ -1,11 +1,14 @@
 import os
 import hashlib
+from config import Options
 
 class ReplaceLine():
 	def __init__(self):
+		zero_indexed = Options.get('REPLACELINE_ZERO_INDEXED', False)
+		idx_desc = "0-indexed (first line = 0)" if zero_indexed else "1-indexed (first line = 1, default)"
 		self.info = {
 			"name":"ReplaceLine",
-			"description":"Replace a specific line or range of lines in a file with new content. Lines are 1-indexed. First call previews; second call with confirmed=true executes. If confirmed=true without a prior preview, preview + execute happen in one pass.",
+			"description":"Replace a specific line or range of lines in a file with new content. Lines are {}. First call previews; second call with confirmed=true executes. If confirmed=true without a prior preview, preview + execute happen in one pass.".format(idx_desc),
 			"parameters":{
 				"returnType":"string",
 				"required":["fileName","fromLine","replacement"],
@@ -16,11 +19,11 @@ class ReplaceLine():
 					},
 					"fromLine":{
 						"type":"number",
-						"description":"Starting line number (1-indexed)."
+						"description":"Starting line number ({}).".format(idx_desc)
 					},
 					"toLine":{
 						"type":"number",
-						"description":"(Optional) Ending line number. If omitted, replaces only fromLine."
+						"description":"(Optional) Ending line number ({}). If omitted, replaces only fromLine.".format(idx_desc)
 					},
 					"replacement":{
 						"type":"string",
@@ -51,6 +54,18 @@ class ReplaceLine():
 				h.update(chunk)
 		return h.hexdigest()
 	#
+	def _is_zero_indexed(self):
+		return Options.get('REPLACELINE_ZERO_INDEXED', False)
+	#
+	def _min_line(self):
+		return 0 if self._is_zero_indexed() else 1
+	#
+	def _to_array_index(self, line_num):
+		"""Convert user line number to Python array index."""
+		if self._is_zero_indexed():
+			return line_num
+		return line_num - 1
+	#
 	def _preview(self, fileName, fl, tl, replacement, old_text):
 		new_preview = replacement.replace('\n', '\\n')
 		if len(new_preview) > 200:
@@ -66,8 +81,12 @@ class ReplaceLine():
 	#
 	def run(self, fileName="", fromLine=None, toLine=None, replacement="", confirmed="false"):
 		preview_text = None
+		min_line = self._min_line()
+		zero_idx = self._is_zero_indexed()
+		idx_label = "0-indexed" if zero_idx else "1-indexed"
+
 		if not fileName or fromLine is None:
-			return "Error: fileName and fromLine are required.\nUsage: <ReplaceLine><fileName>path</fileName><fromLine>10</fromLine><replacement>new text</replacement></ReplaceLine>"
+			return "Error: fileName and fromLine are required.\nUsage: <ReplaceLine><fileName>path</fileName><fromLine>{}</fromLine><replacement>new text</replacement></ReplaceLine>".format(min_line)
 		try:
 			fl = int(fromLine)
 		except Exception:
@@ -78,8 +97,8 @@ class ReplaceLine():
 				tl = int(toLine)
 			except Exception:
 				return "Error: toLine must be a number."
-		if fl < 1 or tl < fl:
-			return "Error: invalid range — fromLine must be >= 1 and toLine >= fromLine."
+		if fl < min_line or tl < fl:
+			return "Error: invalid range — fromLine must be >= {} ({}) and toLine >= fromLine.".format(min_line, idx_label)
 		#
 		full_path = fileName if os.path.isabs(fileName) else os.path.join(os.getcwd(), fileName)
 		if not os.path.exists(full_path):
@@ -91,14 +110,17 @@ class ReplaceLine():
 			return "Error: {}".format(e)
 		#
 		total = len(lines)
-		if fl > total:
-			return "Error: fromLine {} exceeds file length ({} lines).".format(fl, total)
-		if tl > total:
-			return "Error: toLine {} exceeds file length ({} lines).".format(tl, total)
+		max_line = total - 1 if zero_idx else total
+		if fl > max_line:
+			return "Error: fromLine {} exceeds file length ({} lines, max {} {}).".format(fl, total, max_line, idx_label)
+		if tl > max_line:
+			return "Error: toLine {} exceeds file length ({} lines, max {} {}).".format(tl, total, max_line, idx_label)
 		#
 		confirmed = confirmed.lower() in ('true', '1', 'yes')
 		current_key = self._make_key(full_path, fl, tl, replacement)
-		old_lines = lines[fl - 1:tl]
+		arr_fl = self._to_array_index(fl)
+		arr_tl = self._to_array_index(tl)
+		old_lines = lines[arr_fl:arr_tl + 1]
 		old_text = ''.join(old_lines)
 
 		# --- Two-phase enforcement ---
@@ -132,7 +154,7 @@ class ReplaceLine():
 			repl_lines = repl_lines[:-1]
 		repl_lines = [l + '\n' for l in repl_lines]
 		#
-		new_lines = lines[:fl - 1] + repl_lines + lines[tl:]
+		new_lines = lines[:arr_fl] + repl_lines + lines[arr_tl + 1:]
 		#
 		# File-size guard
 		new_content = ''.join(new_lines)

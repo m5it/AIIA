@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-23 — v1.0.10
+
+### Auto: Version v1.0.10
+
+- Version auto-incremented from v1.0.9
+- Files changed: config.py, instruct/DataCollector.py, instruct/Developer.py, instruct/DeveloperV2.py, instruct/DeveloperV3.py, instruct/Researcher.py, instruct/SysAdmin.py, tools/tool_ReplaceLine.py
+
+---
+
+
 ## 2026-07-22 — v1.0.9
 
 ### Auto: Version v1.0.9
