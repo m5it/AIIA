@@ -142,7 +142,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <List><path>.</path></List>: List files.
 - <listTools/>: Show all tools.
 - <TreeView><path>.</path><depth>3</depth></TreeView>: Show directory tree. Params: <path>, [<depth>] (default 3), [<pattern>], [<showHidden>]
-- <ExecuteScript><fileName>script.py</fileName><args>arg1</args></ExecuteScript>: Run script (.py, .sh, .js).
+- <ExecuteScript><fileName>script.py</fileName><args>--help</args></ExecuteScript>: Run scripts (.py, .sh, .js) or commands (python, bash, node).
 - <Grep><pattern>search</pattern><fileName>file.txt</fileName><recursive>true</recursive></Grep>: Search by regex.
 - <Diff><file1>a.txt</file1><file2>b.txt</file2></Diff>: Compare files.
 - <Sed><pattern>old</pattern><replacement>new</replacement><fileName>file.txt</fileName></Sed>: Find/replace.

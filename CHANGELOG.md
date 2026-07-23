@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-23 — v1.0.12
+
+### Auto: Version v1.0.12
+
+- Version auto-incremented from v1.0.11
+- Files changed: instruct/DataCollector.py, instruct/Developer.py, instruct/DeveloperV2.py, instruct/DeveloperV3.py, instruct/Generalist.py, instruct/Researcher.py, instruct/SysAdmin.py, tools/tool_ExecuteScript.py
+
+---
+
+
 ## 2026-07-23 — v1.0.11
 
 ### Auto: Version v1.0.11

@@ -161,7 +161,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <List><path>workout/</path></List>: List files in output directory. Params: [<path>] (optional)
 - <listTools/>: Show all tools. No params.
 - <TreeView><path>.</path><depth>3</depth></TreeView>: Show directory tree. Explore data directories, set depth=0 for unlimited. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
-- <ExecuteScript><fileName>parse.py</fileName></ExecuteScript>: Run data processing scripts (.py, .sh). Params: <fileName>, [<args>]
+- <ExecuteScript><fileName>script.py</fileName><args>--help</args></ExecuteScript>: Run scripts (.py, .sh, .js) or commands (python, bash, node). Params: <fileName>, [<args>]
 - <Grep><pattern>price</pattern><fileName>raw_data.txt</fileName></Grep>: Search extracted data for specific terms. Prefer this over Terminal grep. Params: <pattern>, [<fileName>], [<recursive>]
 - <Head><fileName>data.json</fileName><lines>10</lines></Head>: Preview the first entries of a dataset. Params: <fileName>, [<lines>]
 - <Tail><fileName>data.json</fileName><lines>10</lines></Tail>: Check the last entries. Params: <fileName>, [<lines>]

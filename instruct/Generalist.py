@@ -119,7 +119,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <Diff><file1>a.txt</file1><file2>b.txt</file2></Diff> — Compare files. Params: <file1>, <file2>, [<unified>]
 - <Sed><pattern>old</pattern><replacement>new</replacement><fileName>file.txt</fileName><inplace>true</inplace></Sed> — Find/replace. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
 - <Sort><fileName>file.txt</fileName><numeric>true</numeric></Sort> — Sort lines. Params: <fileName>, [<numeric>], [<reverse>], [<unique>]
-- <ExecuteScript><fileName>script.py</fileName><args>--help</args></ExecuteScript> — Run .py/.sh/.js scripts. Params: <fileName>, [<args>]
+- <ExecuteScript><fileName>script.py</fileName><args>--help</args></ExecuteScript> — Run scripts (.py/.sh/.js) or commands (python, bash, node). Params: <fileName>, [<args>]
 - <listTools/> — Show all available tools. No params.
 
 ESSENTIAL BUILD TOOLS (use these to advance through the plan):

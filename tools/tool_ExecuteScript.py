@@ -1,5 +1,7 @@
 import subprocess
 import os
+import shlex
+import shutil
 
 class ExecuteScript():
 	#
@@ -7,18 +9,18 @@ class ExecuteScript():
 		print("ExecuteScript() STARTING")
 		self.info = {
 			"name":"ExecuteScript",
-			"description":"Execute a script file (.sh, .py, .js, etc.) and return the output. Scripts are executed from the project root directory.",
+			"description":"Execute a script file (.sh, .py, .js, etc.) or a command (python, bash, node, etc.) with arguments. Returns stdout+stderr.",
 			"parameters":{
 				"returnType":"string",
 				"required":["fileName"],
 				"properties":{
 					"fileName":{
-						"type":"string", 
-						"description":"Name of the script file to execute (e.g., script.sh, test.py). File should be in  folder."
+						"type":"string",
+						"description":"Script file name (e.g. script.sh, test.py) or command name (e.g. python, bash, node)."
 					},
 					"args":{
-						"type":"string", 
-						"description":"(Optional) Arguments to pass to the script."
+						"type":"string",
+						"description":"(Optional) Arguments — quoted string is split automatically (e.g. '-c \"print(1)\"')."
 					},
 				},
 			},
@@ -27,37 +29,46 @@ class ExecuteScript():
 	def run(self, fileName, args="", opts={}):
 		print("ExecuteScript.run() STARTING, fileName: {}, args: {}".format(fileName, args))
 		#
-		# Check  folder
-		file_path = "{}".format(fileName)
-		if not os.path.exists(file_path):
-			return "Error: File {} not found in ".format(fileName)
+		file_path = fileName
+		is_file = os.path.exists(file_path) and os.path.isfile(file_path)
+		is_command = False
 		#
-		# Determine interpreter based on file extension
-		ext = os.path.splitext(fileName)[1].lower()
+		if not is_file:
+			# Try as a command in PATH
+			if shutil.which(fileName):
+				is_command = True
+			else:
+				return "Error: '{}' not found as file or command.".format(fileName)
+		#
+		# Determine interpreter (only for script files)
 		interpreter = None
-		#
-		if ext == ".py":
-			interpreter = "python3"
-		elif ext == ".sh":
-			interpreter = "bash"
-		elif ext in [".js", ".mjs"]:
-			interpreter = "node"
-		elif ext == ".rb":
-			interpreter = "ruby"
-		elif ext == ".pl":
-			interpreter = "perl"
-		else:
-			# Try to run as executable
-			interpreter = ""
+		if is_file:
+			ext = os.path.splitext(fileName)[1].lower()
+			if ext == ".py":
+				interpreter = "python3"
+			elif ext == ".sh":
+				interpreter = "bash"
+			elif ext in [".js", ".mjs"]:
+				interpreter = "node"
+			elif ext == ".rb":
+				interpreter = "ruby"
+			elif ext == ".pl":
+				interpreter = "perl"
 		#
 		# Build command
 		if interpreter:
 			cmd = [interpreter, file_path]
+		elif is_command:
+			cmd = [fileName]
 		else:
 			cmd = [file_path]
 		#
 		if args:
-			cmd.append(args)
+			try:
+				cmd.extend(shlex.split(args))
+			except ValueError:
+				# Fallback: treat as single argument
+				cmd.append(args)
 		#
 		print("ExecuteScript.run() executing: {}".format(cmd))
 		#

@@ -178,7 +178,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <listTools/>: Show all tools. No params.
 - <TreeView><path>.</path><depth>3</depth></TreeView>: Show directory tree. Explore project structure, set depth=0 for unlimited. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
 - <ReadImage><fileName>photo.png</fileName><prompt>Describe this image</prompt></ReadImage>: Read an image file, inject into conversation for AI to analyze (vision model required). Params: <fileName>, [<prompt>]
-- <ExecuteScript><fileName>ls</fileName><args>-l</args></ExecuteScript>: Run script (.py, .sh, .js, etc). Params: <fileName>, [<args>]
+- <ExecuteScript><fileName>script.py</fileName><args>--help</args></ExecuteScript>: Run scripts (.py, .sh, .js) or commands (python, bash, node). Params: <fileName>, [<args>]
 - <Grep><pattern>search_term</pattern><fileName>file.txt</fileName><recursive>true</recursive></Grep>: Search by regex. Prefer this over Terminal grep. Params: <pattern>, [<fileName>], [<recursive>]
 - <Diff><file1>file1.txt</file1><file2>file2.txt</file2><unified>3</unified></Diff>: Compare files. Params: <file1>, <file2>, [<unified>]
 - <Sed><pattern>old_text</pattern><replacement>new_text</replacement><fileName>file.txt</fileName><inplace>true</inplace></Sed>: Find/replace. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
@@ -247,7 +247,7 @@ TOOL USAGE RULES:
 - Prefer targeted edits: Use ReplaceLine for specific line changes and AppendFile for additions instead of rewriting entire files with WriteFile. This is more precise and preserves unrelated content.
 - Prefer XML tools (Grep, Find, List) over Terminal commands (grep, find, ls).
 - For file manipulation with complex data, use WriteFile/AppendFile. For one-liners, echo/cat/tee with Terminal is fine.
-- Use ExecuteScript to run scripts you create (WriteFile/CreateFile). Terminal is for system binaries only.
+- Use ExecuteScript to run scripts you create OR inline commands (e.g. <fileName>python</fileName><args>-c "print(1)"</args>). Terminal is for system binaries only.
 - Save useful commands and solutions as tips with <SaveTip>. Retrieve them with <GetTip>. Browse with <ListTips>. Bring saved tips into context with <ReinsertTip>.
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 - If a tool returns an error with a "Usage:" example, the error message shows the correct parameter names. Copy them exactly — don't guess. This is faster than trial-and-error.

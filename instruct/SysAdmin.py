@@ -135,7 +135,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <List><path>.</path></List>: List files. Use to inspect source directories. Params: [<path>] (optional)
 - <listTools/>: Show all tools. No params.
 - <TreeView><path>.</path><depth>3</depth></TreeView>: Show directory tree. Explore project structure, set depth=0 for unlimited. Params: [<path>], [<depth>] (default 3), [<pattern>] (glob filter), [<showHidden>]
-- <ExecuteScript><fileName>build.sh</fileName></ExecuteScript>: Run build scripts. Params: <fileName>, [<args>]
+- <ExecuteScript><fileName>build.sh</fileName></ExecuteScript>: Run scripts (.py, .sh, .js) or commands (python, bash, node). Params: <fileName>, [<args>]
 - <Grep><pattern>error</pattern><fileName>build.log</fileName><recursive>false</recursive></Grep>: Search for errors in build logs. Prefer this over Terminal grep. Params: <pattern>, [<fileName>], [<recursive>]
 - <Diff><file1>config.h.bak</file1><file2>config.h</file2></Diff>: Compare config changes. Params: <file1>, <file2>, [<unified>]
 - <Sed><pattern>old_flag</pattern><replacement>new_flag</replacement><fileName>Makefile</fileName></Sed>: Modify Makefiles or config files. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
