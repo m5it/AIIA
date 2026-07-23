@@ -64,11 +64,16 @@ class ExecuteScript():
 			cmd = [file_path]
 		#
 		if args:
-			try:
-				cmd.extend(shlex.split(args))
-			except ValueError:
-				# Fallback: treat as single argument
-				cmd.append(args)
+			# Check for shell syntax — if detected, wrap in bash -c
+			shell_chars = set('|;&><`$')
+			if any(c in args for c in shell_chars):
+				full_cmd = "{} {}".format(fileName, args)
+				cmd = ["bash", "-c", full_cmd]
+			else:
+				try:
+					cmd.extend(shlex.split(args))
+				except ValueError:
+					cmd.append(args)
 		#
 		print("ExecuteScript.run() executing: {}".format(cmd))
 		#

@@ -1059,7 +1059,7 @@ class Commands():
 		msg = user_input({'quit_with_ctrlx': True})
 		if msg.strip():
 			self.handle.Response('user', {'content': msg.strip()})
-		return 2  # skip main loop AI() call — message already queued
+		return 0  # let main loop call AI() to process StartBuild message + any custom message
 
 	def CMD_PLAN(self, inp=""):
 		import re

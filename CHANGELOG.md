@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-23 — v1.0.13
+
+### Auto: Version v1.0.13
+
+- Version auto-incremented from v1.0.12
+- Files changed: src/Commands.py, src/ToolParser.py, tools/tool_ExecuteScript.py
+
+---
+
+
 ## 2026-07-23 — v1.0.12
 
 ### Auto: Version v1.0.12

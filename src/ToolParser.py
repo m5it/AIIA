@@ -253,7 +253,33 @@ class ToolParser:
 			is_script = any(fileName.lower().endswith(ext) for ext in script_extensions)
 			#
 			if not is_script and fileName:
-				# Route to Terminal tool
+				# Check for shell syntax in args — if found, let ExecuteScript handle it directly
+				args_str = params.get('args', '')
+				shell_chars = set('|;&><`$')
+				has_shell = isinstance(args_str, str) and any(c in args_str for c in shell_chars)
+				#
+				if has_shell:
+					# Shell syntax detected — execute via bash -c directly (skip Terminal routing)
+					full_cmd = "{} {}".format(fileName, args_str)
+					print("ExecuteScript({}) — shell syntax detected, running via bash -c".format(fileName))
+					import subprocess
+					try:
+						result = subprocess.run(
+							["bash", "-c", full_cmd],
+							capture_output=True, text=True, timeout=30, cwd="."
+						)
+						output = ""
+						if result.stdout:
+							output += result.stdout
+						if result.stderr:
+							output += "\nSTDERR:\n{}".format(result.stderr)
+						return output if output else "(no output)"
+					except subprocess.TimeoutExpired:
+						return "Error: Script execution timed out (30s limit)"
+					except Exception as E:
+						return "Error: {}".format(E)
+				#
+				# No shell syntax — route to Terminal tool
 				print("Routing ExecuteScript({}) to Terminal tool".format(fileName))
 				# Build args for Terminal: arg1=fileName, arg2=args, etc.
 				terminal_args = {}
