@@ -32,6 +32,7 @@ Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `1.0.0`
 | Command | Description |
 |---------|-------------|
 | `!MODE [plan\|build]` | Switch modes |
+| `!START_BUILD` | Switch to build mode (Enter for message prompt, Ctrl+X to skip) |
 | `!MODELS` | List Ollama models (used ones starred) |
 | `!MODEL <name>` | Switch AI model mid-session |
 | `!PLAN [PREVIEW\|VIEW\|TASKS\|STATUS]` | View plan status |

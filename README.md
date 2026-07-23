@@ -131,10 +131,12 @@ Phase 2: BUILD MODE →  Execute tasks step by step (builder)
 ```
 1. !MODE plan                   → Enter plan mode
 2. AI creates plan & tasks      → Uses XML: <createPlan>, <createTask>
-3. !MODE build                  → Switch to build mode
+3. !START_BUILD                 → Switch to build mode (prompts for message, Ctrl+X to send)
 4. AI executes tasks one by one → Uses <nextTask>completed</nextTask>
 5. AI calls <jobDone/>          → When all tasks complete
 ```
+
+> **Tip:** `!START_BUILD` + Enter prompts for a message. `!START_BUILD` + Ctrl+X skips the prompt and goes straight to build mode.
 
 See [Plan & Build System](#plan--build-system) for full details.
 
@@ -264,6 +266,7 @@ All configuration lives in `config.py`:
 | `TIPS_PATH` | str | `~/.config/ourai/tips` | Tips storage directory (also used for tool cache) |
 | `TOOL_CACHE_TTL` | int | `86400` | Default cache TTL in seconds (1 day) |
 | `TOOL_CACHE_ENABLED` | bool | `true` | Enable/disable tool result caching globally |
+| `REPLACELINE_ZERO_INDEXED` | bool | `false` | ReplaceLine uses 0-indexed lines when `true` (default: 1-indexed) |
 | `COOKIE_FILE` | str/None | `None` | Shared cookie file for WWW tools |
 | `working_dir` | str | `$OURAI_PROJECT_DIR` | Project working directory |
 | `plans_path` | str | `plans/` | Directory for JSON plan files |

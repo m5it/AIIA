@@ -1044,7 +1044,7 @@ class Commands():
 	def CMD_START_BUILD(self, inp=""):
 		from src.PlanManager import PlanBase, Plan
 		parts = inp.strip().split()
-		plan_id = parts[1] if len(parts) > 1 else None
+		plan_id = parts[1] if len(parts) > 1 and not parts[1].startswith('!') else None
 		if plan_id:
 			self.handle.hLG.echo("Loading plan {} and starting build...".format(plan_id), {'color':True, 'colorValue':'cyan'})
 		# Switch mode to build if currently in plan mode
@@ -1053,7 +1053,13 @@ class Commands():
 			self.handle._write_state({'mode': 'build'})
 			self.handle._replace_system_prompt(self.handle.hPP._get_mode_instructions('build'))
 		self.handle.StartBuild(plan_id)
-		return 0
+		# Read optional message (Ctrl+X to send)
+		from functions import user_input
+		self.handle.hLG.echo("Message (Ctrl+X to send): ", { 'end':'', 'flush':True, 'color':True, 'colorValue':'green' })
+		msg = user_input({'quit_with_ctrlx': True})
+		if msg.strip():
+			self.handle.Response('user', {'content': msg.strip()})
+		return 2  # skip main loop AI() call — message already queued
 
 	def CMD_PLAN(self, inp=""):
 		import re

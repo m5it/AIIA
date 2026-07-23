@@ -34,6 +34,7 @@ python run.py -T 0.8                # set temperature
 | Command | What it does |
 |---------|-------------|
 | `!MODE plan` or `!MODE build` | Switch between plan and build mode |
+| `!START_BUILD` | Switch to build mode (Enter for message prompt, Ctrl+X to skip) |
 | `!MODELS` | List Ollama models (starred = used before) |
 | `!MODEL <name>` | Switch model mid-session (e.g. `!MODEL llama3:70b`) |
 | `!PLAN PREVIEW` / `VIEW` / `TASKS` / `STATUS` | View plan state |

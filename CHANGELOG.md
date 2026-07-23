@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-07-23 — v1.0.11
+
+### Auto: Version v1.0.11
+
+- Version auto-incremented from v1.0.10
+- Files changed: AGENTS.md, CHANGELOG.md, COMMANDS.md, README.md, src/Commands.py
+
+---
+
+
+## 2026-07-23 — v1.0.11
+
+### Added
+
+- **ReplaceLine configurable indexing** — `REPLACELINE_ZERO_INDEXED` config option (default `False` = 1-indexed). When `True`, ReplaceLine uses 0-based line numbers. All persona instructions updated to reference the config.
+- **!START_BUILD with message** — `!START_BUILD` + Enter now prompts for a message (Ctrl+X to send). Combines mode switch and first user message in one step. Existing `!START_BUILD` + Ctrl+X behavior unchanged.
+
+### Changed
+
+- ToolParser error messages reworded to say "Ask the user to approve via the !PROJECT command" instead of suggesting specific user commands
+- Developer persona anti-echo rule added to both plan() and build() methods
+- `_is_plan_complete()` simplified to only check `_plan_done_called` flag (removed loose text pattern scanning)
+- EventBus pub/sub system added for multi-client HTTP server broadcast
+- HTTP server endpoints: `/events`, `/register`, `/unregister`, `/history`, `/sessions`, `client_id` tracking
+
+---
+
 ## 2026-07-23 — v1.0.10
 
 ### Auto: Version v1.0.10
