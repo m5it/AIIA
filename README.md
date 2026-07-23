@@ -131,12 +131,10 @@ Phase 2: BUILD MODE →  Execute tasks step by step (builder)
 ```
 1. !MODE plan                   → Enter plan mode
 2. AI creates plan & tasks      → Uses XML: <createPlan>, <createTask>
-3. !START_BUILD                 → Switch to build mode (prompts for message, Ctrl+X to send)
+3. !START_BUILD                 → Switch to build mode and start executing tasks
 4. AI executes tasks one by one → Uses <nextTask>completed</nextTask>
 5. AI calls <jobDone/>          → When all tasks complete
 ```
-
-> **Tip:** `!START_BUILD` + Enter prompts for a message. `!START_BUILD` + Ctrl+X skips the prompt and goes straight to build mode.
 
 See [Plan & Build System](#plan--build-system) for full details.
 

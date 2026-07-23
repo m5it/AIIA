@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-23 — v1.0.14
+
+### Auto: Version v1.0.14
+
+- Version auto-incremented from v1.0.13
+- Files changed: AGENTS.md, CHANGELOG.md, COMMANDS.md, README.md, src/Commands.py
+
+---
+
+
 ## 2026-07-23 — v1.0.13
 
 ### Auto: Version v1.0.13
@@ -35,7 +45,7 @@
 ### Added
 
 - **ReplaceLine configurable indexing** — `REPLACELINE_ZERO_INDEXED` config option (default `False` = 1-indexed). When `True`, ReplaceLine uses 0-based line numbers. All persona instructions updated to reference the config.
-- **!START_BUILD with message** — `!START_BUILD` + Enter now prompts for a message (Ctrl+X to send). Combines mode switch and first user message in one step. Existing `!START_BUILD` + Ctrl+X behavior unchanged.
+- **ExecuteScript PATH command support** — `fileName` can now be a command name (e.g. `python`, `bash`, `cat`) in addition to script files. Args with shell syntax (pipes, redirections) are automatically detected and wrapped in `bash -c`.
 
 ### Changed
 
@@ -44,6 +54,10 @@
 - `_is_plan_complete()` simplified to only check `_plan_done_called` flag (removed loose text pattern scanning)
 - EventBus pub/sub system added for multi-client HTTP server broadcast
 - HTTP server endpoints: `/events`, `/register`, `/unregister`, `/history`, `/sessions`, `client_id` tracking
+
+### Fixed
+
+- **!START_BUILD blocking bug** — removed broken message prompt that blocked session waiting for second Ctrl+X input
 
 ---
 

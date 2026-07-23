@@ -1053,13 +1053,7 @@ class Commands():
 			self.handle._write_state({'mode': 'build'})
 			self.handle._replace_system_prompt(self.handle.hPP._get_mode_instructions('build'))
 		self.handle.StartBuild(plan_id)
-		# Read optional message (Ctrl+X to send)
-		from functions import user_input
-		self.handle.hLG.echo("Message (Ctrl+X to send): ", { 'end':'', 'flush':True, 'color':True, 'colorValue':'green' })
-		msg = user_input({'quit_with_ctrlx': True})
-		if msg.strip():
-			self.handle.Response('user', {'content': msg.strip()})
-		return 0  # let main loop call AI() to process StartBuild message + any custom message
+		return 0
 
 	def CMD_PLAN(self, inp=""):
 		import re
