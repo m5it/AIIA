@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-24 — v1.0.15
+
+### Auto: Version v1.0.15
+
+- Version auto-incremented from v1.0.14
+- Files changed: config.py, src/Handle.py, wwwurljssupport/github.com/profile_extractor_v2.js
+
+---
+
+
 ## 2026-07-23 — v1.0.14
 
 ### Auto: Version v1.0.14

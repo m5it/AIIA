@@ -437,6 +437,7 @@ class Handle():
 			# After planDone — stop auto-continue and wait for user input
 			if getattr(self, '_plan_just_done', False):
 				del self._plan_just_done
+				self.bg_log("Chat: _plan_just_done — stopping auto-continue")
 				self.hLG.echo("Plan complete — switched to BUILD mode. Waiting for your instruction.",
 					{'color':True, 'colorValue':'green','debugOnly':False})
 				continue
@@ -496,14 +497,26 @@ class Handle():
 				should_reenter = False
 				if mode == 'build' and self.Options.get('AUTO_CONTINUE_TASKS', True):
 					if PlanBase.draft:
+						task_statuses = [(tid, t.status) for tid, t in PlanBase.draft.tasks.items()]
 						has_remaining = any(
 							t.status in ('pending', 'in_progress')
 							for t in PlanBase.draft.tasks.values())
+						self.bg_log("Auto-continue check: tasks={}, remaining={}".format(task_statuses, has_remaining))
 						if has_remaining:
 							should_reenter = True
+					else:
+						self.bg_log("Auto-continue check: no draft")
 				elif mode == 'plan' and self._last_ai_had_tools:
 					if not self._is_plan_complete():
 						should_reenter = True
+					else:
+						self.bg_log("Auto-continue check: plan complete (text_scan={}, flag={})".format(
+							self.Options.get('PLAN_COMPLETE_TEXT_SCAN', True),
+							getattr(self, '_plan_done_called', False)))
+				else:
+					self.bg_log("Auto-continue check: mode={}, last_ai_had_tools={}".format(mode, self._last_ai_had_tools))
+				if not should_reenter:
+					self.bg_log("Auto-continue: NOT re-entering AI() — waiting for user")
 				if should_reenter:
 					_auto_continue_count += 1
 					if _auto_continue_count >= 50:
@@ -902,10 +915,14 @@ class Handle():
 	#
 	def _is_plan_complete(self):
 		"""Check if the model has signaled plan completion.
-		Scans all assistant messages for text patterns and planDone tool calls."""
-		# Scan ALL assistant messages (not just the last) for plan-completion
-		# patterns.  The model may produce the completion signal in a message
-		# that is followed by tool calls, pushing the signal to an earlier msg.
+		Checks the planDone tool-call flag, and optionally scans assistant
+		messages for text patterns (controlled by PLAN_COMPLETE_TEXT_SCAN)."""
+		# Fast path: explicit <planDone/> tool call
+		if getattr(self, '_plan_done_called', False):
+			return True
+		# Optional: scan assistant text for plan-completion phrases
+		if not self.Options.get('PLAN_COMPLETE_TEXT_SCAN', True):
+			return False
 		for msg in reversed(self.hHM.msgs):
 			if msg.get('role') != 'assistant':
 				continue
@@ -924,10 +941,6 @@ class Handle():
 				if re.search(p, lower):
 					self._plan_done_called = True
 					return True
-			# Don't break — keep scanning older assistant messages
-		# Check if planDone tool was called recently (look for plan_done flag)
-		if getattr(self, '_plan_done_called', False):
-			return True
 		return False
 
 	#
@@ -1326,12 +1339,15 @@ class Handle():
 		advance to next task and inject a continuation user message.
 		Returns True if a message was injected."""
 		if self.Options.get('MODE') != 'build':
+			self.bg_log("_try_auto_continue: not build mode")
 			return False
 		if not self.Options.get('AUTO_CONTINUE_TASKS', True):
+			self.bg_log("_try_auto_continue: AUTO_CONTINUE_TASKS disabled")
 			return False
 
 		from src.PlanManager import PlanBase
 		if not PlanBase.draft:
+			self.bg_log("_try_auto_continue: no draft")
 			return False
 
 		# If model already advanced via <nextTask>, there's an in_progress task.
@@ -1346,6 +1362,8 @@ class Handle():
 			# Don't call nextTask() here — the outer Chat loop will find the
 			# first pending task via StartBuild (or the model will call startBuild).
 			# Calling nextTask() from inside AI() can cause premature advancement.
+			task_statuses = [(tid, t.status) for tid, t in PlanBase.draft.tasks.items()]
+			self.bg_log("_try_auto_continue: no in_progress task — statuses={}".format(task_statuses))
 			return False
 		else:
 			next_instruction = in_progress_task.instruction or '(continue with the plan)'
@@ -1680,6 +1698,7 @@ class Handle():
 
 			# Track planDone tool call — stop AI loop and wait for user input
 			if result.get('plan_done'):
+				self.bg_log("AI() exit: plan_done called")
 				self._plan_done_called = True
 				self._last_ai_had_tools = False
 				self._plan_just_done = True
@@ -1706,11 +1725,13 @@ class Handle():
 
 			# Stop if model response is empty (no content, no tools)
 			if not result.get('response', '').strip() and not result.get('invocations'):
+				self.bg_log("AI() exit: empty response (tools_were_called={})".format(_tools_were_called))
 				self._last_ai_had_tools = _tools_were_called
 				return True
 			
 			# Stop if jobDone was called
 			if result.get('job_done'):
+				self.bg_log("AI() exit: job_done called")
 				self._last_ai_had_tools = False
 				return True
 			
@@ -1718,6 +1739,8 @@ class Handle():
 			if not result['invocations']:
 				# No more tool calls
 				# Auto-continue to next task if model made tool calls and no errors
+				self.bg_log("AI() exit: no invocations, tools_were_called={}, last_error={}".format(
+					_tools_were_called, _tools_last_error))
 				if _tools_were_called and not _tools_last_error and self._try_auto_continue():
 					_tools_were_called = False
 					_tools_last_error = False
