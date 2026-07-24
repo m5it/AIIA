@@ -434,12 +434,20 @@ class Handle():
 			#
 			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
 
-			# After planDone — stop auto-continue and wait for user input
+			# After planDone — switch to BUILD mode and auto-continue
 			if getattr(self, '_plan_just_done', False):
 				del self._plan_just_done
-				self.bg_log("Chat: _plan_just_done — stopping auto-continue")
-				self.hLG.echo("Plan complete — switched to BUILD mode. Waiting for your instruction.",
+				# Actually switch to build mode
+				if self.Options.get('MODE') != 'build':
+					self.Options['MODE'] = 'build'
+					self._write_state({'mode': 'build'})
+					self._replace_system_prompt(self.hPP._get_mode_instructions('build'))
+				self.hLG.echo("Plan complete — switched to BUILD mode. Starting first task.",
 					{'color':True, 'colorValue':'green','debugOnly':False})
+				self.bg_log("Chat: _plan_just_done — switching to build, triggering StartBuild")
+				# Trigger StartBuild to inject first task
+				self.StartBuild()
+				_skip_you = True
 				continue
 
 			# Blocked tool in plan mode — prompt user
@@ -1771,20 +1779,42 @@ class Handle():
 					self.hLG.echo("Plan {} not found".format(plan_id), {'color':True, 'colorValue':'red'})
 					return
 			else:
-				self.hLG.echo("No active plan. Use createPlan first.", {'color':True, 'colorValue':'red'})
-				return
+				# Try to load the latest plan from disk
+				plans_dir = self.Options.get('plans_path', 'plans')
+				if os.path.isdir(plans_dir):
+					json_files = sorted(
+						[f for f in os.listdir(plans_dir) if f.endswith('.json')],
+						key=lambda f: os.path.getmtime(os.path.join(plans_dir, f)),
+						reverse=True)
+					if json_files:
+						latest_id = json_files[0].replace('.json', '')
+						plan = Plan.load(latest_id, plans_dir)
+						if plan:
+							PlanBase.draft = plan
+							self.hLG.echo("Loaded latest plan from disk: {}".format(plan.title),
+								{'color':True, 'colorValue':'cyan'})
+						else:
+							self.hLG.echo("No active plan. Use createPlan first.", {'color':True, 'colorValue':'red'})
+							return
+					else:
+						self.hLG.echo("No active plan. Use createPlan first.", {'color':True, 'colorValue':'red'})
+						return
+				else:
+					self.hLG.echo("No active plan. Use createPlan first.", {'color':True, 'colorValue':'red'})
+					return
 		first_task = None
-		# Don't double-start — if a task is already in_progress, do nothing
+		# If a task is already in_progress, inject its context for the AI
 		for t in PlanBase.draft.tasks.values():
 			if t.status == "in_progress":
-				self.hLG.echo("Build already started — task already in progress.", {'color':True, 'colorValue':'yellow'})
-				return
-		for tid, task in PlanBase.draft.tasks.items():
-			if task.status == "pending":
-				first_task = task
-				task.status = "in_progress"
-				task.startTimestamp = time.time()
+				first_task = t
 				break
+		if not first_task:
+			for tid, task in PlanBase.draft.tasks.items():
+				if task.status == "pending":
+					first_task = task
+					task.status = "in_progress"
+					task.startTimestamp = time.time()
+					break
 		if first_task:
 			PlanBase.draft.save(self.Options.get('plans_path', 'plans'))
 			PlanBase.LogProgress(first_task.id, "Build started", self.Options.get('plans_path', 'plans'))

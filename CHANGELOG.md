@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-24 — v1.0.16
+
+### Auto: Version v1.0.16
+
+- Version auto-incremented from v1.0.15
+- Files changed: src/Commands.py, src/Handle.py
+
+---
+
+
 ## 2026-07-24 — v1.0.15
 
 ### Auto: Version v1.0.15

@@ -806,10 +806,27 @@ class Commands():
 			self.handle.Options['MODE'] = 'build'
 			print("Mode changed to BUILD. You can now make changes.")
 			# Check if plan has tasks - if yes, return 5 to trigger startBuild
-			from src.PlanManager import PlanBase
+			from src.PlanManager import PlanBase, Plan
+			if not PlanBase.draft:
+				# Auto-load latest plan from disk
+				plans_dir = self.handle.Options.get('plans_path', 'plans')
+				import os
+				if os.path.isdir(plans_dir):
+					json_files = sorted(
+						[f for f in os.listdir(plans_dir) if f.endswith('.json')],
+						key=lambda f: os.path.getmtime(os.path.join(plans_dir, f)),
+						reverse=True)
+					if json_files:
+						latest_id = json_files[0].replace('.json', '')
+						plan = Plan.load(latest_id, plans_dir)
+						if plan:
+							PlanBase.draft = plan
+							print("Loaded latest plan from disk: {}".format(plan.title))
 			if PlanBase.draft and len(PlanBase.draft.tasks) > 0:
 				ret = 5  # startBuild signal
 				print("Plan has {} tasks. Starting build...".format(len(PlanBase.draft.tasks)))
+			else:
+				print("No active plan. Use createPlan first.")
 			
 		# Persist mode to state
 		self.handle._write_state({'mode': new_mode})
