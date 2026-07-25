@@ -45,6 +45,7 @@ Options         = {
 	"AUTO_CONTINUE_ALL_TASKS" :True,   # re-enter AI() loop until plan is done (requires AUTO_CONTINUE_TASKS)
 	"AUTO_CONTINUE_REMIND_AFTER" :20,  # remind model to call <nextTask> after N iterations without one
 	"PLAN_COMPLETE_TEXT_SCAN" :True,  # scan assistant text for plan-completion phrases (set False to only use <planDone/> tool flag)
+	"WWW_SOURCE_MAX_SIZE"  :80000,  # chars. Source output above this saved to workout/ and warning returned (prevents context overflow)
 	"TOOL_TRAINING" :True,   # on fresh sessions, let AI demonstrate tool usage once before user input
 	"TOOL_TRAINING_PLAN" :True,   # re-inject tool training when switching to plan mode
 	"TIMER_INTERRUPT" :False,     # if True, timers can inject during AI() iteration loop (default: only during You() prompt)

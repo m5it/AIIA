@@ -266,6 +266,7 @@ All configuration lives in `config.py`:
 | `TOOL_CACHE_ENABLED` | bool | `true` | Enable/disable tool result caching globally |
 | `REPLACELINE_ZERO_INDEXED` | bool | `false` | ReplaceLine uses 0-indexed lines when `true` (default: 1-indexed) |
 | `COOKIE_FILE` | str/None | `None` | Shared cookie file for WWW tools |
+| `WWW_SOURCE_MAX_SIZE` | int | `80000` | Max chars for `<source>true</source>` before saving to disk |
 | `working_dir` | str | `$OURAI_PROJECT_DIR` | Project working directory |
 | `plans_path` | str | `plans/` | Directory for JSON plan files |
 | `history_path` | str | `history/` | Directory for session history |

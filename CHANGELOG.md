@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-07-25 — v1.0.19
+
+### Auto: Version v1.0.19
+
+- Version auto-incremented from v1.0.18
+- Files changed: AGENTS.md, CHANGELOG.md, COMMANDS.md, README.md, config.py, instruct/Developer.py, instruct/DeveloperV2.py, instruct/DeveloperV3.py, instruct/Generalist.py, instruct/Researcher.py, instruct/TechTalker.py, tools/tool_WWW.py
+
+---
+
+
+## 2026-07-25 — v1.0.19
+
+### Added: jsExecute parameter for WWW tool
+
+- New `<jsExecute>` parameter on `<WWW>` tool — executes JavaScript on loaded page, returns ONLY the result
+- Prevents context overflow from full HTML source (saves ~147K tokens vs `<source>true</source>`)
+- Auto-suggests saving successful scripts via `<UpdateSiteScript>` for reuse
+
+### Added: Source cache for large HTML pages
+
+- `<source>true</source>` now checks size against `WWW_SOURCE_MAX_SIZE` (default 80K chars)
+- Large sources saved to `workout/www_source_{timestamp}.html`
+- Returns warning with stats and instructions to use `<ReadFile>` or `<Grep>`
+- Config option `WWW_SOURCE_MAX_SIZE` in config.py
+
+### Updated: 8 persona classes
+
+- Developer.py, DeveloperV2.py, DeveloperV3.py, Researcher.py, TechTalker.py, Generalist.py, DataCollector.py, SysAdmin.py
+- Added jsExecute and source cache workflow instructions
+
+### Updated: Documentation
+
+- AGENTS.md: jsExecute workflow, source cache docs
+- COMMANDS.md: jsExecute section, source cache section
+- README.md: WWW_SOURCE_MAX_SIZE config option
+
+---
+
 ## 2026-07-25 — v1.0.18
 
 ### Auto: Version v1.0.18

@@ -1,4 +1,4 @@
-import subprocess, os, glob, sys, json
+import subprocess, os, glob, sys, json, time
 from config import Options
 from tools._koslenium_server import ensure_server, send, exec_script
 
@@ -112,6 +112,7 @@ class WWW():
 				if result is not None:
 					if jsExecute:
 						return self._run_js_execute(jsExecute, port, url)
+					result = self._check_source_size(result, source)
 					return self._maybe_run_site_script(result, url, port, siteScript)
 				_dbg("server returned None, falling back to one-shot")
 			else:
@@ -128,6 +129,7 @@ class WWW():
 			if result is not None:
 				if jsExecute:
 					return self._run_js_execute(jsExecute, port, url)
+				result = self._check_source_size(result, source)
 				return self._maybe_run_site_script(result, url, port, siteScript)
 
 		# Fall back to lightweight www.jar
@@ -189,6 +191,40 @@ class WWW():
 			"\n</UpdateSiteScript>"
 		) % (output, domain)
 		return suggestion
+
+	def _check_source_size(self, content, source_flag):
+		"""If source is large, save to workout/ and return warning instead."""
+		if not source_flag or str(source_flag).lower() != 'true':
+			return content
+		max_size = Options.get('WWW_SOURCE_MAX_SIZE', 80000)
+		if not content or len(content) <= max_size:
+			return content
+		# Source too large — save to disk
+		try:
+			workout = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'workout')
+			os.makedirs(workout, exist_ok=True)
+			ts = time.strftime('%Y%m%d_%H%M%S')
+			file_name = 'www_source_{}.html'.format(ts)
+			file_path = os.path.join(workout, file_name)
+			with open(file_path, 'w', encoding='utf-8') as f:
+				f.write(content)
+			line_count = content.count('\n') + 1
+			char_count = len(content)
+			approx_tokens = char_count // 4
+			context_pct = int((approx_tokens / Options.get('AI_CONTEXT_LIMIT', 262144)) * 100)
+			warning = (
+				"Source too large: {:,} chars (~{:,} tokens, {}% of context).\n"
+				"Saved to: {} ({:,} lines)\n\n"
+				"Use <ReadFile> to read specific lines:\n"
+				"<ReadFile><fileName>{}</fileName><fromLine>1</fromLine><toLine>100</toReadFile>\n\n"
+				"Or use <Grep> to search within the file:\n"
+				"<Grep><pattern>search term</pattern><fileName>{}</fileName></Grep>"
+			).format(char_count, approx_tokens, context_pct, file_name, line_count, file_name, file_name)
+			_dbg("source cached to {} ({:,} chars)".format(file_path, char_count))
+			return warning
+		except Exception as e:
+			_dbg("source cache error: {}".format(e))
+			return content
 
 	def _run_www_jar(self, url, text, links):
 		tool_dir = os.path.dirname(os.path.abspath(__file__))

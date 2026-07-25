@@ -234,6 +234,7 @@ WEB TOOLS:
 - <UpdateSiteScript><site>google.com</site><script>name</script><content>// JS</content></UpdateSiteScript>: Create or update a per-website JS support script. Old versions auto-backup to _history/.
 - <WWWExec><js>document.title</js></WWWExec>: Execute JS on the currently loaded page.
 - jsExecute workflow: Use <WWW> with <jsExecute> to extract data. If useful, save via <UpdateSiteScript> for reuse. Next time use <SiteScript> directly.
+- Source cache: If <source>true</source> returns "Source too large", the file is saved to workout/. Use <ReadFile> with line ranges or <Grep> to read parts.
 
 ESSENTIAL BUILD TOOLS (use these to advance through the plan):
 - <nextTask>completed</nextTask> - Mark current task completed, get next task

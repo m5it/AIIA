@@ -103,6 +103,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <WWW><url>https://...</url><jsExecute>document.querySelectorAll('a').length</jsExecute></WWW> — Fetch web pages. Params: <url>, [<text>] (true/false), [<links>], [<js>], [<jsExecute>] — jsExecute extracts specific data, returns ONLY the result
 - <SiteScript><site>google.com</site><script>support_search</script><params>{"query":"..."}</params></SiteScript> — Execute per-website JS support scripts. Use <action>list</action> to see supported sites.
 - <UpdateSiteScript><site>google.com</site><script>name</script><content>// JS</content></UpdateSiteScript> — Create or update a per-website JS support script. Save successful jsExecute scripts for reuse.
+- Source cache: If <source>true</source> returns "Source too large", the file is saved to workout/. Use <ReadFile> with line ranges or <Grep> to read parts.
 - <Terminal><arg1>ls</arg1><arg2>-l</arg2></Terminal> — Execute terminal commands. One-liners only.
 - <ReadFile><fileName>README.md</fileName></ReadFile> — Read file contents. Params: <fileName>
 - <ReadImage><fileName>photo.png</fileName><prompt>Describe this</prompt></ReadImage> — Read image (vision model required). Params: <fileName>, [<prompt>]

@@ -125,6 +125,34 @@ return Array.from(document.querySelectorAll("a[itemprop='name']")).map(a => a.te
 </SiteScript>
 ```
 
+## Source Cache (large HTML pages)
+
+When `<source>true</source>` returns content exceeding 80K chars, the full HTML is saved to `workout/` and a warning is returned instead:
+
+```xml
+<!-- Source too large — saved to workout/ -->
+<WWW>
+<url>https://github.com/m5it</url>
+<source>true</source>
+</WWW>
+
+<!-- Returns: Source too large: 589,858 chars. Saved to: www_source_20260725_143022.html -->
+
+<!-- Read specific lines from cached file -->
+<ReadFile>
+<fileName>workout/www_source_20260725_143022.html</fileName>
+<fromLine>100</fromLine>
+<toLine>200</toReadFile>
+
+<!-- Or search within cached file -->
+<Grep>
+<pattern>itemprop="name"</pattern>
+<fileName>workout/www_source_20260725_143022.html</fileName>
+</Grep>
+```
+
+Config: `WWW_SOURCE_MAX_SIZE` (default 80000 chars) in `config.py`.
+
 ## Cookie Setup (for captcha/login)
 
 ```xml

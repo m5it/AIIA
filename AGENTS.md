@@ -206,6 +206,21 @@ return Array.from(document.querySelectorAll("a[itemprop='name']")).map(a => a.te
 </SiteScript>
 ```
 
+**Source cache (large HTML pages):**
+When `<source>true</source>` returns content exceeding `WWW_SOURCE_MAX_SIZE` (default 80K chars), the full HTML is saved to `workout/` and a warning is returned instead. Use `<ReadFile>` with line ranges or `<Grep>` to read parts:
+```xml
+<!-- Source too large — saved to workout/www_source_20260725_143022.html -->
+<ReadFile>
+<fileName>workout/www_source_20260725_143022.html</fileName>
+<fromLine>100</fromLine>
+<toLine>200</toReadFile>
+
+<Grep>
+<pattern>itemprop="name"</pattern>
+<fileName>workout/www_source_20260725_143022.html</fileName>
+</Grep>
+```
+
 ## Module System
 
 The project uses a custom module loader (`src/functions.py`):
