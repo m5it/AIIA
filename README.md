@@ -63,9 +63,19 @@
 git clone <repo-url>
 cd AIIA
 
+git clone https://github.com/m5it/AIIA.git
+cd AIIA
+git clone https://github.com/m5it/koslenium_driver.git tools/koslenium_driver
+git clone https://github.com/m5it/koslenium_www.git tools/koslenium_driver/www
+./tools/koslenium_driver/build.sh
+
 python3 -m venv .venv
 source .venv/bin/activate
 
+pip install -r requirements.txt
+# or
+pip install -r requirements_gpu.txt
+# or not sure if this just works but possible yes...
 pip install ollama
 ```
 
