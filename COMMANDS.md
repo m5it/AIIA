@@ -96,6 +96,35 @@ python run.py -T 0.8                # set temperature
 </SiteScript>
 ```
 
+## jsExecute (extract data from web pages)
+
+```xml
+<!-- Extract specific data using JavaScript -->
+<WWW>
+<url>https://github.com/m5it?tab=repositories</url>
+<jsExecute>Array.from(document.querySelectorAll("a[itemprop='name']")).map(a => a.textContent.trim())</jsExecute>
+</WWW>
+
+<!-- Then save the JS for reuse -->
+<UpdateSiteScript>
+<site>github.com</site>
+<script>get_repos</script>
+<content>// ==SiteScript==
+// title: Get User Repositories
+// name: get_repos
+// site: github.com
+// ==/SiteScript==
+return Array.from(document.querySelectorAll("a[itemprop='name']")).map(a => a.textContent.trim());
+</content>
+</UpdateSiteScript>
+
+<!-- Next time, use the saved script directly -->
+<SiteScript>
+<site>github.com</site>
+<script>get_repos</script>
+</SiteScript>
+```
+
 ## Cookie Setup (for captcha/login)
 
 ```xml

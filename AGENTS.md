@@ -100,7 +100,7 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 - `Tail` — Last N lines (params: `<fileName>`, `<lines>` optional)
 - `Sort` — Sort lines (params: `<fileName>`, `<numeric>/<reverse>/<unique>` optional)
 - `CurrentTime` — Get current date/time (params: `<format>` optional, `<timezone>` optional)
-- `WWW` — Fetch a web page via the Java web client. Supports JS rendering, screenshots, and auto-execution of per-website support scripts. (params: `<url>`, `<js>`, `<browser>`, `<text>`, `<links>`, `<source>`, `<screenshot>`, `<wait>`, `<selector>`, `<siteScript>`) — also invocable as `<www>` and `<WWWJS>`
+- `WWW` — Fetch a web page via the Java web client. Supports JS rendering, screenshots, and auto-execution of per-website support scripts. (params: `<url>`, `<js>`, `<browser>`, `<text>`, `<links>`, `<source>`, `<screenshot>`, `<wait>`, `<selector>`, `<siteScript>`, `<jsExecute>`) — also invocable as `<www>` and `<WWWJS>`
 - `WWWExec` — Execute JavaScript on the currently loaded page in the persistent browser window (params: `<js>`, `<wait>`)
 - `SiteScript` — Discover and execute per-website JS support scripts (params: `<site>`, `<script>`, `<action>`, `<params>`)
 - `UpdateSiteScript` — Create or update per-website JS support scripts (params: `<site>`, `<script>`, `<content>`, `<action>`, `<info>`)
@@ -173,6 +173,37 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 // ... JS code ...
 </content>
 </UpdateSiteScript>
+```
+
+**jsExecute + save-for-reuse workflow:**
+```xml
+<!-- Step 1: Extract data from URL using JS -->
+<WWW>
+<url>https://github.com/m5it?tab=repositories</url>
+<jsExecute>Array.from(document.querySelectorAll("a[itemprop='name']")).map(a => a.textContent.trim())</jsExecute>
+</WWW>
+
+<!-- Step 2: Save the JS as a reusable site script -->
+<UpdateSiteScript>
+<site>github.com</site>
+<script>get_repos</script>
+<content>// ==SiteScript==
+// title: Get User Repositories
+// name: get_repos
+// site: github.com
+// description: Extract repository names from a GitHub profile page.
+// usage: Navigate to profile, then: <SiteScript site="github.com" script="get_repos"/>
+// returns: JSON array of repository names
+// ==/SiteScript==
+return Array.from(document.querySelectorAll("a[itemprop='name']")).map(a => a.textContent.trim());
+</content>
+</UpdateSiteScript>
+
+<!-- Step 3: Next time, use the saved script directly -->
+<SiteScript>
+<site>github.com</site>
+<script>get_repos</script>
+</SiteScript>
 ```
 
 ## Module System

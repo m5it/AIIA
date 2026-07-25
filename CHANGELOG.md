@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-25 — v1.0.17
+
+### Auto: Version v1.0.17
+
+- Version auto-incremented from v1.0.16
+- Files changed: AGENTS.md, COMMANDS.md, instruct/Developer.py, tools/tool_WWW.py
+
+---
+
+
 ## 2026-07-24 — v1.0.16
 
 ### Auto: Version v1.0.16

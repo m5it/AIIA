@@ -1,6 +1,6 @@
-import subprocess, os, glob, sys
+import subprocess, os, glob, sys, json
 from config import Options
-from tools._koslenium_server import ensure_server, send
+from tools._koslenium_server import ensure_server, send, exec_script
 
 _DEBUG = Options.get("DEBUG", False)
 def _dbg(*a, **kw):
@@ -52,6 +52,10 @@ class WWW():
 						"type":"string",
 						"description":"CSS selector to wait for before extracting content"
 					},
+					"jsExecute":{
+						"type":"string",
+						"description":"JavaScript expression to execute on the loaded page. Returns ONLY the JS result, not the full HTML. Example: Array.from(document.querySelectorAll('a')).map(a=>a.href). Useful for extracting specific data. Save successful scripts with <UpdateSiteScript> for reuse."
+					},
 					"siteScript":{
 						"type":"string",
 						"description":"Set to 'true' to auto-execute the site's support_load.js script after page load, or specify a script name like 'support_extract'. See also: <SiteScript> tool."
@@ -61,11 +65,12 @@ class WWW():
 		}
 
 	def run(self, url, opts={}, js=None, browser=None, text=None, links=None,
-			source=None, screenshot=None, wait=None, selector=None, siteScript=None):
+			source=None, screenshot=None, wait=None, selector=None, siteScript=None, jsExecute=None):
 		needs_js = (
 			browser and str(browser).lower() == 'true'
 			or screenshot
 			or (js and str(js).lower() == 'true')
+			or jsExecute
 		)
 
 		# Auto-enable cookies for JS/browser requests
@@ -105,6 +110,8 @@ class WWW():
 				_dbg("using server path (port {})".format(port))
 				result = send(port, cmd)
 				if result is not None:
+					if jsExecute:
+						return self._run_js_execute(jsExecute, port, url)
 					return self._maybe_run_site_script(result, url, port, siteScript)
 				_dbg("server returned None, falling back to one-shot")
 			else:
@@ -119,6 +126,8 @@ class WWW():
 		if port:
 			result = send(port, cmd)
 			if result is not None:
+				if jsExecute:
+					return self._run_js_execute(jsExecute, port, url)
 				return self._maybe_run_site_script(result, url, port, siteScript)
 
 		# Fall back to lightweight www.jar
@@ -154,6 +163,32 @@ class WWW():
 		except Exception as e:
 			_dbg("site script error: {}".format(e))
 			return page_content
+
+	def _run_js_execute(self, js_code, port, url):
+		"""Execute JS on the loaded page and return only the result."""
+		_dbg("executing jsExecute on {}".format(url))
+		result = exec_script(port, js_code, wait=2000)
+		if result is None:
+			return "Error: JS execution failed or returned no result"
+		# Try to pretty-print JSON
+		output = result
+		try:
+			parsed = json.loads(result)
+			output = json.dumps(parsed, indent=2, ensure_ascii=False)
+		except (json.JSONDecodeError, TypeError):
+			pass
+		domain = url.split('/')[2] if '//' in url else url
+		suggestion = (
+			"\n\n=== jsExecute Result ===\n%s"
+			"\n\n=== Tip: Save this JS for reuse ==="
+			"\nTo save for future visits, use:"
+			"\n<UpdateSiteScript>"
+			"\n<site>%s</site>"
+			"\n<script>my_script_name</script>"
+			"\n<content>// ==SiteScript==</content>"
+			"\n</UpdateSiteScript>"
+		) % (output, domain)
+		return suggestion
 
 	def _run_www_jar(self, url, text, links):
 		tool_dir = os.path.dirname(os.path.abspath(__file__))
