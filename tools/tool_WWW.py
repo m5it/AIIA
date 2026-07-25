@@ -14,7 +14,7 @@ def _get_cache_dir():
 	"""Resolve cache directory path."""
 	cache_dir = Options.get('WWW_CACHE_DIR', 'workout/www_cache')
 	if not os.path.isabs(cache_dir):
-		cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', cache_dir)
+		cache_dir = os.path.join(os.getcwd(), cache_dir)
 	return cache_dir
 
 def _find_cached(url, ttl_hours):
@@ -154,9 +154,10 @@ class WWW():
 			if cached:
 				_dbg("found cached version: {}".format(cached['file']))
 				meta = cached['meta']
+				abs_path = os.path.abspath(cached['file'])
 				return (
 					"Page already cached (use <ParsePage> to analyze it):\n"
-					"  File: {}\n"
+					"  Path: {}\n"
 					"  URL: {}\n"
 					"  Cached at: {}\n"
 					"  Size: {} chars ({} lines)\n"
@@ -166,7 +167,7 @@ class WWW():
 					"<ParsePage><fileName>{}</fileName><action>scripts</action></ParsePage>\n"
 					"<ParsePage><fileName>{}</fileName><action>query</action><selector>CSS_SELECTOR</selector></ParsePage>"
 				).format(
-					os.path.basename(cached['file']),
+					abs_path,
 					meta.get('url', url),
 					meta.get('cached_at', 'unknown'),
 					meta.get('char_count', 0),
@@ -251,9 +252,10 @@ class WWW():
 		try:
 			fp, meta = _save_to_cache(url, html, selector)
 			fname = os.path.basename(fp)
+			abs_path = os.path.abspath(fp)
 			return (
 				"Page cached successfully:\n"
-				"  File: workout/www_cache/{}\n"
+				"  Path: {}\n"
 				"  URL: {}\n"
 				"  Size: {} chars ({} lines)\n"
 				"  Title: {}\n\n"
@@ -265,7 +267,7 @@ class WWW():
 				"<ParsePage><fileName>{}</fileName><action>query</action><selector>CSS_SELECTOR</selector></ParsePage>\n"
 				"<ParsePage><fileName>{}</fileName><action>tree</action></ParsePage>"
 			).format(
-				fname,
+				abs_path,
 				meta.get('url', url),
 				meta.get('char_count', 0),
 				meta.get('line_count', 0),

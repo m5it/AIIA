@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-25 — v1.0.22
+
+### Auto: Version v1.0.22
+
+- Version auto-incremented from v1.0.21
+- Files changed: tools/tool_WWW.py
+
+---
+
+
 ## 2026-07-25 — v1.0.21
 
 ### Auto: Version v1.0.21
