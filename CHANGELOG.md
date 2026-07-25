@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-07-25 — v1.0.21
+
+### Auto: Version v1.0.21
+
+- Version auto-incremented from v1.0.20
+- Files changed: AUTOVERSION.py, CHANGELOG.md, tools/koslenium_driver
+
+---
+
+
+## 2026-07-25 — v1.0.20
+
+### Auto: Version v1.0.20
+
+- Version auto-incremented from v1.0.19
+- Files changed: (none)
+
+---
+
+
 ## 2026-07-25 — v1.0.19
 
 ### Auto: Version v1.0.19
