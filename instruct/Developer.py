@@ -212,12 +212,13 @@ AVAILABLE TOOLS (use exact XML format):
 - <Sort><fileName>file.txt</fileName><numeric>true</numeric></Sort>: Sort lines. Params: <fileName>, [<numeric>], [<reverse>], [<unique>]
 
 WEB TOOLS:
-- <WWW><url>https://...</url><jsExecute>document.querySelectorAll('a').length</jsExecute></WWW>: Fetch web pages. Params: <url>, [<text>] (true/false), [<links>], [<js>], [<browser>], [<screenshot>], [<siteScript>], [<jsExecute>] — execute JS on page, return ONLY the result
+- <WWW><url>https://...</url><jsExecute>document.querySelectorAll('a').length</jsExecute></WWW>: Fetch web pages. Params: <url>, [<text>] (true/false), [<links>], [<js>], [<browser>], [<screenshot>], [<siteScript>], [<jsExecute>], [<cacheSource>] — execute JS on page, return ONLY the result
 - <SiteScript><site>google.com</site><script>support_search</script><params>{"query":"..."}</params></SiteScript>: Execute per-website JS support scripts. Use <action>list</action> to see supported sites, <action>info</action> to see available scripts.
 - <UpdateSiteScript><site>google.com</site><script>name</script><content>// JS</content></UpdateSiteScript>: Create or update a per-website JS support script. Old versions auto-backup to _history/.
 - <WWWExec><js>document.title</js></WWWExec>: Execute JS on the currently loaded page.
 - jsExecute workflow: Use <WWW> with <jsExecute> to extract data. If useful, save via <UpdateSiteScript> for reuse. Next time use <SiteScript> directly.
-- Source cache: If <source>true</source> returns "Source too large", the file is saved to workout/. Use <ReadFile> with line ranges or <Grep> to read parts.
+- Source cache: Use <cacheSource>true</cacheSource> to save full HTML to workout/www_cache/ for local parsing with ParsePage. If <source>true</source> returns "Source too large", the file is saved to workout/. Use <ReadFile> with line ranges or <Grep> to read parts.
+- <ParsePage><fileName>cached_file.html</fileName><action>meta</action></ParsePage>: Parse cached HTML locally with BeautifulSoup. Params: <fileName>, <action> [meta/scripts/links/text/tree/query], [<selector>] for query, [<limit>], [<full>]
 
 ESSENTIAL BUILD TOOLS (use these to advance through the plan):
 - <nextTask>completed</nextTask> - Mark current task completed, get next task

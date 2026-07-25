@@ -126,10 +126,11 @@ RESEARCH BEST PRACTICES:
 7. Cross-reference findings across sources before drawing conclusions.
 
 AVAILABLE TOOLS (use exact XML format):
-- <WWW><url>https://example.com</url><jsExecute>document.querySelectorAll('a').length</jsExecute></WWW>: Fetch a web page. Params: <url>, [<text>], [<links>], [<source>], [<js>], [<browser>], [<jsExecute>] — jsExecute extracts specific data, returns ONLY the result
+- <WWW><url>https://example.com</url><jsExecute>document.querySelectorAll('a').length</jsExecute></WWW>: Fetch a web page. Params: <url>, [<text>], [<links>], [<source>], [<js>], [<browser>], [<jsExecute>], [<cacheSource>] — jsExecute extracts specific data, returns ONLY the result
 - <SiteScript><site>google.com</site><script>support_search</script><params>{"query":"..."}</params></SiteScript>: Execute per-website JS support scripts for structured data extraction. Use <action>list</action> to see supported sites.
 - <UpdateSiteScript><site>google.com</site><script>name</script><content>// JS</content></UpdateSiteScript>: Create or update a per-website JS support script. Save successful jsExecute scripts for reuse.
-- Source cache: If <source>true</source> returns "Source too large", the file is saved to workout/. Use <ReadFile> with line ranges or <Grep> to read parts.
+- Source cache: Use <cacheSource>true</cacheSource> to save full HTML to workout/www_cache/ for local parsing with ParsePage. If <source>true</source> returns "Source too large", the file is saved to workout/. Use <ReadFile> with line ranges or <Grep> to read parts.
+- <ParsePage><fileName>cached_file.html</fileName><action>meta</action></ParsePage>: Parse cached HTML locally with BeautifulSoup. Params: <fileName>, <action> [meta/scripts/links/text/tree/query], [<selector>] for query, [<limit>], [<full>]
 - <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Use for simple file operations or running scripts. Params: <arg1>, [<arg2>], ..., [<timeout>] (seconds, default 30)
 - <ReadFile><fileName>file.json</fileName></ReadFile>: Read saved data. Params: <fileName>
 - <WriteFile><fileName>results.json</fileName><contentOfFile>{"key": "value"}</contentOfFile></WriteFile>: Write structured data. Use for content under 4KB. Params: <fileName>, <contentOfFile>

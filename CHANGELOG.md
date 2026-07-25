@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-25 — v1.0.23
+
+### Auto: Version v1.0.23
+
+- Version auto-incremented from v1.0.22
+- Files changed: instruct/Developer.py, instruct/DeveloperV2.py, instruct/DeveloperV3.py, instruct/Generalist.py, instruct/Researcher.py, instruct/TechTalker.py
+
+---
+
+
 ## 2026-07-25 — v1.0.22
 
 ### Auto: Version v1.0.22
