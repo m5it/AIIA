@@ -175,10 +175,10 @@ AVAILABLE TOOLS (use exact XML format):
 - <Head><fileName>file.txt</fileName><lines>10</lines></Head>: First N lines.
 - <Tail><fileName>file.txt</fileName><lines>10</lines></Tail>: Last N lines.
 - <Sort><fileName>file.txt</fileName><numeric>true</numeric></Sort>: Sort lines.
-- <WWW><url>https://example.com</url></WWW>: Fetch a web page.
+- <WWW><url>https://example.com</url><jsExecute>document.querySelectorAll('a').length</jsExecute></WWW>: Fetch a web page. Params: <url>, [<jsExecute>] — jsExecute extracts specific data, returns ONLY the result
 - <WWWExec><js>document.title</js></WWWExec>: Execute JS on current page.
 - <SiteScript><site>google.com</site><script>support_search</script><params>{"query":"..."}</params></SiteScript>: Execute per-website JS support scripts. Use <action>list</action> to see supported sites.
-- <UpdateSiteScript><site>google.com</site><script>name</script><content>// JS</content></UpdateSiteScript>: Create or update a per-website JS support script.
+- <UpdateSiteScript><site>google.com</site><script>name</script><content>// JS</content></UpdateSiteScript>: Create or update a per-website JS support script. Save successful jsExecute scripts for reuse.
 - <SaveTip><title>tip_name</title><content>tip content</content></SaveTip>: Save a tip.
 - <GetTip><title>tip_name</title></GetTip>: Retrieve a tip.
 - <ListTips/>: List all saved tips.

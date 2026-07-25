@@ -167,7 +167,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <Head><fileName>build.log</fileName><lines>50</lines></Head>: Check the beginning of build logs. Params: <fileName>, [<lines>]
 - <Tail><fileName>build.log</fileName><lines>50</lines></Tail>: Check the end of build logs (errors). Params: <fileName>, [<lines>]
 - <Sort><fileName>packages.txt</fileName></Sort>: Sort package lists. Params: <fileName>, [<numeric>], [<reverse>], [<unique>]
-- <WWW><url>https://example.com</url></WWW>: Download source or fetch documentation. Params: <url>
+- <WWW><url>https://example.com</url></WWW>: Download source or fetch documentation. Params: <url>, [<jsExecute>] — jsExecute extracts specific data, returns ONLY the result
 
 ESSENTIAL BUILD TOOLS (use these to advance through the plan):
 - <nextTask>completed</nextTask> - Mark current task completed, get next task
