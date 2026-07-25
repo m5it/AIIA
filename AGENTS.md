@@ -17,6 +17,11 @@ python run.py -T 0.8             # set temperature
 
 python run_orchestra.py --port 9876        # start orchestra director
 python run_worker.py --connect localhost:9876 --name w1 -m gemma3:12b  # start worker
+
+# Build koslenium_driver (Java web client)
+cd tools/koslenium_driver && ./build.sh     # build both driver + www jars
+cd tools/koslenium_driver && ./build.sh quick  # incremental compile (fast)
+cd tools/koslenium_driver && ./build.sh test   # run Java tests
 ```
 
 ## Auto-Versioning
@@ -79,7 +84,7 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 </ToolName>
 ```
 
-**Available tools (29 total):**
+**Available tools (30 total):**
 - `ReadFile` — Read from `workin/` (params: `<fileName>`)
 - `ReadPDF` — Extract text and metadata from PDF files (params: `<fileName>`, `<fromPage>` optional, `<toPage>` optional, `<limit>` optional)
 - `WriteFile` — Write to `workout/` (params: `<fileName>`, `<contentOfFile>`)
@@ -100,8 +105,9 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 - `Tail` — Last N lines (params: `<fileName>`, `<lines>` optional)
 - `Sort` — Sort lines (params: `<fileName>`, `<numeric>/<reverse>/<unique>` optional)
 - `CurrentTime` — Get current date/time (params: `<format>` optional, `<timezone>` optional)
-- `WWW` — Fetch a web page via the Java web client. Supports JS rendering, screenshots, and auto-execution of per-website support scripts. (params: `<url>`, `<js>`, `<browser>`, `<text>`, `<links>`, `<source>`, `<screenshot>`, `<wait>`, `<selector>`, `<siteScript>`, `<jsExecute>`) — also invocable as `<www>` and `<WWWJS>`
+- `WWW` — Fetch a web page via the Java web client. Supports JS rendering, screenshots, and auto-execution of per-website support scripts. (params: `<url>`, `<js>`, `<browser>`, `<text>`, `<links>`, `<source>`, `<screenshot>`, `<wait>`, `<selector>`, `<siteScript>`, `<jsExecute>`, `<cacheSource>`) — also invocable as `<www>` and `<WWWJS>`
 - `WWWExec` — Execute JavaScript on the currently loaded page in the persistent browser window (params: `<js>`, `<wait>`)
+- `ParsePage` — Parse a cached HTML page locally with BeautifulSoup. Extract scripts, links, metadata, text, DOM tree, or run CSS queries. (params: `<fileName>`, `<action>` [scripts/links/meta/text/tree/query], `<selector>` for query, `<limit>`, `<full>`)
 - `SiteScript` — Discover and execute per-website JS support scripts (params: `<site>`, `<script>`, `<action>`, `<params>`)
 - `UpdateSiteScript` — Create or update per-website JS support scripts (params: `<site>`, `<script>`, `<content>`, `<action>`, `<info>`)
 - `SaveTip` — Save a tip with title and content to model storage (params: `<title>`, `<content>`)

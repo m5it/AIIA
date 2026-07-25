@@ -1,11 +1,78 @@
-import subprocess, os, glob, sys, json, time
+import subprocess, os, glob, sys, json, time, hashlib
 from config import Options
 from tools._koslenium_server import ensure_server, send, exec_script
 
 _DEBUG = Options.get("DEBUG", False)
 def _dbg(*a, **kw):
 	if _DEBUG:
-		print("WWW:", *a, file=sys.stderr, **kw)
+		print("WWW:", *a, **kw)
+
+def _url_hash(url):
+	return hashlib.md5(url.encode('utf-8')).hexdigest()[:12]
+
+def _get_cache_dir():
+	"""Resolve cache directory path."""
+	cache_dir = Options.get('WWW_CACHE_DIR', 'workout/www_cache')
+	if not os.path.isabs(cache_dir):
+		cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', cache_dir)
+	return cache_dir
+
+def _find_cached(url, ttl_hours):
+	"""Check if a cached version of this URL exists within TTL."""
+	cache_dir = _get_cache_dir()
+	if not os.path.isdir(cache_dir):
+		return None
+	prefix = _url_hash(url) + '_'
+	for f in sorted(os.listdir(cache_dir), reverse=True):
+		if f.startswith(prefix) and f.endswith('.html'):
+			fp = os.path.join(cache_dir, f)
+			if ttl_hours > 0:
+				age_h = (time.time() - os.path.getmtime(fp)) / 3600
+				if age_h > ttl_hours:
+					continue
+			meta_path = fp.rsplit('.', 1)[0] + '.meta.json'
+			meta = {}
+			if os.path.isfile(meta_path):
+				try:
+					with open(meta_path) as mf:
+						meta = json.load(mf)
+				except Exception:
+					pass
+			return {"file": fp, "meta": meta}
+	return None
+
+def _save_to_cache(url, html, selector=None):
+	"""Save HTML to cache with metadata. Returns the file path."""
+	cache_dir = _get_cache_dir()
+	os.makedirs(cache_dir, exist_ok=True)
+	ts = time.strftime('%Y%m%d_%H%M%S')
+	fname = '{}_{}.html'.format(_url_hash(url), ts)
+	fp = os.path.join(cache_dir, fname)
+	with open(fp, 'w', encoding='utf-8') as f:
+		f.write(html)
+	meta = {
+		"url": url,
+		"cached_at": time.strftime('%Y-%m-%dT%H:%M:%S'),
+		"timestamp": time.time(),
+		"char_count": len(html),
+		"line_count": html.count('\n') + 1,
+		"file": fname,
+	}
+	if selector:
+		meta["selector"] = selector
+	# Extract title if possible
+	try:
+		idx = html.lower().find('<title>')
+		if idx >= 0:
+			end = html.lower().find('</title>', idx + 7)
+			if end > idx:
+				meta["title"] = html[idx+7:end].strip()[:200]
+	except Exception:
+		pass
+	meta_path = fp.rsplit('.', 1)[0] + '.meta.json'
+	with open(meta_path, 'w', encoding='utf-8') as f:
+		json.dump(meta, f, indent=2, ensure_ascii=False)
+	return fp, meta
 
 class WWW():
 	def __init__(self):
@@ -60,18 +127,55 @@ class WWW():
 						"type":"string",
 						"description":"Set to 'true' to auto-execute the site's support_load.js script after page load, or specify a script name like 'support_extract'. See also: <SiteScript> tool."
 					},
+					"cacheSource":{
+						"type":"string",
+						"description":"Set to 'true' to save the full HTML to disk (workout/www_cache/) with dedup. Returns file path + metadata. Use with <ParsePage> to analyze cached pages locally."
+					},
 				},
 			},
 		}
 
 	def run(self, url, opts={}, js=None, browser=None, text=None, links=None,
-			source=None, screenshot=None, wait=None, selector=None, siteScript=None, jsExecute=None):
+			source=None, screenshot=None, wait=None, selector=None, siteScript=None,
+			jsExecute=None, cacheSource=None):
 		needs_js = (
 			browser and str(browser).lower() == 'true'
 			or screenshot
 			or (js and str(js).lower() == 'true')
 			or jsExecute
 		)
+
+		want_cache = cacheSource and str(cacheSource).lower() == 'true'
+		ttl_hours = Options.get('WWW_CACHE_TTL_H', 24)
+
+		# If cacheSource requested, check for existing cached version first
+		if want_cache:
+			cached = _find_cached(url, ttl_hours)
+			if cached:
+				_dbg("found cached version: {}".format(cached['file']))
+				meta = cached['meta']
+				return (
+					"Page already cached (use <ParsePage> to analyze it):\n"
+					"  File: {}\n"
+					"  URL: {}\n"
+					"  Cached at: {}\n"
+					"  Size: {} chars ({} lines)\n"
+					"  Title: {}\n\n"
+					"Use <ParsePage> to extract data:\n"
+					"<ParsePage><fileName>{}</fileName><action>meta</action></ParsePage>\n"
+					"<ParsePage><fileName>{}</fileName><action>scripts</action></ParsePage>\n"
+					"<ParsePage><fileName>{}</fileName><action>query</action><selector>CSS_SELECTOR</selector></ParsePage>"
+				).format(
+					os.path.basename(cached['file']),
+					meta.get('url', url),
+					meta.get('cached_at', 'unknown'),
+					meta.get('char_count', 0),
+					meta.get('line_count', 0),
+					meta.get('title', '(no title)'),
+					os.path.basename(cached['file']),
+					os.path.basename(cached['file']),
+					os.path.basename(cached['file']),
+				)
 
 		# Auto-enable cookies for JS/browser requests
 		if needs_js and not Options.get("COOKIE_FILE"):
@@ -112,6 +216,8 @@ class WWW():
 				if result is not None:
 					if jsExecute:
 						return self._run_js_execute(jsExecute, port, url)
+					if want_cache:
+						return self._cache_and_return(result, url, selector)
 					result = self._check_source_size(result, source)
 					return self._maybe_run_site_script(result, url, port, siteScript)
 				_dbg("server returned None, falling back to one-shot")
@@ -129,11 +235,46 @@ class WWW():
 			if result is not None:
 				if jsExecute:
 					return self._run_js_execute(jsExecute, port, url)
+				if want_cache:
+					return self._cache_and_return(result, url, selector)
 				result = self._check_source_size(result, source)
 				return self._maybe_run_site_script(result, url, port, siteScript)
 
 		# Fall back to lightweight www.jar
-		return self._run_www_jar(url, text, links)
+		result = self._run_www_jar(url, text, links)
+		if want_cache and result and not result.startswith("Error"):
+			return self._cache_and_return(result, url, selector)
+		return result
+
+	def _cache_and_return(self, html, url, selector=None):
+		"""Save HTML to cache and return summary with ParsePage instructions."""
+		try:
+			fp, meta = _save_to_cache(url, html, selector)
+			fname = os.path.basename(fp)
+			return (
+				"Page cached successfully:\n"
+				"  File: workout/www_cache/{}\n"
+				"  URL: {}\n"
+				"  Size: {} chars ({} lines)\n"
+				"  Title: {}\n\n"
+				"Use <ParsePage> to analyze the cached page:\n"
+				"<ParsePage><fileName>{}</fileName><action>meta</action></ParsePage>\n"
+				"<ParsePage><fileName>{}</fileName><action>scripts</action></ParsePage>\n"
+				"<ParsePage><fileName>{}</fileName><action>links</action></ParsePage>\n"
+				"<ParsePage><fileName>{}</fileName><action>text</action></ParsePage>\n"
+				"<ParsePage><fileName>{}</fileName><action>query</action><selector>CSS_SELECTOR</selector></ParsePage>\n"
+				"<ParsePage><fileName>{}</fileName><action>tree</action></ParsePage>"
+			).format(
+				fname,
+				meta.get('url', url),
+				meta.get('char_count', 0),
+				meta.get('line_count', 0),
+				meta.get('title', '(no title)'),
+				fname, fname, fname, fname, fname, fname,
+			)
+		except Exception as e:
+			_dbg("cache error: {}".format(e))
+			return html
 
 	def _maybe_run_site_script(self, page_content, url, port, siteScript):
 		"""After page load, optionally execute a site script and append its output."""
