@@ -147,7 +147,7 @@ WORKFLOW RULES:
 
 AVAILABLE TOOLS (use exact XML format):
 - <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Use ONLY for one-liners.
-- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file.
+- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Params: <fileName>, <offset>, <lines>, <max_chars>
 - <WriteFile><fileName>README.md</fileName><contentOfFile># content</contentOfFile></WriteFile>: Write file. Use for content < 4096 bytes. For larger content, use WriteFile first chunk then AppendFile.
 - <AppendFile><fileName>README.md</fileName><contentOfFile># line</contentOfFile></AppendFile>: Append to file.
 - <CreateFile><fileName>test.sh</fileName><contentOfFile># content</contentOfFile></CreateFile>: Create new file (fails if exists).

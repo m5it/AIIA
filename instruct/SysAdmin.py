@@ -133,7 +133,7 @@ COMPILATION & BUILD BEST PRACTICES:
 
 AVAILABLE TOOLS (use exact XML format):
 - <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Primary tool for compilation (make, gcc, cmake, configure). Params: <arg1>, [<arg2>], ..., [<timeout>] (seconds, default 30)
-- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Use to inspect build instructions, config files, or error logs. Params: <fileName>
+- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Use to inspect build instructions, config files, or error logs. Params: <fileName>, <offset>, <lines>, <max_chars>
 - <WriteFile><fileName>README.md</fileName><contentOfFile># Content</contentOfFile></WriteFile>: Write file. Use for creating configuration files or build scripts under 4KB. Params: <fileName>, <contentOfFile>
 - <AppendFile><fileName>file.txt</fileName><contentOfFile># text</contentOfFile><fromLineNumber>1</fromLineNumber></AppendFile>: Append to file. Use for adding to config files. Params: <fileName>, <contentOfFile>, [<fromLineNumber>]
 - <CreateFile><fileName>test.sh</fileName><contentOfFile>#!/bin/bash</contentOfFile></CreateFile>: Create new file (fails if exists). Params: <fileName>, <contentOfFile>

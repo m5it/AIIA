@@ -175,7 +175,7 @@ When you encounter a blocker:
 
 AVAILABLE TOOLS (use exact XML format):
 - <Terminal><arg1>ls</arg1><arg2>-l</arg2></Terminal>: Execute terminal commands. Use ONLY for one-liner commands. Params: <arg1>, [<arg2>], ..., [<timeout>] (seconds, default 30)
-- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Params: <fileName>
+- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Params: <fileName>, <offset>, <lines>, <max_chars>
 - <WriteFile><fileName>README.md</fileName><contentOfFile># Simple hello world app.</contentOfFile></WriteFile>: Write file. Use for content < 4096 bytes. For larger content, use WriteFile for first chunk then AppendFile. Params: <fileName>, <contentOfFile>
 - <AppendFile><fileName>README.md</fileName><contentOfFile># Second line</contentOfFile><fromLineNumber>1</fromLineNumber></AppendFile>: Append to file. Use for content > 4096 bytes or adding to existing files. Params: <fileName>, <contentOfFile>, [<fromLineNumber>]
 - <CreateFile><fileName>testfile.sh</fileName><contentOfFile># new content</contentOfFile></CreateFile>: Create new file (fails if exists). If file exists and you want to overwrite, use WriteFile instead. Params: <fileName>, <contentOfFile>
@@ -227,7 +227,7 @@ WEB TOOLS:
 - <UpdateSiteScript><site>google.com</site><script>name</script><content>// JS</content></UpdateSiteScript>: Create or update a per-website JS support script. Old versions auto-backup to _history/.
 - <WWWExec><js>document.title</js></WWWExec>: Execute JS on the currently loaded page.
 - jsExecute workflow: Use <WWW> with <jsExecute> to extract data. If useful, save via <UpdateSiteScript> for reuse. Next time use <SiteScript> directly.
-- Source cache: Use <cacheSource>true</cacheSource> to save full HTML to workout/www_cache/ for local parsing with ParsePage. If <source>true</source> returns "Source too large", the file is saved to workout/. Use <ReadFile> with line ranges or <Grep> to read parts.
+- Source cache: Use <cacheSource>true</cacheSource> to save full HTML to workout/www_cache/ for local parsing with ParsePage. If <source>true</source> returns "Source too large", the file is saved to workout/. Use <ReadFile> with <offset> or <Grep> to read parts.
 - <ParsePage><fileName>cached_file.html</fileName><action>meta</action></ParsePage>: Parse cached HTML locally with BeautifulSoup. Params: <fileName>, <action> [meta/scripts/links/text/tree/query], [<selector>] for query, [<limit>], [<full>]
 
 ESSENTIAL BUILD TOOLS (use these to advance through the plan):

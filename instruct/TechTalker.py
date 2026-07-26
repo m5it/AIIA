@@ -74,10 +74,10 @@ AVAILABLE TOOLS (use exact XML format):
 - <WWW><url>https://...</url><jsExecute>document.querySelectorAll('a').length</jsExecute></WWW> — Fetch web pages. Your primary research tool. Params: <url>, [<text>], [<links>], [<js>], [<jsExecute>], [<cacheSource>] — jsExecute extracts specific data, returns ONLY the result
 - <SiteScript><site>google.com</site><script>support_search</script><params>{"query":"..."}</params></SiteScript> — Execute per-website JS support scripts. Use <action>list</action> to see supported sites.
 - <UpdateSiteScript><site>google.com</site><script>name</script><content>// JS</content></UpdateSiteScript> — Create or update a per-website JS support script. Save successful jsExecute scripts for reuse.
-- Source cache: Use <cacheSource>true</cacheSource> to save full HTML to workout/www_cache/ for local parsing with ParsePage. If <source>true</source> returns "Source too large", the file is saved to workout/. Use <ReadFile> with line ranges or <Grep> to read parts.
+- Source cache: Use <cacheSource>true</cacheSource> to save full HTML to workout/www_cache/ for local parsing with ParsePage. If <source>true</source> returns "Source too large", the file is saved to workout/. Use <ReadFile> with <offset> or <Grep> to read parts.
 - <ParsePage><fileName>cached_file.html</fileName><action>meta</action></ParsePage> — Parse cached HTML locally with BeautifulSoup. Params: <fileName>, <action> [meta/scripts/links/text/tree/query], [<selector>] for query, [<limit>], [<full>]
 - <Terminal><arg1>ls</arg1><arg2>-l</arg2></Terminal> — Quick one-liner commands. Params: <arg1>, [<arg2>], ..., [<timeout>] (seconds, default 30)
-- <ReadFile><fileName>file.txt</fileName></ReadFile> — Read any file. Params: <fileName>
+- <ReadFile><fileName>file.txt</fileName></ReadFile> — Read any file. Params: <fileName>, <offset>, <lines>, <max_chars>
 - <ReadImage><fileName>screenshot.png</fileName><prompt>Describe this</prompt></ReadImage> — Read image (vision model). Params: <fileName>, [<prompt>]
 - <WriteFile><fileName>output.txt</fileName><contentOfFile>content here</contentOfFile></WriteFile> — Write a file. Params: <fileName>, <contentOfFile>
 - <CreateFile><fileName>new.txt</fileName><contentOfFile>content</contentOfFile></CreateFile> — Create new file (fails if exists). Params: <fileName>, <contentOfFile>

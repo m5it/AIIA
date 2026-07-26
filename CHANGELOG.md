@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-26 — v1.0.30
+
+### Auto: Version v1.0.30
+
+- Version auto-incremented from v1.0.29
+- Files changed: AGENTS.md, instruct/DataCollector.py, instruct/Developer.py, instruct/DeveloperV2.py, instruct/DeveloperV3.py, instruct/Generalist.py, instruct/Researcher.py, instruct/SysAdmin.py, instruct/TechTalker.py, tools/tool_ReadFile.py
+
+---
+
+
 ## 2026-07-26 — v1.0.29
 
 ### Auto: Version v1.0.29

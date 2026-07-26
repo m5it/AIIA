@@ -86,7 +86,7 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 ```
 
 **Available tools (30 total):**
-- `ReadFile` — Read from `workin/` (params: `<fileName>`)
+- `ReadFile` — Read from `workin/` (params: `<fileName>`, `<offset>` optional, `<lines>` optional, `<max_chars>` optional)
 - `ReadPDF` — Extract text and metadata from PDF files (params: `<fileName>`, `<fromPage>` optional, `<toPage>` optional, `<limit>` optional)
 - `WriteFile` — Write to `workout/` (params: `<fileName>`, `<contentOfFile>`)
 - `AppendFile` — Append in `workout/` (params: `<fileName>`, `<contentOfFile>`)
