@@ -609,7 +609,7 @@ class Commands():
 			color, label = _label(role, tool_name)
 			# Header
 			print()
-			print("{}{}═{} {}[{}]{} {}{}{} {}═{}{}".format(
+			print("{}{}═{} {}[{}]{} {} {}{} {}═{}{}".format(
 				D, '═' * 3, R, D, time_str, R, color + label + R, W, row, D, '═' * (40 - len(label)), R))
 			# Thinking block
 			if thinking:

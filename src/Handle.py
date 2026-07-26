@@ -973,13 +973,10 @@ class Handle():
 		
 		# Handle user commands
 		if rmatch(inp,"^!.*"):
-			print("handle debug!!!")
 			cmds = self.cmds.cmds
 			for k in cmds:
 				if rmatch(inp,cmds[k]['regex']):
-					print("match command! {}".format( cmds[k]['name'] ))
 					return cmds[k]['func'](inp)
-			print("no match, repeat..., debug({}): {}".format(len(inp),inp))
 			return 2 # as continue
 		# Repeat user input. Content too large
 		if len(inp)>self.Options['AI_MAX_CONTENT_LEN']:
