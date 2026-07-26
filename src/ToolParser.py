@@ -655,6 +655,17 @@ class ToolParser:
 						result = warn + "\n" + str(result)
 						last_result = result
 			#
+			# Truncation detection — warn model if response hit num_predict limit
+			if toolName in ('WriteFile', 'CreateFile', 'AppendFile'):
+				response_tokens = self.handle.Options.get('NUM_LAST_RESPONSE_TOKENS', 0)
+				num_predict = self.handle.Options.get('NUM_PREDICT')
+				if num_predict and response_tokens and response_tokens >= num_predict - 200:
+					warn = ("⚠ TRUNCATION: File may be incomplete (model hit {} token limit). "
+						"Use <WriteFile> for first ~200 lines, then <AppendFile> for subsequent chunks.").format(num_predict)
+					result = warn + "\n" + str(result)
+					last_result = result
+					self.handle.Options['CHUNKED_WRITE_HINT'] = True
+			#
 			# Show loaded message with timing and sizes (verbose mode)
 			if show_load:
 				_elapsed = time.time() - _tool_start

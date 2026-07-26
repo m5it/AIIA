@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-26 — v1.0.27
+
+### Auto: Version v1.0.27
+
+- Version auto-incremented from v1.0.26
+- Files changed: AGENTS.md, instruct/BookSmith.py, instruct/BookSmithAnalyst.py, instruct/BookSmithEditor.py, instruct/BookSmithNovelist.py, instruct/BookSmithPoet.py, instruct/BookSmithV2.py, instruct/BookSmithV3.py, instruct/DataCollector.py, instruct/Developer.py, instruct/DeveloperV2.py, instruct/DeveloperV3.py, instruct/Generalist.py, instruct/MediaAnalyst.py, instruct/SysAdmin.py, instruct/TechTalker.py, src/Prepare.py, src/ToolParser.py
+
+---
+
+
 ## 2026-07-26 — v1.0.26
 
 ### Auto: Version v1.0.26

@@ -119,6 +119,8 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 
 **Tool result caching:** Tools with a `cache_ttl` class attribute (e.g., listTools=600s, TreeView=300s) automatically cache results. Cache entries stored under `~/.config/aiia/tips/_cache/{toolname}/{key_hash}.json`. Cache invalidates on TTL expiry, tool file mtime change, `!CACHE_CLEAR`, `!NEW SESSION`, or `!UPDATE HANDLE`. Global default TTL: 86400s (1 day) via `TOOL_CACHE_TTL` in config.
 
+**Large file writing:** When `num_predict` is set, the model may hit the output token limit mid-write. If truncation is detected, the model is warned automatically and chunked writing instructions are injected into the persona. Use `<WriteFile>` for the first ~200 lines, then `<AppendFile>` for subsequent chunks. Override with `!SET CHUNKED_WRITE_HINT true/false`.
+
 **Example model output:**
 ```xml
 <WriteFile>

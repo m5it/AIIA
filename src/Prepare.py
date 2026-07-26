@@ -187,5 +187,9 @@ class Prepare():
 				else:
 					val = replacements.get('build_disabled', '') if disabled else replacements.get('build_enabled', '')
 				text = text.replace(block_id, val)
+			# CHUNKED_WRITE: only show when truncation was detected
+			if '[--#CHUNKED_WRITE#--ID2--]' in text:
+				if not self.handle.Options.get('CHUNKED_WRITE_HINT'):
+					text = text.replace('[--#CHUNKED_WRITE#--ID2--]', '')
 		return text
 

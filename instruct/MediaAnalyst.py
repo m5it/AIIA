@@ -14,6 +14,11 @@ class MediaAnalyst():
 			'build_enabled': 'Thinking ENABLED - analyze images systematically',
 			'build_disabled': 'Thinking DISABLED - be concise and direct in descriptions',
 		},
+		'[--#CHUNKED_WRITE#--ID2--]': {
+			'plan': '',
+			'build_enabled': 'LARGE FILE WRITING: When writing files over 200 lines, split into chunks:\n1. <WriteFile> with first ~200 lines\n2. <AppendFile> for subsequent chunks of ~200 lines each.\nThis prevents truncation from token limits.',
+			'build_disabled': 'LARGE FILE WRITING: When writing files over 200 lines, split into chunks:\n1. <WriteFile> with first ~200 lines\n2. <AppendFile> for subsequent chunks of ~200 lines each.\nThis prevents truncation from token limits.',
+		},
 	}
 
 	def requirements(self):
@@ -145,6 +150,7 @@ AVAILABLE TOOLS:
 - <SaveTip><title>analysis_notes</title><content>notes here</content></SaveTip> — Save analysis notes
 - <ListTips/> — List all saved tips
 - <ReinsertTip><title>analysis_notes</title></ReinsertTip> — Bring saved notes into context
+[--#CHUNKED_WRITE#--ID2--]
 
 ESSENTIAL BUILD TOOLS (use these to advance when working from a plan):
 - <nextTask>completed</nextTask> - Mark current task done, advance to next

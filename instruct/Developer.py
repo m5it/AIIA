@@ -10,6 +10,11 @@ class Developer():
 			'build_enabled': 'Thinking ENABLED - you can reason step by step',
 			'build_disabled': 'Thinking DISABLED - be concise and direct',
 		},
+		'[--#CHUNKED_WRITE#--ID2--]': {
+			'plan': '',
+			'build_enabled': 'LARGE FILE WRITING: When writing files over 200 lines, split into chunks:\n1. <WriteFile> with first ~200 lines\n2. <AppendFile> for subsequent chunks of ~200 lines each.\nThis prevents truncation from token limits.',
+			'build_disabled': 'LARGE FILE WRITING: When writing files over 200 lines, split into chunks:\n1. <WriteFile> with first ~200 lines\n2. <AppendFile> for subsequent chunks of ~200 lines each.\nThis prevents truncation from token limits.',
+		},
 	}
 
 	def plan(self):
@@ -250,6 +255,7 @@ TOOL USAGE RULES:
 - <SaveTip><title>tip_name</title><content>useful info</content></SaveTip> — Save a tip
 - <ListTips/> — List all saved tips
 - <ReinsertTip><title>tip_name</title></ReinsertTip> — Bring tip into current context
+[--#CHUNKED_WRITE#--ID2--]
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 - If a tool returns an error with a "Usage:" example, the error message shows the correct parameter names. Copy them exactly — don't guess. This is faster than trial-and-error.
 

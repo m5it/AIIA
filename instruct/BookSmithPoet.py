@@ -10,6 +10,11 @@ class BookSmithPoet():
 			'build_enabled': 'Thinking ENABLED — poetry demands careful wordcraft',
 			'build_disabled': 'Thinking DISABLED — be concise and direct',
 		},
+		'[--#CHUNKED_WRITE#--ID2--]': {
+			'plan': '',
+			'build_enabled': 'LARGE FILE WRITING: When writing files over 200 lines, split into chunks:\n1. <WriteFile> with first ~200 lines\n2. <AppendFile> for subsequent chunks of ~200 lines each.\nThis prevents truncation from token limits.',
+			'build_disabled': 'LARGE FILE WRITING: When writing files over 200 lines, split into chunks:\n1. <WriteFile> with first ~200 lines\n2. <AppendFile> for subsequent chunks of ~200 lines each.\nThis prevents truncation from token limits.',
+		},
 	}
 
 	def requirements(self):
@@ -159,6 +164,7 @@ When analyzing a poem, work through:
 - <SaveTip><title>tip_name</title><content>notes here</content></SaveTip> — Save notes
 - <ListTips/> — List all saved tips
 - <ReinsertTip><title>tip_name</title></ReinsertTip> — Bring notes into context
+[--#CHUNKED_WRITE#--ID2--]
 - <WWW>, <SiteScript>, <UpdateSiteScript> — web research and per-site JS extraction
 - <LogProgress>, <nextTask>, <jobDone/>, <planDone/>
 - <viewTask>, <listTasks>, <createPlan>, <createTask>, <cancelPlan/>

@@ -4,6 +4,18 @@ class DataCollector():
 	mode = "build"
 	build_thinking_disabled = True
 	max_iterations = 20
+	blocks = {
+		'[--#THINKING#--ID1--]': {
+			'plan': 'Thinking ENABLED',
+			'build_enabled': 'Thinking ENABLED - you can reason step by step',
+			'build_disabled': 'Thinking DISABLED - be concise and direct',
+		},
+		'[--#CHUNKED_WRITE#--ID2--]': {
+			'plan': '',
+			'build_enabled': 'LARGE FILE WRITING: When writing files over 200 lines, split into chunks:\n1. <WriteFile> with first ~200 lines\n2. <AppendFile> for subsequent chunks of ~200 lines each.\nThis prevents truncation from token limits.',
+			'build_disabled': 'LARGE FILE WRITING: When writing files over 200 lines, split into chunks:\n1. <WriteFile> with first ~200 lines\n2. <AppendFile> for subsequent chunks of ~200 lines each.\nThis prevents truncation from token limits.',
+		},
+	}
 
 	def plan(self):
 		return """
@@ -184,6 +196,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <ListTips/>: List all saved tips.
 - <DeleteTip><title>tip_name</title></DeleteTip>: Delete a tip.
 - <ReinsertTip><title>tip_name</title></ReinsertTip>: Reinsert a tip into context.
+[--#CHUNKED_WRITE#--ID2--]
 
 ESSENTIAL BUILD TOOLS (use these to advance through the plan):
 - <nextTask>completed</nextTask> - Mark current task completed and get the next one.

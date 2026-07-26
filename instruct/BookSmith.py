@@ -12,6 +12,11 @@ class BookSmith():
 			'build_enabled': 'Thinking ENABLED - think about narrative, style, and structure',
 			'build_disabled': 'Thinking DISABLED - be concise and direct',
 		},
+		'[--#CHUNKED_WRITE#--ID2--]': {
+			'plan': '',
+			'build_enabled': 'LARGE FILE WRITING: When writing files over 200 lines, split into chunks:\n1. <WriteFile> with first ~200 lines\n2. <AppendFile> for subsequent chunks of ~200 lines each.\nThis prevents truncation from token limits.',
+			'build_disabled': 'LARGE FILE WRITING: When writing files over 200 lines, split into chunks:\n1. <WriteFile> with first ~200 lines\n2. <AppendFile> for subsequent chunks of ~200 lines each.\nThis prevents truncation from token limits.',
+		},
 	}
 
 	def requirements(self):
@@ -217,6 +222,7 @@ Memory & Tips:
 - <GetTip><title>character_john</title></GetTip> — retrieve saved notes
 - <ListTips/> — browse all saved notes
 - <ReinsertTip><title>character_john</title></ReinsertTip> — bring notes into context
+[--#CHUNKED_WRITE#--ID2--]
 
 Web Research:
 - <WWW><url>https://...</url><text>true</text></WWW> — fetch web pages for research
