@@ -48,12 +48,12 @@ class Commands():
 			"func"       :self.CMD_SUMMARIZE,
 		},
 		"PREVIEW_HISTORY":{
-			"name"       :"Preview History",
-			"description":"Preview current chat history",
-			"regex"      :r"^!PH$",
-			"usage"      :"!PH",
-			"func"       :self.CMD_PREVIEW_HISTORY,
-		},
+				"name"       :"Preview History",
+				"description":"Preview current chat history (optionally a specific row)",
+				"regex"      :r"^!PH(\s+\d+)?$",
+				"usage"      :"!PH [number]",
+				"func"       :self.CMD_PREVIEW_HISTORY,
+			},
 		"TIP_LIST":{
 			"name"       :"Tip List",
 			"description":"List all saved tip titles with entry counts.",
@@ -571,6 +571,8 @@ class Commands():
 		if not msgs:
 			print("No history.")
 			return 2
+		a = inp.split()
+		row = int(a[1]) if len(a) > 1 else None
 		R = '\033[0m'     # reset
 		G = '\033[1;32m'  # green — assistant
 		C = '\033[1;36m'  # cyan — user
@@ -578,6 +580,50 @@ class Commands():
 		B = '\033[1;34m'  # blue — tool
 		W = '\033[1;37m'  # white — header
 		D = '\033[2m'     # dim
+		BG = '\033[48;5;236m'  # dark gray background
+
+		def _label(role, tool_name):
+			if role == 'user':
+				return C, 'USER'
+			elif role == 'assistant':
+				return G, 'ASSISTANT'
+			elif role == 'system':
+				return Y, 'SYSTEM'
+			elif role == 'tool':
+				return B, 'TOOL:{}'.format(tool_name) if tool_name else 'TOOL'
+			else:
+				return R, role.upper()
+
+		# Single row view — full content, no truncation
+		if row is not None:
+			if row < 0 or row >= len(msgs):
+				print("Row {} out of range (0-{}).".format(row, len(msgs) - 1))
+				return 2
+			msg = msgs[row]
+			role = msg.get('role', '?')
+			content = msg.get('content', '')
+			ts = msg.get('timestamp', 0)
+			tool_name = msg.get('name', '')
+			thinking = msg.get('thinking', '')
+			time_str = datetime.fromtimestamp(ts).strftime('%H:%M:%S') if ts else '??:??:??'
+			color, label = _label(role, tool_name)
+			# Header
+			print()
+			print("{}{}═{} {}[{}]{} {}{}{} {}═{}{}".format(
+				D, '═' * 3, R, D, time_str, R, color + label + R, W, row, D, '═' * (40 - len(label)), R))
+			# Thinking block
+			if thinking:
+				print("\n{}💡 Thinking:{}\n{}".format(D, R, thinking))
+			# Content — full, not truncated
+			if content:
+				print("\n{}\n".format(content))
+			else:
+				print("\n{}(empty){}\n".format(D, R))
+			# Footer
+			print("{}{}═{} ({} chars){}".format(D, '═' * 50, R, len(content), R))
+			return 2
+
+		# Full history list
 		print("\n{}=== CHAT HISTORY ({} messages) ==={}\n".format(W, len(msgs), R))
 		for i, msg in enumerate(msgs):
 			role = msg.get('role', '?')
@@ -585,22 +631,7 @@ class Commands():
 			ts = msg.get('timestamp', 0)
 			tool_name = msg.get('name', '')
 			time_str = datetime.fromtimestamp(ts).strftime('%H:%M') if ts else '??:??'
-			# Pick color and label by role
-			if role == 'user':
-				color = C
-				label = 'USER'
-			elif role == 'assistant':
-				color = G
-				label = 'ASSISTANT'
-			elif role == 'system':
-				color = Y
-				label = 'SYSTEM'
-			elif role == 'tool':
-				color = B
-				label = 'TOOL:{}'.format(tool_name) if tool_name else 'TOOL'
-			else:
-				color = R
-				label = role.upper()
+			color, label = _label(role, tool_name)
 			# Truncate content to 80 chars, single-line
 			preview = content.replace('\n', ' ').replace('\r', '')
 			if len(preview) > 80:
