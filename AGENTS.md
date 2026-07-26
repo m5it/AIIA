@@ -43,6 +43,7 @@ Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `1.0.0`
 | `!PLAN [PREVIEW\|VIEW\|TASKS\|STATUS]` | View plan status |
 | `!HELP` | Show all commands |
 | `!STATS` | Token counts |
+| `!SET <key> <value>` | Override any config at runtime (e.g. `!SET NUM_PREDICT 16384`) |
 | `!NEW SESSION` | Full reset |
 | `!INSTALL_DEPS [persona]` | Install missing persona dependencies |
 | `!SITE_LIST` | List all websites with available JS support scripts |

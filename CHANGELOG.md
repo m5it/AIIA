@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-26 — v1.0.26
+
+### Auto: Version v1.0.26
+
+- Version auto-incremented from v1.0.25
+- Files changed: AGENTS.md, COMMANDS.md, src/Commands.py, src/Handle.py, src/ModelRegistry.py
+
+---
+
+
 ## 2026-07-26 — v1.0.25
 
 ### Auto: Version v1.0.25

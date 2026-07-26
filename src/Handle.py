@@ -189,6 +189,12 @@ class Handle():
 		if saved_allowed:
 			self.Options['TOOL_ALLOWED'] = set(saved_allowed)
 
+		# Ensure num_predict is set for continued sessions (prevents truncation)
+		if self.Options.get('NUM_PREDICT') is None:
+			self.Options['NUM_PREDICT'] = 16384
+			self.hLG.echo("Set NUM_PREDICT=16384 for continued session (use !SET NUM_PREDICT <value> to change)",
+				{'color': True, 'colorValue': 'cyan'})
+
 		# Load plan from PLAN.md
 		plan_data = PlanSaver.load_plan(working_dir, framework_dir)
 		if plan_data and plan_data.get('id'):
@@ -1557,11 +1563,15 @@ class Handle():
 						{'color':True, 'colorValue':'yellow','debugOnly':False})
 
 			# Build chat parameters
+			chat_opts = dict(self.Options['AI_OPTIONS'])
+			num_predict = self.Options.get('NUM_PREDICT')
+			if num_predict is not None:
+				chat_opts['num_predict'] = num_predict
 			chat_params = {
 				'model': self.Options['AI_MODEL'],
 				'messages': msgs,
 				'stream': True,
-				'options': self.Options['AI_OPTIONS'],
+				'options': chat_opts,
 			}
 			
 			# Optional: pass think=True for models that support the reasoning

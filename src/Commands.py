@@ -314,6 +314,13 @@ class Commands():
 				"usage"      :"!TIMER_LIST",
 				"func"       :self.CMD_TIMER_LIST,
 			},
+		"SET":{
+				"name"       :"Set Config",
+				"description":"Override any config option at runtime.",
+				"regex"      :r"^!SET(\s+\S+.*)?$",
+				"usage"      :"!SET <key> <value>  or  !SET (list all)",
+				"func"       :self.CMD_SET,
+			},
 		}
 	#--
 	#
@@ -726,6 +733,67 @@ class Commands():
 		count = self.handle.hTM.clear_all_caches()
 		self.handle._consumed_tips = set()
 		self.handle.hLG.echo("Cleared {} cached tool result(s) and reset consumed tips.".format(count),{'color':True,'colorValue':'orange'})
+		return 2
+	#
+	def CMD_SET(self, inp=""):
+		a = inp.split(None, 1)
+		if len(a) < 2:
+			print("\nCurrent config (use !SET <key> <value> to change):")
+			for k in sorted(self.handle.Options.keys()):
+				v = self.handle.Options[k]
+				if isinstance(v, dict):
+					print("  {} = {}".format(k, json.dumps(v)))
+				elif isinstance(v, list):
+					print("  {} = {}".format(k, v))
+				else:
+					print("  {} = {}".format(k, v))
+			print("\nRead-only keys: VERSION, VERSION_NAME, AI_SESS_ID, AI_ROW_ID, path, tools_path, NUM_*_TOKENS")
+			return 2
+		parts = a[1].split(None, 1)
+		if len(parts) < 2:
+			print("Usage: !SET <key> <value>  or  !SET <key>=<value>")
+			return 2
+		key = parts[0].rstrip('=')
+		raw = parts[1]
+		readonly = {
+			'VERSION', 'VERSION_NAME', 'AI_FILE_STATE', 'AI_FILE_HISTORY',
+			'AI_SESS_ID', 'AI_ROW_ID', 'path', 'tools_path',
+			'NUM_PROMPT_TOKENS', 'NUM_RESPONSE_TOKENS',
+			'NUM_LAST_PROMPT_TOKENS', 'NUM_LAST_RESPONSE_TOKENS',
+			'DRAFT_CONTENT', 'BACKGROUND_LOG',
+		}
+		if key in readonly:
+			print("Cannot set read-only key '{}'.".format(key))
+			return 2
+		# Parse value
+		val = raw
+		if raw.lower() == 'true':
+			val = True
+		elif raw.lower() == 'false':
+			val = False
+		elif raw.lower() == 'none' or raw.lower() == 'null':
+			val = None
+		else:
+			try:
+				val = int(raw)
+			except ValueError:
+				try:
+					val = float(raw)
+				except ValueError:
+					try:
+						val = json.loads(raw)
+					except (json.JSONDecodeError, ValueError):
+						val = raw
+		# Special handling for AI_OPTIONS (dict deep-merge)
+		if key == 'AI_OPTIONS':
+			if not isinstance(val, dict):
+				print("AI_OPTIONS requires a JSON dict, e.g.: !SET AI_OPTIONS '{\"temperature\":0.8,\"num_predict\":16384}'")
+				return 2
+			self.handle.Options['AI_OPTIONS'].update(val)
+			print("AI_OPTIONS updated: {}".format(json.dumps(self.handle.Options['AI_OPTIONS'])))
+		else:
+			self.handle.Options[key] = val
+			print("Set {} = {}".format(key, val))
 		return 2
 	#
 	def CMD_INSTALL_DEPS(self, inp=""):

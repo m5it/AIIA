@@ -40,6 +40,7 @@ python run.py -T 0.8                # set temperature
 | `!PLAN PREVIEW` / `VIEW` / `TASKS` / `STATUS` | View plan state |
 | `!HELP` | Show all available commands |
 | `!STATS` | Token usage stats |
+| `!SET <key> <value>` | Override config at runtime (e.g. `!SET NUM_PREDICT 16384`, `!SET AI_OPTIONS '{"temperature":0.8}'`) |
 | `!NEW SESSION` | Full reset (clears history, cache) |
 | `!INSTALL_DEPS [persona]` | Install missing dependencies for a persona |
 | `!SITE_LIST` | List all websites with JS support scripts |
