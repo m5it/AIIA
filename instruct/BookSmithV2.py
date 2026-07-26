@@ -151,7 +151,9 @@ File Management:
 - <List>, <TreeView>, <Find>, <Grep>, <Diff>, <Sed>
 
 Memory & Tips:
-- <SaveTip>, <GetTip>, <ListTips>, <ReinsertTip>
+- <SaveTip><title>tip_name</title><content>notes here</content></SaveTip> — Save notes
+- <ListTips/> — List all saved tips
+- <ReinsertTip><title>tip_name</title></ReinsertTip> — Bring notes into context
 
 Web Research:
 - <WWW> — fetch web pages

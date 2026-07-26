@@ -142,6 +142,10 @@ AVAILABLE TOOLS:
     fps=1/60        — 1 frame per minute
     -ss 00:01:00 -t 10  — extract 10 seconds starting at 1 minute
 
+- <SaveTip><title>analysis_notes</title><content>notes here</content></SaveTip> — Save analysis notes
+- <ListTips/> — List all saved tips
+- <ReinsertTip><title>analysis_notes</title></ReinsertTip> — Bring saved notes into context
+
 ESSENTIAL BUILD TOOLS (use these to advance when working from a plan):
 - <nextTask>completed</nextTask> - Mark current task done, advance to next
 - <nextTask>blocked</nextTask> - Mark current task blocked

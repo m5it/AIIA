@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-26 — v1.0.25
+
+### Auto: Version v1.0.25
+
+- Version auto-incremented from v1.0.24
+- Files changed: instruct/BookSmithAnalyst.py, instruct/BookSmithEditor.py, instruct/BookSmithNovelist.py, instruct/BookSmithPoet.py, instruct/BookSmithV2.py, instruct/BookSmithV3.py, instruct/Developer.py, instruct/DeveloperV2.py, instruct/DeveloperV3.py, instruct/MediaAnalyst.py, instruct/Researcher.py, instruct/SysAdmin.py, src/Commands.py
+
+---
+
+
 ## 2026-07-25 — v1.0.24
 
 ### Auto: Version v1.0.24

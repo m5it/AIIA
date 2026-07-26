@@ -196,7 +196,10 @@ TOOL USAGE RULES:
 - Prefer Grep over Terminal grep for searching through saved data files.
 - When a page fails, note the error in LogProgress and attempt an alternative approach.
 - Use ExecuteScript to run scripts you created. Terminal is for system binaries only.
-- Save important findings as tips with <SaveTip>. Reference them later with <GetTip>. Use <ReinsertTip> to bring previously saved data into current analysis.
+- Save important findings as tips. Browse saved tips with <ListTips/>.
+- <SaveTip><title>tip_name</title><content>useful info</content></SaveTip> — Save a tip
+- <ListTips/> — List all saved tips
+- <ReinsertTip><title>tip_name</title></ReinsertTip> — Bring tip into current context
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 
 EXAMPLE WORKFLOW (tasks from plan mode):

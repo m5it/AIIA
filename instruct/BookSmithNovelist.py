@@ -146,7 +146,9 @@ Scene template:
 - <ReadFile>, <ReadPDF>, <WriteFile>, <AppendFile>, <CreateFile>, <ReplaceLine>
 - <Head>, <Tail>, <Terminal>, <ExecuteScript>
 - <List>, <TreeView>, <Find>, <Grep>, <Diff>, <Sed>
-- <SaveTip>, <GetTip>, <ListTips>, <ReinsertTip>
+- <SaveTip><title>tip_name</title><content>notes here</content></SaveTip> — Save notes
+- <ListTips/> — List all saved tips
+- <ReinsertTip><title>tip_name</title></ReinsertTip> — Bring notes into context
 - <WWW>, <SiteScript>, <UpdateSiteScript> — web research and per-site JS extraction
 - <LogProgress>, <nextTask>, <jobDone/>, <planDone/>
 - <viewTask>, <listTasks>, <createPlan>, <createTask>, <cancelPlan/>

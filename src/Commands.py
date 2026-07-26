@@ -642,17 +642,24 @@ class Commands():
 		self.handle.hLG.echo("Saved {} message(s) as tip '{}'".format(len(entries), title),{'color':True,'colorValue':'green'})
 		return 2
 	#
+	def _parse_tip_ref(self, s):
+		if '/' in s:
+			parts = s.split('/', 1)
+			if parts[0] in ('user', 'model'):
+				return parts[0], parts[1]
+		return None, s
+	#
 	def CMD_TIP_VIEW(self, inp):
 		a = inp.split()
 		if len(a) < 2:
-			print("Usage: !TV <title>")
+			print("Usage: !TV <title|source/title>")
 			return 2
-		title = a[1]
-		entries = self.handle.hTM.get(title)
+		source, title = self._parse_tip_ref(a[1])
+		entries = self.handle.hTM.get(title, source)
 		if not entries:
-			print("No tips found for title '{}'".format(title))
+			print("No tips found for title '{}'".format(a[1]))
 			return 2
-		print("Tips for '{}':".format(title))
+		print("Tips for '{}':".format(a[1]))
 		for i, data in enumerate(entries):
 			print("\n--- Entry {} ({} source, session {}) ---".format(i, data.get('source','?'), data.get('sessionId','?')))
 			for msg in data.get('entries', []):
@@ -665,45 +672,45 @@ class Commands():
 	def CMD_TIP_REINSERT(self, inp):
 		a = inp.split()
 		if len(a) < 2:
-			print("Usage: !TR <title>")
+			print("Usage: !TR <title|source/title>")
 			return 2
-		title = a[1]
-		if title in self.handle._consumed_tips:
-			print("Tip '{}' was already reinserted this session.".format(title))
+		source, title = self._parse_tip_ref(a[1])
+		if a[1] in self.handle._consumed_tips:
+			print("Tip '{}' was already reinserted this session.".format(a[1]))
 			return 2
-		count = self.handle.hTM.reinsert(title)
+		count = self.handle.hTM.reinsert(title, source)
 		if count > 0:
-			self.handle.hLG.echo("Reinserted {} message(s) from tip '{}'".format(count, title),{'color':True,'colorValue':'green'})
+			self.handle.hLG.echo("Reinserted {} message(s) from tip '{}'".format(count, a[1]),{'color':True,'colorValue':'green'})
 		else:
-			print("No entries found for tip title '{}'.".format(title))
+			print("No entries found for tip '{}'.".format(a[1]))
 		return 2
 	#
 	def CMD_TIP_DELETE(self, inp):
 		a = inp.split()
 		if len(a) < 2:
-			print("Usage: !TD <title>")
+			print("Usage: !TD <title|source/title>")
 			return 2
-		title = a[1]
-		removed = self.handle.hTM.delete(title)
+		source, title = self._parse_tip_ref(a[1])
+		removed = self.handle.hTM.delete(title, source)
 		if removed:
-			self.handle.hLG.echo("Deleted tip '{}'".format(title),{'color':True,'colorValue':'orange'})
+			self.handle.hLG.echo("Deleted tip '{}'".format(a[1]),{'color':True,'colorValue':'orange'})
 		else:
-			print("No tip titled '{}' found.".format(title))
+			print("No tip titled '{}' found.".format(a[1]))
 		return 2
 	#
 	def CMD_TIP_DELETE_ENTRY(self, inp):
 		a = inp.split()
 		if len(a) < 3:
-			print("Usage: !TDR <title> <entry_num>")
+			print("Usage: !TDR <title|source/title> <entry_num>")
 			return 2
-		title = a[1]
+		source, title = self._parse_tip_ref(a[1])
 		try:
 			num = int(a[2])
 		except ValueError:
 			print("Entry number must be an integer.")
 			return 2
-		if self.handle.hTM.delete_entry(title, num):
-			self.handle.hLG.echo("Deleted entry {} from tip '{}'".format(num, title),{'color':True,'colorValue':'orange'})
+		if self.handle.hTM.delete_entry(title, num, source):
+			self.handle.hLG.echo("Deleted entry {} from tip '{}'".format(num, a[1]),{'color':True,'colorValue':'orange'})
 		else:
 			print("Entry not found.")
 		return 2

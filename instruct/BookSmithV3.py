@@ -83,7 +83,7 @@ AVAILABLE PLAN TOOLS:
 - <createPlan>, <createTask>, <planDone/> — core workflow
 - <updateTask>, <deleteTask>, <viewTask>, <listTasks>, <cancelPlan/> — manage
 - <TreeView>, <List>, <Find>, <Head>, <Tail>, <ReadFile> — explore
-- <SaveTip>, <GetTip>, <ListTips> — memory for book notes
+- <SaveTip>, <ListTips>, <ReinsertTip> — memory for book notes
 """
 
 	def build(self):
@@ -163,8 +163,9 @@ File Management:
 - <List>, <TreeView>, <Find>, <Grep>, <Diff>, <Sed>
 
 Memory & Tips:
-- <SaveTip> — title + content (character sheets, plot notes, research, chunk summaries)
-- <GetTip>, <ListTips>, <ReinsertTip>
+- <SaveTip><title>tip_name</title><content>character sheets, plot notes, research, chunk summaries</content></SaveTip> — Save notes
+- <ListTips/> — List all saved tips
+- <ReinsertTip><title>tip_name</title></ReinsertTip> — Bring notes into context
 
 Web Research:
 - <WWW> — fetch web pages
