@@ -127,7 +127,7 @@ class Prepare():
 		"""Append AGENTS.md from working_dir to system content if present and LOAD_AGENTS_MD is enabled."""
 		if not self.handle.Options.get('LOAD_AGENTS_MD', True):
 			return system_content
-		agents_md_path = os.path.join(self.handle.Options.get('working_dir', '.'), 'AGENTS.md')
+		agents_md_path = os.path.join(self.handle.Options.get('working_dir') or '.', 'AGENTS.md')
 		if not os.path.exists(agents_md_path):
 			return system_content
 		try:

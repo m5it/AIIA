@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-27 — v1.0.31
+
+### Auto: Version v1.0.31
+
+- Version auto-incremented from v1.0.30
+- Files changed: background.log, server_profiles/HTTP.py, src/Prepare.py, state.aiia
+
+---
+
+
 ## 2026-07-26 — v1.0.30
 
 ### Auto: Version v1.0.30

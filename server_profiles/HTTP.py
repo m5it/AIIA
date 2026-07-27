@@ -126,6 +126,60 @@ class OurAIServer():
 		except (OSError, IOError) as e:
 			return {"error": str(e), "success": False}
 	
+	def append_file(self, path, content, root=None):
+		"""Append content to a file."""
+		safe_path = self._get_safe_path(path, root=root)
+		if safe_path is None:
+			return {"error": "Access denied", "success": False}
+		try:
+			os.makedirs(os.path.dirname(safe_path), exist_ok=True)
+			with open(safe_path, 'a', encoding='utf-8') as f:
+				f.write(content)
+			size = os.path.getsize(safe_path)
+			return {"success": True, "path": path, "size": size}
+		except (OSError, IOError) as e:
+			return {"error": str(e), "success": False}
+	
+	def replace_lines(self, path, from_line, to_line, replacement, root=None):
+		"""Replace specific line range in a file."""
+		safe_path = self._get_safe_path(path, root=root)
+		if safe_path is None:
+			return {"error": "Access denied", "success": False}
+		if not os.path.exists(safe_path):
+			return {"error": "File not found", "success": False}
+		try:
+			with open(safe_path, 'r', encoding='utf-8', errors='replace') as f:
+				lines = f.readlines()
+			total = len(lines)
+			f_idx = max(0, from_line - 1)
+			t_idx = min(total, to_line)
+			new_lines = replacement.split('\n')
+			if new_lines and new_lines[-1] == '':
+				new_lines = new_lines[:-1]
+			result_lines = lines[:f_idx] + [l + '\n' for l in new_lines] + lines[t_idx:]
+			with open(safe_path, 'w', encoding='utf-8') as f:
+				f.writelines(result_lines)
+			return {"success": True, "path": path, "lines_replaced": t_idx - f_idx, "new_total": len(result_lines)}
+		except (OSError, IOError) as e:
+			return {"error": str(e), "success": False}
+	
+	def delete_file(self, path, root=None):
+		"""Delete a file."""
+		safe_path = self._get_safe_path(path, root=root)
+		if safe_path is None:
+			return {"error": "Access denied", "success": False}
+		if not os.path.exists(safe_path):
+			return {"error": "File not found", "success": False}
+		try:
+			if os.path.isdir(safe_path):
+				import shutil
+				shutil.rmtree(safe_path)
+			else:
+				os.remove(safe_path)
+			return {"success": True, "path": path, "deleted": True}
+		except (OSError, IOError) as e:
+			return {"error": str(e), "success": False}
+	
 	def execute_tool(self, tool_xml):
 		"""Execute a tool invocation from XML string."""
 		handle = self.handle
@@ -296,9 +350,23 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		"""Handle CORS preflight."""
 		self.send_response(204)
 		self.send_header('Access-Control-Allow-Origin', '*')
-		self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+		self.send_header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
 		self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Project-Path')
 		self.end_headers()
+	
+	def do_DELETE(self):
+		"""Handle DELETE requests."""
+		try:
+			self._do_DELETE_impl()
+		except Exception as e:
+			self._log_err("ERROR in do_DELETE: {}".format(e))
+			import traceback
+			traceback.print_exc(file=sys.stderr)
+			try:
+				self.send_response(500)
+				self.end_headers()
+			except:
+				pass
 	
 	def _do_POST_impl(self):
 		"""Implementation of POST handling."""
@@ -319,12 +387,18 @@ class _SSEHandler(BaseHTTPRequestHandler):
 			self._handle_chat(data)
 		elif self.path == '/api/files/write':
 			self._handle_file_write(data)
+		elif self.path == '/api/files/append':
+			self._handle_file_append(data)
+		elif self.path == '/api/files/replace':
+			self._handle_file_replace(data)
 		elif self.path == '/execute':
 			self._handle_execute(data)
 		elif self.path == '/register':
 			self._handle_register(data)
 		elif self.path == '/unregister':
 			self._handle_unregister(data)
+		elif self.path == '/history/clear':
+			self._handle_history_clear(data)
 		else:
 			self._send_json(404, {'error': 'Unknown endpoint'})
 	
@@ -377,6 +451,105 @@ class _SSEHandler(BaseHTTPRequestHandler):
 			self._send_json(200 if success else 500, result)
 		except Exception as e:
 			self._log_err("ERROR in _handle_file_write: {}".format(e))
+			self._send_json(500, {'error': str(e)})
+	
+	def _handle_file_append(self, data):
+		"""Handle file append requests."""
+		try:
+			path = data.get('path', '')
+			content = data.get('content', '')
+			client_id = data.get('client_id', '')
+			if not path:
+				self._send_json(400, {'error': 'Missing path'})
+				return
+			root_override = self.headers.get('X-Project-Path')
+			result = self.ai_server.append_file(path, content, root=root_override)
+			success = result.get('success', False)
+
+			if success and client_id:
+				self.ai_server.event_bus.publish({
+					"type": "file_appended",
+					"client_id": client_id,
+					"path": path,
+					"size": len(content),
+				})
+
+			self._send_json(200 if success else 500, result)
+		except Exception as e:
+			self._log_err("ERROR in _handle_file_append: {}".format(e))
+			self._send_json(500, {'error': str(e)})
+	
+	def _handle_file_replace(self, data):
+		"""Handle line-range replace requests."""
+		try:
+			path = data.get('path', '')
+			from_line = data.get('from_line', 1)
+			to_line = data.get('to_line', from_line)
+			replacement = data.get('content', '')
+			client_id = data.get('client_id', '')
+			if not path:
+				self._send_json(400, {'error': 'Missing path'})
+				return
+			try:
+				from_line = int(from_line)
+				to_line = int(to_line)
+			except (ValueError, TypeError):
+				self._send_json(400, {'error': 'Invalid line numbers'})
+				return
+			root_override = self.headers.get('X-Project-Path')
+			result = self.ai_server.replace_lines(path, from_line, to_line, replacement, root=root_override)
+			success = result.get('success', False)
+
+			if success and client_id:
+				self.ai_server.event_bus.publish({
+					"type": "file_replaced",
+					"client_id": client_id,
+					"path": path,
+					"from_line": from_line,
+					"to_line": to_line,
+				})
+
+			self._send_json(200 if success else 500, result)
+		except Exception as e:
+			self._log_err("ERROR in _handle_file_replace: {}".format(e))
+			self._send_json(500, {'error': str(e)})
+	
+	def _handle_history_clear(self, data):
+		"""Clear conversation history."""
+		try:
+			if self.ai_server.handle:
+				self.ai_server.handle.hHM.msgs = []
+			self._send_json(200, {"success": True, "message": "History cleared"})
+		except Exception as e:
+			self._send_json(500, {'error': str(e)})
+	
+	def _do_DELETE_impl(self):
+		"""Handle DELETE requests."""
+		if not self._check_auth():
+			self._send_json(401, {'error': 'Unauthorized'})
+			return
+		
+		if self.path.startswith('/api/files/delete'):
+			self._handle_file_delete()
+		else:
+			self.send_response(404)
+			self.end_headers()
+	
+	def _handle_file_delete(self):
+		"""Handle file delete requests."""
+		try:
+			from urllib.parse import urlparse, parse_qs
+			parsed = urlparse(self.path)
+			params = parse_qs(parsed.query)
+			path = params.get('path', [''])[0]
+			if not path:
+				self._send_json(400, {'error': 'Missing path parameter'})
+				return
+			root_override = self.headers.get('X-Project-Path')
+			result = self.ai_server.delete_file(path, root=root_override)
+			self._send_json(200 if result.get('success') else 500, result)
+		except Exception as e:
+			self._log_err("ERROR in _handle_file_delete: {}".format(e))
 			self._send_json(500, {'error': str(e)})
 	
 	def _handle_execute(self, data):
