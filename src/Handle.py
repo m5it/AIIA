@@ -667,7 +667,7 @@ class Handle():
 		
 		if tool_invocations and opt_stream_cb:
 			for inv in tool_invocations:
-				opt_stream_cb({'type':'tool','name':inv['name'],'params':inv.get('parameters',{})})
+				opt_stream_cb({'type':'tool_start','tool':inv['name'],'params':inv.get('parameters',{})})
 		
 		# Clean assistant content: strip XML tags when using system-role results
 		# so the model doesn't see stale tool calls in its own history
@@ -694,6 +694,11 @@ class Handle():
 			job_done = any(inv['name'] == 'jobDone' for inv in tool_invocations)
 			#
 			result = self.hTP.FireToolInvocation(tool_invocations)
+			#
+			if opt_stream_cb:
+				result_str = str(result) if result else ""
+				for inv in tool_invocations:
+					opt_stream_cb({'type':'tool_result','tool':inv['name'],'success':not result_str.startswith('Error:'),'result':result_str[:2000]})
 			#
 			plan_blocked = getattr(self, '_plan_blocked_tool', None)
 			if plan_blocked:
@@ -861,6 +866,8 @@ class Handle():
 					thinking += part
 					if not self.Options.get('BUILD_THINKING_DISABLED', False):
 						print(part, end='', flush=True)
+					if stream_callback:
+						stream_callback({'type':'thinking','text':part})
 				# Check for native tool calls
 				elif hasattr(chunk.message, 'tool_calls') and chunk.message.tool_calls:
 					# Collect native Ollama tool calls

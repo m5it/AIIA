@@ -22,6 +22,7 @@ class OurAIServer():
 		self.Options = Options
 		self.handle = None
 		self._lock = threading.Lock()
+		self._ai_lock = threading.Lock()
 		self.global_auth_enabled = Options.get("SERVER_AUTH_ENABLED", False)
 		self.global_username = Options.get("SERVER_USERNAME", "admin")
 		self.global_password = Options.get("SERVER_PASSWORD", "aiia")
@@ -85,7 +86,7 @@ class OurAIServer():
 		except (OSError, IOError) as e:
 			return {"error": str(e)}
 		
-		return {"files": files, "path": path or ".", "project_root": effective_root}
+		return {"success": True, "entries": files, "path": path or ".", "project_root": effective_root}
 	
 	def read_file(self, path, root=None):
 		"""Read file content."""
@@ -198,12 +199,14 @@ class OurAIServer():
 	def register_client(self, client_name="", client_type="unknown"):
 		"""Register a new client, returns client_id."""
 		client_id = "client_{}".format(uuid.uuid4().hex[:8])
+		session_id = "sess_{}".format(uuid.uuid4().hex[:8])
 		with self._lock:
 			self._clients[client_id] = {
 				"name": client_name or client_id,
 				"type": client_type,
 				"connected_at": time.time(),
 				"last_seen": time.time(),
+				"session_id": session_id,
 			}
 		self.event_bus.publish({
 			"type": "client_joined",
@@ -480,25 +483,31 @@ class _SSEHandler(BaseHTTPRequestHandler):
 			self._send_json(500, {'error': str(e)})
 	
 	def _handle_file_replace(self, data):
-		"""Handle line-range replace requests."""
+		"""Handle line-range replace requests. Accepts both formats:
+		  {"path": "...", "from_line": N, "to_line": M, "content": "..."}
+		  {"path": "...", "lines": [N, M], "content": "..."}
+		"""
 		try:
 			path = data.get('path', '')
-			from_line = data.get('from_line', 1)
-			to_line = data.get('to_line', from_line)
 			replacement = data.get('content', '')
 			client_id = data.get('client_id', '')
 			if not path:
 				self._send_json(400, {'error': 'Missing path'})
 				return
-			try:
-				from_line = int(from_line)
-				to_line = int(to_line)
-			except (ValueError, TypeError):
-				self._send_json(400, {'error': 'Invalid line numbers'})
-				return
+			# Accept lines array or separate from_line/to_line
+			lines = data.get('lines')
+			if lines and isinstance(lines, list) and len(lines) >= 2:
+				from_line = int(lines[0])
+				to_line = int(lines[1])
+			else:
+				from_line = int(data.get('from_line', 1))
+				to_line = int(data.get('to_line', from_line))
 			root_override = self.headers.get('X-Project-Path')
 			result = self.ai_server.replace_lines(path, from_line, to_line, replacement, root=root_override)
 			success = result.get('success', False)
+			# Add operation field for editor compatibility
+			if 'success' in result:
+				result['operation'] = 'replaced' if success else 'failed'
 
 			if success and client_id:
 				self.ai_server.event_bus.publish({
@@ -517,6 +526,8 @@ class _SSEHandler(BaseHTTPRequestHandler):
 	def _handle_history_clear(self, data):
 		"""Clear conversation history."""
 		try:
+			if not data.get("confirmed"):
+				return self._send_json(400, {'error': 'Confirmation required (confirmed=true)'})
 			if self.ai_server.handle:
 				self.ai_server.handle.hHM.msgs = []
 			self._send_json(200, {"success": True, "message": "History cleared"})
@@ -612,7 +623,7 @@ class _SSEHandler(BaseHTTPRequestHandler):
 				self.ai_server.event_bus.publish(event)
 		
 		try:
-			with self.ai_server._lock:
+			with self.ai_server._ai_lock:
 				handle.Response('user', {'content': message})
 				handle.AI(opts={'stream_callback': broadcast_or_sse})
 			sse_write({'type': 'done'})
@@ -681,8 +692,12 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		parsed = urlparse(self.path)
 		params = parse_qs(parsed.query)
 		limit = int(params.get('limit', ['100'])[0])
+		offset = int(params.get('offset', ['0'])[0])
 		result = self.ai_server.get_history(limit=limit)
-		self._send_json(200, {"history": result, "count": len(result)})
+		total = len(result)
+		# Apply offset
+		result = result[offset:offset + limit] if offset else result
+		self._send_json(200, {"messages": result, "total": total, "limit": limit, "offset": offset})
 
 	def _handle_sessions(self):
 		"""Return active sessions info."""
@@ -699,10 +714,12 @@ class _SSEHandler(BaseHTTPRequestHandler):
 		client_name = data.get('name', '')
 		client_type = data.get('type', 'unknown')
 		client_id = self.ai_server.register_client(client_name, client_type)
+		client_info = self.ai_server._clients.get(client_id, {})
 		self._send_json(200, {
 			"client_id": client_id,
 			"name": client_name or client_id,
 			"type": client_type,
+			"session_id": client_info.get("session_id", ""),
 		})
 
 	def _handle_unregister(self, data):

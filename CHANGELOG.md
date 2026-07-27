@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-27 — v1.0.32
+
+### Auto: Version v1.0.32
+
+- Version auto-incremented from v1.0.31
+- Files changed: server_profiles/HTTP.py, src/Handle.py
+
+---
+
+
 ## 2026-07-27 — v1.0.31
 
 ### Auto: Version v1.0.31
