@@ -8,6 +8,8 @@ sessid.aiia
 mode.aiia
 used_models.aiia
 tokens.aiia
+background.log
+state.aiia
 session-ses*.md
 tmp
 cppublic.sh

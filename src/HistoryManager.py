@@ -1,4 +1,4 @@
-import os,json
+import os,json,subprocess
 from src.functions import *
 #
 class HistoryManager():
@@ -73,6 +73,72 @@ class HistoryManager():
 			json.dump(names, f, indent=2)
 		return "Named current history '{}' as '{}'.".format(fname, clean)
 	
+	#
+	def _get_date(self, file_path):
+		"""Get date from first JSON line of a .dbk file (fast, one-line read)."""
+		try:
+			with open(file_path) as f:
+				for line in f:
+					line = line.strip()
+					if not line or not line.startswith('{'):
+						continue
+					try:
+						return json.loads(line).get('date', '?')
+					except Exception:
+						return '?'
+		except Exception:
+			return '?'
+		return '?'
+
+	def _get_preview(self, file_path, max_len=80):
+		"""Get a preview string from a .dbk file: date + first user message snippet."""
+		try:
+			with open(file_path) as f:
+				date_str = '?'
+				for line in f:
+					line = line.strip()
+					if not line or not line.startswith('{'):
+						continue
+					try:
+						msg = json.loads(line)
+					except Exception:
+						continue
+					if date_str == '?':
+						date_str = msg.get('date', '?')
+					if msg.get('role') == 'user':
+						content = msg.get('content', '')
+						preview = content.replace('\n', ' ').replace('\r', '')[:max_len]
+						if len(content) > max_len:
+							preview += '...'
+						return date_str, preview
+			return date_str, '(system only)'
+		except Exception:
+			return '?', '(unreadable)'
+
+	def _search(self, query):
+		"""Search .dbk files for query. Returns list of dicts sorted by date desc."""
+		results = []
+		try:
+			proc = subprocess.run(
+				['grep', '-ril', '--include=*.dbk', query, self._history_dir],
+				capture_output=True, text=True, timeout=30
+			)
+			if proc.returncode not in (0, 1):
+				return []
+			matches = [os.path.basename(f) for f in proc.stdout.strip().split('\n') if f]
+		except Exception:
+			return []
+		for fname in matches:
+			file_path = os.path.join(self._history_dir, fname)
+			date_str, preview = self._get_preview(file_path)
+			try:
+				idx = self.available.index(fname)
+			except ValueError:
+				continue
+			results.append({'filename': fname, 'index': idx, 'date': date_str, 'preview': preview})
+		results.sort(key=lambda x: x['date'], reverse=True)
+		return results
+
 	# update self.available (list history files)
 	def Update(self):
 		#
@@ -131,59 +197,160 @@ class HistoryManager():
 			self.handle.Options['DRAFT_CONTENT'] = None
 	
 	#
-	def Available(self):
-		#print("HistoryManager.Available() STARTED!")
-		#
+	def Available(self, compact=False):
 		self.Update()
-		#
 		self.available.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]), reverse=False)
-		names = self._load_names()
-		cnt=0
-		for history in self.available:
-			if self.opt_quiet==False:
-				display = history
-				key = history[:-4] if history.endswith('.dbk') else history
-				alias = names.get(key)
-				if alias:
-					display = "{} ({})".format(history, alias)
-				print("{}.) {}, len: {}".format( cnt, display, len(fread("{}/{}".format(self._history_dir, history))) ))
-			cnt = cnt+1
-	
+		if self.opt_quiet == False:
+			if not self.available:
+				print("No history files found.")
+				return
+			if compact:
+				dates = set()
+				for h in self.available:
+					d = self._get_date(os.path.join(self._history_dir, h))
+					if d and d != '?':
+						dates.add(d)
+				date_range = ''
+				if dates:
+					date_range = ', {} to {}'.format(min(dates), max(dates))
+				print("{} sessions{} — type 's <query>' to search, or a number to load.".format(
+					len(self.available), date_range))
+			else:
+				names = self._load_names()
+				for i, history in enumerate(self.available):
+					display = history
+					key = history[:-4] if history.endswith('.dbk') else history
+					alias = names.get(key)
+					if alias:
+						display = "{} ({})".format(history, alias)
+					file_path = os.path.join(self._history_dir, history)
+					d = self._get_date(file_path)
+					print("{:>3}.) {} [{}] {}".format(
+						i, display, d, len(fread(file_path))))
+	#
+	def _show_list(self, items, names):
+		for i, item in enumerate(items):
+			display = item['filename']
+			key = item['filename'][:-4] if item['filename'].endswith('.dbk') else item['filename']
+			alias = names.get(key)
+			if alias:
+				display = "{} ({})".format(item['filename'], alias)
+			print(" {:>3}.) {} [{}] {}".format(
+				i, display, item['date'], item['preview']))
 	#
 	def Choose(self):
 		self.handle.hLG.echo("Choose history START...: ",{'color':True,'colorValue':'orange','debugOnly':False})
 		choosed = False
-		self.available    = []
+		self.available = []
+		names = self._load_names()
 		#
-		self.Available()
+		self.Available(compact=True)
 		#
-		while choosed==False and len(self.available):
-			self.handle.hLG.echo("Choose available number (x to cancel): ",{'color':True,'colorValue':'orange','debugOnly':False})
+		while choosed == False and len(self.available):
+			self.handle.hLG.echo("Choose: ",{'color':True,'colorValue':'orange','debugOnly':False})
 			tmp = user_input()
 			if tmp == 'x' or not tmp:
 				self.handle.hLG.echo("Canceling...",{'color':True,'colorValue':'red','debugOnly':False})
 				choosed = True
 				break
-			elif tmp and tmp[0] == 'v':
-				print("Viewing history {}".format(tmp))
-				a=tmp.split(" ")
-				if len(a) > 1:
-					print("Viewing history debug a[0]: {}, a[1]: {}".format(a[0],a[1]))
-					tmpname = self.available[int(a[1])]
-					print("Viewing history debug fileName: {}".format(tmpname))
-					tmpdata = fread( "{}/{}".format( self._history_dir, tmpname) )
-					print("Viewing history debug tmpdata len: {}".format( len(tmpdata) ))
-					print(tmpdata)
-			try:
-				print("Loading history, debug number: {}".format(tmp))
-				self.history = self.available[int(tmp)] # filename for history
-				print("Loading history, loading file: {}".format(self.history))
-				self.Get()
-				print("Loading history, self.msgs.len: {}".format( len(self.msgs) ))
-				choosed = True
-			except Exception as E:
-				print("Choosing history failed, error: {}".format(E))
-	
+			# search
+			elif tmp.startswith('s ') or tmp.startswith('/ '):
+				query = tmp[2:].strip()
+				if not query:
+					print("Usage: s <search query>")
+					continue
+				print('Searching "{}"...'.format(query))
+				results = self._search(query)
+				if not results:
+					print("No matches.")
+					continue
+				self._show_list(results, names)
+				# enter sub-loop for search results
+				while choosed == False:
+					self.handle.hLG.echo("Result {}/{}. Choose (s new search, a all, x cancel): ".format(
+						len(results), len(self.available)),
+						{'color':True,'colorValue':'orange','debugOnly':False})
+					sub = user_input()
+					if sub == 'x' or not sub:
+						choosed = True
+						break
+					elif sub.startswith('s ') or sub.startswith('/ '):
+						query = sub[2:].strip()
+						if not query:
+							print("Usage: s <search query>")
+							continue
+						print('Searching "{}"...'.format(query))
+						results = self._search(query)
+						if not results:
+							print("No matches.")
+							continue
+						self._show_list(results, names)
+						continue
+					elif sub == 'a':
+						break
+					elif sub.startswith('v '):
+						self._view_file(sub, results, names)
+						continue
+					try:
+						idx = int(sub)
+						if 0 <= idx < len(results):
+							self.history = results[idx]['filename']
+							self.Get()
+							choosed = True
+						else:
+							print("Number out of range (0-{}).".format(len(results) - 1))
+					except ValueError:
+						# might be a number from the full list — check
+						try:
+							full_idx = int(sub)
+							if 0 <= full_idx < len(self.available):
+								self.history = self.available[full_idx]
+								self.Get()
+								choosed = True
+							else:
+								print("Invalid input. Try a number, 's', 'a', or 'x'.")
+						except ValueError:
+							print("Invalid input. Try a number, 's', 'a', or 'x'.")
+			# view from full list
+			elif tmp.startswith('v '):
+				self._view_file(tmp, None, names)
+			# load from full list
+			else:
+				try:
+					self.history = self.available[int(tmp)]
+					self.Get()
+					choosed = True
+				except Exception as E:
+					print("Invalid input. Try a number, 's <query>', or 'x'.")
 	#
-		
+	def _view_file(self, cmd, items, names):
+		a = cmd.split()
+		if len(a) < 2:
+			print("Usage: v <number>")
+			return
+		try:
+			idx = int(a[1])
+		except ValueError:
+			print("Invalid number.")
+			return
+		if items is not None:
+			if 0 <= idx < len(items):
+				tmpname = items[idx]['filename']
+			else:
+				print("Number out of range (0-{}).".format(len(items) - 1))
+				return
+		else:
+			if 0 <= idx < len(self.available):
+				tmpname = self.available[idx]
+			else:
+				print("Number out of range (0-{}).".format(len(self.available) - 1))
+				return
+		file_path = os.path.join(self._history_dir, tmpname)
+		key = tmpname[:-4] if tmpname.endswith('.dbk') else tmpname
+		alias = names.get(key)
+		if alias:
+			print("--- {} ({}) ---".format(tmpname, alias))
+		else:
+			print("--- {} ---".format(tmpname))
+		print(fread(file_path))
 	
