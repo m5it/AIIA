@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-28 — v1.0.36
+
+### Auto: Version v1.0.36
+
+- Version auto-incremented from v1.0.35
+- Files changed: tools/koslenium_driver
+
+---
+
+
 ## 2026-07-28 — v1.0.35
 
 ### Auto: Version v1.0.35
