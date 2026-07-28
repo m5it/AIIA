@@ -321,6 +321,13 @@ class Commands():
 				"usage"      :"!SET <key> <value>  or  !SET (list all)",
 				"func"       :self.CMD_SET,
 			},
+		"GET":{
+				"name"       :"Get Config",
+				"description":"Show the value of a config option.",
+				"regex"      :r"^!GET(\s+\S+.*)?$",
+				"usage"      :"!GET <key>",
+				"func"       :self.CMD_GET,
+			},
 		}
 	#--
 	#
@@ -828,6 +835,21 @@ class Commands():
 		# Persist key settings to state.aiia
 		if key == 'WWW_USER_AGENT':
 			self.handle._write_state({'WWW_USER_AGENT': val})
+		return 2
+	#
+	def CMD_GET(self, inp=""):
+		a = inp.split(None, 1)
+		if len(a) < 2:
+			print("Usage: !GET <key>")
+			return 2
+		key = a[1].strip()
+		val = self.handle.Options.get(key)
+		if val is None and key not in self.handle.Options:
+			print("Unknown key '{}'.".format(key))
+		elif isinstance(val, dict):
+			print("{} = {}".format(key, json.dumps(val)))
+		else:
+			print("{} = {}".format(key, val))
 		return 2
 	#
 	def CMD_INSTALL_DEPS(self, inp=""):
