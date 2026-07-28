@@ -825,6 +825,9 @@ class Commands():
 		else:
 			self.handle.Options[key] = val
 			print("Set {} = {}".format(key, val))
+		# Persist key settings to state.aiia
+		if key == 'WWW_USER_AGENT':
+			self.handle._write_state({'WWW_USER_AGENT': val})
 		return 2
 	#
 	def CMD_INSTALL_DEPS(self, inp=""):

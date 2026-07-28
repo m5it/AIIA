@@ -99,6 +99,9 @@ def _start_server(browser=False):
 	if cookie_path:
 		abs_path = os.path.join(tool_dir, "..", cookie_path) if not os.path.isabs(cookie_path) else cookie_path
 		cmd.extend(["--cookie-file", abs_path])
+	ua = Options.get("WWW_USER_AGENT")
+	if ua:
+		cmd.extend(["--ua", ua])
 
 	# Ensure we have a display (start Xvfb if needed)
 	display = _ensure_display()

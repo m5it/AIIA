@@ -84,6 +84,8 @@ Options         = {
 	#
 	"COOKIE_FILE"        : None,    # Path to shared cookie file for www/wwwjs web tools (e.g., "tools/cookies.json")
 	#
+	"WWW_USER_AGENT"     :"Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0", # User-Agent for koslenium web requests (overridable via aiia.json, !SET, or state.aiia)
+	#
 	"SITE_SCRIPTS_PATH"  : None,    # Path to per-website JS support scripts (default: project wwwurljssupport/ or ~/.config/aiia/wwwurljssupport/)
 	"SITE_SCRIPT_AUTO_TIP" : True, # Auto-save a tip entry when UpdateSiteScript creates/updates a script
 	#

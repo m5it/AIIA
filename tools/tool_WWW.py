@@ -207,6 +207,10 @@ class WWW():
 			else:
 				abs_cookie = cookie_path
 			cmd['cookie_file'] = abs_cookie
+		# User-Agent
+		ua = Options.get("WWW_USER_AGENT")
+		if ua:
+			cmd['user_agent'] = ua
 
 		# Try server if JS needed or if server already running
 		if needs_js:
@@ -429,6 +433,9 @@ class WWW():
 			cli.extend(["--wait", str(cmd_dict['wait'])])
 		if cmd_dict.get('selector'):
 			cli.extend(["--selector", cmd_dict['selector']])
+		ua = Options.get("WWW_USER_AGENT")
+		if ua:
+			cli.extend(["--ua", ua])
 		cli.append(cmd_dict['url'])
 
 		# Ensure display for headless JavaFX

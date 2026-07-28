@@ -179,6 +179,13 @@ class Handle():
 			self.Options['AUTO_CONTINUE_TASKS'] = auto_continue
 			self.Options['AUTO_CONTINUE_ALL_TASKS'] = auto_continue
 
+		# Restore user-agent
+		saved_ua = state.get('WWW_USER_AGENT')
+		if saved_ua:
+			self.Options['WWW_USER_AGENT'] = saved_ua
+			self.hLG.echo("Restored user-agent: {}".format(saved_ua[:60]),
+				{'color': True, 'colorValue': 'cyan'})
+
 		# Restore tool allow/disallow lists
 		saved_blocked = state.get('tool_blocked', [])
 		saved_allowed = state.get('tool_allowed', [])
