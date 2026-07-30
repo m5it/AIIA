@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-30 — v1.0.38
+
+### Auto: Version v1.0.38
+
+- Version auto-incremented from v1.0.37
+- Files changed: .coverage, tests/old_count_tokens.py
+
+---
+
+
 ## 2026-07-30 — v1.0.37
 
 ### Auto: Version v1.0.37
