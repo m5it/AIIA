@@ -2,6 +2,8 @@
 
 **Version 1.0.0** | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, HTTP SSE server for editor integration, and persistent session management.
 
+[![codecov](https://codecov.io/gh/m5it/OurAI/branch/main/graph/badge.svg)](https://codecov.io/gh/m5it/OurAI)
+
 > **Recent updates:** v1.0.0 stable release — HTTP server wired to real AI with SSE streaming, `/api/files/write` and `/execute` endpoints, auth enforcement, tool allow/disallow system, ReplaceLine two-phase verification. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Features

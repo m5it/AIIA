@@ -61,6 +61,27 @@ Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `1.0.0`
 
 When the model attempts a blocked tool (WriteFile/CreateFile/ReplaceLine/Sed/ExecuteScript) during plan mode, Build Mode Manager shows these options so you can let the AI proceed with implementation work mid-plan.
 
+## Codecov
+
+```bash
+# Run tests with coverage locally
+source .venv/bin/activate
+pip install -r requirements.txt
+pytest --cov --cov-branch --cov-report=xml
+
+# Upload to Codecov (set env var once in your shell or in CI)
+#   GitHub repo secret: Settings → Secrets and variables → Actions → CODECOV_TOKEN
+#   Local: export CODECOV_TOKEN=f75b948b-8c84-4523-a32f-2d7a3701757a
+#   CI:    The workflow at .github/workflows/ci.yml passes ${{ secrets.CODECOV_TOKEN }} as env var
+#          The action also reads $CODECOV_TOKEN from the runner's env automatically.
+pip install codecov-cli
+CODECOV_TOKEN="$CODECOV_TOKEN" codecovcli upload-report
+
+# Badge (PVP: add to README.md):
+#   [![codecov](https://codecov.io/gh/m5it/OurAI/branch/main/graph/badge.svg)](https://codecov.io/gh/m5it/OurAI)
+```
+
+
 ## Architecture
 
 - **Entry point**: `run.py` → initializes `Handle` class from `src/Handle.py`

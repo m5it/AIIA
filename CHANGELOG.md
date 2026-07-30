@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-07-30 — v1.0.37
+
+### Auto: Version v1.0.37
+
+- Version auto-incremented from v1.0.36
+- Files changed: .coverage, .github/workflows/ci.yml, AGENTS.md, CHANGELOG.md, README.md, TestProject/run.sh, pyproject.toml, requirements.txt, test_output.txt, test_output2.txt, tests/__init__.py, tests/old_full_flow.py, tests/old_server_client.py, tests/test_config.py, tests/test_functions.py
+
+---
+
+
+## 2026-07-30 — v1.0.37
+
+### Added: Codecov integration, !GET command, WWW_USER_AGENT fix
+
+- **CI**: `.github/workflows/ci.yml` — pytest-cov + Codecov upload on push
+- **Tests**: `tests/test_config.py`, `tests/test_functions.py` — 18 tests
+- **!GET**: New `!GET <key>` command to inspect config values
+- **WWW_USER_AGENT**: Fixed JavaFX thread-safety in `HeadlessWebRender.java` — `setUserAgent()` now persists via `savedUserAgent`, applies to headless engine, browser engine, and interactive mode. `init()` and `fetch()` wrap `Platform.runLater()` + latch. Tests verified: `--ua` now correctly overrides the default JavaFX user-agent.
+- Files changed: `.github/workflows/ci.yml`, `AGENTS.md`, `CHANGELOG.md`, `README.md`, `config.py`, `pyproject.toml`, `requirements.txt`, `src/Commands.py`, `tests/`, `tools/koslenium_driver/src/main/java/com/example/koslenium_driver/HeadlessWebRender.java`
+
+---
+
 ## 2026-07-28 — v1.0.36
 
 ### Auto: Version v1.0.36
