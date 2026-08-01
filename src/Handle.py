@@ -1,6 +1,5 @@
 import json, sys, time, os, copy, threading, queue, hashlib, re
 from datetime import date
-from ollama import ChatResponse, Client, chat
 from src.functions import *
 from src.ToolChooser import ToolChooser
 from src.HistoryManager import HistoryManager
@@ -43,6 +42,8 @@ class Handle():
 		self.hHM     = initmodule(importmodule("HistoryManager",True,{'path':'src'}),"HistoryManager",{'handle':self,'quiet':self.Options['QUIET'],'path':self.Options['path']})
 		self.hIM     = initmodule(importmodule("InstructManager",True,{'path':'src'}),"InstructManager",{'handle':self,})
 		self.hTM     = initmodule(importmodule("TipManager",True,{'path':'src'}),"TipManager",{'handle':self,})
+		# LLM backend (ollama / vllm) — lazily resolved on first use
+		self.hBackend = None
 		# Add tools directory to sys.path for dynamic tool loading
 		tools_path = self.Options.get('tools_path', '')
 		if tools_path and tools_path not in sys.path:
@@ -70,6 +71,16 @@ class Handle():
 
 		# Eager start koslenium server in background (daemon thread, non-blocking)
 		self._start_koslenium_server_async()
+	
+	#
+	def _get_backend(self):
+		"""Lazily return the LLM backend, re-creating it if AI_BACKEND changed
+		(e.g. via !BACKEND or !SET AI_BACKEND at runtime)."""
+		from src.LLMBackends import get_backend
+		requested = (self.Options.get('AI_BACKEND') or 'ollama').lower()
+		if self.hBackend is None or self.hBackend.name != requested:
+			self.hBackend = get_backend(self.Options)
+		return self.hBackend
 	
 	#
 	def Init(self):
@@ -1255,7 +1266,7 @@ class Handle():
 		)
 
 		try:
-			res = chat(
+			res = self._get_backend().chat(
 				model=self.Options['AI_MODEL'],
 				messages=[{'role': 'user', 'content': prompt}],
 				options={'num_predict': 1024},
@@ -1600,8 +1611,8 @@ class Handle():
 			context_cleared = False
 			while True:
 				try:
-					client = Client(timeout=model_timeout if model_timeout else None)
-					res: ChatResponse = client.chat(**chat_params)
+					backend = self._get_backend()
+					res = backend.chat(**chat_params, timeout=model_timeout if model_timeout else None)
 					result = self.Parse(res,{'return_object':True,'stream_callback':opt_stream_cb})
 					break
 				except Exception as e:

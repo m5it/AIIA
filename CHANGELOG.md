@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-01 — v1.0.39
+
+### Auto: Version v1.0.39
+
+- Version auto-incremented from v1.0.38
+- Files changed: AGENTS.md, config.py, examples/train_aiia.py, requirements.txt, run.py, src/Commands.py, src/Handle.py, src/LLMBackends/BaseBackend.py, src/LLMBackends/OllamaBackend.py, src/LLMBackends/VLLMBackend.py, src/LLMBackends/__init__.py, tests/test_backends.py
+
+---
+
+
 ## 2026-07-30 — v1.0.38
 
 ### Auto: Version v1.0.38

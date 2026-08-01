@@ -10,7 +10,6 @@ if _framework_dir in sys.path:
 	sys.path.remove(_framework_dir)
 sys.path.insert(0, _framework_dir)
 
-from ollama import chat
 import getopt, os, shutil, sys, json
 import atexit, traceback
 #
@@ -31,6 +30,7 @@ def Help():
 	print("-v                         # Version")
 	print("-d                         # Debug")
 	print("-m [model_name]            # Choose model")
+	print("-b [backend_name]          # Choose LLM backend (ollama|vllm)")
 	print("-M [history_num]           # Memorize specific history")
 	print("-p [persona_name]          # Choose persona (e.g. Developer, Friend, SysAdmin)")
 	print("-P [system_prompt]         # Set custom system message prefix")
@@ -311,6 +311,12 @@ def _preparse_server_flags(argv):
 				i += 1
 			if value is not None:
 				Options['AI_MODEL'] = value
+		elif a in ('-b', '--backend'):
+			if value is None and i + 1 < len(argv) and not argv[i + 1].startswith('-'):
+				value = argv[i + 1]
+				i += 1
+			if value is not None:
+				Options['AI_BACKEND'] = value.lower()
 		elif a == '-T' or a == '--temperature':
 			if value is None and i + 1 < len(argv) and not argv[i + 1].startswith('-'):
 				value = argv[i + 1]
@@ -423,7 +429,7 @@ def Main(argv):
 	args     = []
 	#
 	try:
-		opts, args = getopt.getopt(argv,"vdchm:M:Y:T:p:QRS:C:P:",["debug", "continue", "help", "model=", "memory_specific=", "you=", "temperature=", "persona=", "quick", "reset", "server=", "connect=", "prompt=", "history-lists", "site-scripts-path="])
+		opts, args = getopt.getopt(argv,"vdchm:M:Y:T:p:QRS:C:P:b:",["debug", "continue", "help", "model=", "memory_specific=", "you=", "temperature=", "persona=", "quick", "reset", "server=", "connect=", "prompt=", "history-lists", "site-scripts-path=", "backend="])
 	except getopt.GetoptError:
 		opt_help = True
 	
@@ -441,6 +447,8 @@ def Main(argv):
 			sys.exit(0)
 		elif opt=="-m":
 			Options['AI_MODEL'] = arg
+		elif opt=="-b":
+			Options['AI_BACKEND'] = arg.lower()
 		elif opt=="-M":
 			# Load memory from specific user prepared file.dbk
 			oneOpt['history_num'] = int(arg)

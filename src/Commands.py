@@ -1,7 +1,6 @@
 #--
 # class Commands
 import os, json, time
-import ollama
 from src.functions import fread, fwrite, pmatch
 class Commands():
 	#
@@ -123,6 +122,13 @@ class Commands():
 			"regex"      :r"^!MODEL(\s+\S+)?$",
 			"usage"      :"!MODEL [model_name]",
 			"func"       :self.CMD_MODEL,
+		},
+		"BACKEND":{
+			"name"       :"Backend",
+			"description":"Switch LLM backend (ollama|vllm). Shows current backend if no argument.",
+			"regex"      :r"^!BACKEND(\s+\S+)?$",
+			"usage"      :"!BACKEND [ollama|vllm]",
+			"func"       :self.CMD_BACKEND,
 		},
 		"SITE_LIST":{
 			"name"       :"Site List",
@@ -1466,10 +1472,11 @@ class Commands():
 		return 2
 
 	def CMD_OLLAMA_LIST(self, inp=""):
-		"""List available Ollama models, with previously used ones at top."""
+		"""List available models on the active backend, with previously used ones at top."""
 		try:
+			backend = self.handle._get_backend()
 			used = self.handle.Options.get('used_models', [])
-			res = ollama.list()
+			res = backend.list_models()
 
 			if used:
 				print("Previously used models:")
@@ -1477,8 +1484,8 @@ class Commands():
 					print("  ★ {}".format(m))
 				print("")
 
-			print("All available Ollama models:")
-			all_names = [m.model for m in res.models]
+			print("All available {} models:".format(backend.name))
+			all_names = list(res)
 			for name in all_names:
 				if name not in used:
 					print("  {}".format(name))
@@ -1513,17 +1520,50 @@ class Commands():
 			for c in reg_changes:
 				print("  {}".format(c))
 		# Stop any loaded model that differs from the new one (free GPU memory)
+		# Only applies to the ollama backend — vLLM manages GPU memory itself.
+		if not self.handle._get_backend().is_vllm:
+			try:
+				import subprocess
+				r = subprocess.run(['ollama', 'ps'], capture_output=True, text=True, timeout=10)
+				if r.returncode == 0:
+					for line in r.stdout.strip().split('\n')[1:]:
+						parts = line.split()
+						if parts and parts[0] and parts[0] != new_model:
+							subprocess.run(['ollama', 'stop', parts[0]], capture_output=True, timeout=10)
+							print("  Freed memory: stopped {}".format(parts[0]))
+			except Exception:
+				pass
+		return 2
+
+	def CMD_BACKEND(self, inp=""):
+		"""Switch LLM backend mid-session: ollama | vllm."""
+		a = inp.strip().split()
+		current = self.handle.Options.get('AI_BACKEND', 'ollama')
+		if len(a) < 2:
+			print("Current backend: {}".format(current))
+			print("Usage: !BACKEND <ollama|vllm>")
+			print("Tip: vLLM uses the OpenAI-compatible API at VLLM_HOST (config.py)")
+			return 2
+		new_backend = a[1].strip().lower()
+		if new_backend not in ('ollama', 'vllm'):
+			print("Invalid backend '{}' — must be 'ollama' or 'vllm'".format(new_backend))
+			return 2
+		if new_backend == current:
+			print("Already using '{}'".format(current))
+			return 2
+		self.handle.Options['AI_BACKEND'] = new_backend
+		# Force backend re-creation on next use
+		self.handle.hBackend = None
+		backend = self.handle._get_backend()
+		print("Backend changed: '{}' -> '{}'".format(current, new_backend))
+		# Validate connectivity / list a few models
 		try:
-			import subprocess
-			r = subprocess.run(['ollama', 'ps'], capture_output=True, text=True, timeout=10)
-			if r.returncode == 0:
-				for line in r.stdout.strip().split('\n')[1:]:
-					parts = line.split()
-					if parts and parts[0] and parts[0] != new_model:
-						subprocess.run(['ollama', 'stop', parts[0]], capture_output=True, timeout=10)
-						print("  Freed memory: stopped {}".format(parts[0]))
-		except Exception:
-			pass
+			models = backend.list_models()
+			print("  {} model(s) available".format(len(models)))
+			if models:
+				print("  first 5: {}".format(", ".join(models[:5])))
+		except Exception as e:
+			print("  Warning: could not contact {} backend: {}".format(new_backend, e))
 		return 2
 
 	def _parse_timer_input(self, inp):

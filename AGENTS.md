@@ -8,6 +8,7 @@ pip install -r requirements.txt  # install core deps (fast, ~5MB)
 pip install -r requirements-gpu.txt  # optional GPU deps (torch, diffusers, etc.)
 python run.py                    # start AIIA interactive session
 python run.py -m gemma3:12b     # specify model (default: gemma3:12b)
+python run.py -b vllm -m <model>  # use vLLM backend (OpenAI-compatible, default: ollama)
 python run.py -p MediaAnalyst   # use MediaAnalyst persona (image/video analysis)
 python run.py -Q -p Developer   # quick mode — skip interactive prompts
 python run.py -P "You are a coding assistant"  # custom system message prefix
@@ -38,8 +39,9 @@ Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `1.0.0`
 |---------|-------------|
 | `!MODE [plan\|build]` | Switch modes |
 | `!START_BUILD` | Switch to build mode and start executing tasks |
-| `!MODELS` | List Ollama models (used ones starred) |
+| `!MODELS` | List models on the active backend (used ones starred) |
 | `!MODEL <name>` | Switch AI model mid-session |
+| `!BACKEND <ollama\|vllm>` | Switch LLM backend mid-session |
 | `!PLAN [PREVIEW\|VIEW\|TASKS\|STATUS]` | View plan status |
 | `!HELP` | Show all commands |
 | `!STATS` | Token counts |
@@ -60,6 +62,27 @@ Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `1.0.0`
 | `4` | Continue — allow the blocked action |
 
 When the model attempts a blocked tool (WriteFile/CreateFile/ReplaceLine/Sed/ExecuteScript) during plan mode, Build Mode Manager shows these options so you can let the AI proceed with implementation work mid-plan.
+
+## LLM Backends
+
+Chat requests run through a pluggable backend abstraction (`src/LLMBackends/`), so the core can use **Ollama** (default) or any **OpenAI-compatible server** (e.g. **vLLM**).
+
+- `AI_BACKEND: "ollama" | "vllm"` — active backend (config.py / aiia.json / `-b` flag / `!BACKEND`)
+- `VLLM_HOST` — OpenAI-compatible base URL (default `http://localhost:8000/v1`)
+- `VLLM_API_KEY` — optional API key
+- `VLLM_TIMEOUT` — request timeout in seconds
+
+Classes:
+- `src/LLMBackends/BaseBackend.py` — shared interface (`chat()`, `list_models()`, `name`, `is_vllm`)
+- `src/LLMBackends/OllamaBackend.py` — wraps `ollama.Client`; returns native `ChatResponse` objects
+- `src/LLMBackends/VLLMBackend.py` — wraps the `openai` SDK; emits duck-typed stream chunks shaped like Ollama so `Handle.Stream()` needs no changes
+
+Behavior notes:
+- The `ollama` import is lazy — vLLM-only installs don't need the ollama python package
+- Ollama options are mapped to OpenAI params: `num_predict`→`max_tokens`, `num_ctx` dropped, `think`→`extra_body.enable_reasoning` + `reasoning_content`
+- Ollama vision messages (`images: [base64]`) are converted to OpenAI `image_url` content parts
+- `GenerateImage` tool always talks to Ollama (not backend-switchable)
+- `!MODEL`'s GPU-freeing (`ollama stop`) only runs on the ollama backend
 
 ## Codecov
 

@@ -24,6 +24,10 @@ Options         = {
 	#"AI_MODEL"            :"llama3.2:latest",
 	#"AI_MODEL"            :"gemma4:e4b",
 	"AI_MODEL"            :"kimi-k2.5:cloud",
+	"AI_BACKEND"          :"ollama",  # LLM backend: "ollama" or "vllm" (OpenAI-compatible)
+	"VLLM_HOST"           :"http://localhost:8000/v1",  # vLLM OpenAI-compatible base URL
+	"VLLM_API_KEY"        :"",        # optional API key for vLLM server
+	"VLLM_TIMEOUT"        :120,       # vLLM request timeout in seconds
 	"AI_FILE_STATE"       :"{}/state.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_HISTORY"     :"history.aiia", # auto generated from AI_SESS_ID
 	"AI_FILE_LOAD_HISTORY":False,
