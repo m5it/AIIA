@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-01 — v1.1.1
+
+### Auto: Version v1.1.1
+
+- Version auto-incremented from v1.1.0
+- Files changed: AUTOVERSION.py
+
+---
+
+
 ## 2026-08-01 — v1.0.41
 
 ### Auto: Version v1.0.41
