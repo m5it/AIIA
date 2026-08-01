@@ -23,3 +23,7 @@ __pycache__
 *\.pyc
 examples/models/*
 examples/.env
+.coverage
+coverage.xml
+test_output*.txt
+TestProject/

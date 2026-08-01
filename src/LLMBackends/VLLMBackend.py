@@ -116,9 +116,12 @@ class VLLMBackend(BaseBackend):
 					kwargs['max_tokens'] = v
 				elif k == 'num_ctx':
 					continue  # vLLM manages context window itself
-				elif k in ('temperature', 'top_p', 'top_k', 'seed', 'stop',
+				elif k in ('temperature', 'top_p', 'seed', 'stop',
 							'frequency_penalty', 'presence_penalty', 'max_tokens'):
 					kwargs[k] = v
+				elif k == 'top_k':
+					# Not an OpenAI SDK param — vLLM accepts it via extra_body
+					kwargs.setdefault('extra_body', {})[k] = v
 				# other ollama-specific options are ignored
 		if think:
 			body = kwargs.setdefault('extra_body', {})
@@ -169,8 +172,6 @@ class VLLMBackend(BaseBackend):
 	#
 	def list_models(self):
 		if not HAS_OPENAI:
-			return []
-		try:
-			return [m.id for m in self._client().models.list()]
-		except Exception:
-			return []
+			raise ImportError("openai python package not installed — run: pip install openai")
+		# Let connection errors propagate — callers (!MODELS / !BACKEND) print them
+		return [m.id for m in self._client().models.list()]

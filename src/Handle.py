@@ -161,6 +161,14 @@ class Handle():
 			self.hLG.echo("Restored persona: {}".format(saved_persona),
 				{'color': True, 'colorValue': 'green'})
 
+		# Restore backend (before model, so the model lands on the right backend)
+		saved_backend = state.get('backend', '')
+		if saved_backend in ('ollama', 'vllm'):
+			if saved_backend != self.Options.get('AI_BACKEND', 'ollama'):
+				self.Options['AI_BACKEND'] = saved_backend
+				self.hLG.echo("Restored backend: {}".format(saved_backend),
+					{'color': True, 'colorValue': 'green'})
+
 		# Restore model
 		saved_model = state.get('model', '')
 		if saved_model:
@@ -225,6 +233,8 @@ class Handle():
 		# Load history from HISTORY.md
 		if working_dir is not None:
 			history_md = os.path.join(working_dir, 'HISTORY.md')
+			total_prompt = total_response = 0
+			last_prompt = last_response = 0
 			if os.path.exists(history_md):
 				self.hHM.Get(path=history_md)
 				self.Options['CONTINUING'] = True
@@ -235,8 +245,6 @@ class Handle():
 					last_row = max((m.get('rowId', 0) for m in self.hHM.msgs), default=0)
 					self.Options['AI_ROW_ID'] = last_row + 1
 				# Recalculate token counts from loaded history
-				total_prompt = total_response = 0
-				last_prompt = last_response = 0
 				for m in self.hHM.msgs:
 					if m.get('role') == 'assistant':
 						pt = m.get('prompt_tokens', 0)
@@ -257,10 +265,12 @@ class Handle():
 							'NUM_LAST_PROMPT_TOKENS', 'NUM_LAST_RESPONSE_TOKENS'):
 					if key in state:
 						self.Options[key] = state[key]
-				
-				# Check if loaded system messages match current mode instructions.
-				# If mode changed (different persona or plan↔build), inject fresh
-				# instructions so the model gets the correct behavior.
+
+			# Check if loaded system messages match current mode instructions.
+			# If mode changed (different persona or plan↔build), inject fresh
+			# instructions so the model gets the correct behavior.
+			# Runs whenever history was loaded (not just when token scan is empty).
+			if self.hHM.msgs:
 				current_mode = self.Options.get('MODE', 'plan')
 				current_text = self.hPP._get_mode_instructions(current_mode)
 				header = current_text.strip()[:80]
@@ -1632,11 +1642,19 @@ class Handle():
 						self.hLG.echo(
 							"AI model unavailable after {} attempts — guiding model to switch".format(max_retries),
 							{'color':True, 'colorValue':'red','debugOnly':False})
-						recovery_msg = (
-							"[System: The model API call failed {} times consecutively. "
-							"This is likely a cloud-model connectivity issue. "
-							"Switch to a local model with `!MODEL gemma3:12b` or another available local model.]"
-						).format(max_retries)
+						if self._get_backend().is_vllm:
+							recovery_msg = (
+								"[System: The model API call failed {} times consecutively. "
+								"The vLLM server at {} may be down or the model name is wrong. "
+								"Check the server, use `!MODELS` to list available models, "
+								"or switch backends with `!BACKEND ollama`.]"
+							).format(max_retries, self.Options.get('VLLM_HOST', ''))
+						else:
+							recovery_msg = (
+								"[System: The model API call failed {} times consecutively. "
+								"This is likely a cloud-model connectivity issue. "
+								"Switch to a local model with `!MODEL gemma3:12b` or another available local model.]"
+							).format(max_retries)
 						self.Response('user', {'content': recovery_msg})
 						self.tool_errors = 0
 						self._last_failed_tool = None

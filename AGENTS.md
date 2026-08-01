@@ -7,7 +7,7 @@ source .venv/bin/activate       # activate virtual environment (Python 3.10)
 pip install -r requirements.txt  # install core deps (fast, ~5MB)
 pip install -r requirements-gpu.txt  # optional GPU deps (torch, diffusers, etc.)
 python run.py                    # start AIIA interactive session
-python run.py -m gemma3:12b     # specify model (default: gemma3:12b)
+python run.py -m gemma3:12b     # specify model (default: kimi-k2.5:cloud, see config.py)
 python run.py -b vllm -m <model>  # use vLLM backend (OpenAI-compatible, default: ollama)
 python run.py -p MediaAnalyst   # use MediaAnalyst persona (image/video analysis)
 python run.py -Q -p Developer   # quick mode — skip interactive prompts
@@ -42,7 +42,8 @@ Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `1.0.0`
 | `!MODELS` | List models on the active backend (used ones starred) |
 | `!MODEL <name>` | Switch AI model mid-session |
 | `!BACKEND <ollama\|vllm>` | Switch LLM backend mid-session |
-| `!PLAN [PREVIEW\|VIEW\|TASKS\|STATUS]` | View plan status |
+| `!PLAN [PREVIEW\|VIEW\|TASKS\|STATUS\|LIST\|CLEAR\|DELETE\|RESET\|DONE]` | View / manage plan |
+| `!GET <key>` | Show any config value |
 | `!HELP` | Show all commands |
 | `!STATS` | Token counts |
 | `!SET <key> <value>` | Override any config at runtime (e.g. `!SET NUM_PREDICT 16384`) |
@@ -302,9 +303,9 @@ Mode instructions (system prompts for plan/build modes) live in `instruct/` as p
 
 ## Runtime Requirements
 
-- Ollama server running (default: `localhost:11434`, override via `OLLAMA_HOST` env var)
+- Ollama server running (default: `localhost:11434`, override via `OLLAMA_HOST` env var) — or a vLLM server with `-b vllm` (see LLM Backends)
 - Virtual environment at `.venv/` (Python 3.10.12)
-- Default model: `gemma3:12b` — change with `-m` flag
+- Default model: `kimi-k2.5:cloud` (config.py) — change with `-m` flag
 - LM Studio SDK in `package.json` but not used by Python code (Node deps appear unused)
 
 ## Per-Project Config (`aiia.json`)
@@ -375,5 +376,5 @@ When `COOKIE_FILE` is `None` (default), the tools work as before without cookies
 - **Indentation**: code uses tabs (not spaces) despite being Python
 - **Dynamic reload**: tools are reloaded on each use via custom import system — changes take effect immediately
 - **Session state**: `sessid.aiia` tracks session counter; history files named `{session_id}.dbk` and `{session_id}.user.dbk`
-- **No tests**: no test framework or test files configured
+- **Tests**: pytest suite in `tests/` (`pytest -q`); `tests/old_*.py` are legacy standalone scripts, not collected
 - **No linting**: no linter, formatter, or typechecker configured

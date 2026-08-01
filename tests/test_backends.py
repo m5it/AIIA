@@ -41,6 +41,22 @@ def test_vllm_map_options():
 	assert kwargs['top_p'] == 0.9
 
 
+def test_vllm_map_options_top_k_in_extra_body():
+	# top_k is not an OpenAI SDK kwarg — must be routed via extra_body
+	b = VLLMBackend({})
+	kwargs = b._map_options({'top_k': 40, 'temperature': 0.5}, think=False)
+	assert 'top_k' not in kwargs
+	assert kwargs['extra_body']['top_k'] == 40
+	assert kwargs['temperature'] == 0.5
+
+
+def test_vllm_map_options_top_k_with_think():
+	b = VLLMBackend({})
+	kwargs = b._map_options({'top_k': 40}, think=True)
+	assert kwargs['extra_body']['top_k'] == 40
+	assert kwargs['extra_body']['enable_reasoning'] is True
+
+
 def test_vllm_map_options_think():
 	b = VLLMBackend({})
 	kwargs = b._map_options({'num_predict': 512}, think=True)

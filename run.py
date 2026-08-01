@@ -231,6 +231,7 @@ def cleanup():
 			state['mode'] = Options.get('MODE', 'plan')
 			state['model'] = Options.get('AI_MODEL', '')
 			state['persona'] = Options.get('INSTRUCT_CLASS', 'Developer')
+			state['backend'] = Options.get('AI_BACKEND', 'ollama')
 			tmp = state_path + '.tmp'
 			fwrite(tmp, json.dumps(state), True)
 			os.replace(tmp, state_path)
@@ -248,7 +249,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 	# Get the last frame (most recent error)
 	frame = tb[-1]
 	filename, line, func, text = frame
-	print(f"Exception: {exc_type.__name__}: {exc_value} (line {line} in {filename})",{'verbose':True,})
+	print(f"Exception: {exc_type.__name__}: {exc_value} (line {line} in {filename})")
 	# Optionally print full traceback
 	traceback.print_exception(exc_type, exc_value, exc_traceback)
 #

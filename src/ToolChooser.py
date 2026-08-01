@@ -20,7 +20,7 @@ class ToolChooser():
 		n=0
 		for tool in os.listdir("{}/".format(self.handle.Options['tools_path'])):
 			#print("file: {}".format(tool))
-			if rmatch(tool,"tool\_.*"):
+			if rmatch(tool,r"tool_.*"):
 				self.available.append(tool)
 		for tool in self.available:
 			print("{}.) {}".format(n,tool))

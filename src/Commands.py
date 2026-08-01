@@ -111,7 +111,7 @@ class Commands():
 		},
 		"OLLAMA_LIST":{
 			"name"       :"Models",
-			"description":"List available Ollama models, with previously used ones at top.",
+			"description":"List models on the active backend, with previously used ones at top.",
 			"regex"      :r"^!MODELS$",
 			"usage"      :"!MODELS",
 			"func"       :self.CMD_OLLAMA_LIST,
@@ -489,7 +489,7 @@ class Commands():
 		print("Options         :")
 		print("-----------------")
 		for k in self.handle.Options:
-			print("{} => {}".format( k, self.handle.Options[ k ] ))
+			print("{} => {}".format( k, self._mask_secret(k, self.handle.Options[ k ]) ))
 		return 2 # as continue
 	#
 	def CMD_PROJECT(self, inp=""):
@@ -779,12 +779,19 @@ class Commands():
 		self.handle.hLG.echo("Cleared {} cached tool result(s) and reset consumed tips.".format(count),{'color':True,'colorValue':'orange'})
 		return 2
 	#
+	@staticmethod
+	def _mask_secret(key, val):
+		"""Mask values of secret-looking keys (API keys, tokens) for display."""
+		if isinstance(val, str) and val and any(s in key.upper() for s in ('API_KEY', 'TOKEN', 'SECRET', 'PASSWORD')):
+			return val[:4] + '...' if len(val) > 4 else '***'
+		return val
+	#
 	def CMD_SET(self, inp=""):
 		a = inp.split(None, 1)
 		if len(a) < 2:
 			print("\nCurrent config (use !SET <key> <value> to change):")
 			for k in sorted(self.handle.Options.keys()):
-				v = self.handle.Options[k]
+				v = self._mask_secret(k, self.handle.Options[k])
 				if isinstance(v, dict):
 					print("  {} = {}".format(k, json.dumps(v)))
 				elif isinstance(v, list):
@@ -828,6 +835,12 @@ class Commands():
 						val = json.loads(raw)
 					except (json.JSONDecodeError, ValueError):
 						val = raw
+		# Validate AI_BACKEND values (unknown names silently fall back to ollama)
+		if key == 'AI_BACKEND':
+			if not isinstance(val, str) or val.lower() not in ('ollama', 'vllm'):
+				print("Invalid AI_BACKEND '{}' — must be 'ollama' or 'vllm'. Use !BACKEND <name>.".format(val))
+				return 2
+			val = val.lower()
 		# Special handling for AI_OPTIONS (dict deep-merge)
 		if key == 'AI_OPTIONS':
 			if not isinstance(val, dict):
@@ -849,7 +862,7 @@ class Commands():
 			print("Usage: !GET <key>")
 			return 2
 		key = a[1].strip()
-		val = self.handle.Options.get(key)
+		val = self._mask_secret(key, self.handle.Options.get(key))
 		if val is None and key not in self.handle.Options:
 			print("Unknown key '{}'.".format(key))
 		elif isinstance(val, dict):

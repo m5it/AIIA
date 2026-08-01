@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-01 — v1.0.40
+
+### Auto: Version v1.0.40
+
+- Version auto-incremented from v1.0.39
+- Files changed: .coverage, .github/workflows/ci.yml, .gitignore, AGENTS.md, CHANGELOG.md, TestProject/run.sh, run.py, src/Commands.py, src/Handle.py, src/LLMBackends/VLLMBackend.py, src/ToolChooser.py, test_output.txt, test_output2.txt, tests/old_writefile.py, tests/old_writefile_issue.py, tests/test_backends.py
+
+---
+
+
 ## 2026-08-01 — v1.0.39
 
 ### Auto: Version v1.0.39
@@ -16,16 +26,6 @@
 
 - Version auto-incremented from v1.0.37
 - Files changed: .coverage, tests/old_count_tokens.py
-
----
-
-
-## 2026-07-30 — v1.0.37
-
-### Auto: Version v1.0.37
-
-- Version auto-incremented from v1.0.36
-- Files changed: .coverage, .github/workflows/ci.yml, AGENTS.md, CHANGELOG.md, README.md, TestProject/run.sh, pyproject.toml, requirements.txt, test_output.txt, test_output2.txt, tests/__init__.py, tests/old_full_flow.py, tests/old_server_client.py, tests/test_config.py, tests/test_functions.py
 
 ---
 
