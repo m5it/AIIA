@@ -1,6 +1,6 @@
 # AIIA — AI Interactive Agent
 
-**Version 1.0.0** | Terminal-based AI agent powered by Ollama, featuring dynamic XML tool invocation, plan/build mode system, secure command execution, HTTP SSE server for editor integration, and persistent session management.
+**Version 1.0.0** | Terminal-based AI agent powered by Ollama or any OpenAI-compatible server (e.g. vLLM), featuring dynamic XML tool invocation, plan/build mode system, secure command execution, HTTP SSE server for editor integration, and persistent session management.
 
 [![codecov](https://codecov.io/gh/m5it/OurAI/branch/main/graph/badge.svg)](https://codecov.io/gh/m5it/OurAI)
 
@@ -11,7 +11,8 @@
 - **Ctrl+D AI Loop Interrupt** — Press Ctrl+D during AI iteration to pause and show a menu: continue, return to chat prompt, or cancel session
 - **Auto-Versioning** — Git pre-commit hook auto-increments `AUTOVERSION.py` and prepends entry to `CHANGELOG.md` on every commit
 - **Interchangeable AI Models** — Switch models mid-session with `!MODEL <name>`; list available models with `!MODELS`; model usage tracked across sessions
-- **Interactive AI Chat** — Terminal-based interface for conversing with local LLMs via Ollama (streaming response with thinking support)
+- **Pluggable LLM Backends** — Run on **Ollama** (default) or any **OpenAI-compatible server** like **vLLM**; switch with `-b vllm` at startup or `!BACKEND vllm` mid-session (see [Using vLLM instead of Ollama](#using-vllm-instead-of-ollama))
+- **Interactive AI Chat** — Terminal-based interface for conversing with local LLMs via Ollama or vLLM (streaming response with thinking support)
 - **XML Tool System** — AI invokes tools by writing XML blocks; tools are dynamically loaded Python classes with hot-reload; 25+ tools including file I/O, search, processing, terminal, tips, and tree view
 - **Plan / Build Modes** — structured workflow: plan mode for architecting tasks, build mode for executing them
 - **Plan Manager** — Create plans, split into tasks, track progress, auto-continue on restart (`-c` flag)
@@ -39,6 +40,7 @@
 - [Quick Start](#quick-start)
 - [Usage](#usage)
 - [Configuration](#configuration)
+- [Using vLLM instead of Ollama](#using-vllm-instead-of-ollama)
 - [Architecture](#architecture)
 - [Plan & Build System](#plan--build-system)
 - [XML Tools Reference](#xml-tools-reference)
@@ -56,7 +58,7 @@
 ### Prerequisites
 
 - Python 3.10+
-- [Ollama](https://ollama.com) server running (default: `localhost:11434`)
+- [Ollama](https://ollama.com) server running (default: `localhost:11434`) — **or** a [vLLM](https://docs.vllm.ai) / OpenAI-compatible server (see [Using vLLM instead of Ollama](#using-vllm-instead-of-ollama))
 - A model pulled (tested with `qwen3:latest`, `gemma3:12b`, `gemma4:26b`, `qwen3-coder:latest`, `nemotron-3-nano:latest` but best works with `kimi-k2.5:cloud` or `kimi-k2.7-code:cloud` )
 
 ### Installation
@@ -92,6 +94,7 @@ Now run `aiia` from **any** directory:
 ```bash
 aiia                    # Start interactive session
 aiia -m gemma3:12b      # Use specific model
+aiia -b vllm -m Qwen/Qwen2.5-7B-Instruct  # Use vLLM backend instead of Ollama
 aiia -c                 # Continue last session from HISTORY.md
 aiia -R                 # Factory reset (clear all state)
 aiia -Q -p Developer    # Quick mode (skip interactive prompts)
@@ -251,7 +254,11 @@ All configuration lives in `config.py`:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `AI_MODEL` | str | `gemma4:26b` | Ollama model name |
+| `AI_MODEL` | str | `kimi-k2.5:cloud` | Model name (Ollama tag or vLLM/HF model id) |
+| `AI_BACKEND` | str | `ollama` | LLM backend: `ollama` or `vllm` (OpenAI-compatible) |
+| `VLLM_HOST` | str | `http://localhost:8000/v1` | vLLM OpenAI-compatible base URL |
+| `VLLM_API_KEY` | str | (empty) | Optional API key for the vLLM server |
+| `VLLM_TIMEOUT` | int | `120` | vLLM request timeout in seconds |
 | `MODE` | str | `build` | Initial mode: `plan` or `build` |
 | `CONTINUE` | bool | `false` | Resume last plan on start |
 | `DEBUG` | bool | `false` | Enable verbose debug output |
@@ -355,6 +362,70 @@ X-Project-Path: /path/to/project
 
 ---
 
+## Using vLLM instead of Ollama
+
+AIIA runs on **Ollama by default**, but every chat request goes through a pluggable backend layer (`src/LLMBackends/`), so you can point it at any **OpenAI-compatible server** — most notably [vLLM](https://docs.vllm.ai). Everything else (XML tools, plan/build modes, personas, history, streaming, thinking) works exactly the same.
+
+### 1. Start a vLLM server
+
+```bash
+# Install vLLM in its own environment (needs a GPU for real use)
+pip install vllm
+
+# Serve a model on the OpenAI-compatible API (default port 8000)
+vllm serve Qwen/Qwen2.5-7B-Instruct
+
+# Or with options:
+vllm serve Qwen/Qwen2.5-7B-Instruct --host 0.0.0.0 --port 8000 --api-key mysecret
+```
+
+Any other OpenAI-compatible server (llama.cpp server, LM Studio, TGI, SGLang, ...) works the same way — just point `VLLM_HOST` at it.
+
+### 2. Point AIIA at the server
+
+Three ways, pick one:
+
+**a) CLI flag (per run):**
+```bash
+aiia -b vllm -m Qwen/Qwen2.5-7B-Instruct
+```
+
+**b) Mid-session command:**
+```
+!BACKEND vllm            → switch to vLLM (validates connectivity, lists models)
+!MODELS                  → list models served by the active backend
+!MODEL Qwen/Qwen2.5-7B-Instruct
+!BACKEND ollama          → switch back anytime
+```
+
+**c) Config (persistent):** set in `config.py` or per-project `aiia.json`:
+```json
+{
+  "AI_BACKEND": "vllm",
+  "AI_MODEL": "Qwen/Qwen2.5-7B-Instruct",
+  "VLLM_HOST": "http://localhost:8000/v1",
+  "VLLM_API_KEY": "mysecret"
+}
+```
+
+If the server runs on another machine, set `VLLM_HOST` accordingly, e.g. `http://192.168.0.170:8000/v1`.
+
+### 3. Notes & differences vs Ollama
+
+| Topic | Behavior on vLLM |
+|-------|------------------|
+| Model names | Use the name the server reports (usually the HF id, e.g. `Qwen/Qwen2.5-7B-Instruct`) — check with `!MODELS` |
+| Streaming & thinking | Supported; reasoning models stream `reasoning_content` as thinking |
+| Options mapping | `num_predict` → `max_tokens`; `top_k` sent via `extra_body`; `num_ctx` is ignored (vLLM manages context) |
+| Vision models | Supported — images are converted to OpenAI `image_url` content automatically |
+| `GenerateImage` tool | Always uses Ollama (diffusion models are not served by vLLM) — keep Ollama running if you need it |
+| `!MODEL` GPU freeing | `ollama stop` cleanup is skipped on vLLM (vLLM manages its own GPU memory) |
+| Auth | Set `VLLM_API_KEY` if the server was started with `--api-key`; it is masked in `!STATS`/`!GET` output |
+| Persistence | The active backend is saved to `state.aiia` and restored on `-c` continue |
+| Dependencies | Uses the `openai` python package (already in `requirements.txt`); the `ollama` package is not required for vLLM-only installs |
+
+---
+
 ## Architecture
 
 ```
@@ -387,6 +458,7 @@ AIIA/
 │   ├── Log.py                    # Terminal output logging
 │   ├── Speak.py                  # Text-to-speech (experimental)
 │   ├── InstructManager.py        # Persona discovery and selection
+│   ├── LLMBackends/              # Pluggable LLM backends (BaseBackend, OllamaBackend, VLLMBackend)
 │   ├── MediaHelper.py             # Image/video encode/decode/info utilities
 │   ├── ModelRegistry.py           # Per-model capability database (context size, vision, think)
 │   ├── TipManager.py             # Conversation tip save/replay
