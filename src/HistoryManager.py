@@ -255,62 +255,9 @@ class HistoryManager():
 				break
 			# search
 			elif tmp.startswith('s ') or tmp.startswith('/ '):
-				query = tmp[2:].strip()
-				if not query:
-					print("Usage: s <search query>")
-					continue
-				print('Searching "{}"...'.format(query))
-				results = self._search(query)
-				if not results:
-					print("No matches.")
-					continue
-				self._show_list(results, names)
-				# enter sub-loop for search results
-				while choosed == False:
-					self.handle.hLG.echo("Result {}/{}. Choose (s new search, a all, x cancel): ".format(
-						len(results), len(self.available)),
-						{'color':True,'colorValue':'orange','debugOnly':False})
-					sub = user_input()
-					if sub == 'x' or not sub:
-						choosed = True
-						break
-					elif sub.startswith('s ') or sub.startswith('/ '):
-						query = sub[2:].strip()
-						if not query:
-							print("Usage: s <search query>")
-							continue
-						print('Searching "{}"...'.format(query))
-						results = self._search(query)
-						if not results:
-							print("No matches.")
-							continue
-						self._show_list(results, names)
-						continue
-					elif sub == 'a':
-						break
-					elif sub.startswith('v '):
-						self._view_file(sub, results, names)
-						continue
-					try:
-						idx = int(sub)
-						if 0 <= idx < len(results):
-							self.history = results[idx]['filename']
-							self.Get()
-							choosed = True
-						else:
-							print("Number out of range (0-{}).".format(len(results) - 1))
-					except ValueError:
-						# might be a number from the full list — check
-						try:
-							full_idx = int(sub)
-							if 0 <= full_idx < len(self.available):
-								self.history = self.available[full_idx]
-								self.Get()
-								choosed = True
-							else:
-								print("Invalid input. Try a number, 's', 'a', or 'x'.")
-						except ValueError:
-							print("Invalid input. Try a number, 's', 'a', or 'x'.")
+				if self._choose_search(tmp, names):
+					choosed = True
+					break
 			# view from full list
 			elif tmp.startswith('v '):
 				self._view_file(tmp, None, names)
@@ -322,6 +269,67 @@ class HistoryManager():
 					choosed = True
 				except Exception as E:
 					print("Invalid input. Try a number, 's <query>', or 'x'.")
+	#
+	def _choose_search(self, tmp, names):
+		"""Handle the `s `/`/ ` search flow, including the search-results
+		sub-loop. Returns True when a session was chosen (exit the outer
+		loop), False to continue."""
+		query = tmp[2:].strip()
+		if not query:
+			print("Usage: s <search query>")
+			return False
+		print('Searching "{}"...'.format(query))
+		results = self._search(query)
+		if not results:
+			print("No matches.")
+			return False
+		self._show_list(results, names)
+		# enter sub-loop for search results
+		while True:
+			self.handle.hLG.echo("Result {}/{}. Choose (s new search, a all, x cancel): ".format(
+				len(results), len(self.available)),
+				{'color':True,'colorValue':'orange','debugOnly':False})
+			sub = user_input()
+			if sub == 'x' or not sub:
+				return True
+			elif sub.startswith('s ') or sub.startswith('/ '):
+				query = sub[2:].strip()
+				if not query:
+					print("Usage: s <search query>")
+					continue
+				print('Searching "{}"...'.format(query))
+				results = self._search(query)
+				if not results:
+					print("No matches.")
+					continue
+				self._show_list(results, names)
+				continue
+			elif sub == 'a':
+				break
+			elif sub.startswith('v '):
+				self._view_file(sub, results, names)
+				continue
+			try:
+				idx = int(sub)
+				if 0 <= idx < len(results):
+					self.history = results[idx]['filename']
+					self.Get()
+					return True
+				else:
+					print("Number out of range (0-{}).".format(len(results) - 1))
+			except ValueError:
+				# might be a number from the full list — check
+				try:
+					full_idx = int(sub)
+					if 0 <= full_idx < len(self.available):
+						self.history = self.available[full_idx]
+						self.Get()
+						return True
+					else:
+						print("Invalid input. Try a number, 's', 'a', or 'x'.")
+				except ValueError:
+					print("Invalid input. Try a number, 's', 'a', or 'x'.")
+		return False
 	#
 	def _view_file(self, cmd, items, names):
 		a = cmd.split()
