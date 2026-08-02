@@ -1,5 +1,8 @@
 import json, queue, re, threading
 #
+# Sentinel returned by _check_periodic_interrupt when streaming should continue
+_STREAM_CONTINUE = object()
+#
 class HandleStream():
 
 	#
@@ -97,75 +100,103 @@ class HandleStream():
 		#
 		_stream_chunk_count = 0
 		chunk_timeout = self.Options.get('STREAM_CHUNK_TIMEOUT', 120)
+		state = {'response': response, 'thinking': thinking,
+				'native_tool_calls': native_tool_calls,
+				'if_thinking': if_thinking, 'if_speaking': if_speaking}
 		try:
 			for chunk in self._stream_with_timeout(res, chunk_timeout):
 				_stream_chunk_count += 1
 				# Periodic Ctrl+D check during streaming (every 5 chunks)
-				if _stream_chunk_count % 5 == 0:
-					if self._check_ai_interrupt():
-						self.hLG.echo("\n[Ctrl+D detected — stream interrupted]",
-							{'color':True, 'colorValue':'blue','debugOnly':False})
-						if stream_callback:
-							stream_callback({'type':'interrupt','reason':'ctrl_d'})
-						return {'content': response, 'thinking': thinking,
-								'native_tool_calls': native_tool_calls,
-								'prompt_tokens': 0, 'response_tokens': 0,
-								'ctrl_d_interrupt': True}
+				_done = self._check_periodic_interrupt(_stream_chunk_count, state, stream_callback)
+				if _done is not _STREAM_CONTINUE:
+					return _done
 				last_chunk = chunk
-				# thinking
-				if chunk.message.thinking:
-					#
-					if not if_thinking:
-						if_thinking = True
-						if not self.Options.get('BUILD_THINKING_DISABLED', False):
-							print('Thinking:\n', end='')
-					#
-					part = chunk.message.thinking
-					thinking += part
-					if not self.Options.get('BUILD_THINKING_DISABLED', False):
-						print(part, end='', flush=True)
+				# Process the chunk (thinking / native tool calls / speaking)
+				abort_reason = self._process_stream_chunk(chunk, state, color, stream_callback)
+				if abort_reason:
+					self.hLG.echo("\n[Aborted: {}]".format(abort_reason),
+						{'color':True, 'colorValue':'red','debugOnly':False})
 					if stream_callback:
-						stream_callback({'type':'thinking','text':part})
-				# Check for native tool calls
-				elif hasattr(chunk.message, 'tool_calls') and chunk.message.tool_calls:
-					# Collect native Ollama tool calls
-					for tool_call in chunk.message.tool_calls:
-						if tool_call not in native_tool_calls:
-							native_tool_calls.append(tool_call)
-					# Don't print tool calls, just collect them
-				# speaking
-				elif chunk.message.content:
-					#
-					if not if_speaking:
-						print('\n\nAnswer:\n', end='')
-						if_thinking = False
-						if_speaking = True
-					#
-					part = chunk.message.content
-					response += part
-					# Early abort: detect misguided tool calls mid-stream
-					abort_reason = self._check_stream_abort(response)
-					if abort_reason:
-						self.hLG.echo("\n[Aborted: {}]".format(abort_reason),
-							{'color':True, 'colorValue':'red','debugOnly':False})
-						if stream_callback:
-							stream_callback({'type':'abort','reason':abort_reason})
-						break
-					if stream_callback:
-						stream_callback({'type':'token','text':part})
-					self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
-			# Extract token counts from final chunk (done=True)
-			prompt_tokens = 0
-			response_tokens = 0
-			if last_chunk and hasattr(last_chunk, 'done') and last_chunk.done:
-				prompt_tokens = last_chunk.prompt_eval_count or 0
-				response_tokens = last_chunk.eval_count or 0
+						stream_callback({'type':'abort','reason':abort_reason})
+					break
+				# Extract token counts from final chunk (done=True)
+				prompt_tokens = 0
+				response_tokens = 0
+				if last_chunk and hasattr(last_chunk, 'done') and last_chunk.done:
+					prompt_tokens = last_chunk.prompt_eval_count or 0
+					response_tokens = last_chunk.eval_count or 0
 		except Exception as e:
 			self.hLG.echo("Stream error: {}".format(str(e)), {'color':True, 'colorValue':'red','debugOnly':False,})
 			self.bg_log("Stream error: {} (got {} chunks, {} response chars)".format(
-				str(e), _stream_chunk_count, len(response)), "WARN")
-			return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':0, 'response_tokens':0, 'error':str(e), 'early_abort':abort_reason}
-		return {'content':response, 'thinking':thinking, 'native_tool_calls':native_tool_calls, 'prompt_tokens':prompt_tokens, 'response_tokens':response_tokens, 'early_abort':abort_reason}
+				str(e), _stream_chunk_count, len(state['response'])), "WARN")
+			return {'content':state['response'], 'thinking':state['thinking'], 'native_tool_calls':state['native_tool_calls'], 'prompt_tokens':0, 'response_tokens':0, 'error':str(e), 'early_abort':abort_reason}
+		return {'content':state['response'], 'thinking':state['thinking'], 'native_tool_calls':state['native_tool_calls'], 'prompt_tokens':prompt_tokens, 'response_tokens':response_tokens, 'early_abort':abort_reason}
+
+	#
+
+	def _check_periodic_interrupt(self, chunk_count, state, stream_callback):
+		"""Periodic Ctrl+D check during streaming (every 5 chunks).
+		Returns the early-return dict if interrupted, else _STREAM_CONTINUE."""
+		if chunk_count % 5 != 0:
+			return _STREAM_CONTINUE
+		if not self._check_ai_interrupt():
+			return _STREAM_CONTINUE
+		self.hLG.echo("\n[Ctrl+D detected — stream interrupted]",
+			{'color':True, 'colorValue':'blue','debugOnly':False})
+		if stream_callback:
+			stream_callback({'type':'interrupt','reason':'ctrl_d'})
+		return {'content': state['response'], 'thinking': state['thinking'],
+				'native_tool_calls': state['native_tool_calls'],
+				'prompt_tokens': 0, 'response_tokens': 0,
+				'ctrl_d_interrupt': True}
+
+	#
+
+	def _process_stream_chunk(self, chunk, state, color, stream_callback):
+		"""Process a single stream chunk: thinking, native tool calls, or
+		speaking. Mutates `state` (response, thinking, native_tool_calls,
+		if_thinking, if_speaking). Returns an abort_reason string for a
+		mid-stream tool-call abort, else None."""
+		abort_reason = None
+		# thinking
+		if chunk.message.thinking:
+			#
+			if not state['if_thinking']:
+				state['if_thinking'] = True
+				if not self.Options.get('BUILD_THINKING_DISABLED', False):
+					print('Thinking:\n', end='')
+			#
+			part = chunk.message.thinking
+			state['thinking'] += part
+			if not self.Options.get('BUILD_THINKING_DISABLED', False):
+				print(part, end='', flush=True)
+			if stream_callback:
+				stream_callback({'type':'thinking','text':part})
+		# Check for native tool calls
+		elif hasattr(chunk.message, 'tool_calls') and chunk.message.tool_calls:
+			# Collect native Ollama tool calls
+			for tool_call in chunk.message.tool_calls:
+				if tool_call not in state['native_tool_calls']:
+					state['native_tool_calls'].append(tool_call)
+			# Don't print tool calls, just collect them
+		# speaking
+		elif chunk.message.content:
+			#
+			if not state['if_speaking']:
+				print('\n\nAnswer:\n', end='')
+				state['if_thinking'] = False
+				state['if_speaking'] = True
+			#
+			part = chunk.message.content
+			state['response'] += part
+			# Early abort: detect misguided tool calls mid-stream
+			abort_reason = self._check_stream_abort(state['response'])
+			if abort_reason:
+				return abort_reason
+			if stream_callback:
+				stream_callback({'type':'token','text':part})
+			self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
+		return abort_reason
 
 	#
 
