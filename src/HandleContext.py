@@ -83,11 +83,26 @@ class HandleContext():
 	def _summarize_context(self, msgs, limit, threshold):
 		"""Summarize older messages, keeping last 5 exchanges + all system prompts.
 		Returns True if summarization was performed."""
-		# Strip malformed entries (no `role` key) that slipped into history
-		msgs = [m for m in msgs if isinstance(m, dict) and m.get('role')]
-		if not msgs:
+		# Strip malformed entries and pick the older messages to summarize
+		msgs, idx = self._collect_drop_indices(msgs)
+		if not idx:
 			return False
-		# Collect indices to keep
+		prompt = self._build_summary_prompt(msgs, idx)
+		summary = self._request_summary(prompt)
+		if summary is None:
+			return False
+		keep = set(range(len(msgs))) - set(idx)
+		new_msgs = self._insert_summary(msgs, keep, summary)
+		return self._finalize_summarize(new_msgs, idx, summary)
+
+	#
+
+	def _collect_drop_indices(self, msgs):
+		"""Strip malformed entries (no `role` key) that slipped into history.
+		Collect indices of the older messages to drop, keeping the last 5
+		exchanges + all system prompts. Returns (msgs, idx) where idx is the
+		sorted list of indices to summarize away."""
+		msgs = [m for m in msgs if isinstance(m, dict) and m.get('role')]
 		keep = set()
 		exchange_count = 0
 		for i in range(len(msgs) - 1, -1, -1):
@@ -98,19 +113,20 @@ class HandleContext():
 				keep.add(i)
 				if role == 'user':
 					exchange_count += 1
-
 		idx = sorted(i for i in range(len(msgs)) if i not in keep)
-		if not idx:
-			return False
+		return msgs, idx
 
+	#
+
+	def _build_summary_prompt(self, msgs, idx):
+		"""Build the summarization prompt from the older messages."""
 		build = []
 		for i in idx:
 			role = msgs[i]['role']
 			content = msgs[i].get('content', '')
 			build.append("[{}]: {}".format(role, content[:600]))
 		to_summarize = "\n\n".join(build)
-
-		prompt = (
+		return (
 			"Summarize the key facts, decisions, file states, and progress "
 			"from this conversation concisely. Focus on:\n"
 			"- What has been built or changed\n"
@@ -121,6 +137,11 @@ class HandleContext():
 			"---\n" + to_summarize
 		)
 
+	#
+
+	def _request_summary(self, prompt):
+		"""Ask the backend to summarize. Returns the summary string, or None
+		on failure."""
 		try:
 			res = self._get_backend().chat(
 				model=self.Options['AI_MODEL'],
@@ -132,13 +153,18 @@ class HandleContext():
 			summary = res.message.content.strip()
 			if len(summary) > 3000:
 				summary = summary[:3000] + "…"
+			return summary
 		except Exception as e:
 			self.hLG.echo("Context summarization failed: {}".format(e),
 				{'color': True, 'colorValue': 'red'})
-			return False
+			return None
 
+	#
+
+	def _insert_summary(self, msgs, keep, summary):
+		"""Rebuild history: keep the older messages, insert the summary right
+		after the last system prompt."""
 		new_msgs = [msgs[i] for i in sorted(keep)]
-		# Insert summary right after the last system prompt in new_msgs
 		last_sys = sum(1 for m in new_msgs if m['role'] == 'system') - 1
 		summary_msg = {
 			'role': 'system',
@@ -149,7 +175,12 @@ class HandleContext():
 			'date': str(date.today()),
 		}
 		new_msgs.insert(last_sys + 1, summary_msg)
+		return new_msgs
 
+	#
+
+	def _finalize_summarize(self, new_msgs, idx, summary):
+		"""Archive raw history, swap in the summarized history, and report."""
 		# Archive raw history before rewriting
 		self._archive_history('summarized')
 		self.hHM.msgs = new_msgs
