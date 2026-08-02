@@ -18,7 +18,7 @@
 - **Plan Manager** — Create plans, split into tasks, track progress, auto-continue on restart (`-c` flag)
 - **Secure Terminal Tool** — Allowlist-based command execution with audit logging and 30s timeout; also allows user-created scripts via `./` or `/` paths
 - **Persistent Sessions** — Chat history saved per session in `history/`; session ID tracked in `sessid.aiia`
-- **Image/Video Analysis** — `ReadImage` tool injects images into conversation for vision model analysis; `ImageTransform` handles local transformations (resize, crop, convert, flip, rotate); `GenerateImage` creates images from text using Ollama diffusion models (x/flux2-klein, x/z-image-turbo); `MediaAnalyst` persona pre-configured with vision model defaults and ffmpeg-based video frame extraction workflow
+- **Image/Video Analysis** — `ReadImage` tool injects images into conversation for vision model analysis; `ImageTransform` handles local transformations (resize, crop, convert, flip, rotate); `GenerateImage` creates images from text using Ollama diffusion models (x/flux2-klein, x/z-image-turbo), a vLLM-Omni server, or local diffusers (see `AI_IMAGE_BACKEND`); `MediaAnalyst` persona pre-configured with vision model defaults and ffmpeg-based video frame extraction workflow
 - **ReplaceLine Tool** — Targeted line edits without rewriting entire files; supports single line or range replacement; pairs with AppendFile for precise, surgical file modifications
 - **Continue Support** — `-c` flag loads last session's `HISTORY.md` and `PLAN.md` from working directory, resumes chat and plan where you left off
 - **Project History** — Each project directory gets a `HISTORY.md` with human-readable markdown + embedded JSON for machine parsing; fully round-trip compatible
@@ -259,6 +259,7 @@ All configuration lives in `config.py`:
 | `VLLM_HOST` | str | `http://localhost:8000/v1` | vLLM OpenAI-compatible base URL |
 | `VLLM_API_KEY` | str | (empty) | Optional API key for the vLLM server |
 | `VLLM_TIMEOUT` | int | `120` | vLLM request timeout in seconds |
+| `AI_IMAGE_BACKEND` | str | `auto` | Image generation backend: `auto` (follow `AI_BACKEND`), `ollama`, `vllm`, or `local` (diffusers) |
 | `MODE` | str | `build` | Initial mode: `plan` or `build` |
 | `CONTINUE` | bool | `false` | Resume last plan on start |
 | `DEBUG` | bool | `false` | Enable verbose debug output |
@@ -418,7 +419,7 @@ If the server runs on another machine, set `VLLM_HOST` accordingly, e.g. `http:/
 | Streaming & thinking | Supported; reasoning models stream `reasoning_content` as thinking |
 | Options mapping | `num_predict` → `max_tokens`; `top_k` sent via `extra_body`; `num_ctx` is ignored (vLLM manages context) |
 | Vision models | Supported — images are converted to OpenAI `image_url` content automatically |
-| `GenerateImage` tool | Always uses Ollama (diffusion models are not served by vLLM) — keep Ollama running if you need it |
+| `GenerateImage` tool | Backend-agnostic: uses Ollama, vLLM-Omni (`POST {VLLM_HOST}/images/generations`), or local diffusers — see `AI_IMAGE_BACKEND` (default `auto` follows `AI_BACKEND`) |
 | `!MODEL` GPU freeing | `ollama stop` cleanup is skipped on vLLM (vLLM manages its own GPU memory) |
 | Auth | Set `VLLM_API_KEY` if the server was started with `--api-key`; it is masked in `!STATS`/`!GET` output |
 | Persistence | The active backend is saved to `state.aiia` and restored on `-c` continue |

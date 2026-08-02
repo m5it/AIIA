@@ -74,6 +74,7 @@ Chat requests run through a pluggable backend abstraction (`src/LLMBackends/`), 
 - `VLLM_HOST` — OpenAI-compatible base URL (default `http://localhost:8000/v1`)
 - `VLLM_API_KEY` — optional API key
 - `VLLM_TIMEOUT` — request timeout in seconds
+- `AI_IMAGE_BACKEND: "auto" | "ollama" | "vllm" | "local"` — image generation backend (`auto` follows `AI_BACKEND`; `local` = diffusers) — lets you e.g. chat via vLLM while generating images via Ollama
 
 Classes:
 - `src/LLMBackends/BaseBackend.py` — shared interface (`chat()`, `list_models()`, `name`, `is_vllm`)
@@ -84,7 +85,7 @@ Behavior notes:
 - The `ollama` import is lazy — vLLM-only installs don't need the ollama python package
 - Ollama options are mapped to OpenAI params: `num_predict`→`max_tokens`, `num_ctx` dropped, `think`→`extra_body.enable_reasoning` + `reasoning_content`
 - Ollama vision messages (`images: [base64]`) are converted to OpenAI `image_url` content parts
-- `GenerateImage` tool always talks to Ollama (not backend-switchable)
+- `GenerateImage` tool is backend-agnostic: `AI_IMAGE_BACKEND` (default `auto` → follows `AI_BACKEND`) picks Ollama, vLLM-Omni, or local diffusers; cross-backend fallback then local diffusers on failure
 - `!MODEL`'s GPU-freeing (`ollama stop`) only runs on the ollama backend
 
 ## Codecov

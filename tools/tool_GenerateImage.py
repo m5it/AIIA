@@ -18,7 +18,7 @@ class GenerateImage():
 	def __init__(self):
 		self.info = {
 			"name":"GenerateImage",
-			"description":"Generate an image using a diffusion model (e.g. flux-schnell, flux). Saves to workout/ and injects into the conversation so the AI can see the result.",
+			"description":"Generate an image using a diffusion model (Ollama, vLLM-Omni, or local diffusers — see AI_IMAGE_BACKEND config). Saves to workout/ and injects into the conversation so the AI can see the result.",
 			"parameters":{
 				"returnType":"string",
 				"required":["prompt"],
@@ -67,6 +67,7 @@ class GenerateImage():
 		height = int(height) if height else 1024
 		steps = int(steps) if steps else None
 		seed = int(seed) if seed else None
+		explicit_model = bool(model)  # user explicitly named a model
 
 		# Resolve model: param > AI_IMAGE_GEN_MODEL config > current chat model > x/flux2-klein fallback
 		handle = ToolParser._current_handle
@@ -90,15 +91,29 @@ class GenerateImage():
 
 		print("GenerateImage: model={}, {}x{}, steps={}".format(model, width, height, steps))
 
-		# --- Try Ollama backend first ---
-		img = _generate_ollama(model, full_prompt, width, height, steps, seed)
+		# --- Resolve image-generation backend chain ---
+		# Primary from AI_IMAGE_BACKEND ("auto" follows AI_BACKEND), then the
+		# other remote backend as a cross-backend fallback, then local diffusers.
+		img = None
+		attempted = []
+		for backend in _resolve_image_backends(handle):
+			attempted.append(backend)
+			if backend == 'vllm':
+				print("GenerateImage: trying vLLM-Omni backend...")
+				img = _generate_vllm(model, full_prompt, width, height, steps, seed, handle, explicit_model)
+			elif backend == 'ollama':
+				print("GenerateImage: trying Ollama backend...")
+				img = _generate_ollama(model, full_prompt, width, height, steps, seed)
+			else:
+				print("GenerateImage: trying local diffusers backend...")
+				img = _generate_diffusers(model, full_prompt, width, height, steps, seed)
+			if img is not None and not isinstance(img, str):
+				break
 
-		# If Ollama failed, try diffusers fallback
 		if img is None:
-			print("Ollama generate failed — trying diffusers fallback...")
-			img = _generate_diffusers(model, full_prompt, width, height, steps, seed)
+			return "Image generation failed — tried backends: {}".format(", ".join(attempted))
 
-		# If both failed, return the error
+		# If all remote backends failed and diffusers returned an error, return it
 		if isinstance(img, str):
 			return img
 
@@ -107,8 +122,87 @@ class GenerateImage():
 
 
 # ---------------------------------------------------------------------------
+# Backend resolution
+# ---------------------------------------------------------------------------
+
+def _resolve_image_backends(handle):
+	"""Return the ordered list of image-generation backends to try.
+
+	Primary comes from AI_IMAGE_BACKEND ("auto" follows AI_BACKEND), then the
+	other remote backend as a cross-backend fallback, then local diffusers."""
+	chat_backend = (handle.Options.get('AI_BACKEND') if handle else 'ollama') or 'ollama'
+	chat_backend = chat_backend.lower()
+	image_backend = (handle.Options.get('AI_IMAGE_BACKEND') if handle else 'auto') or 'auto'
+	image_backend = image_backend.lower()
+	if image_backend not in ('auto', 'ollama', 'vllm', 'local'):
+		image_backend = 'auto'
+
+	if image_backend == 'auto':
+		primary = chat_backend if chat_backend in ('ollama', 'vllm') else 'ollama'
+	else:
+		primary = image_backend
+
+	if primary == 'local':
+		return ['local']
+
+	chain = [primary]
+	chain.append('vllm' if primary == 'ollama' else 'ollama')
+	chain.append('local')
+	return chain
+
+
+# ---------------------------------------------------------------------------
 # Backends
 # ---------------------------------------------------------------------------
+
+def _generate_vllm(model, prompt, width, height, steps, seed, handle, explicit_model=False):
+	"""Generate via a vLLM-Omni image server (OpenAI DALL-E compatible API).
+
+	Endpoints: POST {VLLM_HOST}/images/generations. Each vLLM-Omni instance
+	serves a single diffusion model, so `model` is only sent when the user
+	explicitly requested one (mismatched names 400). Returns PIL Image on
+	success or None on failure (caller falls through to the next backend)."""
+	try:
+		import requests
+		host = (handle.Options.get('VLLM_HOST') if handle else '') or 'http://localhost:8000/v1'
+		api_key = handle.Options.get('VLLM_API_KEY') if handle else ''
+		timeout = (handle.Options.get('VLLM_TIMEOUT') if handle else None) or 120
+
+		headers = {'Content-Type': 'application/json'}
+		if api_key:
+			headers['Authorization'] = 'Bearer {}'.format(api_key)
+
+		body = {
+			'prompt': prompt,
+			'size': '{}x{}'.format(width, height),
+			'n': 1,
+			'response_format': 'b64_json',
+		}
+		if explicit_model:
+			body['model'] = model
+		if steps is not None:
+			body['num_inference_steps'] = steps
+		if seed is not None:
+			body['seed'] = seed
+
+		resp = requests.post(
+			host.rstrip('/') + '/images/generations',
+			json=body, headers=headers, timeout=timeout)
+		resp.raise_for_status()
+		items = resp.json().get('data') or []
+		if not items:
+			return None
+		b64 = items[0].get('b64_json')
+		if not b64:
+			return None
+		img = PILImage.open(BytesIO(base64.b64decode(b64)))
+		if img.mode in ('RGBA', 'LA', 'P'):
+			img = img.convert('RGBA')
+		return img
+	except Exception as e:
+		print("  vLLM image generation failed: {}".format(e))
+		return None
+
 
 def _generate_ollama(model, prompt, width, height, steps, seed):
 	"""Try generating via Ollama Client.generate(). Returns PIL Image or None on failure."""

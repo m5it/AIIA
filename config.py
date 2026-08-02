@@ -28,6 +28,7 @@ Options         = {
 	"VLLM_HOST"           :"http://localhost:8000/v1",  # vLLM OpenAI-compatible base URL
 	"VLLM_API_KEY"        :"",        # optional API key for vLLM server
 	"VLLM_TIMEOUT"        :120,       # vLLM request timeout in seconds
+	"AI_IMAGE_BACKEND"    :"auto",    # image generation backend: "auto" (follow AI_BACKEND) | "ollama" | "vllm" | "local" (diffusers)
 	"AI_FILE_STATE"       :"{}/state.aiia".format(os.path.dirname(os.path.abspath(__file__))),
 	"AI_FILE_HISTORY"     :"history.aiia", # auto generated from AI_SESS_ID
 	"AI_FILE_LOAD_HISTORY":False,
