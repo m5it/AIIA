@@ -72,5 +72,48 @@ As the framework grows, decompose god-classes into smaller, single-responsibilit
 - Updated `AGENTS.md` Architecture section to document the mixin layouts (`Handle`×5, `Commands`×8 + registry, `ToolParser`×3) and the `run.py` → `cli`/`FactoryReset`/`PersonaResolver` split.
 - One commit per step (6 commits): `940a9bb`, `111a803`, `7a7b864`, `ed2351f`, `bc49d93`, `b706fb6`.
 
+## CHECKPOINT (2026-08-02) — restore point
+- **Everything committed.** `master` = `v1.1.4` = `a75a389` (Steps 1–6 complete, 67 tests green).
+- `master` is 7 commits ahead of `origin/master` (refactor not pushed).
+- `v1.1.4` is an identical backup branch — keep until the new Step 7 work is committed, then can be deleted (`git branch -d v1.1.4`).
+- `tools/koslenium_driver` shows `m` (pre-existing submodule modification) — never stage/commit it.
+- To restore if anything crashes: `git checkout master && git reset --hard a75a389` (or re-apply the 7 commits).
+
+## Step 7 — Split remaining oversized methods (IN PROGRESS)
+Same guardrails as Steps 1–6: pure moves, behavior identical, `pytest -q` (67) green after every commit, one commit per chunk, `--no-verify`, tabs. Methods are extracted verbatim into named `_*` helpers inside their home module; control-flow blocks that `continue`/`return` become helpers that return the loop-local state change, with the caller applying it (established pattern from Step 2b, e.g. `_chat_with_retries`).
+
+Remaining oversized methods (measured 2026-08-02):
+
+| File | Method | Lines | Split approach |
+|------|--------|-------|----------------|
+| `src/HandleChat.py` (814) | `AI()` | 232 (line 408) | iteration-result handlers → `_ai_handle_*` helpers returning status dict; loop keeps dispatch |
+| `src/HandleChat.py` | `Chat()` | 181 (line 9) | `_chat_tool_training()`, `_handle_plan_just_done()`, `_handle_plan_blocked_alert()`, `_handle_auto_continue()` |
+| `src/PlanToolHandler.py` | `HandlePlanTool()` | 222 (line 6) | dispatch chain → one `_plan_<tool>` helper per `elif` branch (`addTask`/`createTask`, `createPlan`, `deleteTask`, `deletePlan`, `deleteDraft`, `clearAllTasks`, `cancelPlan`, `deleteAllPlans`, `updateTask`, `viewTask`, `listTasks`, `nextTask`, `jobDone`, `planDone`, `startBuild`, `LogProgress`) |
+| `src/ToolExecutor.py` | `ExecuteTextTool()` | 210 (line 9) | sequential stages → `_execute_*` helpers |
+| `src/ToolExecutor.py` | `FireToolInvocation()` | 198 (line 279) | chunked stages → `_fire_*` helpers |
+| `src/CommandsPlan.py` | `CMD_PLAN()` | 192 (line 20) | `!PLAN` subcommand branches → `_plan_<subcmd>` helpers |
+| `src/HandleParse.py` | `Parse()` | 120 (line 53) | streaming parse phases → `_parse_*` helpers |
+| `src/ToolXmlParser.py` | `_format_action()` | 99 (line 106) | table-render sub-blocks → helpers (or leave if self-contained) |
+| `src/HandleStream.py` | `Stream()` | 83 (line 89) | phase extraction |
+| `src/HandleContext.py` | `_summarize_context()` | 82 (line 83) | summary sources → helpers |
+| `src/Handle.py` | `Response()` | 80 (line 151) | sub-blocks → helpers |
+| `src/Log.py` | `echo()` | 86 (line 50) | formatting/echo phases → helpers (or leave) |
+| `src/HistoryManager.py` | `Choose()` | 85 (line 241) | sub-blocks → helpers |
+| `src/CommandsConfig.py` | `CMD_MODE()` | 73 (line 91) | (borderline — only split if clean) |
+| `src/CommandsConfig.py` | `CMD_SET()` | 70 (line 6) | (borderline — only split if clean) |
+| `src/CommandsSession.py` | `CMD_PREVIEW_HISTORY()` | 79 (line 123) | (borderline) |
+| `src/OrchestraDirector.py` | `route_to_plan_worker()` | 71 (line 115) | (borderline) |
+
+Chunk plan (commit per chunk, in this order):
+- 7a: `HandlePlanTool()` → per-tool helpers (cleanest, lowest risk — pure `elif` dispatch).
+- 7b: `Chat()` → 4 helpers.
+- 7c: `AI()` → iteration-result handler helpers.
+- 7d: `CMD_PLAN()` → subcommand helpers.
+- 7e: `ExecuteTextTool()` + `FireToolInvocation()`.
+- 7f: `Parse()` + `Stream()` + smaller ones (`_summarize_context`, `Response`, `Choose`); skip borderline (`echo`, `CMD_MODE`, `CMD_SET`, `CMD_PREVIEW_HISTORY`, `route_to_plan_worker`, `_format_action`) unless a clean split falls out.
+- Final: extend `tests/test_core_modules.py` if new helpers are reachable, update this table with final line counts, full `pytest -q`, `AGENTS.md` touch if needed.
+
+Verification per chunk: `pytest -q` (67+) green + targeted smoke of the touched path (e.g. `HandlePlanTool('listTasks')`, plan create/nextTask flow) + `git diff --check` + commit `--no-verify`.
+
 ## Out of scope
 - Any behavior changes, new features, renames of public APIs, or moving personas in `instruct/`.
