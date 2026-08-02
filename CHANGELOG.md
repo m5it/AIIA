@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-02 — v1.1.5
+
+### Auto: Version v1.1.5
+
+- Version auto-incremented from v1.1.4
+- Files changed: README.md
+
+---
+
+
 ## 2026-08-02 — v1.1.4
 
 ### Auto: Version v1.1.4

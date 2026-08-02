@@ -431,43 +431,76 @@ If the server runs on another machine, set `VLLM_HOST` accordingly, e.g. `http:/
 
 ```
 AIIA/
-├── AUTOVERSION.py                 # Auto-incremented version (git pre-commit hook)
-├── install.sh                     # Install script — sudo ./install.sh -l to install globally
-├── run.py                         # Entry point — CLI flag parsing, main loop
+├── run.py                         # Thin entry — CLI parsing, factory reset, persona resolution
 ├── run_orchestra.py               # Orchestra director — multi-agent task dispatcher
 ├── run_worker.py                  # Orchestra worker — connects to director, executes tasks
 ├── config.py                      # All configuration & system prompts
+├── AUTOVERSION.py                 # Auto-incremented version (git pre-commit hook)
+├── install.sh                     # Install script — sudo ./install.sh -l to install globally
 ├── start.sh                       # Startup script (auto-setup, path resolution)
 ├── exports.sh                     # Ollama env vars (OLLAMA_KEEP_ALIVE, OLLAMA_HOST)
-├── AGENTS.md                     # Development notes & conventions
-├── hooks/                        # Git hooks (pre-commit: auto-versioning)
-├── PLAN.md                       # Current/active plan (working dir only)
-├── HISTORY.md                    # Session transcript (working dir only)
-├── sessid.aiia                   # Session counter file
+├── requirements.txt               # Common core dependencies
+├── requirements-ollama.txt        # Default backend (Ollama)
+├── requirements-vllm.txt          # vLLM backend (OpenAI-compatible)
+├── requirements-gpu.txt           # Optional GPU deps (torch, diffusers, etc.)
+├── AGENTS.md                      # Development notes & conventions
+├── PLAN.md                        # Current/active plan (working dir only)
+├── HISTORY.md                     # Session transcript (working dir only)
+├── sessid.aiia                    # Session counter file
 │
 ├── src/
-│   ├── Handle.py                 # Core orchestrator — chat loop, response, streaming
-│   ├── ToolParser.py             # XML tool parser, router, plan tool handlers
-│   ├── Commands.py               # !-prefixed terminal commands (20+ commands)
-│   ├── PlanManager.py            # PlanBase, Plan, PlanTask, TaskLog classes
-│   ├── PlanSaver.py              # PLAN.md / HISTORY.md persistence
-│   ├── HistoryManager.py         # Session history load/save
-│   ├── functions.py              # Custom module loader, utilities
-│   ├── Prepare.py                # Session init, mode instructions
-│   ├── ToolChooser.py            # Tool management & selection
-│   ├── Actions.py                # Action module management
-│   ├── Log.py                    # Terminal output logging
-│   ├── Speak.py                  # Text-to-speech (experimental)
-│   ├── InstructManager.py        # Persona discovery and selection
-│   ├── LLMBackends/              # Pluggable LLM backends (BaseBackend, OllamaBackend, VLLMBackend)
+│   ├── Handle.py                  # Core orchestrator — composes 5 mixins (Chat, Response, AI…)
+│   ├── HandleChat.py              # Handle mixin — Chat() loop, AI() model calls
+│   ├── HandleParse.py             # Handle mixin — XML tool extraction from responses
+│   ├── HandleStream.py            # Handle mixin — streaming output handling
+│   ├── HandleContext.py           # Handle mixin — context summarization
+│   ├── HandleState.py             # Handle mixin — state persistence
+│   ├── Commands.py                # !-prefixed terminal commands — composes 8 mixins
+│   ├── CommandsConfig.py          # Commands mixin — !GET/!SET/!MODEL/!BACKEND…
+│   ├── CommandsSession.py         # Commands mixin — session control
+│   ├── CommandsPersona.py         # Commands mixin — persona switching
+│   ├── CommandsTips.py            # Commands mixin — tip management
+│   ├── CommandsTimers.py          # Commands mixin — timer loops
+│   ├── CommandsSites.py           # Commands mixin — website JS support scripts
+│   ├── CommandsPlan.py            # Commands mixin — plan/view commands
+│   ├── CommandsWorkers.py         # Commands mixin — orchestra workers
+│   ├── commands_registry.py       # Command registry builder
+│   ├── ToolParser.py              # XML tool parser coordinator — composes 3 mixins
+│   ├── ToolXmlParser.py           # ToolParser mixin — XML parsing
+│   ├── ToolExecutor.py            # ToolParser mixin — tool execution, caching, guards
+│   ├── PlanToolHandler.py         # ToolParser mixin — plan XML tool dispatch
+│   ├── cli.py                     # CLI argument parsing
+│   ├── FactoryReset.py            # Factory reset utility
+│   ├── PersonaResolver.py         # Persona resolution
+│   ├── PlanManager.py             # PlanBase, Plan, PlanTask, TaskLog classes
+│   ├── PlanSaver.py               # PLAN.md / HISTORY.md persistence
+│   ├── HistoryManager.py          # Session history load/save
+│   ├── functions.py               # Custom module loader, utilities
+│   ├── Prepare.py                 # Session init, mode instructions
+│   ├── ToolChooser.py             # Tool management & selection
+│   ├── Log.py                     # Terminal output logging
+│   ├── Speak.py                   # Text-to-speech (experimental)
+│   ├── InstructManager.py         # Persona discovery and selection
+│   ├── ImageGenBackends.py        # Image generation backends (ollama/vllm/diffusers)
+│   ├── LLMBackends/               # Pluggable LLM backends (BaseBackend, OllamaBackend, VLLMBackend)
 │   ├── MediaHelper.py             # Image/video encode/decode/info utilities
 │   ├── ModelRegistry.py           # Per-model capability database (context size, vision, think)
-│   ├── TipManager.py             # Conversation tip save/replay
-│   ├── OrchestraDirector.py      # Orchestra TCP server, worker registry, task dispatch
-│   └── OrchestraWorker.py        # Orchestra TCP client, headless task execution
+│   ├── TipManager.py              # Conversation tip save/replay
+│   ├── TimerManager.py            # Timer loop scheduling
+│   ├── EventBus.py                # Event publish/subscribe
+│   ├── PathApprover.py            # Path approval/sandbox checks
+│   ├── DependencyChecker.py       # Per-persona dependency checking
+│   ├── DependencyInstaller.py     # Per-persona dependency installer (isolated venvs)
+│   ├── Server.py                  # HTTP server
+│   ├── ServerFactory.py           # Server profile resolution
+│   ├── Client.py                  # Client connection handling
+│   ├── OrchestraDirector.py       # Orchestra TCP server, worker registry, task dispatch
+│   └── OrchestraWorker.py         # Orchestra TCP client, headless task execution
 │
 ├── instruct/                     # Persona classes (plan/build system prompts)
 │   ├── Developer.py              # Software development persona
+│   ├── DeveloperV2.py            # Developer variant (explicit STOP, clearer mode transitions)
+│   ├── DeveloperV3.py            # DeveloperV2 + framework-awareness
 │   ├── Friend.py                 # Casual chat persona
 │   ├── MediaAnalyst.py           # Image/video analysis persona (vision model)
 │   ├── SysAdmin.py               # System administration persona
@@ -476,9 +509,19 @@ AIIA/
 │   ├── Generalist.py             # General-purpose assistant
 │   ├── TechTalker.py             # Technical casual chat persona
 │   ├── Scrapper.py               # Web scraping persona
+│   ├── BookSmith.py              # Literary assistant (book analysis & writing)
+│   ├── BookSmithV2.py            # BookSmith variant (analysis/writing split)
+│   ├── BookSmithV3.py            # BookSmithV2 + long-context handling
+│   ├── BookSmithAnalyst.py       # Literary/critical analysis specialist
+│   ├── BookSmithNovelist.py      # Fiction writing specialist
+│   ├── BookSmithPoet.py          # Poetry specialist
+│   ├── BookSmithEditor.py        # Editing & revision specialist
 │   └── __init__.py
 │
-├── tools/                        # XML-invokable tool modules (26 files)
+├── tools/                        # XML-invokable tool modules (33 tools)
+│   ├── _koslenium_server.py      # Local HTML-rendering proxy for WWW/WWWExec
+│   ├── _site_script_resolver.py  # Per-website JS support script resolver
+│   ├── koslenium_driver/         # Java web client (build.sh, www jar)
 │   ├── tool_Terminal.py          # Secure terminal execution (ollama allowed)
 │   ├── tool_ReadFile.py          # Read file content
 │   ├── tool_WriteFile.py         # Write/overwrite files
@@ -488,6 +531,7 @@ AIIA/
 │   ├── tool_ReadImage.py         # Read image, inject into conversation
 │   ├── tool_ImageTransform.py    # Transform images (resize, crop, convert...)
 │   ├── tool_GenerateImage.py     # Generate images via diffusion models
+│   ├── tool_ReadPDF.py           # Extract text/metadata from PDFs
 │   ├── tool_TreeView.py          # ASCII tree view of directory structure
 │   ├── tool_List.py              # List directory contents
 │   ├── tool_listTools.py         # List all available tools
@@ -499,22 +543,34 @@ AIIA/
 │   ├── tool_Head.py              # First N lines of file
 │   ├── tool_Tail.py              # Last N lines of file
 │   ├── tool_Sort.py              # Sort file lines
-│   ├── tool_WWW.py               # Web fetcher (JS/no-JS, browser, cookies)
+│   ├── tool_CurrentTime.py       # Get current date/time
+│   ├── tool_WWW.py               # Web fetcher (JS/no-JS, browser, cookies, screenshots)
+│   ├── tool_WWWExec.py           # Execute JS on the loaded page
+│   ├── tool_WWWJS.py             # WWW alias with JS rendering
+│   ├── tool_ParsePage.py         # Parse cached HTML locally with BeautifulSoup
+│   ├── tool_SiteScript.py        # Discover/execute per-site JS support scripts
+│   ├── tool_UpdateSiteScript.py  # Create/update per-site JS support scripts
 │   ├── tool_SaveTip.py           # Save conversation tip
 │   ├── tool_GetTip.py            # Retrieve saved tip
 │   ├── tool_ListTips.py          # List all saved tips
 │   ├── tool_DeleteTip.py         # Delete a tip
-│   ├── tool_ReinsertTip.py       # Reinsert tip into chat
+│   └── tool_ReinsertTip.py       # Reinsert tip into chat
+│
+├── wwwurljssupport/              # Per-website JS support scripts
 │
 ├── history/                      # Session chat history (gitignored)
 ├── plans/                        # JSON plan files (gitignored)
+├── workout/                      # Tool output directory (gitignored)
 │
-├── test/                         # Test scripts
+├── tests/                        # pytest suite (pytest -q)
+│   ├── test_core_modules.py      # Module import/smoke + helper unit tests
+│   ├── test_config.py
+│   ├── test_functions.py
+│   ├── test_backends.py
+│   ├── test_generateimage.py
 │   ├── test_all_tools.sh
-│   ├── test_full_flow.py
 │   ├── test_terminal.sh
-│   ├── test_writefile.py
-│   └── test_writefile_issue.py
+│   └── old_*.py                  # Legacy standalone scripts (not collected)
 │
 └── .venv/                        # Python virtual environment
 ```
