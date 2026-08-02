@@ -130,3 +130,202 @@ def test_handle_mixins_import():
 	mro = [c.__name__ for c in Handle.__mro__]
 	for name in ('HandleStream', 'HandleParse', 'HandleContext', 'HandleState', 'HandleChat'):
 		assert name in mro
+
+# Step 7: split-method helpers (unit tests via mixin stubs)
+
+def test_stream_periodic_interrupt_continue():
+	from src.HandleStream import HandleStream, _STREAM_CONTINUE
+	class Stub(HandleStream):
+		def __init__(self):
+			self.Options = {}
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self._check_ai_interrupt = lambda: False
+	state = {'response': 'x', 'thinking': '', 'native_tool_calls': []}
+	assert Stub()._check_periodic_interrupt(3, state, None) is _STREAM_CONTINUE
+
+def test_stream_periodic_interrupt_fires():
+	from src.HandleStream import HandleStream
+	class Stub(HandleStream):
+		def __init__(self):
+			self.Options = {}
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self._check_ai_interrupt = lambda: True
+	state = {'response': 'abc', 'thinking': 'th', 'native_tool_calls': ['t']}
+	r = Stub()._check_periodic_interrupt(5, state, None)
+	assert r['ctrl_d_interrupt'] is True and r['content'] == 'abc' and r['native_tool_calls'] == ['t']
+
+def test_stream_process_chunk_thinking():
+	from src.HandleStream import HandleStream
+	class Stub(HandleStream):
+		def __init__(self):
+			self.Options = {'BUILD_THINKING_DISABLED': True}
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self._check_stream_abort = lambda s: None
+	class Msg:
+		def __init__(self):
+			self.thinking = 'part1'
+			self.content = ''
+			self.tool_calls = []
+	stub = Stub()
+	state = {'response': '', 'thinking': '', 'native_tool_calls': [], 'if_thinking': False, 'if_speaking': False}
+	assert stub._process_stream_chunk(type('C', (), {'message': Msg()})(), state, True, None) is None
+	assert state['thinking'] == 'part1' and state['if_thinking'] is True
+
+def test_stream_process_chunk_speaking_and_abort():
+	from src.HandleStream import HandleStream
+	class Stub(HandleStream):
+		def __init__(self):
+			self.Options = {'BUILD_THINKING_DISABLED': True}
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self._check_stream_abort = lambda s: 'blocked' if 'WriteFile' in s else None
+	class Msg:
+		def __init__(self, content):
+			self.thinking = ''
+			self.content = content
+			self.tool_calls = []
+	stub = Stub()
+	state = {'response': '', 'thinking': '', 'native_tool_calls': [], 'if_thinking': False, 'if_speaking': False}
+	assert stub._process_stream_chunk(type('C', (), {'message': Msg('hi')})(), state, True, None) is None
+	assert state['response'] == 'hi'
+	assert stub._process_stream_chunk(type('C', (), {'message': Msg('<WriteFile>')})(), state, True, None) == 'blocked'
+
+def test_parse_stream_error_too_large():
+	from src.HandleParse import HandleParse, _PARSE_CONTINUE
+	class Stub(HandleParse):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+	r = Stub()._parse_stream_error('request body too large (413)', {'content': 'x'}, True)
+	assert r['stream_too_large'] is True and r['invocations'] == []
+	assert Stub()._parse_stream_error('some error', {'content': 'x'}, False) is _PARSE_CONTINUE
+	assert Stub()._parse_stream_error(None, {'content': 'x'}, False) is _PARSE_CONTINUE
+
+def test_parse_ctrl_d_saves_partial():
+	from src.HandleParse import HandleParse
+	class Stub(HandleParse):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self.responses = []
+			self.Response = lambda role, content: self.responses.append((role, content))
+	stub = Stub()
+	r = stub._parse_ctrl_d({'content': 'part', 'thinking': 'th'}, False, True, True, None)
+	assert r['ctrl_d_interrupt'] is True
+	assert stub.responses[0][0] == 'assistant' and stub.responses[0][1]['content'] == 'part'
+
+def test_parse_repeated_return_object():
+	from src.HandleParse import HandleParse
+	class Stub(HandleParse):
+		pass
+	r = Stub()._parse_repeated({'content': 'again'}, True, None)
+	assert r['invocations'] == [] and r['response'] == 'again'
+
+def test_context_collect_drop_indices():
+	from src.HandleContext import HandleContext
+	msgs = [{'role': 'system', 'content': 'S'}]
+	for i in range(8):
+		msgs.append({'role': 'user', 'content': 'u{}'.format(i)})
+		msgs.append({'role': 'assistant', 'content': 'a{}'.format(i)})
+	msgs, idx = HandleContext.__new__(HandleContext)._collect_drop_indices(msgs)
+	assert msgs[0]['role'] == 'system'
+	assert len(idx) == 6  # first 3 exchanges dropped (last 5 kept)
+	assert idx[0] == 1
+	assert all(m['role'] for m in msgs)
+
+def test_context_collect_drop_indices_malformed():
+	from src.HandleContext import HandleContext
+	msgs, idx = HandleContext.__new__(HandleContext)._collect_drop_indices([{'bad': 1}, {'role': 'user', 'content': 'x'}])
+	assert len(msgs) == 1 and len(idx) == 0
+
+def test_context_insert_summary():
+	from src.HandleContext import HandleContext
+	obj = HandleContext.__new__(HandleContext)
+	obj.Options = {'AI_SESS_ID': 's1', 'AI_ROW_ID': 5}
+	msgs = [{'role': 'system', 'content': 'S1'}, {'role': 'user', 'content': 'u'}]
+	new = obj._insert_summary(msgs, {0, 1}, 'SUM')
+	assert new[1]['role'] == 'system' and new[1]['content'] == '[Context summary: SUM]'
+	assert new[1]['rowId'] == 6
+
+def test_context_request_summary_truncates():
+	from src.HandleContext import HandleContext
+	class Backend:
+		def chat(self, **kw):
+			class R: message = type('M', (), {'content': 'A' * 4000})()
+			return R()
+	class Stub(HandleContext):
+		def __init__(self):
+			self.Options = {'AI_MODEL': 'm'}
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self._get_backend = lambda: Backend()
+	summary = Stub()._request_summary('p')
+	assert len(summary) == 3001 and summary.endswith('…')
+
+def test_handle_build_response_obj():
+	from src.Handle import Handle
+	obj = Handle.__new__(Handle)
+	obj.Options = {'AI_SESS_ID': 's9', 'AI_ROW_ID': 3, 'AI_VISION_ENABLED': True}
+	r = obj._build_response_obj('user', 'hi', None, 'toolA', ['AAA'], None)
+	assert r['role'] == 'user' and r['content'] == 'hi' and r['name'] == 'toolA'
+	assert r['sessionId'] == 's9' and r['rowId'] == 3 and 'timestamp' in r and 'date' in r
+	assert r['images'] == ['AAA']
+
+def test_handle_embed_token_counts():
+	from src.Handle import Handle
+	obj = Handle.__new__(Handle)
+	obj.Options = {'NUM_PROMPT_TOKENS': 0, 'NUM_RESPONSE_TOKENS': 0,
+		'NUM_LAST_PROMPT_TOKENS': 0, 'NUM_LAST_RESPONSE_TOKENS': 0}
+	obj._write_state = lambda d: None
+	obj.bg_log = lambda *a, **k: None
+	r = {}
+	obj._embed_token_counts(r, {'prompt_tokens': 10, 'response_tokens': 20})
+	assert r['prompt_tokens'] == 10 and r['response_tokens'] == 20
+	assert obj.Options['NUM_PROMPT_TOKENS'] == 10 and obj.Options['NUM_RESPONSE_TOKENS'] == 20
+
+def test_tool_executor_fire_sort_key():
+	from src.ToolExecutor import ToolExecutor
+	sk = ToolExecutor._fire_sort_key
+	assert sk({'name': 'createPlan'}) == -2
+	assert sk({'name': 'addTask'}) == -1
+	assert sk({'name': 'ReadFile'}) == 0
+
+def test_tool_executor_guard_file_size():
+	from src.ToolExecutor import ToolExecutor
+	class Handle:
+		def __init__(self):
+			self.Options = {'AI_MAX_FILE_SIZE': 100}
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self.responses = []
+			self.Response = lambda role, content: self.responses.append((role, content))
+	obj = ToolExecutor.__new__(ToolExecutor)
+	obj.handle = Handle()
+	err = obj._guard_file_size('WriteFile', {'fileName': 'x', 'contentOfFile': 'z' * 200})
+	assert err is not None and 'AI_MAX_FILE_SIZE' in err
+	assert obj._guard_file_size('ReadFile', {}) is None
+
+def test_history_manager_choose_search(monkeypatch):
+	from src.HistoryManager import HistoryManager
+	obj = HistoryManager.__new__(HistoryManager)
+	obj.handle = type('H', (), {
+		'hLG': type('LG', (), {'echo': lambda *a, **k: None})(),
+	})()
+	obj.available = ['a1_1.dbk']
+	obj.history = ''
+	obj._search = lambda q: [{'filename': 'a1_1.dbk', 'index': 0, 'date': 'd', 'preview': 'p'}] if q == 'foo' else []
+	obj._show_list = lambda items, names: None
+	obj._view_file = lambda *a: None
+	obj.msgs = []
+	obj.Get = lambda: obj.msgs.append(obj.history)
+	inputs = iter(['0'])
+	monkeypatch.setattr('src.HistoryManager.user_input', lambda: next(inputs, None))
+	assert obj._choose_search('s foo', {}) is True
+	assert obj.history == 'a1_1.dbk'
+
+def test_history_manager_choose_search_no_match(monkeypatch):
+	from src.HistoryManager import HistoryManager
+	obj = HistoryManager.__new__(HistoryManager)
+	obj.handle = type('H', (), {
+		'hLG': type('LG', (), {'echo': lambda *a, **k: None})(),
+	})()
+	obj.available = ['a1_1.dbk']
+	obj._search = lambda q: []
+	obj._show_list = lambda items, names: None
+	obj._view_file = lambda *a: None
+	assert obj._choose_search('s nope', {}) is False
