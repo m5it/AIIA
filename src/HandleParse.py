@@ -1,5 +1,8 @@
 import hashlib, re
 #
+# Sentinel returned by _parse_* helpers when parsing should continue (no early return)
+_PARSE_CONTINUE = object()
+#
 class HandleParse():
 
 	#
@@ -65,56 +68,26 @@ class HandleParse():
 		#
 		stream_error = None
 		response = self.Stream( res, color, opt_stream_cb )
+		#
+		# Stream error — signal auto-clear for request-too-large errors
 		if 'error' in response:
 			stream_error = response['error']
-			if stream_error:
-				self.hLG.echo("Stream error: {}".format(stream_error), {'color':True, 'colorValue':'red','debugOnly':False,})
-				# Signal auto-clear for request-too-large errors
-				err_lower = stream_error.lower()
-				if ('too large' in err_lower or '400' in err_lower or '413' in err_lower or 'request body' in err_lower):
-					if opt_return_object:
-						return {'invocations': [], 'response': response.get('content', ''),
-								'stream_error': stream_error, 'stream_too_large': True}
-					return True
+			_done = self._parse_stream_error(stream_error, response, opt_return_object)
+			if _done is not _PARSE_CONTINUE:
+				return _done
 
 		# Ctrl+D interrupt — save partial response and signal caller
 		if response.get('ctrl_d_interrupt'):
-			self.Response('assistant', {
-				'content': response.get('content', ''),
-				'thinking': response.get('thinking', ''),
-				'skip_history': opt_skip_history,
-				'prompt_tokens': response.get('prompt_tokens', 0),
-				'response_tokens': response.get('response_tokens', 0),
-			})
-			self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
-			if opt_return_object:
-				return {'invocations': [], 'response': response.get('content', ''),
-						'stream_error': stream_error, 'ctrl_d_interrupt': True}
-			return True
+			_done = self._parse_ctrl_d(response, opt_skip_history, opt_return_object, color, stream_error)
+			if _done is not _PARSE_CONTINUE:
+				return _done
 
 		# Early abort from Stream() — skip tool invocation detection
 		early_abort = response.get('early_abort')
 		if early_abort:
-			self.hLG.echo("Stream aborted: {}".format(early_abort),
-				{'color':True, 'colorValue':'red','debugOnly':False})
-			self.Response('assistant',{
-				'content': response.get('content', ''),
-				'thinking': response.get('thinking', ''),
-				'skip_history': opt_skip_history,
-				'prompt_tokens': response.get('prompt_tokens', 0),
-				'response_tokens': response.get('response_tokens', 0),
-			})
-			self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
-			# Extract blocked tool name from early_abort message for user prompt
-			plan_blocked = None
-			if self.Options.get('MODE') == 'plan':
-				m = re.search(r"'(\w+)'", early_abort)
-				if m:
-					plan_blocked = m.group(1)
-			if opt_return_object:
-				return {'invocations': [], 'response': response.get('content', ''),
-						'stream_error': stream_error, 'plan_blocked': plan_blocked}
-			return True
+			_done = self._parse_early_abort(response, opt_skip_history, opt_return_object, color, stream_error, early_abort)
+			if _done is not _PARSE_CONTINUE:
+				return _done
 
 		# Strip <think>...</think> from content — the model may include these
 		# in its content field (separate from native thinking API).  Stripping
@@ -127,10 +100,9 @@ class HandleParse():
 		# Skip check for thinking-only responses (empty content) — they all hash to the same
 		# empty-string MD5 and flood false positives.
 		if self._detect_repeated_response(response):
-			current_content = response.get('content', '').strip()
-			if opt_return_object:
-				return {'invocations': [], 'response': current_content, 'stream_error': stream_error }
-			return True
+			_done = self._parse_repeated(response, opt_return_object, stream_error)
+			if _done is not _PARSE_CONTINUE:
+				return _done
 
 		#
 		# Detect tool invocations before adding assistant response
@@ -141,15 +113,95 @@ class HandleParse():
 			for inv in tool_invocations:
 				opt_stream_cb({'type':'tool_start','tool':inv['name'],'params':inv.get('parameters',{})})
 		
-		# Clean assistant content: strip XML tags when using system-role results
-		# so the model doesn't see stale tool calls in its own history
+		# Record assistant message in history (strip XML/thinking when needed)
+		self._parse_assistant_history(response, tool_invocations, opt_skip_history, color)
+		#
+		if tool_invocations:
+			return self._fire_tool_invocations(tool_invocations, response, opt_stream_cb, stream_error)
+		#
+		if opt_return_object:
+			return {'invocations': tool_invocations, 'response': response['content'], 'stream_error': stream_error }
+		return True
+
+	#
+
+	def _parse_stream_error(self, stream_error, response, opt_return_object):
+		"""Stream error handling — signal auto-clear for request-too-large errors.
+		Returns the caller's return value, or _PARSE_CONTINUE to keep parsing."""
+		if not stream_error:
+			return _PARSE_CONTINUE
+		self.hLG.echo("Stream error: {}".format(stream_error), {'color':True, 'colorValue':'red','debugOnly':False,})
+		# Signal auto-clear for request-too-large errors
+		err_lower = stream_error.lower()
+		if ('too large' in err_lower or '400' in err_lower or '413' in err_lower or 'request body' in err_lower):
+			if opt_return_object:
+				return {'invocations': [], 'response': response.get('content', ''),
+						'stream_error': stream_error, 'stream_too_large': True}
+			return True
+		return _PARSE_CONTINUE
+
+	#
+
+	def _parse_ctrl_d(self, response, opt_skip_history, opt_return_object, color, stream_error):
+		"""Ctrl+D interrupt — save partial response and signal caller."""
+		self.Response('assistant', {
+			'content': response.get('content', ''),
+			'thinking': response.get('thinking', ''),
+			'skip_history': opt_skip_history,
+			'prompt_tokens': response.get('prompt_tokens', 0),
+			'response_tokens': response.get('response_tokens', 0),
+		})
+		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
+		if opt_return_object:
+			return {'invocations': [], 'response': response.get('content', ''),
+					'stream_error': stream_error, 'ctrl_d_interrupt': True}
+		return True
+
+	#
+
+	def _parse_early_abort(self, response, opt_skip_history, opt_return_object, color, stream_error, early_abort):
+		"""Early abort from Stream() — skip tool invocation detection."""
+		self.hLG.echo("Stream aborted: {}".format(early_abort),
+			{'color':True, 'colorValue':'red','debugOnly':False})
+		self.Response('assistant',{
+			'content': response.get('content', ''),
+			'thinking': response.get('thinking', ''),
+			'skip_history': opt_skip_history,
+			'prompt_tokens': response.get('prompt_tokens', 0),
+			'response_tokens': response.get('response_tokens', 0),
+		})
+		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
+		# Extract blocked tool name from early_abort message for user prompt
+		plan_blocked = None
+		if self.Options.get('MODE') == 'plan':
+			m = re.search(r"'(\w+)'", early_abort)
+			if m:
+				plan_blocked = m.group(1)
+		if opt_return_object:
+			return {'invocations': [], 'response': response.get('content', ''),
+					'stream_error': stream_error, 'plan_blocked': plan_blocked}
+		return True
+
+	#
+
+	def _parse_repeated(self, response, opt_return_object, stream_error):
+		"""Model repeated itself — auto-cancelled, skip tool invocation detection."""
+		current_content = response.get('content', '').strip()
+		if opt_return_object:
+			return {'invocations': [], 'response': current_content, 'stream_error': stream_error }
+		return True
+
+	#
+
+	def _parse_assistant_history(self, response, tool_invocations, opt_skip_history, color):
+		"""Record the assistant message in history.
+		Clean assistant content: strip XML tags when using system-role results
+		so the model doesn't see stale tool calls in its own history. Strip
+		thinking from history when tool calls were made — the reasoning
+		describes planned actions and confuses the model into re-issuing them."""
 		assistant_content = response['content']
 		if tool_invocations and (self.Options.get('TOOL_RESULT_AS_SYSTEM', False) or self.Options.get('TOOL_RESULT_AS_USER', False)):
 			assistant_content = self.hTP.ExtractToolResult(response['content'])
-		#
-		# Strip thinking from history when tool calls were made —
-		# the reasoning describes planned actions and confuses the
-		# model into re-issuing them on the next iteration.
 		thinking_for_history = response['thinking'] if not tool_invocations else ''
 		self.Response('assistant',{
 			'content':assistant_content,
@@ -158,15 +210,7 @@ class HandleParse():
 			'prompt_tokens':response.get('prompt_tokens', 0),
 			'response_tokens':response.get('response_tokens', 0),
 		})
-		#
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
-		#
-		if tool_invocations:
-			return self._fire_tool_invocations(tool_invocations, response, opt_stream_cb, stream_error)
-		#
-		if opt_return_object:
-			return {'invocations': tool_invocations, 'response': response['content'], 'stream_error': stream_error }
-		return True
 
 	#
 
