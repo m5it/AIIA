@@ -120,40 +120,22 @@ class HandleParse():
 		# in its content field (separate from native thinking API).  Stripping
 		# early prevents spurious tool detection, hash mismatches, and history
 		# pollution.
-		response['content'] = re.sub(r'<think>.*?</think>', '', response.get('content', ''), flags=re.DOTALL)
-		response['content'] = re.sub(r'</think>', '', response.get('content', ''))
+		self._strip_think_tags(response)
 		
 		# Detect repeated responses (model looping)
 		# _last_response_hash persists across AI() calls — only reset by new user input in You()
 		# Skip check for thinking-only responses (empty content) — they all hash to the same
 		# empty-string MD5 and flood false positives.
-		current_content = response.get('content', '').strip()
-		if current_content:
-			current_hash = hashlib.md5(current_content.encode()).hexdigest()
-			if self._last_response_hash is not None and current_hash == self._last_response_hash:
-				self.hLG.echo("⚠ Model repeated itself — auto-cancelled", {'color':True, 'colorValue':'red','debugOnly':False,})
-				if opt_return_object:
-					return {'invocations': [], 'response': current_content, 'stream_error': stream_error }
-				return True
-			self._last_response_hash = current_hash
-		else:
-			# Reset hash on thinking-only — avoids false collisions from empty content
-			self._last_response_hash = None
+		if self._detect_repeated_response(response):
+			current_content = response.get('content', '').strip()
+			if opt_return_object:
+				return {'invocations': [], 'response': current_content, 'stream_error': stream_error }
+			return True
 
 		#
 		# Detect tool invocations before adding assistant response
 		# (needs to be first so we can clean XML from assistant content if needed)
-		tool_invocations = []
-		native_tool_calls = response.get('native_tool_calls', [])
-		
-		if native_tool_calls:
-			self.hLG.echo("Parse() detected {} native Ollama tool call(s)".format(len(native_tool_calls)), {'color':True, 'colorValue':'cyan'})
-			tool_invocations = self._convert_native_tool_calls(native_tool_calls)
-		
-		if not tool_invocations:
-			tool_invocations = self.hTP.ParseTextToolInvocation( response['content'] )
-			if tool_invocations:
-				self.hLG.echo("Parse() detected {} XML tool invocation(s)".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
+		tool_invocations = self._detect_tool_invocations(response)
 		
 		if tool_invocations and opt_stream_cb:
 			for inv in tool_invocations:
@@ -180,59 +162,113 @@ class HandleParse():
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
 		#
 		if tool_invocations:
-			#
-			job_done = any(inv['name'] == 'jobDone' for inv in tool_invocations)
-			#
-			result = self.hTP.FireToolInvocation(tool_invocations)
-			#
-			if opt_stream_cb:
-				result_str = str(result) if result else ""
-				for inv in tool_invocations:
-					opt_stream_cb({'type':'tool_result','tool':inv['name'],'success':not result_str.startswith('Error:'),'result':result_str[:2000]})
-			#
-			plan_blocked = getattr(self, '_plan_blocked_tool', None)
-			if plan_blocked:
-				self._plan_blocked_tool = None
-				return {'invocations': tool_invocations, 'response': response['content'],
-						'job_done': job_done, 'stream_error': stream_error,
-						'plan_blocked': plan_blocked}
-			# Handle nextTask response in build mode - auto-add next task to history
-			if self.Options.get('MODE') == 'build':
-				for inv in tool_invocations:
-					if inv['name'] == 'nextTask':
-						result_str = str(result) if result else ""
-						if result_str.startswith("NEXT_TASK:"):
-							next_instruction = result_str[10:]
-							self.Response('user', {'content': "<nextTask>\n\nYour task:\n{}".format(next_instruction)})
-							self._write_current_task()
-						elif result_str.startswith("ALL_COMPLETED:"):
-							self.hLG.echo("Plan completed! All tasks finished.", {'color':True, 'colorValue':'green'})
-						elif result_str.startswith("DONE_WITH_BLOCKED:"):
-							self.hLG.echo("Plan has blocked tasks. Consider switching to PLAN mode to resolve.", {'color':True, 'colorValue':'orange'})
-					elif inv['name'] == 'startBuild':
-						result_str = str(result) if result else ""
-						if result_str.startswith("START_BUILD|"):
-							parts = result_str.split("|", 2)
-							task_info = parts[1]
-							instruction = parts[2]
-							self.Response('user', {'content': "Mode changed to BUILD. You can now make changes.\n\n{} - {}".format(task_info, instruction)})
-							self._write_current_task()
-			# Handle planDone in any mode — inject user message and signal completion
-			plan_done = any(inv['name'] == 'planDone' for inv in tool_invocations)
-			if plan_done:
-				result_str = str(result) if result else ""
-				if result_str.startswith("PLAN_DONE|"):
-					parts = result_str.split("|", 2)
-					task_info = parts[1]
-					instruction = parts[2]
-					self.Response('user', {'content': "Plan is ready! Starting first task.\n\n{} - {}".format(task_info, instruction)})
-					self._write_current_task()
-			#
-			# Return the original response so caller knows tools were executed
-			return {'invocations': tool_invocations, 'response': response['content'],
-					'job_done': job_done, 'stream_error': stream_error,
-					'plan_done': plan_done}
+			return self._fire_tool_invocations(tool_invocations, response, opt_stream_cb, stream_error)
 		#
 		if opt_return_object:
 			return {'invocations': tool_invocations, 'response': response['content'], 'stream_error': stream_error }
 		return True
+
+	#
+
+	def _strip_think_tags(self, response):
+		"""Strip <think>...</think> from content — the model may include these
+		in its content field (separate from native thinking API).  Stripping
+		early prevents spurious tool detection, hash mismatches, and history
+		pollution."""
+		response['content'] = re.sub(r'<think>.*?</think>', '', response.get('content', ''), flags=re.DOTALL)
+		response['content'] = re.sub(r'</think>', '', response.get('content', ''))
+
+	#
+
+	def _detect_repeated_response(self, response):
+		"""Detect model looping via repeated-response hashing.
+		Updates _last_response_hash (persists across AI() calls, reset by new
+		user input in You()). Returns True if this response is a repeat.
+		Thinking-only responses (empty content) are skipped — they all hash to
+		the same empty-string MD5 and would flood false positives."""
+		current_content = response.get('content', '').strip()
+		if current_content:
+			current_hash = hashlib.md5(current_content.encode()).hexdigest()
+			if self._last_response_hash is not None and current_hash == self._last_response_hash:
+				self.hLG.echo("⚠ Model repeated itself — auto-cancelled", {'color':True, 'colorValue':'red','debugOnly':False,})
+				return True
+			self._last_response_hash = current_hash
+		else:
+			# Reset hash on thinking-only — avoids false collisions from empty content
+			self._last_response_hash = None
+		return False
+
+	#
+
+	def _detect_tool_invocations(self, response):
+		"""Detect tool invocations before adding the assistant response
+		(needs to be first so we can clean XML from assistant content if
+		needed). Uses native Ollama tool calls when present, else XML text."""
+		tool_invocations = []
+		native_tool_calls = response.get('native_tool_calls', [])
+		if native_tool_calls:
+			self.hLG.echo("Parse() detected {} native Ollama tool call(s)".format(len(native_tool_calls)), {'color':True, 'colorValue':'cyan'})
+			tool_invocations = self._convert_native_tool_calls(native_tool_calls)
+		if not tool_invocations:
+			tool_invocations = self.hTP.ParseTextToolInvocation( response['content'] )
+			if tool_invocations:
+				self.hLG.echo("Parse() detected {} XML tool invocation(s)".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
+		return tool_invocations
+
+	#
+
+	def _fire_tool_invocations(self, tool_invocations, response, opt_stream_cb, stream_error):
+		"""Execute detected tool invocations and handle plan/build bookkeeping
+		(nextTask / startBuild / planDone). Returns the result dict for the
+		tool path."""
+		job_done = any(inv['name'] == 'jobDone' for inv in tool_invocations)
+		#
+		result = self.hTP.FireToolInvocation(tool_invocations)
+		#
+		if opt_stream_cb:
+			result_str = str(result) if result else ""
+			for inv in tool_invocations:
+				opt_stream_cb({'type':'tool_result','tool':inv['name'],'success':not result_str.startswith('Error:'),'result':result_str[:2000]})
+		#
+		plan_blocked = getattr(self, '_plan_blocked_tool', None)
+		if plan_blocked:
+			self._plan_blocked_tool = None
+			return {'invocations': tool_invocations, 'response': response['content'],
+					'job_done': job_done, 'stream_error': stream_error,
+					'plan_blocked': plan_blocked}
+		# Handle nextTask response in build mode - auto-add next task to history
+		if self.Options.get('MODE') == 'build':
+			for inv in tool_invocations:
+				if inv['name'] == 'nextTask':
+					result_str = str(result) if result else ""
+					if result_str.startswith("NEXT_TASK:"):
+						next_instruction = result_str[10:]
+						self.Response('user', {'content': "<nextTask>\n\nYour task:\n{}".format(next_instruction)})
+						self._write_current_task()
+					elif result_str.startswith("ALL_COMPLETED:"):
+						self.hLG.echo("Plan completed! All tasks finished.", {'color':True, 'colorValue':'green'})
+					elif result_str.startswith("DONE_WITH_BLOCKED:"):
+						self.hLG.echo("Plan has blocked tasks. Consider switching to PLAN mode to resolve.", {'color':True, 'colorValue':'orange'})
+				elif inv['name'] == 'startBuild':
+					result_str = str(result) if result else ""
+					if result_str.startswith("START_BUILD|"):
+						parts = result_str.split("|", 2)
+						task_info = parts[1]
+						instruction = parts[2]
+						self.Response('user', {'content': "Mode changed to BUILD. You can now make changes.\n\n{} - {}".format(task_info, instruction)})
+						self._write_current_task()
+		# Handle planDone in any mode — inject user message and signal completion
+		plan_done = any(inv['name'] == 'planDone' for inv in tool_invocations)
+		if plan_done:
+			result_str = str(result) if result else ""
+			if result_str.startswith("PLAN_DONE|"):
+				parts = result_str.split("|", 2)
+				task_info = parts[1]
+				instruction = parts[2]
+				self.Response('user', {'content': "Plan is ready! Starting first task.\n\n{} - {}".format(task_info, instruction)})
+				self._write_current_task()
+		#
+		# Return the original response so caller knows tools were executed
+		return {'invocations': tool_invocations, 'response': response['content'],
+				'job_done': job_done, 'stream_error': stream_error,
+				'plan_done': plan_done}

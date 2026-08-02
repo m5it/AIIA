@@ -476,12 +476,7 @@ class HandleChat():
 			msgs = [m for m in msgs if isinstance(m, dict) and m.get('role')]
 
 			# Auto-inject tip availability into last user message
-			tip_summary = self._get_tip_summary()
-			if tip_summary:
-				for i in range(len(msgs) - 1, -1, -1):
-					if msgs[i].get('role') == 'user':
-						msgs[i]['content'] = msgs[i]['content'] + "\n\n" + tip_summary
-						break
+			self._inject_tip_summary(msgs)
 
 			# Nothing to send to AIIA, continue to user input!
 			if len(msgs)<=0:
@@ -492,92 +487,17 @@ class HandleChat():
 			self.hLG.echo("DEBUG preparing chat (iteration {})".format(iteration),{'color':False})
 			
 			# Resolve lightweight image refs → base64 for the API call
-			if self.Options.get('AI_VISION_ENABLED', True):
-				try:
-					from src.MediaHelper import ImageCache
-					ImageCache.resolve_all(msgs)
-				except Exception as e:
-					self.hLG.echo("Warning: failed to resolve image refs: {}".format(e),
-						{'color':True, 'colorValue':'yellow','debugOnly':False})
+			self._resolve_image_refs(msgs)
 
-			# Build chat parameters
-			chat_opts = dict(self.Options['AI_OPTIONS'])
-			num_predict = self.Options.get('NUM_PREDICT')
-			if num_predict is not None:
-				chat_opts['num_predict'] = num_predict
-			chat_params = {
-				'model': self.Options['AI_MODEL'],
-				'messages': msgs,
-				'stream': True,
-				'options': chat_opts,
-			}
-			
-			# Optional: pass think=True for models that support the reasoning
-			# API (e.g. DeepSeek R1). Set AI_THINK=true in config to enable.
-			if self.Options.get('AI_THINK', False):
-				chat_params['think'] = True
-			
-			# Try the model call with retries
-			self.bg_log("AI request (iteration {}, msgs={})".format(
-				iteration, len(msgs)))
-			model_retries = 0
-			max_retries = self.Options.get('AI_MODEL_RETRIES', 3)
-			model_timeout = self.Options.get('AI_MODEL_TIMEOUT', 120)
-			model_failed = False
-			context_cleared = False
-			while True:
-				try:
-					backend = self._get_backend()
-					res = backend.chat(**chat_params, timeout=model_timeout if model_timeout else None)
-					result = self.Parse(res,{'return_object':True,'stream_callback':opt_stream_cb})
-					break
-				except Exception as e:
-					err_str = str(e).lower()
-					if 'too large' in err_str or '400' in err_str or '413' in err_str or 'request body' in err_str:
-						self.hLG.echo("AI request too large — auto-clearing context and retrying...",
-							{'color':True, 'colorValue':'orange','debugOnly':False})
-						self._auto_clear()
-						context_cleared = True
-						break
-					model_retries += 1
-					if model_retries > max_retries:
-						model_failed = True
-						self.bg_log(
-							"Model call failed after {} attempts: {}".format(max_retries, e),
-							"ERROR")
-						self.hLG.echo(
-							"AI model unavailable after {} attempts — guiding model to switch".format(max_retries),
-							{'color':True, 'colorValue':'red','debugOnly':False})
-						if self._get_backend().is_vllm:
-							recovery_msg = (
-								"[System: The model API call failed {} times consecutively. "
-								"The vLLM server at {} may be down or the model name is wrong. "
-								"Check the server, use `!MODELS` to list available models, "
-								"or switch backends with `!BACKEND ollama`.]"
-							).format(max_retries, self.Options.get('VLLM_HOST', ''))
-						else:
-							recovery_msg = (
-								"[System: The model API call failed {} times consecutively. "
-								"This is likely a cloud-model connectivity issue. "
-								"Switch to a local model with `!MODEL gemma3:12b` or another available local model.]"
-							).format(max_retries)
-						self.Response('user', {'content': recovery_msg})
-						self.tool_errors = 0
-						self._last_failed_tool = None
-						self._last_failed_tool_count = 0
-						break
-					self.bg_log(
-						"Model call failed (attempt {}/{}): {}".format(
-							model_retries, max_retries, e))
-					self.hLG.echo(
-						"AI connection error (attempt {}/{}): {} — retrying...".format(
-							model_retries, max_retries, str(e)),
-						{'color':True, 'colorValue':'red','debugOnly':False})
-					time.sleep(1)
-			if context_cleared:
+			# Build chat parameters and try the model call with retries
+			chat_params = self._build_chat_params(msgs)
+			_out = self._chat_with_retries(chat_params, iteration, opt_stream_cb)
+			if _out['context_cleared']:
 				continue
-			if model_failed:
+			if _out['model_failed']:
 				continue
+			result = _out['result']
+			res = _out['res']
 
 			# Ctrl+D interrupt during streaming — show menu
 			if result.get('ctrl_d_interrupt'):
@@ -714,6 +634,113 @@ class HandleChat():
 					return result['response']
 				return True
 		self._last_ai_had_tools = _tools_were_called
+
+	#
+
+	def _inject_tip_summary(self, msgs):
+		"""Append the tip availability notice to the last user message."""
+		tip_summary = self._get_tip_summary()
+		if tip_summary:
+			for i in range(len(msgs) - 1, -1, -1):
+				if msgs[i].get('role') == 'user':
+					msgs[i]['content'] = msgs[i]['content'] + "\n\n" + tip_summary
+					break
+
+	#
+
+	def _resolve_image_refs(self, msgs):
+		"""Resolve lightweight image refs → base64 for the API call."""
+		if not self.Options.get('AI_VISION_ENABLED', True):
+			return
+		try:
+			from src.MediaHelper import ImageCache
+			ImageCache.resolve_all(msgs)
+		except Exception as e:
+			self.hLG.echo("Warning: failed to resolve image refs: {}".format(e),
+				{'color':True, 'colorValue':'yellow','debugOnly':False})
+
+	#
+
+	def _build_chat_params(self, msgs):
+		"""Build chat request parameters from Options (num_predict, think)."""
+		chat_opts = dict(self.Options['AI_OPTIONS'])
+		num_predict = self.Options.get('NUM_PREDICT')
+		if num_predict is not None:
+			chat_opts['num_predict'] = num_predict
+		chat_params = {
+			'model': self.Options['AI_MODEL'],
+			'messages': msgs,
+			'stream': True,
+			'options': chat_opts,
+		}
+		# Optional: pass think=True for models that support the reasoning
+		# API (e.g. DeepSeek R1). Set AI_THINK=true in config to enable.
+		if self.Options.get('AI_THINK', False):
+			chat_params['think'] = True
+		return chat_params
+
+	#
+
+	def _chat_with_retries(self, chat_params, iteration, opt_stream_cb):
+		"""Call the backend with retries, handling too-large requests and
+		guiding the model to switch after repeated failures.
+		Returns {'result', 'res', 'context_cleared', 'model_failed'} — the
+		caller decides whether to continue the AI loop."""
+		self.bg_log("AI request (iteration {}, msgs={})".format(
+			iteration, len(chat_params['messages'])))
+		model_retries = 0
+		max_retries = self.Options.get('AI_MODEL_RETRIES', 3)
+		model_timeout = self.Options.get('AI_MODEL_TIMEOUT', 120)
+		while True:
+			try:
+				backend = self._get_backend()
+				res = backend.chat(**chat_params, timeout=model_timeout if model_timeout else None)
+				result = self.Parse(res,{'return_object':True,'stream_callback':opt_stream_cb})
+				return {'result': result, 'res': res,
+						'context_cleared': False, 'model_failed': False}
+			except Exception as e:
+				err_str = str(e).lower()
+				if 'too large' in err_str or '400' in err_str or '413' in err_str or 'request body' in err_str:
+					self.hLG.echo("AI request too large — auto-clearing context and retrying...",
+						{'color':True, 'colorValue':'orange','debugOnly':False})
+					self._auto_clear()
+					return {'result': None, 'res': None,
+							'context_cleared': True, 'model_failed': False}
+				model_retries += 1
+				if model_retries > max_retries:
+					self.bg_log(
+						"Model call failed after {} attempts: {}".format(max_retries, e),
+						"ERROR")
+					self.hLG.echo(
+						"AI model unavailable after {} attempts — guiding model to switch".format(max_retries),
+						{'color':True, 'colorValue':'red','debugOnly':False})
+					if self._get_backend().is_vllm:
+						recovery_msg = (
+							"[System: The model API call failed {} times consecutively. "
+							"The vLLM server at {} may be down or the model name is wrong. "
+							"Check the server, use `!MODELS` to list available models, "
+							"or switch backends with `!BACKEND ollama`.]"
+						).format(max_retries, self.Options.get('VLLM_HOST', ''))
+					else:
+						recovery_msg = (
+							"[System: The model API call failed {} times consecutively. "
+							"This is likely a cloud-model connectivity issue. "
+							"Switch to a local model with `!MODEL gemma3:12b` or another available local model.]"
+						).format(max_retries)
+					self.Response('user', {'content': recovery_msg})
+					self.tool_errors = 0
+					self._last_failed_tool = None
+					self._last_failed_tool_count = 0
+					return {'result': None, 'res': None,
+							'context_cleared': False, 'model_failed': True}
+				self.bg_log(
+					"Model call failed (attempt {}/{}): {}".format(
+						model_retries, max_retries, e))
+				self.hLG.echo(
+					"AI connection error (attempt {}/{}): {} — retrying...".format(
+						model_retries, max_retries, str(e)),
+					{'color':True, 'colorValue':'red','debugOnly':False})
+				time.sleep(1)
 
 	#
 
