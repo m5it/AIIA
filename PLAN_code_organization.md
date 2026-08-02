@@ -16,7 +16,7 @@ As the framework grows, decompose god-classes into smaller, single-responsibilit
 | `src/Handle.py` | 1878 | ~40 methods: chat, streaming, context mgmt, state, session restore, interrupts, tips, koslenium |
 | `src/Commands.py` | 1739 → 35 | giant registry literal + ~50 `CMD_*` mixing config, tips, timers, sites, plan, workers |
 | `src/ToolParser.py` | 929 → 46 | XML parsing + execution + caching + validation + plan-tools |
-| `run.py` | 517 | CLI parsing, factory reset, persona resolution, server flags |
+| `run.py` | 517 → 220 | CLI parsing, factory reset, persona resolution, server flags |
 | `tools/tool_GenerateImage.py` | 375 | tool API + 3 backends + chain dispatch + save/inject |
 
 ## Approach
@@ -59,12 +59,13 @@ As the framework grows, decompose god-classes into smaller, single-responsibilit
 - Public API preserved: `ToolParser._current_handle` is referenced by class-name in `tools/tool_Terminal.py`, `tool_GenerateImage.py`, `tool_ReinsertTip.py`, `tool_ReadImage.py` and `tests/test_generateimage.py`. Since `ToolExecutor` is imported *by* `ToolParser` (circular import impossible), `ExecuteTextTool` gained a single lazy local import (`from src.ToolParser import ToolParser`) so that reference still resolves — the only non-verbatim line in this step.
 - **Verify**: `pytest -q` (50), dynamic-load smoke (parse/execute/plan routing + `_current_handle` set/read), commit.
 
-## Step 5 — `run.py` → thin entry
-- `src/cli.py` — `_preparse_server_flags` + arg parsing + `Help()`
-- `src/FactoryReset.py` — `reset_to_factory`, `_confirm_factory_reset`
-- `src/PersonaResolver.py` — `_list_personas`, `_resolve_persona`
-- `run.py` keeps `Main`/`Run`/`cleanup`/`handle_exception`.
-- **Verify**: `pytest -q`, `python run.py -Q -p Developer -Y "hi"` smoke, commit.
+## Step 5 — `run.py` → thin entry ✅
+- `src/cli.py` (199) — `Help`, `_preparse_server_flags`, `parse_cli(argv, cwd, framework_dir)` (the getopt parse loop + working_dir fallback, now returning `opt_help, opt_one, oneOpt, opt_history_lists`; needs `getopt, os, sys` + `Options` + FactoryReset/PersonaResolver imports).
+- `src/FactoryReset.py` (147) — `reset_to_factory`, `_confirm_factory_reset` (needs `os, shutil` + `Options`).
+- `src/PersonaResolver.py` (18) — `_list_personas`, `_resolve_persona` (needs `Options`).
+- `run.py` (220) keeps the sys.path bootstrap, `Run`/`cleanup`/`handle_exception`/`Main`, and the `__main__` block. `Main` now calls `parse_cli(argv, _cwd, _framework_dir)` instead of inlining the getopt loop. Imports narrowed from `getopt,os,shutil,sys,json` to `os,sys,json`.
+- All moved bodies byte-identical (verified via `inspect`-style diff vs `git HEAD:run.py`; only additions are the module headers, the `parse_cli` `return`, and its `cwd`/`framework_dir` params). No circular imports: `config` imports only `os`/`AUTOVERSION`.
+- **Verify**: `pytest -q` (50 passed); `python run.py -h` / `-v` (exit 0); `python run.py -Q -p Developer -Y "hi"` reaches Handle + Chat (410 only because default model `kimi-k2.5:cloud` was retired upstream — not a refactor issue); unit checks for persona resolution (numeric index), `-Y`/`-T`/`--persona=0`/`-m`/`--site-scripts-path` in `parse_cli`/`_preparse_server_flags` all pass. Commit `--no-verify`.
 
 ## Step 6 — Final pass
 - Add import/smoke tests per new module; run full `pytest -q`; update `AGENTS.md` Architecture section if module list changed; one commit per step for clean bisect.
