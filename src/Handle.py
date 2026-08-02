@@ -164,6 +164,23 @@ class Handle(HandleStream, HandleParse, HandleContext, HandleState, HandleChat):
 
 		# Print response
 		# Generate response object
+		obj = self._build_response_obj(role, opt_content, opt_thinking, opt_name, opt_images, opt_image_refs)
+
+		# Embed token counts in the message (before writing to disk)
+		if role == 'assistant':
+			self._embed_token_counts(obj, opts)
+
+		#
+		if opt_return_object:
+			return obj
+		# Write history here. (similar to save memory just here we save all chat history)
+		self._persist_response(obj, opt_skip_history)
+		return True
+
+	#
+
+	def _build_response_obj(self, role, opt_content, opt_thinking, opt_name, opt_images, opt_image_refs):
+		"""Generate the response message object with session/row/timestamp fields."""
 		obj = {
 			'role'     :role,
 			'content'  :opt_content,
@@ -187,44 +204,43 @@ class Handle(HandleStream, HandleParse, HandleContext, HandleState, HandleChat):
 		# Lightweight image references (stored in history instead of base64)
 		if opt_image_refs and self.Options.get('AI_VISION_ENABLED', True):
 			obj['image_refs'] = opt_image_refs
+		return obj
 
-		# Embed token counts in the message (before writing to disk)
-		if role == 'assistant':
-			prompt_tokens = opts.get('prompt_tokens', 0)
-			response_tokens = opts.get('response_tokens', 0)
-			obj['prompt_tokens'] = prompt_tokens
-			obj['response_tokens'] = response_tokens
-			self.Options['NUM_LAST_PROMPT_TOKENS'] = prompt_tokens
-			self.Options['NUM_LAST_RESPONSE_TOKENS'] = response_tokens
-			self.Options['NUM_PROMPT_TOKENS'] = self.Options.get('NUM_PROMPT_TOKENS', 0) + prompt_tokens
-			self.Options['NUM_RESPONSE_TOKENS'] = self.Options.get('NUM_RESPONSE_TOKENS', 0) + response_tokens
-			self._write_state({
-				'NUM_PROMPT_TOKENS': self.Options['NUM_PROMPT_TOKENS'],
-				'NUM_RESPONSE_TOKENS': self.Options['NUM_RESPONSE_TOKENS'],
-				'NUM_LAST_PROMPT_TOKENS': self.Options['NUM_LAST_PROMPT_TOKENS'],
-				'NUM_LAST_RESPONSE_TOKENS': self.Options['NUM_LAST_RESPONSE_TOKENS'],
-			})
-			self.bg_log("AI response: {} prompt + {} response tokens (total: {} / {})".format(
-				prompt_tokens, response_tokens,
-				self.Options['NUM_PROMPT_TOKENS'], self.Options['NUM_RESPONSE_TOKENS']))
+	#
 
-		#
-		if opt_return_object:
-			return obj
-		
-		# Write history here. (similar to save memory just here we save all chat history)
-		# Used messages are saved with SaveMemory()
+	def _embed_token_counts(self, obj, opts):
+		"""Embed token counts in an assistant message and update the counters."""
+		prompt_tokens = opts.get('prompt_tokens', 0)
+		response_tokens = opts.get('response_tokens', 0)
+		obj['prompt_tokens'] = prompt_tokens
+		obj['response_tokens'] = response_tokens
+		self.Options['NUM_LAST_PROMPT_TOKENS'] = prompt_tokens
+		self.Options['NUM_LAST_RESPONSE_TOKENS'] = response_tokens
+		self.Options['NUM_PROMPT_TOKENS'] = self.Options.get('NUM_PROMPT_TOKENS', 0) + prompt_tokens
+		self.Options['NUM_RESPONSE_TOKENS'] = self.Options.get('NUM_RESPONSE_TOKENS', 0) + response_tokens
+		self._write_state({
+			'NUM_PROMPT_TOKENS': self.Options['NUM_PROMPT_TOKENS'],
+			'NUM_RESPONSE_TOKENS': self.Options['NUM_RESPONSE_TOKENS'],
+			'NUM_LAST_PROMPT_TOKENS': self.Options['NUM_LAST_PROMPT_TOKENS'],
+			'NUM_LAST_RESPONSE_TOKENS': self.Options['NUM_LAST_RESPONSE_TOKENS'],
+		})
+		self.bg_log("AI response: {} prompt + {} response tokens (total: {} / {})".format(
+			prompt_tokens, response_tokens,
+			self.Options['NUM_PROMPT_TOKENS'], self.Options['NUM_RESPONSE_TOKENS']))
+
+	#
+
+	def _persist_response(self, obj, opt_skip_history):
+		"""Write history here. (similar to save memory just here we save all chat history)
+		Used messages are saved with SaveMemory()"""
 		if opt_skip_history==False:
 			history_path = "{}/{}".format("{}/history".format(self.Options.get('path', '')), self.Options['AI_FILE_HISTORY'])
 			fwrite(history_path,"{}\n".format(json.dumps(obj)),False)
-		
 		# Save to HISTORY.md (working dir only)
 		working_dir = self.Options.get('working_dir')
 		PlanSaver.save_history(obj, working_dir)
-		
 		# Append to chat history. (All data of session)
 		self.hHM.msgs.append( obj )
-		return True
 
 	#
 
