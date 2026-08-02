@@ -1,6 +1,8 @@
 import copy, os, re, sys, time
 from src.functions import rmatch, user_input
 from src.PlanManager import PlanBase, Plan
+
+_AI_LOOP_CONTINUE = object()
 #
 class HandleChat():
 
@@ -315,40 +317,21 @@ class HandleChat():
 			iteration += 1
 
 			# Check for Ctrl+D interrupt at iteration boundary
-			if self._check_ai_interrupt():
-				self.hLG.echo("\n[Ctrl+D detected]",
-					{'color':True, 'colorValue':'blue','debugOnly':False})
-				choice = self._show_ai_interrupt_menu()
-				if choice == 2:
-					self._last_ai_had_tools = _tools_were_called
-					return True
-				if choice == 3:
-					return 3
-			
+			out = self._ai_apply_status(self._ai_interrupt_boundary(_tools_were_called))
+			if out is _AI_LOOP_CONTINUE:
+				continue
+			if out is not None:
+				return out
+
 			# Check for timer injection at iteration boundary
-			if self.hTMR.check_interrupt():
-				self.hLG.echo("\n[Timer message injected]",
-					{'color':True, 'colorValue':'cyan','debugOnly':False})
-				# choice 1: continue loop
+			self._ai_timer_inject()
 
 			# Short-circuit: ≥3 consecutive tool errors → break loop with recovery
-			if self.tool_errors >= 3:
-				self.bg_log("{} consecutive tool errors, last tool: {}".format(
-					self.tool_errors, self._last_failed_tool), "WARN")
-				self.hLG.echo(
-					"AI loop: {} consecutive tool errors — breaking loop".format(self.tool_errors),
-					{'color':True, 'colorValue':'orange','debugOnly':False})
-				recovery_msg = (
-					"[System: Tool execution failed {} times consecutively. "
-					"The last failed tool was `{}`. "
-					"Use the correct XML format shown in the tool error messages above. "
-					"Do not repeat the same malformed tool call.]"
-				).format(self.tool_errors, self._last_failed_tool)
-				self.Response('user', {'content': recovery_msg})
-				self.tool_errors = 0
-				self._last_failed_tool = None
-				self._last_failed_tool_count = 0
+			out = self._ai_apply_status(self._ai_tool_error_short_circuit())
+			if out is _AI_LOOP_CONTINUE:
 				continue
+			if out is not None:
+				return out
 
 			# Re-check context before each model call — tool results may have
 			# added large data (e.g., base64 images) since the last check
@@ -368,10 +351,10 @@ class HandleChat():
 			if len(msgs)<=0:
 				print("WARNING: msgs len is 0, Repeating user_input!")
 				return 2 # as continue
-			
+
 			# Chat without tools, normal chat (XML tools handle themselves)
 			self.hLG.echo("DEBUG preparing chat (iteration {})".format(iteration),{'color':False})
-			
+
 			# Resolve lightweight image refs → base64 for the API call
 			self._resolve_image_refs(msgs)
 
@@ -386,17 +369,11 @@ class HandleChat():
 			res = _out['res']
 
 			# Ctrl+D interrupt during streaming — show menu
-			if result.get('ctrl_d_interrupt'):
-				choice = self._show_ai_interrupt_menu()
-				if choice == 2:
-					self.Options['AUTO_CONTINUE_TASKS'] = False
-					self.Options['AUTO_CONTINUE_ALL_TASKS'] = False
-					self._last_ai_had_tools = _tools_were_called
-					return True
-				if choice == 3:
-					return 3
-				# choice 1: continue loop (partial response is already in history)
+			out = self._ai_apply_status(self._ai_handle_stream_interrupt(result, _tools_were_called))
+			if out is _AI_LOOP_CONTINUE:
 				continue
+			if out is not None:
+				return out
 
 			# Show post-response context usage
 			self._show_context_usage("after +{}".format(
@@ -404,124 +381,255 @@ class HandleChat():
 
 			# Stop loop on persistent stream errors (429/rate-limit) — let user decide
 			# On stream stall — try cascading alternative models before giving up
-			if result.get('stream_error'):
-				err = result['stream_error'].lower()
-				if '429' in err or 'usage limit' in err or 'rate limit' in err:
-					self.hLG.echo("Stream rate-limited — stopping AI loop.",
-						{'color':True, 'colorValue':'red','debugOnly':False})
-					self._last_ai_had_tools = _tools_were_called
-					return True
-				if 'stream stalled' in err or 'timeout' in err:
-					alt_models = self.Options.get('ALTERNATIVE_MODELS', [])
-					switched = False
-					while _alt_model_index < len(alt_models):
-						alt_model = alt_models[_alt_model_index]
-						_alt_model_index += 1
-						if self.Options['AI_MODEL'] != alt_model:
-							prev_model = self.Options['AI_MODEL']
-							self.hLG.echo("Stream stalled — switching to {}...".format(alt_model),
-								{'color':True, 'colorValue':'cyan','debugOnly':False})
-							self.bg_log("Stream stall fallback: {} → {} (attempt {}/{})".format(
-								prev_model, alt_model, _alt_model_index, len(alt_models)), "WARN")
-							self.Options['AI_MODEL'] = alt_model
-							self.Response('user', {'content':
-								"[System: The previous model ({}) timed out. "
-								"Switched to '{}'. "
-								"Please continue from where you left off.]".format(prev_model, alt_model)})
-							switched = True
-							break
-					if switched:
-						continue
-					# No more alternatives — stop
-					self.hLG.echo("Stream stalled — no more fallback models, stopping AI loop.",
-						{'color':True, 'colorValue':'red','debugOnly':False})
-					self.bg_log("Stream stall — all fallback models exhausted, stopping.", "WARN")
-					self._last_ai_had_tools = _tools_were_called
-					return True
+			status = self._ai_handle_stream_error(result, _tools_were_called, _alt_model_index)
+			if status and 'alt_model_index' in status:
+				_alt_model_index = status['alt_model_index']
+			out = self._ai_apply_status(status)
+			if out is _AI_LOOP_CONTINUE:
+				continue
+			if out is not None:
+				return out
 
 			# Used if CTRL+C to save last/draft content to chat history
 			self.Options['DRAFT_RESPONSE'] = res
 
 			# Track whether the model made tool calls this turn
 			if result.get('invocations'):
-				_tools_were_called = True
-				_tools_last_error = False
-				if self.hHM.msgs and self.hHM.msgs[-1].get('role') == 'tool':
-					_tools_last_error = self.hHM.msgs[-1].get('content', '').startswith('Error:')
+				_tools_were_called, _tools_last_error = self._ai_track_tool_calls(result)
 
 			# Blocked tool in plan mode — stop and alert user
-			if result.get('plan_blocked'):
-				self._plan_blocked_tool_alert = result['plan_blocked']
-				self._last_ai_had_tools = True
-				return True
+			out = self._ai_apply_status(self._ai_handle_plan_blocked(result))
+			if out is _AI_LOOP_CONTINUE:
+				continue
+			if out is not None:
+				return out
 
 			# Request body too large — auto-clear context and retry
-			if result.get('stream_too_large'):
-				self.hLG.echo("Request body too large — auto-clearing context and retrying...",
-					{'color':True, 'colorValue':'orange','debugOnly':False})
-				self._auto_clear()
-				self.Response('user', {
-					'content': "[System: The conversation was too large for the model. "
-					"Context has been cleared to free memory. Continue with the task.]"
-				})
+			out = self._ai_apply_status(self._ai_handle_stream_too_large(result))
+			if out is _AI_LOOP_CONTINUE:
 				continue
+			if out is not None:
+				return out
 
 			# Track planDone tool call — stop AI loop and wait for user input
-			if result.get('plan_done'):
-				self.bg_log("AI() exit: plan_done called")
-				self._plan_done_called = True
-				self._last_ai_had_tools = False
-				self._plan_just_done = True
-				return True
+			out = self._ai_apply_status(self._ai_handle_plan_done(result))
+			if out is _AI_LOOP_CONTINUE:
+				continue
+			if out is not None:
+				return out
 
 			# Track iterations without <nextTask> and remind model
-			if result.get('invocations'):
-				has_nextTask = any(inv.get('name') == 'nextTask' for inv in result['invocations'])
-				if has_nextTask:
-					self._iterations_since_nextTask = 0
-				elif _tools_were_called:
-					self._iterations_since_nextTask += 1
-			elif _tools_were_called and not result.get('job_done'):
-				self._iterations_since_nextTask += 1
-			remind_after = self.Options.get('AUTO_CONTINUE_REMIND_AFTER', 20)
-			if (_tools_were_called and not result.get('job_done') and
-				self._iterations_since_nextTask >= remind_after):
-				self._iterations_since_nextTask = 0
-				self.Response('user', {'content':
-					"[System: You've gone {} iterations without calling `<nextTask>completed</nextTask>`. "
-					"If the current task is done, call `<nextTask>completed</nextTask>` to advance. "
-					"If blocked, call `<nextTask>blocked</nextTask>`.]".format(remind_after)})
+			out = self._ai_apply_status(self._ai_nexttask_reminder(result, _tools_were_called))
+			if out is _AI_LOOP_CONTINUE:
 				continue
+			if out is not None:
+				return out
 
 			# Stop if model response is empty (no content, no tools)
-			if not result.get('response', '').strip() and not result.get('invocations'):
-				self.bg_log("AI() exit: empty response (tools_were_called={})".format(_tools_were_called))
-				self._last_ai_had_tools = _tools_were_called
-				return True
-			
+			out = self._ai_apply_status(self._ai_handle_empty_response(result, _tools_were_called))
+			if out is _AI_LOOP_CONTINUE:
+				continue
+			if out is not None:
+				return out
+
 			# Stop if jobDone was called
-			if result.get('job_done'):
-				self.bg_log("AI() exit: job_done called")
-				self._last_ai_had_tools = False
-				return True
-			
+			out = self._ai_apply_status(self._ai_handle_job_done(result))
+			if out is _AI_LOOP_CONTINUE:
+				continue
+			if out is not None:
+				return out
+
 			# Check if tools were executed by looking for tool invocations in result
-			if not result['invocations']:
-				# No more tool calls
-				# Auto-continue to next task if model made tool calls and no errors
-				self.bg_log("AI() exit: no invocations, tools_were_called={}, last_error={}".format(
-					_tools_were_called, _tools_last_error))
-				if _tools_were_called and not _tools_last_error and self._try_auto_continue():
-					_tools_were_called = False
-					_tools_last_error = False
+			status = self._ai_handle_no_invocations(result, _tools_were_called,
+				_tools_last_error, opt_return_object)
+			if status:
+				if status['action'] == 'continue':
+					_tools_were_called = status['tools_were_called']
+					_tools_last_error = status['tools_last_error']
 					continue
-				self._last_ai_had_tools = _tools_were_called
-				if opt_return_object:
-					return result['response']
-				return True
+				return status['value']
 		self._last_ai_had_tools = _tools_were_called
 
 	#
+
+	def _ai_apply_status(self, status):
+		if not status:
+			return None
+		if status['action'] == 'continue':
+			return _AI_LOOP_CONTINUE
+		return status['value']
+
+	def _ai_interrupt_boundary(self, tools_were_called):
+		if self._check_ai_interrupt():
+			self.hLG.echo("\n[Ctrl+D detected]",
+				{'color':True, 'colorValue':'blue','debugOnly':False})
+			choice = self._show_ai_interrupt_menu()
+			if choice == 2:
+				self._last_ai_had_tools = tools_were_called
+				return {'action':'return', 'value':True}
+			if choice == 3:
+				return {'action':'return', 'value':3}
+		return None
+
+	def _ai_timer_inject(self):
+		if self.hTMR.check_interrupt():
+			self.hLG.echo("\n[Timer message injected]",
+				{'color':True, 'colorValue':'cyan','debugOnly':False})
+			# choice 1: continue loop
+		return None
+
+	def _ai_tool_error_short_circuit(self):
+		if self.tool_errors >= 3:
+			self.bg_log("{} consecutive tool errors, last tool: {}".format(
+				self.tool_errors, self._last_failed_tool), "WARN")
+			self.hLG.echo(
+				"AI loop: {} consecutive tool errors — breaking loop".format(self.tool_errors),
+				{'color':True, 'colorValue':'orange','debugOnly':False})
+			recovery_msg = (
+				"[System: Tool execution failed {} times consecutively. "
+				"The last failed tool was `{}`. "
+				"Use the correct XML format shown in the tool error messages above. "
+				"Do not repeat the same malformed tool call.]"
+			).format(self.tool_errors, self._last_failed_tool)
+			self.Response('user', {'content': recovery_msg})
+			self.tool_errors = 0
+			self._last_failed_tool = None
+			self._last_failed_tool_count = 0
+			return {'action':'continue'}
+		return None
+
+	def _ai_handle_stream_interrupt(self, result, tools_were_called):
+		if result.get('ctrl_d_interrupt'):
+			choice = self._show_ai_interrupt_menu()
+			if choice == 2:
+				self.Options['AUTO_CONTINUE_TASKS'] = False
+				self.Options['AUTO_CONTINUE_ALL_TASKS'] = False
+				self._last_ai_had_tools = tools_were_called
+				return {'action':'return', 'value':True}
+			if choice == 3:
+				return {'action':'return', 'value':3}
+			return {'action':'continue'}
+		return None
+
+	def _ai_handle_stream_error(self, result, tools_were_called, alt_model_index):
+		if result.get('stream_error'):
+			err = result['stream_error'].lower()
+			if '429' in err or 'usage limit' in err or 'rate limit' in err:
+				self.hLG.echo("Stream rate-limited — stopping AI loop.",
+					{'color':True, 'colorValue':'red','debugOnly':False})
+				self._last_ai_had_tools = tools_were_called
+				return {'action':'return', 'value':True, 'alt_model_index':alt_model_index}
+			if 'stream stalled' in err or 'timeout' in err:
+				alt_models = self.Options.get('ALTERNATIVE_MODELS', [])
+				switched = False
+				while alt_model_index < len(alt_models):
+					alt_model = alt_models[alt_model_index]
+					alt_model_index += 1
+					if self.Options['AI_MODEL'] != alt_model:
+						prev_model = self.Options['AI_MODEL']
+						self.hLG.echo("Stream stalled — switching to {}...".format(alt_model),
+							{'color':True, 'colorValue':'cyan','debugOnly':False})
+						self.bg_log("Stream stall fallback: {} → {} (attempt {}/{})".format(
+							prev_model, alt_model, alt_model_index, len(alt_models)), "WARN")
+						self.Options['AI_MODEL'] = alt_model
+						self.Response('user', {'content':
+							"[System: The previous model ({}) timed out. "
+							"Switched to '{}'. "
+							"Please continue from where you left off.]".format(prev_model, alt_model)})
+						switched = True
+						break
+				if switched:
+					return {'action':'continue', 'alt_model_index':alt_model_index}
+				# No more alternatives — stop
+				self.hLG.echo("Stream stalled — no more fallback models, stopping AI loop.",
+					{'color':True, 'colorValue':'red','debugOnly':False})
+				self.bg_log("Stream stall — all fallback models exhausted, stopping.", "WARN")
+				self._last_ai_had_tools = tools_were_called
+				return {'action':'return', 'value':True, 'alt_model_index':alt_model_index}
+		return None
+
+	def _ai_track_tool_calls(self, result):
+		tools_were_called = True
+		tools_last_error = False
+		if self.hHM.msgs and self.hHM.msgs[-1].get('role') == 'tool':
+			tools_last_error = self.hHM.msgs[-1].get('content', '').startswith('Error:')
+		return tools_were_called, tools_last_error
+
+	def _ai_handle_plan_blocked(self, result):
+		if result.get('plan_blocked'):
+			self._plan_blocked_tool_alert = result['plan_blocked']
+			self._last_ai_had_tools = True
+			return {'action':'return', 'value':True}
+		return None
+
+	def _ai_handle_stream_too_large(self, result):
+		if result.get('stream_too_large'):
+			self.hLG.echo("Request body too large — auto-clearing context and retrying...",
+				{'color':True, 'colorValue':'orange','debugOnly':False})
+			self._auto_clear()
+			self.Response('user', {
+				'content': "[System: The conversation was too large for the model. "
+				"Context has been cleared to free memory. Continue with the task.]"
+			})
+			return {'action':'continue'}
+		return None
+
+	def _ai_handle_plan_done(self, result):
+		if result.get('plan_done'):
+			self.bg_log("AI() exit: plan_done called")
+			self._plan_done_called = True
+			self._last_ai_had_tools = False
+			self._plan_just_done = True
+			return {'action':'return', 'value':True}
+		return None
+
+	def _ai_nexttask_reminder(self, result, tools_were_called):
+		if result.get('invocations'):
+			has_nextTask = any(inv.get('name') == 'nextTask' for inv in result['invocations'])
+			if has_nextTask:
+				self._iterations_since_nextTask = 0
+			elif tools_were_called:
+				self._iterations_since_nextTask += 1
+		elif tools_were_called and not result.get('job_done'):
+			self._iterations_since_nextTask += 1
+		remind_after = self.Options.get('AUTO_CONTINUE_REMIND_AFTER', 20)
+		if (tools_were_called and not result.get('job_done') and
+			self._iterations_since_nextTask >= remind_after):
+			self._iterations_since_nextTask = 0
+			self.Response('user', {'content':
+				"[System: You've gone {} iterations without calling `<nextTask>completed</nextTask>`. "
+				"If the current task is done, call `<nextTask>completed</nextTask>` to advance. "
+				"If blocked, call `<nextTask>blocked</nextTask>`.]".format(remind_after)})
+			return {'action':'continue'}
+		return None
+
+	def _ai_handle_empty_response(self, result, tools_were_called):
+		if not result.get('response', '').strip() and not result.get('invocations'):
+			self.bg_log("AI() exit: empty response (tools_were_called={})".format(tools_were_called))
+			self._last_ai_had_tools = tools_were_called
+			return {'action':'return', 'value':True}
+		return None
+
+	def _ai_handle_job_done(self, result):
+		if result.get('job_done'):
+			self.bg_log("AI() exit: job_done called")
+			self._last_ai_had_tools = False
+			return {'action':'return', 'value':True}
+		return None
+
+	def _ai_handle_no_invocations(self, result, tools_were_called, tools_last_error, opt_return_object):
+		if not result['invocations']:
+			# No more tool calls
+			# Auto-continue to next task if model made tool calls and no errors
+			self.bg_log("AI() exit: no invocations, tools_were_called={}, last_error={}".format(
+				tools_were_called, tools_last_error))
+			if tools_were_called and not tools_last_error and self._try_auto_continue():
+				return {'action':'continue', 'tools_were_called':False, 'tools_last_error':False}
+			self._last_ai_had_tools = tools_were_called
+			if opt_return_object:
+				return {'action':'return', 'value':result['response']}
+			return {'action':'return', 'value':True}
+		return None
 
 	def _inject_tip_summary(self, msgs):
 		"""Append the tip availability notice to the last user message."""
