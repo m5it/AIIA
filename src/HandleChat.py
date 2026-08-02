@@ -14,18 +14,7 @@ class HandleChat():
 		PlanBase.LoadAll(self.Options.get('plans_path', 'plans'))
 		#
 		# Tool training: on fresh sessions, let the AI demonstrate tool usage once
-		if (self.Options.get('TOOL_TRAINING', True) and
-			not self.Options.get('CONTINUE', False) and
-			len(self.hHM.msgs) <= 2):
-			self.hLG.echo("Tool training — warming up model on available tools...",
-				{'color':True, 'colorValue':'cyan','debugOnly':False})
-			self.Response('user', {'content':
-				"[Tool Training Session]\n"
-				"List all tools you have available and demonstrate at least 3 of them "
-				"with complete XML examples showing the required parameters. "
-				"Do NOT use GetTip — use TreeView, ReadFile, and WriteFile instead."})
-			self.AI()
-			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
+		self._chat_tool_training()
 		#
 		_auto_continue_count = 0
 		_skip_you = False
@@ -67,123 +56,20 @@ class HandleChat():
 			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
 
 			# After planDone — switch to BUILD mode and auto-continue
-			if getattr(self, '_plan_just_done', False):
-				del self._plan_just_done
-				# Actually switch to build mode
-				if self.Options.get('MODE') != 'build':
-					self.Options['MODE'] = 'build'
-					self._write_state({'mode': 'build'})
-					self._replace_system_prompt(self.hPP._get_mode_instructions('build'))
-				self.hLG.echo("Plan complete — switched to BUILD mode. Starting first task.",
-					{'color':True, 'colorValue':'green','debugOnly':False})
-				self.bg_log("Chat: _plan_just_done — switching to build, triggering StartBuild")
-				# Trigger StartBuild to inject first task
-				self.StartBuild()
+			if self._handle_plan_just_done():
 				_skip_you = True
 				continue
 
 			# Blocked tool in plan mode — prompt user
 			if getattr(self, '_plan_blocked_tool_alert', None):
-				tool_name = self._plan_blocked_tool_alert
-				del self._plan_blocked_tool_alert
-				# Safety net: if MODE is already build, auto-dismiss — the alert
-				# is stale (shouldn't happen but prevents confusing menu in build).
-				if self.Options.get('MODE') == 'build':
-					self.hLG.echo("⚠ Plan-blocked alert for '{}' dismissed — already in BUILD mode.".format(tool_name),
-						{'color':True, 'colorValue':'orange','debugOnly':False})
-					self.Response('user', {'content': "[System: Tool '{}' was blocked but you are already in BUILD mode. Continue with the task.]".format(tool_name)})
-					_skip_you = True
-					continue
-				self.hLG.echo("Model tried to use '{}' in PLAN mode.".format(tool_name),
-					{'color':True, 'colorValue':'blue','debugOnly':False})
-				self.hLG.echo("  1. Switch to BUILD mode (allow the tool)",
-					{'color':True, 'colorValue':'blue','debugOnly':False})
-				self.hLG.echo("  2. Stay in PLAN mode (block the tool, continue planning)",
-					{'color':True, 'colorValue':'blue','debugOnly':False})
-				self.hLG.echo("  3. Cancel AI (return to user prompt)",
-					{'color':True, 'colorValue':'blue','debugOnly':False})
-				self.hLG.echo("  4. Continue (dismiss, let the model proceed)",
-					{'color':True, 'colorValue':'blue','debugOnly':False})
-				self.hLG.echo("Choice (1-4): ", {'end':'','flush':True,'color':True,'colorValue':'blue','debugOnly':False})
-				ans = user_input({'quit_with_ctrlx':True}).strip()
-				ans = re.sub(r'[^0-9]', '', ans)
-				if ans == '1':
-					self.Options['MODE'] = 'build'
-					self._write_state({'mode': 'build'})
-					self._replace_system_prompt(self.hPP._get_mode_instructions('build'))
-					self.StartBuild()
-					_skip_you = True
-					continue
-				if ans == '3':
-					# Persist plan state so the on-disk file matches memory
-					from src.PlanManager import PlanBase
-					if PlanBase.draft:
-						PlanBase.draft.save(self.Options.get('plans_path', 'plans'))
-					mode = self.Options.get('MODE', 'plan').upper()
-					self.Response('user', {'content': "[Cancelled. Mode: {}. Waiting for your instruction.]".format(mode)})
-					_skip_you = False
-					continue
-				if ans == '4':
-					_skip_you = True
-					continue
-				# Default: option 2 or invalid — stay in plan mode
-				self.Response('user', {'content': "Understood. Staying in PLAN mode — write tools remain blocked."})
-				_skip_you = True
+				_skip_you = self._handle_plan_blocked_alert()
 				continue
 
 			# Auto-re-enter AI() when plan tasks remain and ALL_TASKS mode is on
-			if self.Options.get('AUTO_CONTINUE_ALL_TASKS', True):
-				mode = self.Options.get('MODE', 'plan')
-				should_reenter = False
-				if mode == 'build' and self.Options.get('AUTO_CONTINUE_TASKS', True):
-					if PlanBase.draft:
-						task_statuses = [(tid, t.status) for tid, t in PlanBase.draft.tasks.items()]
-						has_remaining = any(
-							t.status in ('pending', 'in_progress')
-							for t in PlanBase.draft.tasks.values())
-						self.bg_log("Auto-continue check: tasks={}, remaining={}".format(task_statuses, has_remaining))
-						if has_remaining:
-							should_reenter = True
-					else:
-						self.bg_log("Auto-continue check: no draft")
-				elif mode == 'plan' and self._last_ai_had_tools:
-					if not self._is_plan_complete():
-						should_reenter = True
-					else:
-						self.bg_log("Auto-continue check: plan complete (text_scan={}, flag={})".format(
-							self.Options.get('PLAN_COMPLETE_TEXT_SCAN', True),
-							getattr(self, '_plan_done_called', False)))
-				else:
-					self.bg_log("Auto-continue check: mode={}, last_ai_had_tools={}".format(mode, self._last_ai_had_tools))
-				if not should_reenter:
-					self.bg_log("Auto-continue: NOT re-entering AI() — waiting for user")
-				if should_reenter:
-					_auto_continue_count += 1
-					if _auto_continue_count >= 50:
-						self.hLG.echo(
-							"Auto-continue: reached 50 rounds — stopping.",
-							{'color':True, 'colorValue':'orange','debugOnly':False})
-					elif mode == 'plan':
-						self.hLG.echo(
-							"Auto-continue: AI round {}/50 — continuing plan creation".format(_auto_continue_count),
-							{'color':True, 'colorValue':'cyan','debugOnly':False})
-						self.Response('user', {'content': 'Continue creating plan tasks.'})
-						_skip_you = True
-						continue
-					else:
-						total = len(PlanBase.draft.tasks)
-						completed = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'completed')
-						current_task = next((t for t in PlanBase.draft.tasks.values() if t.status == 'in_progress'), None)
-						task_num = completed + 1
-						task_inst = current_task.instruction if current_task else '(waiting)'
-						task_label = task_inst[:60] + '...' if len(task_inst) > 60 else task_inst
-						self.hLG.echo(
-							"Auto-continue: AI round {}/50 — task {}/{}: {}".format(
-								_auto_continue_count, task_num, total, task_label),
-							{'color':True, 'colorValue':'green','debugOnly':False})
-						self.Response('user', {'content': 'Continue task {}/{}...\n{}'.format(task_num, total, task_inst)})
-						_skip_you = True
-						continue
+			_auto_continue_count, _reenter = self._handle_auto_continue(_auto_continue_count)
+			if _reenter:
+				_skip_you = True
+				continue
 
 	#
 
@@ -812,3 +698,146 @@ class HandleChat():
 		else:
 			self.hLG.echo("No pending tasks in plan!", {'color':True, 'colorValue':'orange'})
 			self.Response('user', {'content': "Mode changed to BUILD. All tasks in the plan are completed. Waiting for your instruction."})
+
+	#
+
+	def _chat_tool_training(self):
+		"""Tool training: on fresh sessions, let the AI demonstrate tool usage once."""
+		if (self.Options.get('TOOL_TRAINING', True) and
+			not self.Options.get('CONTINUE', False) and
+			len(self.hHM.msgs) <= 2):
+			self.hLG.echo("Tool training — warming up model on available tools...",
+				{'color':True, 'colorValue':'cyan','debugOnly':False})
+			self.Response('user', {'content':
+				"[Tool Training Session]\n"
+				"List all tools you have available and demonstrate at least 3 of them "
+				"with complete XML examples showing the required parameters. "
+				"Do NOT use GetTip — use TreeView, ReadFile, and WriteFile instead."})
+			self.AI()
+			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
+
+	#
+
+	def _handle_plan_just_done(self):
+		"""After planDone — switch to BUILD mode and auto-continue.
+		Returns True if the plan-just-done transition was triggered."""
+		if not getattr(self, '_plan_just_done', False):
+			return False
+		del self._plan_just_done
+		# Actually switch to build mode
+		if self.Options.get('MODE') != 'build':
+			self.Options['MODE'] = 'build'
+			self._write_state({'mode': 'build'})
+			self._replace_system_prompt(self.hPP._get_mode_instructions('build'))
+		self.hLG.echo("Plan complete — switched to BUILD mode. Starting first task.",
+			{'color':True, 'colorValue':'green','debugOnly':False})
+		self.bg_log("Chat: _plan_just_done — switching to build, triggering StartBuild")
+		# Trigger StartBuild to inject first task
+		self.StartBuild()
+		return True
+
+	#
+
+	def _handle_plan_blocked_alert(self):
+		"""Handle a plan-blocked tool alert — show the 1-4 user menu.
+		Returns the new _skip_you value to apply (caller always continues)."""
+		tool_name = self._plan_blocked_tool_alert
+		del self._plan_blocked_tool_alert
+		# Safety net: if MODE is already build, auto-dismiss — the alert
+		# is stale (shouldn't happen but prevents confusing menu in build).
+		if self.Options.get('MODE') == 'build':
+			self.hLG.echo("⚠ Plan-blocked alert for '{}' dismissed — already in BUILD mode.".format(tool_name),
+				{'color':True, 'colorValue':'orange','debugOnly':False})
+			self.Response('user', {'content': "[System: Tool '{}' was blocked but you are already in BUILD mode. Continue with the task.]".format(tool_name)})
+			return True
+		self.hLG.echo("Model tried to use '{}' in PLAN mode.".format(tool_name),
+			{'color':True, 'colorValue':'blue','debugOnly':False})
+		self.hLG.echo("  1. Switch to BUILD mode (allow the tool)",
+			{'color':True, 'colorValue':'blue','debugOnly':False})
+		self.hLG.echo("  2. Stay in PLAN mode (block the tool, continue planning)",
+			{'color':True, 'colorValue':'blue','debugOnly':False})
+		self.hLG.echo("  3. Cancel AI (return to user prompt)",
+			{'color':True, 'colorValue':'blue','debugOnly':False})
+		self.hLG.echo("  4. Continue (dismiss, let the model proceed)",
+			{'color':True, 'colorValue':'blue','debugOnly':False})
+		self.hLG.echo("Choice (1-4): ", {'end':'','flush':True,'color':True,'colorValue':'blue','debugOnly':False})
+		ans = user_input({'quit_with_ctrlx':True}).strip()
+		ans = re.sub(r'[^0-9]', '', ans)
+		if ans == '1':
+			self.Options['MODE'] = 'build'
+			self._write_state({'mode': 'build'})
+			self._replace_system_prompt(self.hPP._get_mode_instructions('build'))
+			self.StartBuild()
+			return True
+		if ans == '3':
+			# Persist plan state so the on-disk file matches memory
+			from src.PlanManager import PlanBase
+			if PlanBase.draft:
+				PlanBase.draft.save(self.Options.get('plans_path', 'plans'))
+			mode = self.Options.get('MODE', 'plan').upper()
+			self.Response('user', {'content': "[Cancelled. Mode: {}. Waiting for your instruction.]".format(mode)})
+			return False
+		if ans == '4':
+			return True
+		# Default: option 2 or invalid — stay in plan mode
+		self.Response('user', {'content': "Understood. Staying in PLAN mode — write tools remain blocked."})
+		return True
+
+	#
+
+	def _handle_auto_continue(self, auto_continue_count):
+		"""Auto-re-enter AI() when plan tasks remain and ALL_TASKS mode is on.
+		Returns (new_count, reenter) — caller sets _skip_you=True and continues
+		when reenter is True."""
+		if not self.Options.get('AUTO_CONTINUE_ALL_TASKS', True):
+			return auto_continue_count, False
+		mode = self.Options.get('MODE', 'plan')
+		should_reenter = False
+		if mode == 'build' and self.Options.get('AUTO_CONTINUE_TASKS', True):
+			if PlanBase.draft:
+				task_statuses = [(tid, t.status) for tid, t in PlanBase.draft.tasks.items()]
+				has_remaining = any(
+					t.status in ('pending', 'in_progress')
+					for t in PlanBase.draft.tasks.values())
+				self.bg_log("Auto-continue check: tasks={}, remaining={}".format(task_statuses, has_remaining))
+				if has_remaining:
+					should_reenter = True
+			else:
+				self.bg_log("Auto-continue check: no draft")
+		elif mode == 'plan' and self._last_ai_had_tools:
+			if not self._is_plan_complete():
+				should_reenter = True
+			else:
+				self.bg_log("Auto-continue check: plan complete (text_scan={}, flag={})".format(
+					self.Options.get('PLAN_COMPLETE_TEXT_SCAN', True),
+					getattr(self, '_plan_done_called', False)))
+		else:
+			self.bg_log("Auto-continue check: mode={}, last_ai_had_tools={}".format(mode, self._last_ai_had_tools))
+		if not should_reenter:
+			self.bg_log("Auto-continue: NOT re-entering AI() — waiting for user")
+		if should_reenter:
+			auto_continue_count += 1
+			if auto_continue_count >= 50:
+				self.hLG.echo(
+					"Auto-continue: reached 50 rounds — stopping.",
+					{'color':True, 'colorValue':'orange','debugOnly':False})
+			elif mode == 'plan':
+				self.hLG.echo(
+					"Auto-continue: AI round {}/50 — continuing plan creation".format(auto_continue_count),
+					{'color':True, 'colorValue':'cyan','debugOnly':False})
+				self.Response('user', {'content': 'Continue creating plan tasks.'})
+				return auto_continue_count, True
+			else:
+				total = len(PlanBase.draft.tasks)
+				completed = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'completed')
+				current_task = next((t for t in PlanBase.draft.tasks.values() if t.status == 'in_progress'), None)
+				task_num = completed + 1
+				task_inst = current_task.instruction if current_task else '(waiting)'
+				task_label = task_inst[:60] + '...' if len(task_inst) > 60 else task_inst
+				self.hLG.echo(
+					"Auto-continue: AI round {}/50 — task {}/{}: {}".format(
+						auto_continue_count, task_num, total, task_label),
+					{'color':True, 'colorValue':'green','debugOnly':False})
+				self.Response('user', {'content': 'Continue task {}/{}...\n{}'.format(task_num, total, task_inst)})
+				return auto_continue_count, True
+		return auto_continue_count, False
