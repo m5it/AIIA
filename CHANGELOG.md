@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-02 — v1.1.4
+
+### Auto: Version v1.1.4
+
+- Version auto-incremented from v1.1.3
+- Files changed: PLAN_code_organization.md, src/ImageGenBackends.py, tests/test_generateimage.py, tools/tool_GenerateImage.py
+
+---
+
+
 ## 2026-08-02 — v1.1.3
 
 ### Auto: Version v1.1.3
