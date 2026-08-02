@@ -14,7 +14,7 @@ As the framework grows, decompose god-classes into smaller, single-responsibilit
 | File | Lines | Problem |
 |------|-------|---------|
 | `src/Handle.py` | 1878 | ~40 methods: chat, streaming, context mgmt, state, session restore, interrupts, tips, koslenium |
-| `src/Commands.py` | 1739 | giant registry literal + ~50 `CMD_*` mixing config, tips, timers, sites, plan, workers |
+| `src/Commands.py` | 1739 → 35 | giant registry literal + ~50 `CMD_*` mixing config, tips, timers, sites, plan, workers |
 | `src/ToolParser.py` | 929 | XML parsing + execution + caching + validation + plan-tools |
 | `run.py` | 517 | CLI parsing, factory reset, persona resolution, server flags |
 | `tools/tool_GenerateImage.py` | 375 | tool API + 3 backends + chain dispatch + save/inject |
@@ -45,11 +45,11 @@ As the framework grows, decompose god-classes into smaller, single-responsibilit
 - `Handle.py` keeps `class Handle(HandleStream, HandleParse, HandleContext, HandleState, HandleChat)` + `__init__`, `Init`, `Response`, `_get_backend`, `bg_log`, `_save_clear_tip`, `_start_koslenium_server_async`
 - **Verify**: `pytest -q`, import smoke, run.py still loads, commit.
 
-## Step 3 — `src/Commands.py` → Commands + mixins + registry
-- Registry literal → `src/commands_registry.py` (`build_registry(self)`).
-- Mixins: `CommandsConfig` (`SET/GET/MODE/BACKEND/MODEL/STATS/OLLAMA_LIST`), `CommandsTips`, `CommandsTimers`, `CommandsSites`, `CommandsPlan`, `CommandsWorkers`. Push more logic down into existing `TipManager`/`TimerManager`.
-- `Commands` stays the single entry class.
-- **Verify**: `pytest -q`, `!HELP` renders all commands, commit.
+## Step 3 — `src/Commands.py` → Commands + mixins + registry ✅
+- Registry literal → `src/commands_registry.py` (`build_registry(self)` — receives the instance so `func: self.CMD_*` stays verbatim).
+- Mixins: `CommandsConfig` (`SET/GET/MODE/BACKEND/MODEL/STATS/OLLAMA_LIST` + `_mask_secret`), `CommandsTips`, `CommandsTimers`, `CommandsSites`, `CommandsPlan`, `CommandsWorkers`, `CommandsSession` (history/session), `CommandsPersona` (persona/tool toggles).
+- `Commands` stays the single entry class (`class Commands(8 mixins)`), keeps `__init__` + `CMD_HELP`. Each mixin imports only the module-level names its methods use (`CommandsConfig`→`json`, `CommandsSession`→`os,json,fwrite`, `CommandsPlan`→`os,time`; the pre-existing undefined `importmodule` in `CMD_INSTALL_DEPS` was left unresolved to keep behavior identical).
+- **Verify**: `pytest -q` (50), dynamic-load smoke (importmodule/initmodule), `!HELP` renders all 46 commands, registry has 46 callable funcs, commit.
 
 ## Step 4 — `src/ToolParser.py` → coordinator
 - `ToolXmlParser` — `ParseTextToolInvocation`, `ExtractToolResult`, `_format_action`, `CheckJobDone`
