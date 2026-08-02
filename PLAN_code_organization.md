@@ -79,41 +79,40 @@ As the framework grows, decompose god-classes into smaller, single-responsibilit
 - `tools/koslenium_driver` shows `m` (pre-existing submodule modification) — never stage/commit it.
 - To restore if anything crashes: `git checkout master && git reset --hard a75a389` (or re-apply the 7 commits).
 
-## Step 7 — Split remaining oversized methods (IN PROGRESS)
-Same guardrails as Steps 1–6: pure moves, behavior identical, `pytest -q` (67) green after every commit, one commit per chunk, `--no-verify`, tabs. Methods are extracted verbatim into named `_*` helpers inside their home module; control-flow blocks that `continue`/`return` become helpers that return the loop-local state change, with the caller applying it (established pattern from Step 2b, e.g. `_chat_with_retries`).
+## Step 7 — Split remaining oversized methods ✅
+Same guardrails as Steps 1–6: pure moves, behavior identical, `pytest -q` (67) green after every commit, one commit per chunk, `--no-verify`, tabs. Methods were extracted verbatim into named `_*` helpers inside their home module; control-flow blocks that `continue`/`return` became helpers returning a status (sentinel `object()` or a status dict) with the caller applying it.
 
-Remaining oversized methods (measured 2026-08-02):
+Chunks committed (7 commits):
+- 7a `4ff1ba2` — `PlanToolHandler.HandlePlanTool` → dispatcher + 17 `_plan_<tool>` helpers.
+- 7b `9bcfb75` — `HandleChat.Chat` → `_chat_tool_training`, `_handle_plan_just_done`, `_handle_plan_blocked_alert`, `_handle_auto_continue`.
+- 7c `27fc9fe` — `HandleChat.AI` → 14 `_ai_handle_*` iteration-result helpers + `_AI_LOOP_CONTINUE` sentinel.
+- 7d `a405276` — `CommandsPlan.CMD_PLAN` → 8 `_plan_*` subcommand helpers.
+- 7e `fc7a18e` — `ToolExecutor.ExecuteTextTool`/`FireToolInvocation` → `_route_execute_script`, `_load_tool_dynamic`, `_execute_tool_call`, `_cache_key`, `_tool_usage`, `_fire_sort_key`, `_guard_*` helpers.
+- 7f `298f998`, `4a1019d`, `f1c6877`, `85371ba`, `46ee1e3` — `HandleParse.Parse`, `HandleStream.Stream`, `HandleContext._summarize_context`, `Handle.Response`, `HistoryManager.Choose` → `_*` helpers.
 
-| File | Method | Lines | Split approach |
-|------|--------|-------|----------------|
-| `src/HandleChat.py` (814) | `AI()` | 232 (line 408) | iteration-result handlers → `_ai_handle_*` helpers returning status dict; loop keeps dispatch |
-| `src/HandleChat.py` | `Chat()` | 181 (line 9) | `_chat_tool_training()`, `_handle_plan_just_done()`, `_handle_plan_blocked_alert()`, `_handle_auto_continue()` |
-| `src/PlanToolHandler.py` | `HandlePlanTool()` | 222 (line 6) | dispatch chain → one `_plan_<tool>` helper per `elif` branch (`addTask`/`createTask`, `createPlan`, `deleteTask`, `deletePlan`, `deleteDraft`, `clearAllTasks`, `cancelPlan`, `deleteAllPlans`, `updateTask`, `viewTask`, `listTasks`, `nextTask`, `jobDone`, `planDone`, `startBuild`, `LogProgress`) |
-| `src/ToolExecutor.py` | `ExecuteTextTool()` | 210 (line 9) | sequential stages → `_execute_*` helpers |
-| `src/ToolExecutor.py` | `FireToolInvocation()` | 198 (line 279) | chunked stages → `_fire_*` helpers |
-| `src/CommandsPlan.py` | `CMD_PLAN()` | 192 (line 20) | `!PLAN` subcommand branches → `_plan_<subcmd>` helpers |
-| `src/HandleParse.py` | `Parse()` | 120 (line 53) | streaming parse phases → `_parse_*` helpers |
-| `src/ToolXmlParser.py` | `_format_action()` | 99 (line 106) | table-render sub-blocks → helpers (or leave if self-contained) |
-| `src/HandleStream.py` | `Stream()` | 83 (line 89) | phase extraction |
-| `src/HandleContext.py` | `_summarize_context()` | 82 (line 83) | summary sources → helpers |
-| `src/Handle.py` | `Response()` | 80 (line 151) | sub-blocks → helpers |
-| `src/Log.py` | `echo()` | 86 (line 50) | formatting/echo phases → helpers (or leave) |
-| `src/HistoryManager.py` | `Choose()` | 85 (line 241) | sub-blocks → helpers |
-| `src/CommandsConfig.py` | `CMD_MODE()` | 73 (line 91) | (borderline — only split if clean) |
-| `src/CommandsConfig.py` | `CMD_SET()` | 70 (line 6) | (borderline — only split if clean) |
-| `src/CommandsSession.py` | `CMD_PREVIEW_HISTORY()` | 79 (line 123) | (borderline) |
-| `src/OrchestraDirector.py` | `route_to_plan_worker()` | 71 (line 115) | (borderline) |
+Final line counts (before → after, measured 2026-08-02):
 
-Chunk plan (commit per chunk, in this order):
-- 7a: `HandlePlanTool()` → per-tool helpers (cleanest, lowest risk — pure `elif` dispatch).
-- 7b: `Chat()` → 4 helpers.
-- 7c: `AI()` → iteration-result handler helpers.
-- 7d: `CMD_PLAN()` → subcommand helpers.
-- 7e: `ExecuteTextTool()` + `FireToolInvocation()`.
-- 7f: `Parse()` + `Stream()` + smaller ones (`_summarize_context`, `Response`, `Choose`); skip borderline (`echo`, `CMD_MODE`, `CMD_SET`, `CMD_PREVIEW_HISTORY`, `route_to_plan_worker`, `_format_action`) unless a clean split falls out.
-- Final: extend `tests/test_core_modules.py` if new helpers are reachable, update this table with final line counts, full `pytest -q`, `AGENTS.md` touch if needed.
+| File | Method | Before | After | Notes |
+|------|--------|--------|-------|-------|
+| `src/HandleChat.py` | `AI()` | 232 | 157 | 14 `_ai_handle_*` helpers + `_AI_LOOP_CONTINUE` sentinel |
+| `src/HandleChat.py` | `Chat()` | 181 | 65 | 4 `_chat_*`/`_handle_*` helpers |
+| `src/PlanToolHandler.py` | `HandlePlanTool()` | 222 | 25 | dispatcher + 17 `_plan_<tool>` helpers |
+| `src/ToolExecutor.py` | `ExecuteTextTool()` | 210 | 12 | `_route_execute_script`, `_load_tool_dynamic`, `_execute_tool_call` |
+| `src/ToolExecutor.py` | `FireToolInvocation()` | 198 | 116 | `_fire_sort_key`, `_guard_file_size`/`_guard_path_sandbox`/`_guard_user_blocked`/`_guard_plan_mode` |
+| `src/CommandsPlan.py` | `CMD_PLAN()` | 192 | 28 | 8 `_plan_*` subcommand helpers |
+| `src/HandleParse.py` | `Parse()` | 120 | 70 | `_parse_stream_error`/`_parse_ctrl_d`/`_parse_early_abort`/`_parse_repeated`/`_parse_assistant_history` |
+| `src/HandleStream.py` | `Stream()` | 83 | 43 | `_check_periodic_interrupt`, `_process_stream_chunk` |
+| `src/HandleContext.py` | `_summarize_context()` | 82 | 15 | 5 helpers (drop-index / prompt / request / insert / finalize) |
+| `src/Handle.py` | `Response()` | 80 | 29 | `_build_response_obj`, `_embed_token_counts`, `_persist_response` |
+| `src/HistoryManager.py` | `Choose()` | 85 | 31 | `_choose_search` (search + nested sub-loop) |
 
-Verification per chunk: `pytest -q` (67+) green + targeted smoke of the touched path (e.g. `HandlePlanTool('listTasks')`, plan create/nextTask flow) + `git diff --check` + commit `--no-verify`.
+Borderline methods skipped intentionally (kept as-is): `ToolXmlParser._format_action` (99), `Log.echo` (86), `CommandsConfig.CMD_MODE`/`CMD_SET`, `CommandsSession.CMD_PREVIEW_HISTORY`, `OrchestraDirector.route_to_plan_worker`.
+
+Intentional non-verbatim deviations (all behavior-preserving):
+- `_plan_addTask` (7a) — fallthrough → direct delegation instead of if/else.
+- `_collect_drop_indices` (7f) — original's two `if not msgs` / `if not idx` guards collapsed into the caller's single `if not idx` (empty list ⇒ empty idx, same result).
+
+Verification: full `pytest -q` (67) green after every chunk; targeted smoke tests exercised each touched path (plan-tool dispatch, AI loop outcomes incl. 429 / ctrl+d / alt-model, CMD_PLAN subcommands, ExecuteTextTool routing/guards/sort-order, Parse early-return paths, Stream chunk/interrupt/abort handling, context summarize, Response persistence, Choose search flow); `git diff --check` clean. `v1.1.4` backup branch deleted after the final commit.
 
 ## Out of scope
 - Any behavior changes, new features, renames of public APIs, or moving personas in `instruct/`.
