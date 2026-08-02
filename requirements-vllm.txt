@@ -1,0 +1,5 @@
+# vLLM / OpenAI-compatible backend. Includes common core deps from requirements.txt.
+# Install with: pip install -r requirements-vllm.txt
+
+-r requirements.txt
+openai>=1.40.0

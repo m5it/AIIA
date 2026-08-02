@@ -100,7 +100,7 @@ class VLLMBackend(BaseBackend):
 	#
 	def _client(self, timeout=None):
 		if not HAS_OPENAI:
-			raise ImportError("openai python package not installed — run: pip install openai")
+			raise ImportError("openai python package not installed — run: pip install -r requirements-vllm.txt")
 		return OpenAI(
 			base_url=self.Options.get('VLLM_HOST') or 'http://localhost:8000/v1',
 			api_key=self.Options.get('VLLM_API_KEY') or 'EMPTY',
@@ -152,7 +152,7 @@ class VLLMBackend(BaseBackend):
 	#
 	def chat(self, model, messages, stream=True, options=None, think=False, timeout=None):
 		if not HAS_OPENAI:
-			raise ImportError("openai python package not installed — run: pip install openai")
+			raise ImportError("openai python package not installed — run: pip install -r requirements-vllm.txt")
 		client = self._client(timeout)
 		kwargs = self._map_options(options, think)
 		converted = self._convert_messages(messages)
@@ -172,6 +172,6 @@ class VLLMBackend(BaseBackend):
 	#
 	def list_models(self):
 		if not HAS_OPENAI:
-			raise ImportError("openai python package not installed — run: pip install openai")
+			raise ImportError("openai python package not installed — run: pip install -r requirements-vllm.txt")
 		# Let connection errors propagate — callers (!MODELS / !BACKEND) print them
 		return [m.id for m in self._client().models.list()]

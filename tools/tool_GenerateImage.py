@@ -2,7 +2,6 @@ import os, sys, base64, uuid
 from datetime import datetime
 from io import BytesIO
 from PIL import Image as PILImage
-from ollama import Client
 from src.ToolParser import ToolParser
 
 # Suppress library noise before any diffusers/transformers/torch imports
@@ -130,6 +129,7 @@ def _generate_ollama(model, prompt, width, height, steps, seed):
 		pass
 
 	try:
+		from ollama import Client
 		gen_options = {}
 		if seed is not None:
 			gen_options['seed'] = seed

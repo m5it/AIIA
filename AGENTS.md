@@ -4,7 +4,9 @@
 
 ```bash
 source .venv/bin/activate       # activate virtual environment (Python 3.10)
-pip install -r requirements.txt  # install core deps (fast, ~5MB)
+pip install -r requirements.txt  # install common core deps (fast, ~5MB)
+pip install -r requirements-ollama.txt  # install default backend (Ollama)
+pip install -r requirements-vllm.txt    # install vLLM backend instead (OpenAI-compatible)
 pip install -r requirements-gpu.txt  # optional GPU deps (torch, diffusers, etc.)
 python run.py                    # start AIIA interactive session
 python run.py -m gemma3:12b     # specify model (default: kimi-k2.5:cloud, see config.py)

@@ -76,11 +76,11 @@ git clone https://github.com/m5it/koslenium_www.git tools/koslenium_driver/www
 python3 -m venv .venv
 source .venv/bin/activate
 
-pip install -r requirements.txt
-# or
-pip install -r requirements_gpu.txt
-# or not sure if this just works but possible yes...
-pip install ollama
+pip install -r requirements-ollama.txt   # default backend (Ollama)
+# or, for a vLLM / OpenAI-compatible server instead:
+pip install -r requirements-vllm.txt
+# optional GPU deps for image generation / MediaAnalyst persona:
+pip install -r requirements-gpu.txt
 ```
 
 ### Run (from any directory)
@@ -422,7 +422,7 @@ If the server runs on another machine, set `VLLM_HOST` accordingly, e.g. `http:/
 | `!MODEL` GPU freeing | `ollama stop` cleanup is skipped on vLLM (vLLM manages its own GPU memory) |
 | Auth | Set `VLLM_API_KEY` if the server was started with `--api-key`; it is masked in `!STATS`/`!GET` output |
 | Persistence | The active backend is saved to `state.aiia` and restored on `-c` continue |
-| Dependencies | Uses the `openai` python package (already in `requirements.txt`); the `ollama` package is not required for vLLM-only installs |
+| Dependencies | Uses the `openai` python package (in `requirements-vllm.txt`); the `ollama` package is not required for vLLM-only installs |
 
 ---
 

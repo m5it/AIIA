@@ -1,0 +1,5 @@
+# Ollama backend — default. Includes common core deps from requirements.txt.
+# Install with: pip install -r requirements-ollama.txt
+
+-r requirements.txt
+ollama>=0.6.0

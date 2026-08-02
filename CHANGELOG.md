@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-02 — v1.1.2
+
+### Auto: Version v1.1.2
+
+- Version auto-incremented from v1.1.1
+- Files changed: .github/workflows/ci.yml, AGENTS.md, README.md, requirements-ollama.txt, requirements-vllm.txt, requirements.txt, src/LLMBackends/OllamaBackend.py, src/LLMBackends/VLLMBackend.py, tools/tool_GenerateImage.py
+
+---
+
+
 ## 2026-08-01 — v1.1.1
 
 ### Auto: Version v1.1.1

@@ -30,7 +30,7 @@ class OllamaBackend(BaseBackend):
 	#
 	def chat(self, model, messages, stream=True, options=None, think=False, timeout=None):
 		if not HAS_OLLAMA:
-			raise ImportError("ollama python package not installed — run: pip install ollama")
+			raise ImportError("ollama python package not installed — run: pip install -r requirements-ollama.txt")
 		params = {
 			'model': model,
 			'messages': messages,
