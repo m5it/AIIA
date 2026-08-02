@@ -111,9 +111,9 @@ CODECOV_TOKEN="$CODECOV_TOKEN" codecovcli upload-report
 
 ## Architecture
 
-- **Entry point**: `run.py` → initializes `Handle` class from `src/Handle.py`
+- **Entry point**: `run.py` → thin entry; CLI parsing in `src/cli.py`, factory reset in `src/FactoryReset.py`, persona resolution in `src/PersonaResolver.py`, then initializes `Handle` class from `src/Handle.py`
 - **Orchestra entry points**: `run_orchestra.py` (director), `run_worker.py` (worker)
-- **Core modules**: all in `src/` — `Handle.py` orchestrates chat, tools, history
+- **Core modules**: all in `src/` — `Handle.py` orchestrates chat, tools, history via 5 mixins (`HandleStream`, `HandleParse`, `HandleContext`, `HandleState`, `HandleChat`); `Commands.py` routes user `!`-commands via 8 mixins (`CommandsConfig` … `CommandsWorkers`) with the command registry in `src/commands_registry.py`; `ToolParser.py` parses/executes XML tool calls via 3 mixins (`ToolXmlParser`, `ToolExecutor`, `PlanToolHandler`)
 - **Personas**: `instruct/` directory — personality classes with plan/build system prompts, optional model override
 - **Tools**: `tools/` directory — dynamically loaded Python classes that the AI invokes via `<ToolName>` XML syntax
 - **Dependency system**: `src/DependencyChecker.py` + `src/DependencyInstaller.py` — check/install per-persona deps into isolated venvs at `~/.config/aiia/envs/<persona>/`, tracked in `~/.config/aiia/persona_deps.json`. Personas define requirements via `requirements()` method (pip packages + HF models). Automatically checked on persona switch; manual trigger via `!INSTALL_DEPS`.

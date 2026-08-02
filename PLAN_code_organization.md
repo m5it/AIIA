@@ -67,8 +67,10 @@ As the framework grows, decompose god-classes into smaller, single-responsibilit
 - All moved bodies byte-identical (verified via `inspect`-style diff vs `git HEAD:run.py`; only additions are the module headers, the `parse_cli` `return`, and its `cwd`/`framework_dir` params). No circular imports: `config` imports only `os`/`AUTOVERSION`.
 - **Verify**: `pytest -q` (50 passed); `python run.py -h` / `-v` (exit 0); `python run.py -Q -p Developer -Y "hi"` reaches Handle + Chat (410 only because default model `kimi-k2.5:cloud` was retired upstream — not a refactor issue); unit checks for persona resolution (numeric index), `-Y`/`-T`/`--persona=0`/`-m`/`--site-scripts-path` in `parse_cli`/`_preparse_server_flags` all pass. Commit `--no-verify`.
 
-## Step 6 — Final pass
-- Add import/smoke tests per new module; run full `pytest -q`; update `AGENTS.md` Architecture section if module list changed; one commit per step for clean bisect.
+## Step 6 — Final pass ✅
+- Added `tests/test_core_modules.py` (17 tests): import + smoke coverage for every new module — `src/cli.py` (`Help`, `parse_cli`, `_preparse_server_flags` incl. numeric persona), `src/FactoryReset.py` (`_confirm_factory_reset` yes/no via monkeypatched `input`), `src/PersonaResolver.py`, `src/Commands.py` + all 8 mixins via MRO + `build_registry` callable funcs, `src/ToolParser.py` + 3 mixins via MRO + `get_known_tools`, `src/Handle.py` + 5 mixins via MRO. Suite now 67 tests.
+- Updated `AGENTS.md` Architecture section to document the mixin layouts (`Handle`×5, `Commands`×8 + registry, `ToolParser`×3) and the `run.py` → `cli`/`FactoryReset`/`PersonaResolver` split.
+- One commit per step (6 commits): `940a9bb`, `111a803`, `7a7b864`, `ed2351f`, `bc49d93`, `b706fb6`.
 
 ## Out of scope
 - Any behavior changes, new features, renames of public APIs, or moving personas in `instruct/`.
