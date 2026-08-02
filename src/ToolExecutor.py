@@ -7,9 +7,18 @@ class ToolExecutor():
 	_write_tools_validate = {'WriteFile', 'CreateFile', 'AppendFile', 'ReplaceLine', 'Sed'}
 	#
 	def ExecuteTextTool(self, toolName, params):
-		from src.ToolParser import ToolParser
 		# Execute a tool based on XML invocation
-		#
+		routed = self._route_execute_script(toolName, params)
+		if isinstance(routed, tuple):
+			toolName, params = routed
+		else:
+			return routed
+		err = self._load_tool_dynamic(toolName)
+		if err is not None:
+			return err
+		return self._execute_tool_call(toolName, params)
+
+	def _route_execute_script(self, toolName, params):
 		# ROUTING: If ExecuteScript is called with a non-script file, route to Terminal
 		if toolName.lower() == 'executescript':
 			fileName = params.get('fileName', '')
@@ -92,7 +101,9 @@ class ToolExecutor():
 					#
 					toolName = 'Terminal'
 					params = terminal_args
-		#
+		return toolName, params
+
+	def _load_tool_dynamic(self, toolName):
 		# Load tool dynamically if not already loaded
 		if toolName not in self.handle.hTC.handles:
 			self.handle.hLG.echo("Tool {} not loaded, loading dynamically...".format(toolName), {'color':True, 'colorValue':'orange'})
@@ -144,7 +155,10 @@ class ToolExecutor():
 				self.handle.hLG.echo("Tool {} loaded successfully".format(toolName), {'color':True, 'colorValue':'green'})
 			except Exception as E:
 				return "Error loading tool {}: {}".format(toolName, E)
-		#
+		return None
+
+	def _execute_tool_call(self, toolName, params):
+		from src.ToolParser import ToolParser
 		# Validate and execute the tool
 		h = None
 		try:
@@ -215,7 +229,7 @@ class ToolExecutor():
 				self.handle.hLG.echo(usage_hint, {'color':True, 'colorValue':'orange','debugOnly':False})
 				self.handle.Response('user', {'content': usage_hint})
 			return "Error executing {}: {}{}".format(toolName, E, self._tool_usage(info))
-	#
+
 	def _cache_key(self, toolName, params):
 		import hashlib, json
 		raw = "{}:{}".format(toolName, json.dumps(params, sort_keys=True))
@@ -283,14 +297,7 @@ class ToolExecutor():
 		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks', 'jobDone', 'startBuild', 'planDone', 'addTask', 'createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask']
 		#
 		# Sort to process createTask before other tools
-		def sort_key(inv):
-			name = inv['name']
-			if name in ('addTask', 'createTask'):
-				return -1
-			elif name == 'createPlan':
-				return -2
-			return 0
-		tool_invocations = sorted(tool_invocations, key=sort_key)
+		tool_invocations = sorted(tool_invocations, key=self._fire_sort_key)
 		#
 		job_done = False
 		last_result = None
@@ -311,97 +318,22 @@ class ToolExecutor():
 				self.handle.hLG.echo("⚙️ {} {}".format(toolName, action_msg), {'color':True, 'colorValue':'green'})
 			#
 			# File size guard — prevent creating/modifying files larger than AI_MAX_FILE_SIZE
-			_write_tools = {
-				'WriteFile': 'contentOfFile',
-				'CreateFile': 'contentOfFile',
-				'AppendFile': 'contentOfFile',
-				'ReplaceLine': 'replacement',
-			}
-			if toolName in _write_tools:
-				content_param = _write_tools[toolName]
-				content = params.get(content_param, '')
-				content_bytes = len(content.encode('utf-8'))
-				max_size = self.handle.Options.get('AI_MAX_FILE_SIZE', 2097152)
-				total_bytes = content_bytes
-				existing_bytes = 0
-				if toolName == 'AppendFile':
-					file_path = params.get('fileName', '')
-					if file_path and os.path.exists(file_path):
-						existing_bytes = os.path.getsize(file_path)
-						total_bytes += existing_bytes
-				if total_bytes > max_size:
-					err = ("Error: {} not executed — content exceeds AI_MAX_FILE_SIZE "
-						   "({} bytes). Total would be: {} bytes "
-						   "(existing: {}, new: {}). "
-						   "Split the content or reduce file size."
-						   .format(toolName, max_size, total_bytes, existing_bytes, content_bytes))
-					self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
-					self.handle.Response('tool', {'content': err, 'name': toolName})
-					continue
+			if self._guard_file_size(toolName, params) is not None:
+				continue
 			#
 			# Path sandbox guard — restrict file access to approved directories
-			_path_approver = self.handle.Options.get('path_approver')
-			if _path_approver:
-				_path_tools = {
-					'ReadFile': ['fileName'],
-					'WriteFile': ['fileName'],
-					'CreateFile': ['fileName'],
-					'AppendFile': ['fileName'],
-					'ReplaceLine': ['fileName'],
-					'Grep': ['fileName'],
-					'Sed': ['fileName'],
-					'Head': ['fileName'],
-					'Tail': ['fileName'],
-					'Sort': ['fileName'],
-					'Diff': ['file1', 'file2'],
-					'TreeView': ['path'],
-					'List': ['path'],
-					'Find': ['path'],
-					'ExecuteScript': ['fileName'],
-				}
-				if toolName in _path_tools:
-					blocked = False
-					for param in _path_tools[toolName]:
-						raw = params.get(param, '')
-						if raw and not _path_approver.is_allowed(raw):
-							err = ("Error: {} param '{}' = '{}' is not in an approved path. "
-								   "Ask the user to approve this path via the !PROJECT command."
-								   .format(toolName, param, raw))
-							self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
-							self.handle.Response('tool', {'content': err, 'name': toolName})
-							blocked = True
-							break
-						if blocked:
-							continue
+			self._guard_path_sandbox(toolName, params)
 			#
 			# User tool allow/disallow guard — user overrides plan blocking
 			user_blocked = set(self.handle.Options.get('TOOL_BLOCKED', []))
 			user_allowed = set(self.handle.Options.get('TOOL_ALLOWED', []))
-			if toolName in user_blocked:
-				err = "Error: Tool '{}' is disallowed by user configuration. Ask the user to allow it via the !TOOL command.".format(toolName, toolName)
-				self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
-				self.handle.Response('tool', {'content': err, 'name': toolName})
+			if self._guard_user_blocked(toolName, user_blocked) is not None:
 				break
 			#
 			# PLAN mode guard — block write/execute tools and intercept startBuild
 			# (user's TOOL_ALLOWED overrides plan blocking)
-			if is_plan_mode and (toolName in self._plan_blocked or toolName == 'startBuild'):
-				if toolName in user_allowed:
-					pass  # user explicitly allowed — skip plan block
-				elif toolName == 'startBuild':
-					err = "Model requested build mode via <startBuild/>. Switch to BUILD mode to start executing."
-					self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
-					self.handle.Response('tool', {'content': err, 'name': toolName})
-					self.handle._plan_blocked_tool = toolName
-					break
-				else:
-					err = ("Error: {} cannot be used in PLAN mode. "
-						   "Switch to BUILD mode with !MODE build to use this tool, "
-						   "or use !TOOL ALLOW {} to override.".format(toolName, toolName))
-					self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
-					self.handle.Response('tool', {'content': err, 'name': toolName})
-					self.handle._plan_blocked_tool = toolName
-					break
+			if self._guard_plan_mode(toolName, user_allowed, is_plan_mode) is not None:
+				break
 			#
 			# Route to plan tools if in plan mode, or build tools (like LogProgress)
 			if (is_plan_mode and toolName in plan_tools) or (toolName in build_tools):
@@ -472,4 +404,108 @@ class ToolExecutor():
 				self.handle._last_failed_tool_count = 0
 			self.handle.hLG.echo("--- Tool iterations: {} | errors: {}".format(self.handle.tool_iteration, self.handle.tool_errors), {'color':True, 'colorValue':'cyan'})
 		return last_result
-	#
+
+	@staticmethod
+	def _fire_sort_key(inv):
+		name = inv['name']
+		if name in ('addTask', 'createTask'):
+			return -1
+		elif name == 'createPlan':
+			return -2
+		return 0
+
+	def _guard_file_size(self, toolName, params):
+		_write_tools = {
+			'WriteFile': 'contentOfFile',
+			'CreateFile': 'contentOfFile',
+			'AppendFile': 'contentOfFile',
+			'ReplaceLine': 'replacement',
+		}
+		if toolName in _write_tools:
+			content_param = _write_tools[toolName]
+			content = params.get(content_param, '')
+			content_bytes = len(content.encode('utf-8'))
+			max_size = self.handle.Options.get('AI_MAX_FILE_SIZE', 2097152)
+			total_bytes = content_bytes
+			existing_bytes = 0
+			if toolName == 'AppendFile':
+				file_path = params.get('fileName', '')
+				if file_path and os.path.exists(file_path):
+					existing_bytes = os.path.getsize(file_path)
+					total_bytes += existing_bytes
+			if total_bytes > max_size:
+				err = ("Error: {} not executed — content exceeds AI_MAX_FILE_SIZE "
+					   "({} bytes). Total would be: {} bytes "
+					   "(existing: {}, new: {}). "
+					   "Split the content or reduce file size."
+					   .format(toolName, max_size, total_bytes, existing_bytes, content_bytes))
+				self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
+				self.handle.Response('tool', {'content': err, 'name': toolName})
+				return err
+		return None
+
+	def _guard_path_sandbox(self, toolName, params):
+		_path_approver = self.handle.Options.get('path_approver')
+		if _path_approver:
+			_path_tools = {
+				'ReadFile': ['fileName'],
+				'WriteFile': ['fileName'],
+				'CreateFile': ['fileName'],
+				'AppendFile': ['fileName'],
+				'ReplaceLine': ['fileName'],
+				'Grep': ['fileName'],
+				'Sed': ['fileName'],
+				'Head': ['fileName'],
+				'Tail': ['fileName'],
+				'Sort': ['fileName'],
+				'Diff': ['file1', 'file2'],
+				'TreeView': ['path'],
+				'List': ['path'],
+				'Find': ['path'],
+				'ExecuteScript': ['fileName'],
+			}
+			if toolName in _path_tools:
+				blocked = False
+				for param in _path_tools[toolName]:
+					raw = params.get(param, '')
+					if raw and not _path_approver.is_allowed(raw):
+						err = ("Error: {} param '{}' = '{}' is not in an approved path. "
+							   "Ask the user to approve this path via the !PROJECT command."
+							   .format(toolName, param, raw))
+						self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
+						self.handle.Response('tool', {'content': err, 'name': toolName})
+						blocked = True
+						break
+					if blocked:
+						continue
+				if blocked:
+					return err
+		return None
+
+	def _guard_user_blocked(self, toolName, user_blocked):
+		if toolName in user_blocked:
+			err = "Error: Tool '{}' is disallowed by user configuration. Ask the user to allow it via the !TOOL command.".format(toolName, toolName)
+			self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
+			self.handle.Response('tool', {'content': err, 'name': toolName})
+			return err
+		return None
+
+	def _guard_plan_mode(self, toolName, user_allowed, is_plan_mode):
+		if is_plan_mode and (toolName in self._plan_blocked or toolName == 'startBuild'):
+			if toolName in user_allowed:
+				return None
+			elif toolName == 'startBuild':
+				err = "Model requested build mode via <startBuild/>. Switch to BUILD mode to start executing."
+				self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
+				self.handle.Response('tool', {'content': err, 'name': toolName})
+				self.handle._plan_blocked_tool = toolName
+				return err
+			else:
+				err = ("Error: {} cannot be used in PLAN mode. "
+					   "Switch to BUILD mode with !MODE build to use this tool, "
+					   "or use !TOOL ALLOW {} to override.".format(toolName, toolName))
+				self.handle.hLG.echo(err, {'color': True, 'colorValue': 'red', 'debugOnly': False})
+				self.handle.Response('tool', {'content': err, 'name': toolName})
+				self.handle._plan_blocked_tool = toolName
+				return err
+		return None
