@@ -15,7 +15,7 @@ As the framework grows, decompose god-classes into smaller, single-responsibilit
 |------|-------|---------|
 | `src/Handle.py` | 1878 | ~40 methods: chat, streaming, context mgmt, state, session restore, interrupts, tips, koslenium |
 | `src/Commands.py` | 1739 → 35 | giant registry literal + ~50 `CMD_*` mixing config, tips, timers, sites, plan, workers |
-| `src/ToolParser.py` | 929 | XML parsing + execution + caching + validation + plan-tools |
+| `src/ToolParser.py` | 929 → 46 | XML parsing + execution + caching + validation + plan-tools |
 | `run.py` | 517 | CLI parsing, factory reset, persona resolution, server flags |
 | `tools/tool_GenerateImage.py` | 375 | tool API + 3 backends + chain dispatch + save/inject |
 
@@ -51,12 +51,13 @@ As the framework grows, decompose god-classes into smaller, single-responsibilit
 - `Commands` stays the single entry class (`class Commands(8 mixins)`), keeps `__init__` + `CMD_HELP`. Each mixin imports only the module-level names its methods use (`CommandsConfig`→`json`, `CommandsSession`→`os,json,fwrite`, `CommandsPlan`→`os,time`; the pre-existing undefined `importmodule` in `CMD_INSTALL_DEPS` was left unresolved to keep behavior identical).
 - **Verify**: `pytest -q` (50), dynamic-load smoke (importmodule/initmodule), `!HELP` renders all 46 commands, registry has 46 callable funcs, commit.
 
-## Step 4 — `src/ToolParser.py` → coordinator
-- `ToolXmlParser` — `ParseTextToolInvocation`, `ExtractToolResult`, `_format_action`, `CheckJobDone`
-- `ToolExecutor` — `ExecuteTextTool`, `FireToolInvocation`, `_cache_key`, `_tool_usage`, `_validate_file`
-- `PlanToolHandler` — `HandlePlanTool`
-- `ToolParser` becomes a thin coordinator.
-- **Verify**: `pytest -q`, tool invocation smoke test, commit.
+## Step 4 — `src/ToolParser.py` → coordinator ✅
+- `ToolXmlParser` — `ParseTextToolInvocation`, `ExtractToolResult`, `_format_action`, `CheckJobDone` (needs `re`).
+- `ToolExecutor` — `ExecuteTextTool`, `FireToolInvocation`, `_cache_key`, `_tool_usage`, `_validate_file` + `_write_tools_validate` class attr (needs `os,time,json` + `initmodule/importmodule/splitFileNameExtension`).
+- `PlanToolHandler` — `HandlePlanTool` (needs `time`).
+- `ToolParser` becomes a thin coordinator: keeps `__init__`, `get_known_tools`, class attrs `_current_handle`/`_plan_blocked`/`_plan_tools`, and `class ToolParser(ToolXmlParser, ToolExecutor, PlanToolHandler)`.
+- Public API preserved: `ToolParser._current_handle` is referenced by class-name in `tools/tool_Terminal.py`, `tool_GenerateImage.py`, `tool_ReinsertTip.py`, `tool_ReadImage.py` and `tests/test_generateimage.py`. Since `ToolExecutor` is imported *by* `ToolParser` (circular import impossible), `ExecuteTextTool` gained a single lazy local import (`from src.ToolParser import ToolParser`) so that reference still resolves — the only non-verbatim line in this step.
+- **Verify**: `pytest -q` (50), dynamic-load smoke (parse/execute/plan routing + `_current_handle` set/read), commit.
 
 ## Step 5 — `run.py` → thin entry
 - `src/cli.py` — `_preparse_server_flags` + arg parsing + `Help()`
