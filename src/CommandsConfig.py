@@ -105,43 +105,13 @@ class CommandsConfig():
 			return ret
 		#
 		if new_mode == 'plan':
-			if self.handle.Options['MODE']=='plan':
-				print("ERROR: Already in plan mode. Skip.")
-				return ret
-			self.handle.Options['MODE'] = 'plan'
-			print("Mode changed to PLAN. You are now in read-only mode.")
+			ret = self._mode_switch_plan(ret)
 		else:  # build
-			if self.handle.Options['MODE']=='build':
-				print("ERROR: Already in build mode. Skip.")
-				return ret
-			self.handle.Options['MODE'] = 'build'
-			print("Mode changed to BUILD. You can now make changes.")
-			# Check if plan has tasks - if yes, return 5 to trigger startBuild
-			from src.PlanManager import PlanBase, Plan
-			if not PlanBase.draft:
-				# Auto-load latest plan from disk
-				plans_dir = self.handle.Options.get('plans_path', 'plans')
-				import os
-				if os.path.isdir(plans_dir):
-					json_files = sorted(
-						[f for f in os.listdir(plans_dir) if f.endswith('.json')],
-						key=lambda f: os.path.getmtime(os.path.join(plans_dir, f)),
-						reverse=True)
-					if json_files:
-						latest_id = json_files[0].replace('.json', '')
-						plan = Plan.load(latest_id, plans_dir)
-						if plan:
-							PlanBase.draft = plan
-							print("Loaded latest plan from disk: {}".format(plan.title))
-			if PlanBase.draft and len(PlanBase.draft.tasks) > 0:
-				ret = 5  # startBuild signal
-				print("Plan has {} tasks. Starting build...".format(len(PlanBase.draft.tasks)))
-			else:
-				print("No active plan. Use createPlan first.")
-			
+			ret = self._mode_switch_build(ret)
+		#
 		# Persist mode to state
 		self.handle._write_state({'mode': new_mode})
-			
+		#
 		#--
 		# Update System message with new mode!
 		# Find last system message in history and replace it; append if none.
@@ -159,6 +129,46 @@ class CommandsConfig():
 				"Do NOT use GetTip — use TreeView, ReadFile, and WriteFile instead."})
 			self.handle._train_skip_you = True
 		# Depend if plan contain tasks then StartBuild() || <startBuild/> and auto continue to AI
+		return ret
+
+	def _mode_switch_plan(self, ret):
+		# Switch to plan mode (read-only)
+		if self.handle.Options['MODE']=='plan':
+			print("ERROR: Already in plan mode. Skip.")
+			return ret
+		self.handle.Options['MODE'] = 'plan'
+		print("Mode changed to PLAN. You are now in read-only mode.")
+		return ret
+
+	def _mode_switch_build(self, ret):
+		# Switch to build mode — auto-load latest plan if a draft exists
+		if self.handle.Options['MODE']=='build':
+			print("ERROR: Already in build mode. Skip.")
+			return ret
+		self.handle.Options['MODE'] = 'build'
+		print("Mode changed to BUILD. You can now make changes.")
+		# Check if plan has tasks - if yes, return 5 to trigger startBuild
+		from src.PlanManager import PlanBase, Plan
+		if not PlanBase.draft:
+			# Auto-load latest plan from disk
+			plans_dir = self.handle.Options.get('plans_path', 'plans')
+			import os
+			if os.path.isdir(plans_dir):
+				json_files = sorted(
+					[f for f in os.listdir(plans_dir) if f.endswith('.json')],
+					key=lambda f: os.path.getmtime(os.path.join(plans_dir, f)),
+					reverse=True)
+				if json_files:
+					latest_id = json_files[0].replace('.json', '')
+					plan = Plan.load(latest_id, plans_dir)
+					if plan:
+						PlanBase.draft = plan
+						print("Loaded latest plan from disk: {}".format(plan.title))
+		if PlanBase.draft and len(PlanBase.draft.tasks) > 0:
+			ret = 5  # startBuild signal
+			print("Plan has {} tasks. Starting build...".format(len(PlanBase.draft.tasks)))
+		else:
+			print("No active plan. Use createPlan first.")
 		return ret
 
 	def CMD_BACKEND(self, inp=""):
