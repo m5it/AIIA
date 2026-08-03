@@ -7,28 +7,10 @@ class ToolXmlParser():
 		# Also handles self-closing tags: <listTools/>
 		# Returns: [{'name':'ReadFile', 'parameters':{'fileName':'test.txt'}}, ...]
 		#
-		# Strip HTML comments first — the model may regurgitate HISTORY.md which
-		# contains old tool calls embedded in <!-- ... --> blocks. These are NOT
-		# new tool invocations and should not be detected.
-		text = re.sub(r'<!--.*?-->', '', text, flags=re.DOTALL)
+		# Strip comments/think blocks first — they are NOT new tool invocations
+		text = self._strip_ignored_xml(text)
 		#
-		# Strip <think>...</think> tags — the model may include these in the
-		# content field (separate from the native thinking API).  They should
-		# NOT be treated as tool calls.
-		text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
-		# Also strip orphan </think> closing tags that appear without openers
-		text = re.sub(r'</think>', '', text)
-		#
-		results = []
-		#
-		# First, find all self-closing tags: <TagName/>
-		self_closing_pattern = r'<(\w+)\s*/>'
-		for match in re.finditer(self_closing_pattern, text):
-			toolName = match.group(1)
-			results.append({
-				'name': toolName,
-				'parameters': {}
-			})
+		results = self._parse_self_closing(text)
 		#
 		# Then, find all regular tags with content: <TagName>...</TagName>
 		i = 0
@@ -41,7 +23,6 @@ class ToolXmlParser():
 				break
 			#
 			toolName = open_match.group(1)
-			start_pos = i + open_match.start()
 			inner_start = i + open_match.end()
 			#
 			# Find matching closing tag (case-insensitive)
@@ -58,13 +39,7 @@ class ToolXmlParser():
 			#
 			# Extract inner content and parse parameters
 			inner_content = text[inner_start:pos]
-			params = {}
-			for pm in re.finditer(r'<(\w+)>(.*?)</\1>', inner_content, re.DOTALL | re.IGNORECASE):
-				raw = pm.group(2)
-				if pm.group(1) in ('replacement', 'contentOfFile'):
-					params[pm.group(1)] = raw
-				else:
-					params[pm.group(1)] = raw.strip('\n').rstrip('\r')
+			params = self._parse_inner_params(inner_content)
 			#
 			results.append({
 				'name': toolName,
@@ -74,6 +49,42 @@ class ToolXmlParser():
 			i = pos + len(close_tag)
 		#
 		return results
+
+	def _strip_ignored_xml(self, text):
+		# Strip HTML comments first — the model may regurgitate HISTORY.md which
+		# contains old tool calls embedded in <!-- ... --> blocks. These are NOT
+		# new tool invocations and should not be detected.
+		text = re.sub(r'<!--.*?-->', '', text, flags=re.DOTALL)
+		#
+		# Strip <think>...</think> tags — the model may include these in the
+		# content field (separate from the native thinking API).  They should
+		# NOT be treated as tool calls.
+		text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+		# Also strip orphan </think> closing tags that appear without openers
+		text = re.sub(r'</think>', '', text)
+		return text
+
+	def _parse_self_closing(self, text):
+		# Find all self-closing tags: <TagName/>
+		results = []
+		self_closing_pattern = r'<(\w+)\s*/>'
+		for match in re.finditer(self_closing_pattern, text):
+			toolName = match.group(1)
+			results.append({
+				'name': toolName,
+				'parameters': {}
+			})
+		return results
+
+	def _parse_inner_params(self, inner_content):
+		params = {}
+		for pm in re.finditer(r'<(\w+)>(.*?)</\1>', inner_content, re.DOTALL | re.IGNORECASE):
+			raw = pm.group(2)
+			if pm.group(1) in ('replacement', 'contentOfFile'):
+				params[pm.group(1)] = raw
+			else:
+				params[pm.group(1)] = raw.strip('\n').rstrip('\r')
+		return params
 	
 	#
 	def CheckJobDone(self, text):
