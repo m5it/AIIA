@@ -24,6 +24,18 @@ class Handle(HandleStream, HandleParse, HandleContext, HandleState, HandleChat):
 		self.opt_response_done = None # (optional) To know that response is finished and can be used as print(..) as well
 		#
 		self.Options  = Options
+		self._normalize_working_dir()
+		self._init_modules()
+		self._init_state()
+		self._init_koslenium()
+
+	#
+	def _load_module(self, name, opts):
+		"""Dynamically import and instantiate a core module by name."""
+		return initmodule(importmodule(name, True, {'path': 'src'}), name, opts)
+
+	#
+	def _normalize_working_dir(self):
 		# Normalize working_dir — if same as framework path, treat as None
 		# so PLAN.md / HISTORY.md don't get saved in the framework directory
 		framework_dir = self.Options.get('path', '').rstrip('/')
@@ -38,28 +50,32 @@ class Handle(HandleStream, HandleParse, HandleContext, HandleState, HandleChat):
 			_cwd = os.getcwd()
 			if _cwd != framework_dir:
 				self.Options['working_dir'] = _cwd
-		#
+
+	#
+	def _init_modules(self):
 		#self.cmds    = self.Commands(self)
-		self.cmds    = initmodule(importmodule("Commands",True,{'path':'src'}),"Commands",{'handle':self,})
+		self.cmds    = self._load_module("Commands", {'handle': self,})
 		#
-		self.hLG     = initmodule(importmodule("Log",True,{'path':'src'}),"Log",{'handle':self,'debug':self.Options['DEBUG']})
-		self.hTC     = initmodule(importmodule("ToolChooser",True,{'path':'src'}),"ToolChooser",{'handle':self,})
-		self.hTP     = initmodule(importmodule("ToolParser",True,{'path':'src'}),"ToolParser",{'logger':None,'handle':self,})
-		self.hPP     = initmodule(importmodule("Prepare",True,{'path':'src'}),"Prepare",{'handle':self,})
-		self.hHM     = initmodule(importmodule("HistoryManager",True,{'path':'src'}),"HistoryManager",{'handle':self,'quiet':self.Options['QUIET'],'path':self.Options['path']})
-		self.hIM     = initmodule(importmodule("InstructManager",True,{'path':'src'}),"InstructManager",{'handle':self,})
-		self.hTM     = initmodule(importmodule("TipManager",True,{'path':'src'}),"TipManager",{'handle':self,})
+		self.hLG     = self._load_module("Log", {'handle': self, 'debug': self.Options['DEBUG']})
+		self.hTC     = self._load_module("ToolChooser", {'handle': self,})
+		self.hTP     = self._load_module("ToolParser", {'logger': None, 'handle': self,})
+		self.hPP     = self._load_module("Prepare", {'handle': self,})
+		self.hHM     = self._load_module("HistoryManager", {'handle': self, 'quiet': self.Options['QUIET'], 'path': self.Options['path']})
+		self.hIM     = self._load_module("InstructManager", {'handle': self,})
+		self.hTM     = self._load_module("TipManager", {'handle': self,})
 		# LLM backend (ollama / vllm) — lazily resolved on first use
 		self.hBackend = None
 		# Add tools directory to sys.path for dynamic tool loading
 		tools_path = self.Options.get('tools_path', '')
 		if tools_path and tools_path not in sys.path:
 			sys.path.append(tools_path.rstrip('/'))
-		
+
 		# Initialize path approver for project sandboxing
 		self.hPA = PathApprover(working_dir=self.Options.get('working_dir'))
 		self.Options['path_approver'] = self.hPA
-		
+
+	#
+	def _init_state(self):
 		self.hPM     = PlanBase
 		self.tool_iteration = 0
 		self.tool_errors                = 0
@@ -71,6 +87,8 @@ class Handle(HandleStream, HandleParse, HandleContext, HandleState, HandleChat):
 		self._last_response_hash = None
 		self._direct_tool_results = [] # results from direct user tool calls (no AI)
 
+	#
+	def _init_koslenium(self):
 		# Eager-import _koslenium_server so its module is cached in sys.modules.
 		# Without this, the dynamic tool reloader may re-execute it, resetting
 		# _server_state and orphaning the background server process.
