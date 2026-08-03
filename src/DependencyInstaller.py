@@ -16,6 +16,30 @@ def install(persona_name, requirements, handle=None):
 	installed_pip = set(persona_state.get('pip_installed', []))
 	installed_hf = set(persona_state.get('hf_installed', []))
 
+	if not _ensure_venv(persona_name, venv, handle):
+		return False
+
+	python = _python_bin(persona_name)
+	if not os.path.isfile(python):
+		_log(handle, "Python binary not found in venv: {}".format(python), 'red')
+		return False
+
+	all_pip_ok = _install_pip_packages(persona_name, python, requirements.get('pip_packages', []),
+		persona_state, state, installed_pip, handle)
+	all_hf_ok = _download_hf_models(persona_name, python, requirements.get('hf_models', []),
+		persona_state, state, installed_hf, handle)
+
+	# Step 4: Flag as ready if everything installed
+	all_ok = all_pip_ok and all_hf_ok
+	persona_state['all_installed'] = all_ok
+	state[persona_name] = persona_state
+	_save_state(state)
+	return all_ok
+
+	#
+
+def _ensure_venv(persona_name, venv, handle):
+	"""Create the persona venv if needed. Returns True when ready."""
 	# Step 1: Create venv if needed
 	if not os.path.isdir(venv):
 		_log(handle, "Creating venv for persona '{}' at {}".format(persona_name, venv))
@@ -25,14 +49,14 @@ def install(persona_name, requirements, handle=None):
 		except subprocess.CalledProcessError as e:
 			_log(handle, "Failed to create venv: {}".format(e.stderr), 'red')
 			return False
+	return True
 
-	python = _python_bin(persona_name)
-	if not os.path.isfile(python):
-		_log(handle, "Python binary not found in venv: {}".format(python), 'red')
-		return False
+	#
 
+def _install_pip_packages(persona_name, python, pip_packages, persona_state, state, installed_pip, handle):
+	"""Install pip packages, resuming from previously installed ones.
+	Returns True if all packages succeeded."""
 	# Step 2: Install pip packages
-	pip_packages = requirements.get('pip_packages', [])
 	all_pip_ok = True
 	for pkg in pip_packages:
 		if pkg in installed_pip:
@@ -54,9 +78,14 @@ def install(persona_name, requirements, handle=None):
 		except subprocess.TimeoutExpired:
 			_log(handle, "  Timed out installing {}. Will retry on next run.".format(pkg), 'red')
 			all_pip_ok = False
+	return all_pip_ok
 
+	#
+
+def _download_hf_models(persona_name, python, hf_models, persona_state, state, installed_hf, handle):
+	"""Download HF models, resuming from previously downloaded ones.
+	Returns True if all models succeeded."""
 	# Step 3: Download HF models
-	hf_models = requirements.get('hf_models', [])
 	all_hf_ok = True
 	if hf_models:
 		try:
@@ -104,14 +133,9 @@ except Exception as e:
 				except subprocess.TimeoutExpired:
 					_log(handle, "  Timed out downloading {}. Will retry on next run.".format(model_id), 'red')
 					all_hf_ok = False
+	return all_hf_ok
 
-	# Step 4: Flag as ready if everything installed
-	all_ok = all_pip_ok and all_hf_ok
-	persona_state['all_installed'] = all_ok
-	state[persona_name] = persona_state
-	_save_state(state)
-	return all_ok
-
+	#
 
 def _log(handle, msg, color='cyan'):
 	if handle and hasattr(handle, 'hLG'):
