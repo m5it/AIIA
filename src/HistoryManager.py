@@ -274,16 +274,9 @@ class HistoryManager():
 		"""Handle the `s `/`/ ` search flow, including the search-results
 		sub-loop. Returns True when a session was chosen (exit the outer
 		loop), False to continue."""
-		query = tmp[2:].strip()
-		if not query:
-			print("Usage: s <search query>")
+		results = self._search_and_show(tmp[2:], names)
+		if results is None:
 			return False
-		print('Searching "{}"...'.format(query))
-		results = self._search(query)
-		if not results:
-			print("No matches.")
-			return False
-		self._show_list(results, names)
 		# enter sub-loop for search results
 		while True:
 			self.handle.hLG.echo("Result {}/{}. Choose (s new search, a all, x cancel): ".format(
@@ -293,42 +286,47 @@ class HistoryManager():
 			if sub == 'x' or not sub:
 				return True
 			elif sub.startswith('s ') or sub.startswith('/ '):
-				query = sub[2:].strip()
-				if not query:
-					print("Usage: s <search query>")
+				results = self._search_and_show(sub[2:], names)
+				if results is None:
 					continue
-				print('Searching "{}"...'.format(query))
-				results = self._search(query)
-				if not results:
-					print("No matches.")
-					continue
-				self._show_list(results, names)
 				continue
 			elif sub == 'a':
 				break
 			elif sub.startswith('v '):
 				self._view_file(sub, results, names)
 				continue
-			try:
-				idx = int(sub)
-				if 0 <= idx < len(results):
-					self.history = results[idx]['filename']
-					self.Get()
-					return True
-				else:
-					print("Number out of range (0-{}).".format(len(results) - 1))
-			except ValueError:
-				# might be a number from the full list — check
-				try:
-					full_idx = int(sub)
-					if 0 <= full_idx < len(self.available):
-						self.history = self.available[full_idx]
-						self.Get()
-						return True
-					else:
-						print("Invalid input. Try a number, 's', 'a', or 'x'.")
-				except ValueError:
-					print("Invalid input. Try a number, 's', 'a', or 'x'.")
+			elif self._pick_result(sub, results):
+				return True
+		return False
+
+	def _search_and_show(self, arg, names):
+		"""Run a search, print the results, and return the results list —
+		or None when the query is empty or nothing matched."""
+		query = arg.strip()
+		if not query:
+			print("Usage: s <search query>")
+			return None
+		print('Searching "{}"...'.format(query))
+		results = self._search(query)
+		if not results:
+			print("No matches.")
+			return None
+		self._show_list(results, names)
+		return results
+
+	def _pick_result(self, sub, results):
+		"""Select a session by number from the search results. Returns
+		True when a session was chosen."""
+		try:
+			idx = int(sub)
+		except ValueError:
+			print("Invalid input. Try a number, 's', 'a', or 'x'.")
+			return False
+		if 0 <= idx < len(results):
+			self.history = results[idx]['filename']
+			self.Get()
+			return True
+		print("Number out of range (0-{}).".format(len(results) - 1))
 		return False
 	#
 	def _view_file(self, cmd, items, names):
