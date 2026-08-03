@@ -56,44 +56,18 @@ class CommandsPersona():
 			return 2
 		parts = inp.strip().split()
 		if len(parts) < 2:
-			print("Project Path Approvals:")
-			print("  Working dir:", pa.working_dir)
-			print("  Approved dirs: {}".format(sorted(pa.approved_dirs) if pa.approved_dirs else "(none - defaults to .)"))
-			print("  Approved files: {}".format(sorted(pa.approved_files) if pa.approved_files else "(none)"))
-			print("  Denied paths: {}".format(sorted(pa.denied_paths) if pa.denied_paths else "(none)"))
+			self._project_show(pa)
 			return 2
 		action = parts[1].upper()
 		if action == 'ADD' and len(parts) >= 4:
-			kind = parts[2].upper()
-			path = ' '.join(parts[3:])
-			if kind == 'DIR':
-				pa.add_dir(path)
-				pa.save()
-				print("Approved directory '{}'".format(path))
-			elif kind == 'FILE':
-				pa.add_file(path)
-				pa.save()
-				print("Approved file '{}'".format(path))
-			else:
-				print("Usage: !PROJECT ADD DIR <path> or !PROJECT ADD FILE <path>")
+			self._project_add(pa, parts)
 		elif action == 'DENY' and len(parts) >= 3:
 			path = ' '.join(parts[2:])
 			pa.deny(path)
 			pa.save()
 			print("Denied path '{}'".format(path))
 		elif action == 'REMOVE' and len(parts) >= 4:
-			kind = parts[2].upper()
-			path = ' '.join(parts[3:])
-			if kind == 'DIR':
-				pa.approved_dirs.discard(path)
-				pa.save()
-				print("Removed approved directory '{}'".format(path))
-			elif kind == 'FILE':
-				pa.approved_files.discard(path)
-				pa.save()
-				print("Removed approved file '{}'".format(path))
-			else:
-				print("Usage: !PROJECT REMOVE DIR <path> or !PROJECT REMOVE FILE <path>")
+			self._project_remove(pa, parts)
 		elif action == 'RESET':
 			pa.approved_dirs = {'.'}
 			pa.approved_files = set()
@@ -101,14 +75,52 @@ class CommandsPersona():
 			pa.save()
 			print("Path approvals reset to default (only working directory).")
 		else:
-			print("Unknown command. Usage:")
-			print("  !PROJECT — show current approvals")
-			print("  !PROJECT ADD DIR <path> — approve a directory")
-			print("  !PROJECT ADD FILE <path> — approve a file")
-			print("  !PROJECT DENY <path> — block a path")
-			print("  !PROJECT REMOVE DIR|FILE <path> — remove an approval")
-			print("  !PROJECT RESET — reset to defaults")
+			self._project_usage()
 		return 2
+
+	def _project_show(self, pa):
+		print("Project Path Approvals:")
+		print("  Working dir:", pa.working_dir)
+		print("  Approved dirs: {}".format(sorted(pa.approved_dirs) if pa.approved_dirs else "(none - defaults to .)"))
+		print("  Approved files: {}".format(sorted(pa.approved_files) if pa.approved_files else "(none)"))
+		print("  Denied paths: {}".format(sorted(pa.denied_paths) if pa.denied_paths else "(none)"))
+
+	def _project_add(self, pa, parts):
+		kind = parts[2].upper()
+		path = ' '.join(parts[3:])
+		if kind == 'DIR':
+			pa.add_dir(path)
+			pa.save()
+			print("Approved directory '{}'".format(path))
+		elif kind == 'FILE':
+			pa.add_file(path)
+			pa.save()
+			print("Approved file '{}'".format(path))
+		else:
+			print("Usage: !PROJECT ADD DIR <path> or !PROJECT ADD FILE <path>")
+
+	def _project_remove(self, pa, parts):
+		kind = parts[2].upper()
+		path = ' '.join(parts[3:])
+		if kind == 'DIR':
+			pa.approved_dirs.discard(path)
+			pa.save()
+			print("Removed approved directory '{}'".format(path))
+		elif kind == 'FILE':
+			pa.approved_files.discard(path)
+			pa.save()
+			print("Removed approved file '{}'".format(path))
+		else:
+			print("Usage: !PROJECT REMOVE DIR <path> or !PROJECT REMOVE FILE <path>")
+
+	def _project_usage(self):
+		print("Unknown command. Usage:")
+		print("  !PROJECT — show current approvals")
+		print("  !PROJECT ADD DIR <path> — approve a directory")
+		print("  !PROJECT ADD FILE <path> — approve a file")
+		print("  !PROJECT DENY <path> — block a path")
+		print("  !PROJECT REMOVE DIR|FILE <path> — remove an approval")
+		print("  !PROJECT RESET — reset to defaults")
 	#
 	def CMD_BUILD_THINK(self, inp=""):
 		parts = inp.strip().split()
