@@ -329,3 +329,65 @@ def test_history_manager_choose_search_no_match(monkeypatch):
 	obj._show_list = lambda items, names: None
 	obj._view_file = lambda *a: None
 	assert obj._choose_search('s nope', {}) is False
+
+def test_model_registry_known_model():
+	from src.ModelRegistry import apply
+	opts = {'AI_THINK': False, 'AI_VISION_ENABLED': False}
+	changes = apply(opts, 'kimi-k2.5:cloud')
+	assert opts['AI_THINK'] is True
+	assert any('Thinking' in c for c in changes)
+
+def test_model_registry_unknown_model_resets_stale_flags():
+	from src.ModelRegistry import apply
+	opts = {'AI_THINK': True, 'AI_VISION_ENABLED': True}
+	changes = apply(opts, 'w4d4f4k/qwen25-coder-aiia:latest')
+	assert opts['AI_THINK'] is False
+	assert opts['AI_VISION_ENABLED'] is False
+	assert any('unknown model' in c for c in changes)
+
+def test_model_registry_unknown_model_no_changes_when_defaults():
+	from src.ModelRegistry import apply
+	opts = {'AI_THINK': False, 'AI_VISION_ENABLED': False}
+	assert apply(opts, 'some-unknown-model:latest') == []
+
+def test_chat_params_think_disabled_in_build_mode():
+	from src.HandleChat import HandleChat
+	class Stub(HandleChat):
+		def __init__(self):
+			self.Options = {
+				'AI_OPTIONS': {},
+				'AI_MODEL': 'm',
+				'AI_THINK': True,
+				'BUILD_THINKING_DISABLED': True,
+				'MODE': 'build',
+			}
+	r = Stub()._build_chat_params([{'role': 'user', 'content': 'hi'}])
+	assert 'think' not in r
+
+def test_chat_params_think_kept_when_build_thinking_enabled():
+	from src.HandleChat import HandleChat
+	class Stub(HandleChat):
+		def __init__(self):
+			self.Options = {
+				'AI_OPTIONS': {},
+				'AI_MODEL': 'm',
+				'AI_THINK': True,
+				'BUILD_THINKING_DISABLED': False,
+				'MODE': 'build',
+			}
+	r = Stub()._build_chat_params([{'role': 'user', 'content': 'hi'}])
+	assert r['think'] is True
+
+def test_chat_params_think_kept_in_plan_mode_even_when_disabled():
+	from src.HandleChat import HandleChat
+	class Stub(HandleChat):
+		def __init__(self):
+			self.Options = {
+				'AI_OPTIONS': {},
+				'AI_MODEL': 'm',
+				'AI_THINK': True,
+				'BUILD_THINKING_DISABLED': True,
+				'MODE': 'plan',
+			}
+	r = Stub()._build_chat_params([{'role': 'user', 'content': 'hi'}])
+	assert r['think'] is True

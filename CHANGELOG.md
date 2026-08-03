@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-03 — v1.1.8
+
+### Auto: Version v1.1.8
+
+- Version auto-incremented from v1.1.7
+- Files changed: config.py, src/HandleChat.py, src/ModelRegistry.py, tests/test_core_modules.py
+
+---
+
+
 ## 2026-08-03 — v1.1.7
 
 ### Auto: Version v1.1.7

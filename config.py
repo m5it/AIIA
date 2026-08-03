@@ -120,7 +120,7 @@ Options         = {
 	"TOOL_SHOW_LOAD"      :True,     # Show detailed tool loading/executing/Loaded messages instead of compact ⚙️ line
 	#
 	# ReplaceLine indexing
-	"REPLACELINE_ZERO_INDEXED": False, # False=1-indexed (first line=1, default), True=0-indexed (first line=0)
+	"REPLACELINE_ZERO_INDEXED": True, # False=1-indexed (first line=1, default), True=0-indexed (first line=0)
 	#
 	# Image injection limits
 	"MAX_INJECT_IMAGE_DIMENSION" :1024, # max pixel dimension when ReadImage injects into conversation (0=no limit)

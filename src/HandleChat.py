@@ -667,7 +667,13 @@ class HandleChat():
 		}
 		# Optional: pass think=True for models that support the reasoning
 		# API (e.g. DeepSeek R1). Set AI_THINK=true in config to enable.
-		if self.Options.get('AI_THINK', False):
+		# !BUILD_THINK true disables thinking at the request level in build mode.
+		think_enabled = self.Options.get('AI_THINK', False)
+		if (think_enabled
+				and self.Options.get('BUILD_THINKING_DISABLED', False)
+				and self.Options.get('MODE', 'plan') == 'build'):
+			think_enabled = False
+		if think_enabled:
 			chat_params['think'] = True
 		return chat_params
 

@@ -40,7 +40,7 @@ def apply(Options, model_name):
 	Returns list of human-readable change strings (empty if no changes)."""
 	caps = lookup(model_name)
 	if caps is None:
-		return []
+		return _apply_unknown(Options)
 
 	changes = []
 	if caps['context_size'] > 0:
@@ -48,6 +48,23 @@ def apply(Options, model_name):
 		_apply_context(Options, caps, changes)
 		_apply_cap_flags(Options, caps, changes)
 		_apply_num_predict(Options, caps, changes)
+	return changes
+
+def _apply_unknown(Options):
+	"""Model not in the registry — reset capability flags that may have been
+	inherited from a previously active model (e.g. AI_THINK left on after
+	switching away from a thinking model), which would cause a hard error
+	(e.g. Ollama HTTP 400) when the new model does not support them.
+	Returns list of human-readable change strings (empty if no changes)."""
+	changes = []
+	old_think = Options.get('AI_THINK', False)
+	if old_think:
+		Options['AI_THINK'] = False
+		changes.append("Thinking: on -> off (unknown model, no registry entry)")
+	old_vision = Options.get('AI_VISION_ENABLED', False)
+	if old_vision:
+		Options['AI_VISION_ENABLED'] = False
+		changes.append("Vision: on -> off (unknown model, no registry entry)")
 	return changes
 
 def _apply_context(Options, caps, changes):
