@@ -42,34 +42,24 @@ def _preparse_server_flags(argv):
 			value = a[eq + 1:]
 			a = a[:eq]
 		if a in ('-p', '--persona'):
-			if value is None and i + 1 < len(argv) and not argv[i + 1].startswith('-'):
-				value = argv[i + 1]
-				i += 1
+			value, i = _flag_take_value(value, argv, i)
 			if value is not None:
 				Options['INSTRUCT_CLASS'] = _resolve_persona(value)
 				Options['INSTRUCT_CLASS_OVERRIDE'] = True
 		elif a in ('-P', '--prompt'):
-			if value is None and i + 1 < len(argv):
-				value = argv[i + 1]
-				i += 1
+			value, i = _flag_take_value(value, argv, i, allow_dash=True)
 			if value is not None:
 				Options['AI_SYSTEM_MESSAGE'] = value
 		elif a in ('-m', '--model'):
-			if value is None and i + 1 < len(argv) and not argv[i + 1].startswith('-'):
-				value = argv[i + 1]
-				i += 1
+			value, i = _flag_take_value(value, argv, i)
 			if value is not None:
 				Options['AI_MODEL'] = value
 		elif a in ('-b', '--backend'):
-			if value is None and i + 1 < len(argv) and not argv[i + 1].startswith('-'):
-				value = argv[i + 1]
-				i += 1
+			value, i = _flag_take_value(value, argv, i)
 			if value is not None:
 				Options['AI_BACKEND'] = value.lower()
 		elif a == '-T' or a == '--temperature':
-			if value is None and i + 1 < len(argv) and not argv[i + 1].startswith('-'):
-				value = argv[i + 1]
-				i += 1
+			value, i = _flag_take_value(value, argv, i)
 			if value is not None:
 				try:
 					Options['AI_OPTIONS']['temperature'] = float(value)
@@ -80,21 +70,24 @@ def _preparse_server_flags(argv):
 		elif a in ('-d', '--debug'):
 			Options['DEBUG'] = True
 		elif a in ('-M', '--memory_specific'):
-			if value is None and i + 1 < len(argv) and not argv[i + 1].startswith('-'):
-				value = argv[i + 1]
-				i += 1
+			value, i = _flag_take_value(value, argv, i)
 			if value is not None:
 				try:
 					Options['AI_MEMORY_SPECIFIC'] = int(value)
 				except ValueError:
 					pass
 		elif a == '--site-scripts-path':
-			if value is None and i + 1 < len(argv) and not argv[i + 1].startswith('-'):
-				value = argv[i + 1]
-				i += 1
+			value, i = _flag_take_value(value, argv, i)
 			if value is not None:
 				Options['SITE_SCRIPTS_PATH'] = os.path.abspath(value) if not os.path.isabs(value) else value
 		i += 1
+
+def _flag_take_value(value, argv, i, allow_dash=False):
+	"""When a flag has no inline `--flag=value` value, consume the next
+	argv entry as its value. Returns (value, new_i)."""
+	if value is None and i + 1 < len(argv) and (allow_dash or not argv[i + 1].startswith('-')):
+		return argv[i + 1], i + 1
+	return value, i
 
 #
 def parse_cli(argv, cwd, framework_dir):
@@ -119,9 +112,7 @@ def parse_cli(argv, cwd, framework_dir):
 		elif opt=="-h":
 			opt_help = True
 		elif opt=="-v":
-			print("{} {}".format( Options['VERSION_NAME'], Options['VERSION'] ))
-			Options['AI_LIVE'] = False
-			sys.exit(0)
+			_cli_version_exit()
 		elif opt=="-m":
 			Options['AI_MODEL'] = arg
 		elif opt=="-b":
@@ -137,11 +128,7 @@ def parse_cli(argv, cwd, framework_dir):
 			print("AIIA => Setting temperature: {}".format( float(arg) ))
 			Options['AI_OPTIONS']['temperature'] = float(arg)
 		elif opt=="-R" or opt=="--reset":
-			if not _confirm_factory_reset():
-				sys.exit(0)
-			reset_to_factory()
-			Options['AI_LIVE'] = False
-			sys.exit(0)
+			_cli_factory_reset()
 		elif opt=="-Q" or opt=="--quick":
 			Options['AI_QUICK'] = True
 		elif opt=="-P" or opt=="--prompt":
@@ -159,3 +146,15 @@ def parse_cli(argv, cwd, framework_dir):
 		Options['working_dir'] = cwd
 	#
 	return opt_help, opt_one, oneOpt, opt_history_lists
+
+def _cli_version_exit():
+	print("{} {}".format( Options['VERSION_NAME'], Options['VERSION'] ))
+	Options['AI_LIVE'] = False
+	sys.exit(0)
+
+def _cli_factory_reset():
+	if not _confirm_factory_reset():
+		sys.exit(0)
+	reset_to_factory()
+	Options['AI_LIVE'] = False
+	sys.exit(0)
