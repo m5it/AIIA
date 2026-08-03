@@ -918,52 +918,57 @@ class HandleChat():
 		if not self.Options.get('AUTO_CONTINUE_ALL_TASKS', True):
 			return auto_continue_count, False
 		mode = self.Options.get('MODE', 'plan')
-		should_reenter = False
-		if mode == 'build' and self.Options.get('AUTO_CONTINUE_TASKS', True):
-			if PlanBase.draft:
-				task_statuses = [(tid, t.status) for tid, t in PlanBase.draft.tasks.items()]
-				has_remaining = any(
-					t.status in ('pending', 'in_progress')
-					for t in PlanBase.draft.tasks.values())
-				self.bg_log("Auto-continue check: tasks={}, remaining={}".format(task_statuses, has_remaining))
-				if has_remaining:
-					should_reenter = True
-			else:
-				self.bg_log("Auto-continue check: no draft")
-		elif mode == 'plan' and self._last_ai_had_tools:
-			if not self._is_plan_complete():
-				should_reenter = True
-			else:
-				self.bg_log("Auto-continue check: plan complete (text_scan={}, flag={})".format(
-					self.Options.get('PLAN_COMPLETE_TEXT_SCAN', True),
-					getattr(self, '_plan_done_called', False)))
-		else:
-			self.bg_log("Auto-continue check: mode={}, last_ai_had_tools={}".format(mode, self._last_ai_had_tools))
-		if not should_reenter:
+		if not self._auto_should_reenter(mode):
 			self.bg_log("Auto-continue: NOT re-entering AI() — waiting for user")
-		if should_reenter:
-			auto_continue_count += 1
-			if auto_continue_count >= 50:
-				self.hLG.echo(
-					"Auto-continue: reached 50 rounds — stopping.",
-					{'color':True, 'colorValue':'orange','debugOnly':False})
-			elif mode == 'plan':
-				self.hLG.echo(
-					"Auto-continue: AI round {}/50 — continuing plan creation".format(auto_continue_count),
-					{'color':True, 'colorValue':'cyan','debugOnly':False})
-				self.Response('user', {'content': 'Continue creating plan tasks.'})
-				return auto_continue_count, True
-			else:
-				total = len(PlanBase.draft.tasks)
-				completed = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'completed')
-				current_task = next((t for t in PlanBase.draft.tasks.values() if t.status == 'in_progress'), None)
-				task_num = completed + 1
-				task_inst = current_task.instruction if current_task else '(waiting)'
-				task_label = task_inst[:60] + '...' if len(task_inst) > 60 else task_inst
-				self.hLG.echo(
-					"Auto-continue: AI round {}/50 — task {}/{}: {}".format(
-						auto_continue_count, task_num, total, task_label),
-					{'color':True, 'colorValue':'green','debugOnly':False})
-				self.Response('user', {'content': 'Continue task {}/{}...\n{}'.format(task_num, total, task_inst)})
-				return auto_continue_count, True
+			return auto_continue_count, False
+		auto_continue_count += 1
+		if auto_continue_count >= 50:
+			self.hLG.echo(
+				"Auto-continue: reached 50 rounds — stopping.",
+				{'color':True, 'colorValue':'orange','debugOnly':False})
+		elif mode == 'plan':
+			self.hLG.echo(
+				"Auto-continue: AI round {}/50 — continuing plan creation".format(auto_continue_count),
+				{'color':True, 'colorValue':'cyan','debugOnly':False})
+			self.Response('user', {'content': 'Continue creating plan tasks.'})
+			return auto_continue_count, True
+		else:
+			return self._auto_build_reenter(auto_continue_count)
 		return auto_continue_count, False
+
+	def _auto_should_reenter(self, mode):
+		"""Decide whether the AI loop should auto-continue in this mode."""
+		if mode == 'build' and self.Options.get('AUTO_CONTINUE_TASKS', True):
+			if not PlanBase.draft:
+				self.bg_log("Auto-continue check: no draft")
+				return False
+			task_statuses = [(tid, t.status) for tid, t in PlanBase.draft.tasks.items()]
+			has_remaining = any(
+				t.status in ('pending', 'in_progress')
+				for t in PlanBase.draft.tasks.values())
+			self.bg_log("Auto-continue check: tasks={}, remaining={}".format(task_statuses, has_remaining))
+			return has_remaining
+		if mode == 'plan' and self._last_ai_had_tools:
+			if not self._is_plan_complete():
+				return True
+			self.bg_log("Auto-continue check: plan complete (text_scan={}, flag={})".format(
+				self.Options.get('PLAN_COMPLETE_TEXT_SCAN', True),
+				getattr(self, '_plan_done_called', False)))
+			return False
+		self.bg_log("Auto-continue check: mode={}, last_ai_had_tools={}".format(mode, self._last_ai_had_tools))
+		return False
+
+	def _auto_build_reenter(self, auto_continue_count):
+		"""Re-enter AI() in build mode — report task progress and continue."""
+		total = len(PlanBase.draft.tasks)
+		completed = sum(1 for t in PlanBase.draft.tasks.values() if t.status == 'completed')
+		current_task = next((t for t in PlanBase.draft.tasks.values() if t.status == 'in_progress'), None)
+		task_num = completed + 1
+		task_inst = current_task.instruction if current_task else '(waiting)'
+		task_label = task_inst[:60] + '...' if len(task_inst) > 60 else task_inst
+		self.hLG.echo(
+			"Auto-continue: AI round {}/50 — task {}/{}: {}".format(
+				auto_continue_count, task_num, total, task_label),
+			{'color':True, 'colorValue':'green','debugOnly':False})
+		self.Response('user', {'content': 'Continue task {}/{}...\n{}'.format(task_num, total, task_inst)})
+		return auto_continue_count, True
