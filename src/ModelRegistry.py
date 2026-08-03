@@ -43,55 +43,58 @@ def apply(Options, model_name):
 		return []
 
 	changes = []
-	new_limit = caps['context_size']
-	is_chat_model = new_limit > 0
-
-	# Set chat-related options only for chat models
-	if is_chat_model:
-		old_limit = Options.get('AI_CONTEXT_LIMIT')
-		if old_limit != new_limit:
-			Options['AI_CONTEXT_LIMIT'] = new_limit
-			changes.append("Context: {} -> {}".format(
-				old_limit if old_limit is not None else '(default)', new_limit))
-
-		ai_opts = Options.get('AI_OPTIONS', {})
-		if not isinstance(ai_opts, dict):
-			ai_opts = {}
-		old_num_ctx = ai_opts.get('num_ctx')
-		ai_opts['num_ctx'] = new_limit
-		Options['AI_OPTIONS'] = ai_opts
-		if old_num_ctx != new_limit:
-			changes.append("num_ctx: {} -> {}".format(
-				old_num_ctx if old_num_ctx is not None else '(default)', new_limit))
-
-	# Set chat-related flags only for chat models
-	if is_chat_model:
-		old_think = Options.get('AI_THINK', False)
-		if old_think != caps['think']:
-			Options['AI_THINK'] = caps['think']
-			changes.append("Thinking: {} -> {}".format(
-				'on' if old_think else 'off', 'on' if caps['think'] else 'off'))
-
-		old_vision = Options.get('AI_VISION_ENABLED', False)
-		if old_vision != caps['vision']:
-			Options['AI_VISION_ENABLED'] = caps['vision']
-			changes.append("Vision: {} -> {}".format(
-				'on' if old_vision else 'off', 'on' if caps['vision'] else 'off'))
-
-		if caps['vision']:
-			Options['AI_VISION_NOTE'] = ""
-		else:
-			Options['AI_VISION_NOTE'] = (
-				"This model may not support vision. "
-				"Use !MODEL <vision-model> (e.g. llama3.2-vision:latest) to analyze images.")
-
-	# Set num_predict for chat models
-	if is_chat_model and caps.get('num_predict'):
-		new_np = caps['num_predict']
-		old_np = Options.get('NUM_PREDICT')
-		if old_np != new_np:
-			Options['NUM_PREDICT'] = new_np
-			changes.append("num_predict: {} -> {}".format(
-				old_np if old_np is not None else '(default)', new_np))
-
+	if caps['context_size'] > 0:
+		# Chat-related options only apply to chat models
+		_apply_context(Options, caps, changes)
+		_apply_cap_flags(Options, caps, changes)
+		_apply_num_predict(Options, caps, changes)
 	return changes
+
+def _apply_context(Options, caps, changes):
+	# Context window + num_ctx
+	new_limit = caps['context_size']
+	old_limit = Options.get('AI_CONTEXT_LIMIT')
+	if old_limit != new_limit:
+		Options['AI_CONTEXT_LIMIT'] = new_limit
+		changes.append("Context: {} -> {}".format(
+			old_limit if old_limit is not None else '(default)', new_limit))
+
+	ai_opts = Options.get('AI_OPTIONS', {})
+	if not isinstance(ai_opts, dict):
+		ai_opts = {}
+	old_num_ctx = ai_opts.get('num_ctx')
+	ai_opts['num_ctx'] = new_limit
+	Options['AI_OPTIONS'] = ai_opts
+	if old_num_ctx != new_limit:
+		changes.append("num_ctx: {} -> {}".format(
+			old_num_ctx if old_num_ctx is not None else '(default)', new_limit))
+
+def _apply_cap_flags(Options, caps, changes):
+	# think / vision flags + vision note
+	old_think = Options.get('AI_THINK', False)
+	if old_think != caps['think']:
+		Options['AI_THINK'] = caps['think']
+		changes.append("Thinking: {} -> {}".format(
+			'on' if old_think else 'off', 'on' if caps['think'] else 'off'))
+
+	old_vision = Options.get('AI_VISION_ENABLED', False)
+	if old_vision != caps['vision']:
+		Options['AI_VISION_ENABLED'] = caps['vision']
+		changes.append("Vision: {} -> {}".format(
+			'on' if old_vision else 'off', 'on' if caps['vision'] else 'off'))
+
+	if caps['vision']:
+		Options['AI_VISION_NOTE'] = ""
+	else:
+		Options['AI_VISION_NOTE'] = (
+			"This model may not support vision. "
+			"Use !MODEL <vision-model> (e.g. llama3.2-vision:latest) to analyze images.")
+
+def _apply_num_predict(Options, caps, changes):
+	# num_predict
+	new_np = caps['num_predict']
+	old_np = Options.get('NUM_PREDICT')
+	if new_np and old_np != new_np:
+		Options['NUM_PREDICT'] = new_np
+		changes.append("num_predict: {} -> {}".format(
+			old_np if old_np is not None else '(default)', new_np))
