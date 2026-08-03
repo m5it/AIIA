@@ -29,7 +29,27 @@ def reset_to_factory():
 	global Options
 	print("\nResetting to factory defaults...")
 	removed = 0
+	removed += _reset_state()
+	removed += _reset_history()
+	removed += _reset_plans()
+	removed += _reset_project_docs()
+	removed += _reset_tips()
+	removed += _reset_bg_log()
+	removed += _reset_cookies()
+	removed += _reset_audit()
 	#
+	print()
+	if removed > 0:
+		print("Factory reset complete. {} item(s) cleared.".format(removed))
+	else:
+		print("Nothing to reset — already clean.")
+	print("Run `aiia` to start a fresh session.")
+
+	#
+
+def _reset_state():
+	"""Reset the state file and remove legacy per-file .aiia state files."""
+	removed = 0
 	# 1. State file — reset session counter and mode
 	state_path = Options.get('AI_FILE_STATE', 'state.aiia')
 	try:
@@ -53,8 +73,13 @@ def reset_to_factory():
 				print("  Removed legacy {} -> {}".format(fname, fpath))
 			except Exception as e:
 				print("  Failed to remove {}: {}".format(fname, e))
+	return removed
+
 	#
-	# 2. History directory
+
+def _reset_history():
+	"""Clear the chat history directory."""
+	removed = 0
 	history_dir = os.path.join(Options.get('path', ''), Options.get('history_path', 'history'))
 	if os.path.isdir(history_dir):
 		try:
@@ -64,8 +89,13 @@ def reset_to_factory():
 			removed += 1
 		except Exception as e:
 			print("  Failed to clear history: {}".format(e))
+	return removed
+
 	#
-	# 3. Plans directory
+
+def _reset_plans():
+	"""Clear the plans directory."""
+	removed = 0
 	plans_dir = os.path.join(Options.get('path', ''), Options.get('plans_path', 'plans'))
 	if os.path.isdir(plans_dir):
 		try:
@@ -75,8 +105,13 @@ def reset_to_factory():
 			removed += 1
 		except Exception as e:
 			print("  Failed to clear plans: {}".format(e))
+	return removed
+
 	#
-	# 4. Project HISTORY.md and PLAN.md (only if working_dir differs from framework)
+
+def _reset_project_docs():
+	"""Remove project HISTORY.md and PLAN.md (only if working_dir differs)."""
+	removed = 0
 	working_dir = Options.get('working_dir')
 	framework_dir = Options.get('path', '').rstrip('/')
 	if working_dir and working_dir != framework_dir:
@@ -89,8 +124,13 @@ def reset_to_factory():
 					removed += 1
 				except Exception as e:
 					print("  Failed to remove {}: {}".format(fname, e))
+	return removed
+
 	#
-	# 5. Tips directory
+
+def _reset_tips():
+	"""Clear the tips directory."""
+	removed = 0
 	tips_path = Options.get('TIPS_PATH', os.path.expanduser('~/.config/aiia/tips'))
 	if os.path.isdir(tips_path):
 		try:
@@ -99,8 +139,13 @@ def reset_to_factory():
 			removed += 1
 		except Exception as e:
 			print("  Failed to clear tips: {}".format(e))
+	return removed
+
 	#
-	# 5b. Background log
+
+def _reset_bg_log():
+	"""Remove the background activity log."""
+	removed = 0
 	bg_log_path = Options.get('BACKGROUND_LOG')
 	if bg_log_path and os.path.exists(bg_log_path):
 		try:
@@ -108,8 +153,13 @@ def reset_to_factory():
 			print("  Cleared background.log -> {}".format(bg_log_path))
 		except Exception as e:
 			print("  Failed to remove background.log: {}".format(e))
+	return removed
+
 	#
-	# 6. Cookie files
+
+def _reset_cookies():
+	"""Remove web cookie files."""
+	removed = 0
 	for cookie_path in ['cookies.json', 'tools/koslenium_driver/www/cookies.json', 'tools/cookies.json']:
 		fpath = os.path.join(Options.get('path', ''), cookie_path)
 		if os.path.exists(fpath):
@@ -119,8 +169,13 @@ def reset_to_factory():
 				removed += 1
 			except Exception as e:
 				print("  Failed to remove {}: {}".format(fpath, e))
+	return removed
+
 	#
-	# 7. Terminal audit log
+
+def _reset_audit():
+	"""Remove the terminal audit log."""
+	removed = 0
 	audit_path = os.path.join(Options.get('path', ''), 'tools/koslenium_driver/www/terminal_audit.log')
 	if os.path.exists(audit_path):
 		try:
@@ -129,10 +184,4 @@ def reset_to_factory():
 			removed += 1
 		except Exception as e:
 			print("  Failed to remove audit log: {}".format(e))
-	#
-	print()
-	if removed > 0:
-		print("Factory reset complete. {} item(s) cleared.".format(removed))
-	else:
-		print("Nothing to reset — already clean.")
-	print("Run `aiia` to start a fresh session.")
+	return removed
