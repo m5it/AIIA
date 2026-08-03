@@ -116,6 +116,16 @@ class OrchestraDirector():
 		name = self.handle.Options.get('PLAN_WORKER', None)
 		if not name:
 			return None
+		sock = self._claim_plan_worker(name)
+		if sock is None:
+			return None
+		if not self._send_plan_request(name, message, sock):
+			return None
+		found = self._await_plan_result(name)
+		self._release_plan_worker(name)
+		return self._process_plan_result(name, found)
+
+	def _claim_plan_worker(self, name):
 		with self.lock:
 			if name not in self.workers:
 				self.handle.hLG.echo("Plan worker '{}' not connected.".format(name), {'color':True, 'colorValue':'red'})
@@ -126,22 +136,21 @@ class OrchestraDirector():
 				return None
 			worker['status'] = 'busy'
 			worker['busy_since'] = time.time()
-			sock = worker['sock']
+			return worker['sock']
 
+	def _send_plan_request(self, name, message, sock):
 		task_id = str(time.time())
 		msg = json.dumps({'type': 'plan', 'taskId': task_id, 'message': message})
 		try:
 			sock.sendall((msg + '\n').encode())
 		except Exception as e:
 			self.handle.hLG.echo("Failed to send plan request: {}".format(e), {'color':True, 'colorValue':'red'})
-			with self.lock:
-				if name in self.workers:
-					self.workers[name]['status'] = 'idle'
-					self.workers[name]['busy_since'] = None
-			return None
-
+			self._release_plan_worker(name)
+			return False
 		self.handle.hLG.echo("Sent plan request to '{}'...".format(name), {'color':True, 'colorValue':'cyan'})
+		return True
 
+	def _await_plan_result(self, name):
 		found = None
 		timeout = 300
 		start = time.time()
@@ -158,30 +167,32 @@ class OrchestraDirector():
 			if found:
 				break
 			time.sleep(0.2)
+		return found
 
+	def _release_plan_worker(self, name):
 		with self.lock:
 			if name in self.workers:
 				self.workers[name]['status'] = 'idle'
 				self.workers[name]['busy_since'] = None
 
-		if found:
-			from src.PlanManager import PlanBase, Plan
-			plan_data = found.get('plan')
-			response_text = found.get('response', '')
-			if plan_data:
-				plan = Plan.from_dict(plan_data)
-				PlanBase.draft = plan
-				if hasattr(plan, 'save'):
-					plan.save()
-				self.handle.hLG.echo("Plan '{}' loaded from worker '{}' ({} tasks)".format(
-					plan.title, name, len(plan.tasks)), {'color':True, 'colorValue':'green'})
-			if response_text:
-				self.handle.Response('assistant', {'content': response_text})
-			self.handle.hLG.echo("Planning from worker complete.", {'color':True, 'colorValue':'green'})
-			return plan_data
-
-		self.handle.hLG.echo("Plan request to '{}' timed out.".format(name), {'color':True, 'colorValue':'red'})
-		return None
+	def _process_plan_result(self, name, found):
+		if not found:
+			self.handle.hLG.echo("Plan request to '{}' timed out.".format(name), {'color':True, 'colorValue':'red'})
+			return None
+		from src.PlanManager import PlanBase, Plan
+		plan_data = found.get('plan')
+		response_text = found.get('response', '')
+		if plan_data:
+			plan = Plan.from_dict(plan_data)
+			PlanBase.draft = plan
+			if hasattr(plan, 'save'):
+				plan.save()
+			self.handle.hLG.echo("Plan '{}' loaded from worker '{}' ({} tasks)".format(
+				plan.title, name, len(plan.tasks)), {'color':True, 'colorValue':'green'})
+		if response_text:
+			self.handle.Response('assistant', {'content': response_text})
+		self.handle.hLG.echo("Planning from worker complete.", {'color':True, 'colorValue':'green'})
+		return plan_data
 
 	def poll_workers(self):
 		processed = False
