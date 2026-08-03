@@ -100,7 +100,6 @@ class ToolExecutor():
 		return None
 
 	def _execute_tool_call(self, toolName, params):
-		from src.ToolParser import ToolParser
 		# Validate and execute the tool
 		h = None
 		try:
@@ -109,68 +108,62 @@ class ToolExecutor():
 			required = info.get('parameters', {}).get('required', [])
 			missing = [r for r in required if r not in params or params[r] in (None, '')]
 			if missing:
-				self.handle.tool_errors += 1
-				# Track consecutive same-tool failures and inject correct-usage hint
-				if self.handle._last_failed_tool == toolName:
-					self.handle._last_failed_tool_count += 1
-				else:
-					self.handle._last_failed_tool = toolName
-					self.handle._last_failed_tool_count = 1
-				if self.handle._last_failed_tool_count >= 2:
-					usage_hint = (
-						"Tool `{}` failed {} times with missing parameter(s): {}. "
-						"Correct format:\n{}"
-					).format(toolName, self.handle._last_failed_tool_count,
-						', '.join(missing), self._tool_usage(info))
-					self.handle.hLG.echo(usage_hint, {'color':True, 'colorValue':'orange','debugOnly':False})
-					self.handle.Response('user', {'content': usage_hint})
+				self._track_tool_failure(toolName, "missing parameter(s): " + ', '.join(missing), info)
 				return "Error: Missing required parameter(s): {}{}".format(
 					', '.join(missing), self._tool_usage(info))
 			#
-			# Cache check: if tool has cache_ttl and caching enabled, try cache
-			cache_ttl = getattr(h, 'cache_ttl', 0)
-			cache_enabled = self.handle.Options.get('TOOL_CACHE_ENABLED', True)
-			cached = None
-			if cache_ttl > 0 and cache_enabled:
-				key = self._cache_key(toolName, params)
-				cached = self.handle.hTM.get_cache(toolName, key)
-			if cached is not None:
-				self.handle.hLG.echo("Cache HIT for {} — returning cached result".format(toolName), {'color':True, 'colorValue':'cyan'})
-				return cached
-			#
-			ToolParser._current_handle = self.handle
-			if self.handle.Options.get('TOOL_SHOW_LOAD', True):
-				self.handle.hLG.echo("Executing tool call {}...".format(toolName),
-					{'color':True, 'colorValue':'yellow'})
-			try:
-				result = h.run(**params)
-			finally:
-				ToolParser._current_handle = None
-			#
-			# Cache save: if tool has cache_ttl and result is not an error, save it
-			if cache_ttl > 0 and cache_enabled and result and not str(result).startswith('Error'):
-				key = self._cache_key(toolName, params)
-				self.handle.hTM.set_cache(toolName, key, result, cache_ttl)
-				self.handle.hLG.echo("Cached {} result (TTL: {}s)".format(toolName, cache_ttl), {'color':True, 'colorValue':'cyan'})
-			#
-			return result
+			return self._execute_cached_or_run(toolName, params, h)
 		except Exception as E:
-			self.handle.tool_errors += 1
-			# Track consecutive same-tool failures for exception path too
-			if self.handle._last_failed_tool == toolName:
-				self.handle._last_failed_tool_count += 1
-			else:
-				self.handle._last_failed_tool = toolName
-				self.handle._last_failed_tool_count = 1
 			info = getattr(h, 'info', {}) if h else {}
-			if self.handle._last_failed_tool_count >= 2:
-				usage_hint = (
-					"Tool `{}` failed {} times with errors. "
-					"Correct format:\n{}"
-				).format(toolName, self.handle._last_failed_tool_count, self._tool_usage(info))
-				self.handle.hLG.echo(usage_hint, {'color':True, 'colorValue':'orange','debugOnly':False})
-				self.handle.Response('user', {'content': usage_hint})
+			self._track_tool_failure(toolName, "errors", info)
 			return "Error executing {}: {}{}".format(toolName, E, self._tool_usage(info))
+
+	def _track_tool_failure(self, toolName, details, info):
+		# Record a tool failure, tracking consecutive same-tool failures.
+		# After 2 consecutive failures, echo + respond with a correct-usage hint.
+		self.handle.tool_errors += 1
+		if self.handle._last_failed_tool == toolName:
+			self.handle._last_failed_tool_count += 1
+		else:
+			self.handle._last_failed_tool = toolName
+			self.handle._last_failed_tool_count = 1
+		if self.handle._last_failed_tool_count >= 2:
+			usage_hint = (
+				"Tool `{}` failed {} times with {}. "
+				"Correct format:\n{}"
+			).format(toolName, self.handle._last_failed_tool_count, details, self._tool_usage(info))
+			self.handle.hLG.echo(usage_hint, {'color':True, 'colorValue':'orange','debugOnly':False})
+			self.handle.Response('user', {'content': usage_hint})
+
+	def _execute_cached_or_run(self, toolName, params, h):
+		from src.ToolParser import ToolParser
+		# Cache check: if tool has cache_ttl and caching enabled, try cache
+		cache_ttl = getattr(h, 'cache_ttl', 0)
+		cache_enabled = self.handle.Options.get('TOOL_CACHE_ENABLED', True)
+		cached = None
+		if cache_ttl > 0 and cache_enabled:
+			key = self._cache_key(toolName, params)
+			cached = self.handle.hTM.get_cache(toolName, key)
+		if cached is not None:
+			self.handle.hLG.echo("Cache HIT for {} — returning cached result".format(toolName), {'color':True, 'colorValue':'cyan'})
+			return cached
+		#
+		ToolParser._current_handle = self.handle
+		if self.handle.Options.get('TOOL_SHOW_LOAD', True):
+			self.handle.hLG.echo("Executing tool call {}...".format(toolName),
+				{'color':True, 'colorValue':'yellow'})
+		try:
+			result = h.run(**params)
+		finally:
+			ToolParser._current_handle = None
+		#
+		# Cache save: if tool has cache_ttl and result is not an error, save it
+		if cache_ttl > 0 and cache_enabled and result and not str(result).startswith('Error'):
+			key = self._cache_key(toolName, params)
+			self.handle.hTM.set_cache(toolName, key, result, cache_ttl)
+			self.handle.hLG.echo("Cached {} result (TTL: {}s)".format(toolName, cache_ttl), {'color':True, 'colorValue':'cyan'})
+		#
+		return result
 
 	def _cache_key(self, toolName, params):
 		import hashlib, json
