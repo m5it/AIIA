@@ -1,6 +1,7 @@
 #--
 # class CommandsSession — session & history commands
 import os, json
+from datetime import datetime
 from src.functions import fwrite
 class CommandsSession():
 	#
@@ -122,82 +123,17 @@ class CommandsSession():
 
 	def CMD_PREVIEW_HISTORY(self, inp=""):
 		"""!PH — compact color-coded preview of chat history."""
-		from datetime import datetime
 		msgs = self.handle.hHM.msgs
 		if not msgs:
 			print("No history.")
 			return 2
 		a = inp.split()
 		row = int(a[1]) if len(a) > 1 else None
-		R = '\033[0m'     # reset
-		G = '\033[1;32m'  # green — assistant
-		C = '\033[1;36m'  # cyan — user
-		Y = '\033[1;33m'  # yellow — system
-		B = '\033[1;34m'  # blue — tool
-		W = '\033[1;37m'  # white — header
-		D = '\033[2m'     # dim
-		BG = '\033[48;5;236m'  # dark gray background
-
-		def _label(role, tool_name):
-			if role == 'user':
-				return C, 'USER'
-			elif role == 'assistant':
-				return G, 'ASSISTANT'
-			elif role == 'system':
-				return Y, 'SYSTEM'
-			elif role == 'tool':
-				return B, 'TOOL:{}'.format(tool_name) if tool_name else 'TOOL'
-			else:
-				return R, role.upper()
-
 		# Single row view — full content, no truncation
 		if row is not None:
-			if row < 0 or row >= len(msgs):
-				print("Row {} out of range (0-{}).".format(row, len(msgs) - 1))
-				return 2
-			msg = msgs[row]
-			role = msg.get('role', '?')
-			content = msg.get('content', '')
-			ts = msg.get('timestamp', 0)
-			tool_name = msg.get('name', '')
-			thinking = msg.get('thinking', '')
-			time_str = datetime.fromtimestamp(ts).strftime('%H:%M:%S') if ts else '??:??:??'
-			color, label = _label(role, tool_name)
-			# Header
-			print()
-			print("{}{}═{} {}[{}]{} {} {}{} {}═{}{}".format(
-				D, '═' * 3, R, D, time_str, R, color + label + R, W, row, D, '═' * (40 - len(label)), R))
-			# Thinking block
-			if thinking:
-				print("\n{}💡 Thinking:{}\n{}".format(D, R, thinking))
-			# Content — full, not truncated
-			if content:
-				print("\n{}\n".format(content))
-			else:
-				print("\n{}(empty){}\n".format(D, R))
-			# Footer
-			print("{}{}═{} ({} chars){}".format(D, '═' * 50, R, len(content), R))
-			return 2
-
+			return _ph_row_view(msgs, row)
 		# Full history list
-		print("\n{}=== CHAT HISTORY ({} messages) ==={}\n".format(W, len(msgs), R))
-		for i, msg in enumerate(msgs):
-			role = msg.get('role', '?')
-			content = msg.get('content', '')
-			ts = msg.get('timestamp', 0)
-			tool_name = msg.get('name', '')
-			time_str = datetime.fromtimestamp(ts).strftime('%H:%M') if ts else '??:??'
-			color, label = _label(role, tool_name)
-			# Truncate content to 80 chars, single-line
-			preview = content.replace('\n', ' ').replace('\r', '')
-			if len(preview) > 80:
-				preview = preview[:80] + '...'
-			elif not preview:
-				preview = '(empty)'
-			print(" {:>3} {}[{}]{} {:<14} {}".format(
-				i, D, time_str, R, color + label + R, D + preview + R))
-		print()
-		return 2
+		return _ph_list_view(msgs)
 	#
 	def CMD_NAME_HISTORY(self, inp=""):
 		"""!NH <name> — give a human-readable name to the current history session."""
@@ -226,3 +162,80 @@ class CommandsSession():
 		return 3 # as break
 	#
 	#
+
+#--
+# ANSI color codes used by the !PH history preview
+_PH_R = '\033[0m'     # reset
+_PH_G = '\033[1;32m'  # green — assistant
+_PH_C = '\033[1;36m'  # cyan — user
+_PH_Y = '\033[1;33m'  # yellow — system
+_PH_B = '\033[1;34m'  # blue — tool
+_PH_W = '\033[1;37m'  # white — header
+_PH_D = '\033[2m'     # dim
+_PH_BG = '\033[48;5;236m'  # dark gray background
+
+def _ph_label(role, tool_name):
+	if role == 'user':
+		return _PH_C, 'USER'
+	elif role == 'assistant':
+		return _PH_G, 'ASSISTANT'
+	elif role == 'system':
+		return _PH_Y, 'SYSTEM'
+	elif role == 'tool':
+		return _PH_B, 'TOOL:{}'.format(tool_name) if tool_name else 'TOOL'
+	else:
+		return _PH_R, role.upper()
+
+#--
+
+def _ph_row_view(msgs, row):
+	# Single row view — full content, no truncation
+	if row < 0 or row >= len(msgs):
+		print("Row {} out of range (0-{}).".format(row, len(msgs) - 1))
+		return 2
+	msg = msgs[row]
+	role = msg.get('role', '?')
+	content = msg.get('content', '')
+	ts = msg.get('timestamp', 0)
+	tool_name = msg.get('name', '')
+	thinking = msg.get('thinking', '')
+	time_str = datetime.fromtimestamp(ts).strftime('%H:%M:%S') if ts else '??:??:??'
+	color, label = _ph_label(role, tool_name)
+	# Header
+	print()
+	print("{}{}═{} {}[{}]{} {} {}{} {}═{}{}".format(
+		_PH_D, '═' * 3, _PH_R, _PH_D, time_str, _PH_R, color + label + _PH_R, _PH_W, row, _PH_D, '═' * (40 - len(label)), _PH_R))
+	# Thinking block
+	if thinking:
+		print("\n{}💡 Thinking:{}\n{}".format(_PH_D, _PH_R, thinking))
+	# Content — full, not truncated
+	if content:
+		print("\n{}\n".format(content))
+	else:
+		print("\n{}(empty){}\n".format(_PH_D, _PH_R))
+	# Footer
+	print("{}{}═{} ({} chars){}".format(_PH_D, '═' * 50, _PH_R, len(content), _PH_R))
+	return 2
+
+#--
+
+def _ph_list_view(msgs):
+	# Full history list
+	print("\n{}=== CHAT HISTORY ({} messages) ==={}\n".format(_PH_W, len(msgs), _PH_R))
+	for i, msg in enumerate(msgs):
+		role = msg.get('role', '?')
+		content = msg.get('content', '')
+		ts = msg.get('timestamp', 0)
+		tool_name = msg.get('name', '')
+		time_str = datetime.fromtimestamp(ts).strftime('%H:%M') if ts else '??:??'
+		color, label = _ph_label(role, tool_name)
+		# Truncate content to 80 chars, single-line
+		preview = content.replace('\n', ' ').replace('\r', '')
+		if len(preview) > 80:
+			preview = preview[:80] + '...'
+		elif not preview:
+			preview = '(empty)'
+		print(" {:>3} {}[{}]{} {:<14} {}".format(
+			i, _PH_D, time_str, _PH_R, color + label + _PH_R, _PH_D + preview + _PH_R))
+	print()
+	return 2
