@@ -252,12 +252,7 @@ class ToolExecutor():
 			# Show user what tool is being called (human-readable preview)
 			action_msg = self._format_action(toolName, params)
 			show_load = self.handle.Options.get('TOOL_SHOW_LOAD', True)
-			if show_load:
-				_tool_start = time.time()
-				_input_size = len(json.dumps(params))
-				self.handle.hLG.echo("Loading tool call {} {}".format(toolName, action_msg), {'color':True, 'colorValue':'cyan'})
-			else:
-				self.handle.hLG.echo("⚙️ {} {}".format(toolName, action_msg), {'color':True, 'colorValue':'green'})
+			_tool_start, _input_size = self._fire_show_load(toolName, params, action_msg, show_load)
 			#
 			# File size guard — prevent creating/modifying files larger than AI_MAX_FILE_SIZE
 			if self._guard_file_size(toolName, params) is not None:
@@ -285,56 +280,19 @@ class ToolExecutor():
 			last_result = result
 			#
 			# Post-write syntax validation — warn model immediately if edit broke syntax
-			if (toolName in self._write_tools_validate
-				and not str(result).startswith('Error')
-				and self.handle.Options.get('TOOL_CODE_VALIDATE', True)):
-				file_path = params.get('fileName', '')
-				if file_path:
-					warn = self._validate_file(file_path)
-					if warn:
-						result = warn + "\n" + str(result)
-						last_result = result
+			result = self._fire_post_write_validate(toolName, params, result)
+			last_result = result
 			#
 			# Truncation detection — warn model if response hit num_predict limit
-			if toolName in ('WriteFile', 'CreateFile', 'AppendFile'):
-				response_tokens = self.handle.Options.get('NUM_LAST_RESPONSE_TOKENS', 0)
-				num_predict = self.handle.Options.get('NUM_PREDICT')
-				if num_predict and response_tokens and response_tokens >= num_predict - 200:
-					warn = ("⚠ TRUNCATION: File may be incomplete (model hit {} token limit). "
-						"Use <WriteFile> for first ~200 lines, then <AppendFile> for subsequent chunks.").format(num_predict)
-					result = warn + "\n" + str(result)
-					last_result = result
-					self.handle.Options['CHUNKED_WRITE_HINT'] = True
+			result = self._fire_truncation_warning(toolName, params, result)
+			last_result = result
 			#
 			# Show loaded message with timing and sizes (verbose mode)
-			if show_load:
-				_elapsed = time.time() - _tool_start
-				_output_size = len(str(result))
-				self.handle.hLG.echo("Loaded in {:.3f}s — Input: {} bytes, Output: {} bytes".format(
-					_elapsed, _input_size, _output_size),
-					{'color':True, 'colorValue':'green'})
+			self._fire_show_loaded(toolName, result, show_load, _tool_start, _input_size)
 			#
-			if self.handle.Options.get('TOOL_RESULT_AS_SYSTEM', False):
-				self.handle.Response('system',{'content':"☰ Tool [{}] returned:\n{}".format(toolName, str(result))})
-			elif self.handle.Options.get('TOOL_RESULT_AS_USER', False):
-				self.handle.Response('user',{'content':"☰ Tool [{}] returned:\n{}".format(toolName, str(result))})
-			else:
-				self.handle.Response('tool',{'content':str(result),'name':toolName})
+			self._fire_respond_result(toolName, result)
 			#
-			# (Just on print to console. Chat History should have always original data!) Truncate result if too long
-			MAX_PREVIEW = 500
-			result_str = str(result)
-			if len(result_str) > MAX_PREVIEW:
-				result_str = result_str[:MAX_PREVIEW] + "... (truncated, {} chars total)".format(len(str(result)))
-			#
-			echo_opts = {'color':True, 'colorValue':'green'}
-			if result_str.startswith('Error: ') or result_str.startswith('Warning: '):
-				echo_opts['debugOnly'] = False
-				if result_str.startswith('Error: '):
-					echo_opts['colorValue'] = 'red'
-				else:
-					echo_opts['colorValue'] = 'orange'
-			self.handle.hLG.echo("✓ {}: {}".format(toolName, result_str), echo_opts)
+			self._fire_echo_result(toolName, result)
 			#
 			# Track jobDone to signal Parse/AI loop
 			if toolName == 'jobDone':
@@ -346,6 +304,74 @@ class ToolExecutor():
 				self.handle._last_failed_tool_count = 0
 			self.handle.hLG.echo("--- Tool iterations: {} | errors: {}".format(self.handle.tool_iteration, self.handle.tool_errors), {'color':True, 'colorValue':'cyan'})
 		return last_result
+
+	def _fire_show_load(self, toolName, params, action_msg, show_load):
+		if show_load:
+			_tool_start = time.time()
+			_input_size = len(json.dumps(params))
+			self.handle.hLG.echo("Loading tool call {} {}".format(toolName, action_msg), {'color':True, 'colorValue':'cyan'})
+		else:
+			_tool_start = None
+			_input_size = 0
+			self.handle.hLG.echo("⚙️ {} {}".format(toolName, action_msg), {'color':True, 'colorValue':'green'})
+		return _tool_start, _input_size
+
+	def _fire_post_write_validate(self, toolName, params, result):
+		# Post-write syntax validation — warn model immediately if edit broke syntax
+		if (toolName in self._write_tools_validate
+			and not str(result).startswith('Error')
+			and self.handle.Options.get('TOOL_CODE_VALIDATE', True)):
+			file_path = params.get('fileName', '')
+			if file_path:
+				warn = self._validate_file(file_path)
+				if warn:
+					result = warn + "\n" + str(result)
+		return result
+
+	def _fire_truncation_warning(self, toolName, params, result):
+		# Truncation detection — warn model if response hit num_predict limit
+		if toolName in ('WriteFile', 'CreateFile', 'AppendFile'):
+			response_tokens = self.handle.Options.get('NUM_LAST_RESPONSE_TOKENS', 0)
+			num_predict = self.handle.Options.get('NUM_PREDICT')
+			if num_predict and response_tokens and response_tokens >= num_predict - 200:
+				warn = ("⚠ TRUNCATION: File may be incomplete (model hit {} token limit). "
+					"Use <WriteFile> for first ~200 lines, then <AppendFile> for subsequent chunks.").format(num_predict)
+				result = warn + "\n" + str(result)
+				self.handle.Options['CHUNKED_WRITE_HINT'] = True
+		return result
+
+	def _fire_show_loaded(self, toolName, result, show_load, _tool_start, _input_size):
+		# Show loaded message with timing and sizes (verbose mode)
+		if show_load:
+			_elapsed = time.time() - _tool_start
+			_output_size = len(str(result))
+			self.handle.hLG.echo("Loaded in {:.3f}s — Input: {} bytes, Output: {} bytes".format(
+				_elapsed, _input_size, _output_size),
+				{'color':True, 'colorValue':'green'})
+
+	def _fire_respond_result(self, toolName, result):
+		if self.handle.Options.get('TOOL_RESULT_AS_SYSTEM', False):
+			self.handle.Response('system',{'content':"☰ Tool [{}] returned:\n{}".format(toolName, str(result))})
+		elif self.handle.Options.get('TOOL_RESULT_AS_USER', False):
+			self.handle.Response('user',{'content':"☰ Tool [{}] returned:\n{}".format(toolName, str(result))})
+		else:
+			self.handle.Response('tool',{'content':str(result),'name':toolName})
+
+	def _fire_echo_result(self, toolName, result):
+		# (Just on print to console. Chat History should have always original data!) Truncate result if too long
+		MAX_PREVIEW = 500
+		result_str = str(result)
+		if len(result_str) > MAX_PREVIEW:
+			result_str = result_str[:MAX_PREVIEW] + "... (truncated, {} chars total)".format(len(str(result)))
+		#
+		echo_opts = {'color':True, 'colorValue':'green'}
+		if result_str.startswith('Error: ') or result_str.startswith('Warning: '):
+			echo_opts['debugOnly'] = False
+			if result_str.startswith('Error: '):
+				echo_opts['colorValue'] = 'red'
+			else:
+				echo_opts['colorValue'] = 'orange'
+		self.handle.hLG.echo("✓ {}: {}".format(toolName, result_str), echo_opts)
 
 	@staticmethod
 	def _fire_sort_key(inv):
