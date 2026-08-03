@@ -693,40 +693,12 @@ class HandleChat():
 				return {'result': result, 'res': res,
 						'context_cleared': False, 'model_failed': False}
 			except Exception as e:
-				err_str = str(e).lower()
-				if 'too large' in err_str or '400' in err_str or '413' in err_str or 'request body' in err_str:
-					self.hLG.echo("AI request too large — auto-clearing context and retrying...",
-						{'color':True, 'colorValue':'orange','debugOnly':False})
-					self._auto_clear()
+				if self._retry_too_large(e):
 					return {'result': None, 'res': None,
 							'context_cleared': True, 'model_failed': False}
 				model_retries += 1
 				if model_retries > max_retries:
-					self.bg_log(
-						"Model call failed after {} attempts: {}".format(max_retries, e),
-						"ERROR")
-					self.hLG.echo(
-						"AI model unavailable after {} attempts — guiding model to switch".format(max_retries),
-						{'color':True, 'colorValue':'red','debugOnly':False})
-					if self._get_backend().is_vllm:
-						recovery_msg = (
-							"[System: The model API call failed {} times consecutively. "
-							"The vLLM server at {} may be down or the model name is wrong. "
-							"Check the server, use `!MODELS` to list available models, "
-							"or switch backends with `!BACKEND ollama`.]"
-						).format(max_retries, self.Options.get('VLLM_HOST', ''))
-					else:
-						recovery_msg = (
-							"[System: The model API call failed {} times consecutively. "
-							"This is likely a cloud-model connectivity issue. "
-							"Switch to a local model with `!MODEL gemma3:12b` or another available local model.]"
-						).format(max_retries)
-					self.Response('user', {'content': recovery_msg})
-					self.tool_errors = 0
-					self._last_failed_tool = None
-					self._last_failed_tool_count = 0
-					return {'result': None, 'res': None,
-							'context_cleared': False, 'model_failed': True}
+					return self._retry_exhausted(max_retries, e)
 				self.bg_log(
 					"Model call failed (attempt {}/{}): {}".format(
 						model_retries, max_retries, e))
@@ -735,6 +707,48 @@ class HandleChat():
 						model_retries, max_retries, str(e)),
 					{'color':True, 'colorValue':'red','debugOnly':False})
 				time.sleep(1)
+
+	def _retry_too_large(self, e):
+		"""True when the request was rejected for being too large — clear
+		context and let the caller retry with fewer messages."""
+		err_str = str(e).lower()
+		if not ('too large' in err_str or '400' in err_str or '413' in err_str or 'request body' in err_str):
+			return False
+		self.hLG.echo("AI request too large — auto-clearing context and retrying...",
+			{'color':True, 'colorValue':'orange','debugOnly':False})
+		self._auto_clear()
+		return True
+
+	def _retry_exhausted(self, max_retries, e):
+		"""Final failure — inject a recovery message guiding the model to
+		switch models/backends. Returns the model_failed result dict."""
+		self.bg_log(
+			"Model call failed after {} attempts: {}".format(max_retries, e),
+			"ERROR")
+		self.hLG.echo(
+			"AI model unavailable after {} attempts — guiding model to switch".format(max_retries),
+			{'color':True, 'colorValue':'red','debugOnly':False})
+		self.Response('user', {'content': self._recovery_message(max_retries)})
+		self.tool_errors = 0
+		self._last_failed_tool = None
+		self._last_failed_tool_count = 0
+		return {'result': None, 'res': None,
+				'context_cleared': False, 'model_failed': True}
+
+	def _recovery_message(self, max_retries):
+		"""System guidance for the model after repeated API failures."""
+		if self._get_backend().is_vllm:
+			return (
+				"[System: The model API call failed {} times consecutively. "
+				"The vLLM server at {} may be down or the model name is wrong. "
+				"Check the server, use `!MODELS` to list available models, "
+				"or switch backends with `!BACKEND ollama`.]"
+			).format(max_retries, self.Options.get('VLLM_HOST', ''))
+		return (
+			"[System: The model API call failed {} times consecutively. "
+			"This is likely a cloud-model connectivity issue. "
+			"Switch to a local model with `!MODEL gemma3:12b` or another available local model.]"
+		).format(max_retries)
 
 	#
 
