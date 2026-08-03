@@ -157,6 +157,12 @@ def Main(argv):
 		Options['AI_LIVE'] = False
 		run_client(host, port)
 		sys.exit(0)
+	if '--work' in argv:
+		from run_work import Main as WorkMain
+		idx = argv.index('--work')
+		Options['AI_LIVE'] = False
+		WorkMain(argv[idx + 1:])
+		sys.exit(0)
 	#
 	# Load per-project config overrides (aiia.json in CWD)
 	# Applied before CLI parsing so CLI flags have final say

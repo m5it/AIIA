@@ -23,6 +23,7 @@ def Help():
 	print("-R                         # Factory reset (delete all state)")
 	print("-O / --orchestra [opts]    # Run as orchestra director (--orchestra -h for help)")
 	print("-W / --worker [opts]       # Run as orchestra worker (--worker -h for help)")
+	print("--work [opts]              # Run as aiia_work marketplace client (--work -h for help)")
 	print("-S / --server [host:port]  # Run as SSE chat server (default 127.0.0.1:9877)")
 	print("-C / --connect [host:port] # Connect to SSE chat server (default 127.0.0.1:9877)")
 	print("-Y [content_data]          # Set data / content to send as request to AIIA.")

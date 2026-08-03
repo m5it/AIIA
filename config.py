@@ -138,6 +138,15 @@ Options         = {
 		".js" :"javascript",
 		".sh" :"bash",
 	},
+	#
+	# aiia_work marketplace client (python run.py --work) — separate, opt-in feature
+	"AIIA_WORK_BASE_URL"  :"https://apis.aiia-frame.work/rest/aiia_work", # marketplace API base URL (local dev: http://localhost:8006/rest/aiia_work)
+	"AIIA_WORK_API_KEY"   :"",   # API key (X-Api-Key). Priority: env AIIA_WORK_API_KEY > config > stored key file
+	"AIIA_WORK_SSO_TOKEN" :"",   # SSO bearer token (required for !WORK KEYGEN)
+	"AIIA_WORK_KEY_FILE"  :None, # stored API key file (default: ~/.config/aiia/aiia_work.json)
+	"AIIA_WORK_ROLE"      :"both", # default role for keygen: giver | worker | both
+	"AIIA_WORK_TIMEOUT"   :30,     # HTTP timeout (seconds)
+	"AIIA_WORK_RETRIES"   :2,      # retries on transient 500s / network errors
 
 	# Token counting (populated dynamically by Handle.py on each response)
 	"NUM_PROMPT_TOKENS"       :0,  # cumulative prompt tokens across session

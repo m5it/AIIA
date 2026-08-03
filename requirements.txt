@@ -8,6 +8,10 @@
 # GPU/ML packages for image generation and MediaAnalyst persona
 # are in requirements-gpu.txt. Install only if needed:
 #   pip install -r requirements-gpu.txt
+#
+# aiia_work marketplace client (python run.py --work) is a separate,
+# opt-in feature: install only if used:
+#   pip install -r requirements-marketplace.txt
 
 requests>=2.31.0
 Pillow>=10.0.0

@@ -1,0 +1,6 @@
+# aiia_work marketplace client (python run.py --work) — optional, separate feature.
+# Includes common core deps from requirements.txt.
+# Install with: pip install -r requirements-marketplace.txt
+
+-r requirements.txt
+requests>=2.31.0

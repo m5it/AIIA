@@ -8,6 +8,7 @@ pip install -r requirements.txt  # install common core deps (fast, ~5MB)
 pip install -r requirements-ollama.txt  # install default backend (Ollama)
 pip install -r requirements-vllm.txt    # install vLLM backend instead (OpenAI-compatible)
 pip install -r requirements-gpu.txt  # optional GPU deps (torch, diffusers, etc.)
+pip install -r requirements-marketplace.txt  # optional aiia_work marketplace client (separated feature)
 python run.py                    # start AIIA interactive session
 python run.py -m gemma3:12b     # specify model (default: kimi-k2.5:cloud, see config.py)
 python run.py -b vllm -m <model>  # use vLLM backend (OpenAI-compatible, default: ollama)
@@ -18,6 +19,7 @@ python run.py -Y "prompt"        # single request, no interactive session
 python run.py -d                 # enable debug output
 python run.py -T 0.8             # set temperature
 
+python run.py --work             # start aiia_work marketplace client (!WORK commands)
 python run_orchestra.py --port 9876        # start orchestra director
 python run_worker.py --connect localhost:9876 --name w1 -m gemma3:12b  # start worker
 
@@ -113,6 +115,7 @@ CODECOV_TOKEN="$CODECOV_TOKEN" codecovcli upload-report
 
 - **Entry point**: `run.py` → thin entry; CLI parsing in `src/cli.py`, factory reset in `src/FactoryReset.py`, persona resolution in `src/PersonaResolver.py`, then initializes `Handle` class from `src/Handle.py`
 - **Orchestra entry points**: `run_orchestra.py` (director), `run_worker.py` (worker)
+- **Marketplace entry point**: `run_work.py` (aiia_work client, `python run.py --work`)
 - **Core modules**: all in `src/` — `Handle.py` orchestrates chat, tools, history via 5 mixins (`HandleStream`, `HandleParse`, `HandleContext`, `HandleState`, `HandleChat`); `Commands.py` routes user `!`-commands via 8 mixins (`CommandsConfig` … `CommandsWorkers`) with the command registry in `src/commands_registry.py`; `ToolParser.py` parses/executes XML tool calls via 3 mixins (`ToolXmlParser`, `ToolExecutor`, `PlanToolHandler`)
 - **Personas**: `instruct/` directory — personality classes with plan/build system prompts, optional model override
 - **Tools**: `tools/` directory — dynamically loaded Python classes that the AI invokes via `<ToolName>` XML syntax
@@ -373,6 +376,21 @@ The model can use a shared cookie file so `WWW` and `WWWJS` tools stay logged in
    ```
 
 When `COOKIE_FILE` is `None` (default), the tools work as before without cookies.
+
+## aiia_work Marketplace Client
+
+Separate, opt-in feature (`python run.py --work`). Isolated from the normal chat session — no XML/AI tools, only `!WORK` commands. Lives in the standalone `aiia_work/` package (no `src/` deps) + `run_work.py` entry point, wired into `run.py`'s subcommand routing.
+
+```bash
+pip install -r requirements-marketplace.txt
+python run.py --work --base-url http://localhost:8006/rest/aiia_work
+```
+
+**API key resolution** (priority order): env `AIIA_WORK_API_KEY` > config `AIIA_WORK_API_KEY` > stored key file `~/.config/aiia/aiia_work.json` (created automatically after `!WORK KEYGEN`). `!WORK KEYGEN` needs an SSO bearer token (`--sso-token` / `AIIA_WORK_SSO_TOKEN`).
+
+**`!WORK` commands:** `HELP`, `KEYGEN [label] [role]`, `KEYS`, `KEYREVOKE <id>`, `CREATE <title> [--desc ..] [--budget N] [--currency C] [--tags a,b]`, `LIST`, `SHOW <id>`, `STATUS <id> <open|in_progress|completed|closed>`, `APPLY <project_id> <msg>`, `MY`, `ACCEPT <rid>`, `DECLINE <rid>`, `CMD <name> [json]` (framework bridge), `QUIT`.
+
+Config keys: `AIIA_WORK_BASE_URL` (default `https://apis.aiia-frame.work/rest/aiia_work`), `AIIA_WORK_API_KEY`, `AIIA_WORK_SSO_TOKEN`, `AIIA_WORK_KEY_FILE`, `AIIA_WORK_ROLE`, `AIIA_WORK_TIMEOUT`, `AIIA_WORK_RETRIES`.
 
 ## Quirks
 
