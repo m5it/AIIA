@@ -1,6 +1,6 @@
 #--
 # class ToolExecutor — load, validate and execute tool invocations
-import os, time, json
+import os, time, json, subprocess, shlex
 from src.functions import initmodule, importmodule, splitFileNameExtension
 class ToolExecutor():
 	#
@@ -33,75 +33,17 @@ class ToolExecutor():
 				#
 				if has_shell:
 					# Shell syntax detected — execute via bash -c directly (skip Terminal routing)
-					full_cmd = "{} {}".format(fileName, args_str)
 					print("ExecuteScript({}) — shell syntax detected, running via bash -c".format(fileName))
-					import subprocess
-					try:
-						result = subprocess.run(
-							["bash", "-c", full_cmd],
-							capture_output=True, text=True, timeout=30, cwd="."
-						)
-						output = ""
-						if result.stdout:
-							output += result.stdout
-						if result.stderr:
-							output += "\nSTDERR:\n{}".format(result.stderr)
-						return output if output else "(no output)"
-					except subprocess.TimeoutExpired:
-						return "Error: Script execution timed out (30s limit)"
-					except Exception as E:
-						return "Error: {}".format(E)
+					return _run_shell_command(fileName, args_str)
 				#
 				# No shell syntax — route to Terminal tool
 				print("Routing ExecuteScript({}) to Terminal tool".format(fileName))
-				# Build args for Terminal: arg1=fileName, arg2=args, etc.
-				terminal_args = {}
-				terminal_args['arg1'] = fileName
-				#
-				# Add additional args if provided
+				terminal_args = _build_terminal_args(params)
 				if 'args' in params:
-					args = params['args']
-					# Handle if args is a string (could be JSON array, Python list repr, or space-separated)
-					if isinstance(args, str):
-						import json
-						# Try to parse as JSON array first
-						try:
-							parsed_args = json.loads(args)
-							if isinstance(parsed_args, list):
-								for i, arg in enumerate(parsed_args, start=2):
-									terminal_args['arg{}'.format(i)] = str(arg)
-								args = None  # Mark as processed
-						except (ValueError, TypeError):
-							pass
-						#
-						if args:  # Not JSON, try other formats
-							# Check if it looks like a Python list representation: [item1, item2, ...]
-							if args.strip().startswith('[') and args.strip().endswith(']'):
-								# Strip brackets and split by comma
-								inner = args.strip()[1:-1].strip()
-								if inner:  # Not empty
-									# Split by comma and clean up
-									parts = [p.strip().strip('"\'') for p in inner.split(',')]
-									for i, arg in enumerate(parts, start=2):
-										if arg:  # Skip empty parts
-											terminal_args['arg{}'.format(i)] = arg
-								args = None
-						#
-						if args:  # Still not processed, treat as space-separated
-							import shlex
-							try:
-								parsed_args = shlex.split(args)
-								for i, arg in enumerate(parsed_args, start=2):
-									terminal_args['arg{}'.format(i)] = arg
-							except (ValueError, TypeError):
-								terminal_args['arg2'] = args
-					elif isinstance(args, list):
-						for i, arg in enumerate(args, start=2):
-							terminal_args['arg{}'.format(i)] = str(arg)
-					#
-					toolName = 'Terminal'
-					params = terminal_args
+					return 'Terminal', terminal_args
 		return toolName, params
+
+	#
 
 	def _load_tool_dynamic(self, toolName):
 		# Load tool dynamically if not already loaded
@@ -509,3 +451,71 @@ class ToolExecutor():
 				self.handle._plan_blocked_tool = toolName
 				return err
 		return None
+
+#--
+
+def _run_shell_command(fileName, args_str):
+	"""Execute a non-script command via bash -c directly. Returns output."""
+	full_cmd = "{} {}".format(fileName, args_str)
+	try:
+		result = subprocess.run(
+			["bash", "-c", full_cmd],
+			capture_output=True, text=True, timeout=30, cwd="."
+		)
+		output = ""
+		if result.stdout:
+			output += result.stdout
+		if result.stderr:
+			output += "\nSTDERR:\n{}".format(result.stderr)
+		return output if output else "(no output)"
+	except subprocess.TimeoutExpired:
+		return "Error: Script execution timed out (30s limit)"
+	except Exception as E:
+		return "Error: {}".format(E)
+
+#--
+
+def _build_terminal_args(params):
+	"""Convert ExecuteScript params into Terminal arg1/arg2/... args."""
+	terminal_args = {}
+	terminal_args['arg1'] = params.get('fileName', '')
+	#
+	# Add additional args if provided
+	if 'args' in params:
+		args = params['args']
+		# Handle if args is a string (could be JSON array, Python list repr, or space-separated)
+		if isinstance(args, str):
+			# Try to parse as JSON array first
+			try:
+				parsed_args = json.loads(args)
+				if isinstance(parsed_args, list):
+					for i, arg in enumerate(parsed_args, start=2):
+						terminal_args['arg{}'.format(i)] = str(arg)
+					args = None  # Mark as processed
+			except (ValueError, TypeError):
+				pass
+			#
+			if args:  # Not JSON, try other formats
+				# Check if it looks like a Python list representation: [item1, item2, ...]
+				if args.strip().startswith('[') and args.strip().endswith(']'):
+					# Strip brackets and split by comma
+					inner = args.strip()[1:-1].strip()
+					if inner:  # Not empty
+						# Split by comma and clean up
+						parts = [p.strip().strip('"\'') for p in inner.split(',')]
+						for i, arg in enumerate(parts, start=2):
+							if arg:  # Skip empty parts
+								terminal_args['arg{}'.format(i)] = arg
+					args = None
+				#
+				if args:  # Still not processed, treat as space-separated
+					try:
+						parsed_args = shlex.split(args)
+						for i, arg in enumerate(parsed_args, start=2):
+							terminal_args['arg{}'.format(i)] = arg
+					except (ValueError, TypeError):
+						terminal_args['arg2'] = args
+		elif isinstance(args, list):
+			for i, arg in enumerate(args, start=2):
+				terminal_args['arg{}'.format(i)] = str(arg)
+	return terminal_args
