@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-08-03 — v1.1.7
+
+### Auto: Version v1.1.7
+
+- Version auto-incremented from v1.1.6
+- Files changed: AUTOVERSION.py, CHANGELOG.md, README.md, src/HandleChat.py
+
+---
+
+
+## 2026-08-03 — v1.1.6
+
+### Added: aiia_work Marketplace Client (`python run.py --work`)
+
+New opt-in client for the aiia_work marketplace — isolated from the normal chat session (no XML/AI tools, only `!WORK` commands). Lives in the standalone `aiia_work/` package (no `src/` deps) plus `run_work.py`, wired into `run.py`'s subcommand routing.
+
+- **`!WORK` commands:** `HELP`, `KEYGEN [label] [role]`, `KEYS`, `KEYREVOKE <id>`, `CREATE <title> [--desc ..] [--budget N] [--currency C] [--tags a,b]`, `LIST`, `SHOW <id>`, `STATUS <id> <open|in_progress|completed|closed>`, `APPLY <project_id> <msg>`, `MY`, `ACCEPT <rid>`, `DECLINE <rid>`, `CMD <name> [json]` (framework bridge), `QUIT`
+- **API key resolution:** env `AIIA_WORK_API_KEY` > config > stored key file `~/.config/aiia/aiia_work.json` (auto-created after `!WORK KEYGEN`; key saved with 0600 perms)
+- **Config keys:** `AIIA_WORK_BASE_URL`, `AIIA_WORK_API_KEY`, `AIIA_WORK_SSO_TOKEN`, `AIIA_WORK_KEY_FILE`, `AIIA_WORK_ROLE`, `AIIA_WORK_TIMEOUT`, `AIIA_WORK_RETRIES`
+- **Tests:** `tests/test_work_client.py` (20), `tests/test_work_console.py` (18)
+- **Dependencies:** `requirements-marketplace.txt`
+
+### Fixed: Ctrl+D "Stop AI" no longer disables plan auto-continue
+
+Choosing "2. Stop AI — return to chat prompt" in the AI Loop Interrupted menu was silently setting both `AUTO_CONTINUE_TASKS` and `AUTO_CONTINUE_ALL_TASKS` to `False` for the rest of the process. After a single Ctrl+D interrupt, the framework stopped auto-re-entering the AI loop between plan tasks — the plan never ran to completion unless the user typed `continue` by hand. "Stop AI" now only ends the current round; auto-continue is toggled deliberately via `!AUTO true|false`.
+
+**Files:** `src/HandleChat.py`
+
+### Refactored: Handle / Commands / backends internals
+
+- `Handle.__init__` split across the `HandleState` / `HandleChat` / `HandleParse` / `HandleContext` / `HandleStream` mixins (60 → 8 lines)
+- `HandleChat._handle_auto_continue` (56 → 22 lines), `HandleState._load_history_md` (56 → 18 lines), `ImageGenBackends._generate_diffusers` (58 → 30 lines)
+
+---
+
 ## 2026-08-02 — v1.1.5
 
 ### Auto: Version v1.1.5

@@ -502,8 +502,6 @@ class HandleChat():
 		if result.get('ctrl_d_interrupt'):
 			choice = self._show_ai_interrupt_menu()
 			if choice == 2:
-				self.Options['AUTO_CONTINUE_TASKS'] = False
-				self.Options['AUTO_CONTINUE_ALL_TASKS'] = False
 				self._last_ai_had_tools = tools_were_called
 				return {'action':'return', 'value':True}
 			if choice == 3:

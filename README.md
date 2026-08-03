@@ -1,14 +1,15 @@
 # AIIA — AI Interactive Agent
 
-**Version 1.0.0** | Terminal-based AI agent powered by Ollama or any OpenAI-compatible server (e.g. vLLM), featuring dynamic XML tool invocation, plan/build mode system, secure command execution, HTTP SSE server for editor integration, and persistent session management.
+**Version 1.1.6** | Terminal-based AI agent powered by Ollama or any OpenAI-compatible server (e.g. vLLM), featuring dynamic XML tool invocation, plan/build mode system, secure command execution, HTTP SSE server for editor integration, persistent session management, and an opt-in aiia_work marketplace client.
 
 [![codecov](https://codecov.io/gh/m5it/OurAI/branch/main/graph/badge.svg)](https://codecov.io/gh/m5it/OurAI)
 
-> **Recent updates:** v1.0.0 stable release — HTTP server wired to real AI with SSE streaming, `/api/files/write` and `/execute` endpoints, auth enforcement, tool allow/disallow system, ReplaceLine two-phase verification. See [CHANGELOG.md](CHANGELOG.md) for details.
+> **Recent updates:** v1.1.6 — new `aiia_work` marketplace client (`python run.py --work` / `!WORK` commands), Ctrl+D "Stop AI" no longer disables plan auto-continue, and a round of Handle/Commands/backends refactors. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Features
 
-- **Ctrl+D AI Loop Interrupt** — Press Ctrl+D during AI iteration to pause and show a menu: continue, return to chat prompt, or cancel session
+- **Ctrl+D AI Loop Interrupt** — Press Ctrl+D during AI iteration to pause and show a menu: continue, return to chat prompt, or cancel session. "Stop AI" only ends the current round — plan auto-continue stays enabled (toggle deliberately with `!AUTO true|false`)
+- **aiia_work Marketplace Client** — Opt-in client (`python run.py --work`) for the aiia_work marketplace: generate/manage API keys, create & browse projects, apply to projects, and accept/decline workers via `!WORK` commands
 - **Auto-Versioning** — Git pre-commit hook auto-increments `AUTOVERSION.py` and prepends entry to `CHANGELOG.md` on every commit
 - **Interchangeable AI Models** — Switch models mid-session with `!MODEL <name>`; list available models with `!MODELS`; model usage tracked across sessions
 - **Pluggable LLM Backends** — Run on **Ollama** (default) or any **OpenAI-compatible server** like **vLLM**; switch with `-b vllm` at startup or `!BACKEND vllm` mid-session (see [Using vLLM instead of Ollama](#using-vllm-instead-of-ollama))
@@ -81,6 +82,8 @@ pip install -r requirements-ollama.txt   # default backend (Ollama)
 pip install -r requirements-vllm.txt
 # optional GPU deps for image generation / MediaAnalyst persona:
 pip install -r requirements-gpu.txt
+# optional aiia_work marketplace client (python run.py --work):
+pip install -r requirements-marketplace.txt
 ```
 
 ### Run (from any directory)
@@ -246,6 +249,38 @@ Terminal 3 (Worker — execution):
 | `-m MODEL` | Director's own model (for local planning) |
 | `-p PERSONA` | Director's own persona |
 
+### aiia_work Marketplace Client
+
+Separate, opt-in client for the aiia_work marketplace (`python run.py --work`). Isolated from the normal chat session — no XML/AI tools, only `!WORK` commands. Lives in the standalone `aiia_work/` package (no `src/` deps) plus the `run_work.py` entry point, wired into `run.py`'s subcommand routing.
+
+```bash
+pip install -r requirements-marketplace.txt
+python run.py --work --base-url http://localhost:8006/rest/aiia_work   # local dev server
+```
+
+**API key resolution** (priority order): env `AIIA_WORK_API_KEY` > config `AIIA_WORK_API_KEY` > stored key file `~/.config/aiia/aiia_work.json` (created automatically after `!WORK KEYGEN`). `!WORK KEYGEN` needs an SSO bearer token (`--sso-token` / `AIIA_WORK_SSO_TOKEN`).
+
+**`!WORK` commands:**
+
+| Command | Description |
+|---------|-------------|
+| `HELP` | Show all marketplace commands |
+| `KEYGEN [label] [role]` | Generate a new API key (role: `giver` \| `worker` \| `both`) |
+| `KEYS` | List existing API keys |
+| `KEYREVOKE <id>` | Revoke an API key |
+| `CREATE <title> [--desc ..] [--budget N] [--currency C] [--tags a,b]` | Create a project |
+| `LIST` | List projects |
+| `SHOW <id>` | Show a project's details and requests |
+| `STATUS <id> <open\|in_progress\|completed\|closed>` | Change project status |
+| `APPLY <project_id> <msg>` | Apply as a worker to a project |
+| `MY` | List my requests |
+| `ACCEPT <rid>` | Accept a worker request |
+| `DECLINE <rid>` | Decline a worker request |
+| `CMD <name> [json]` | Framework bridge (server-side commands) |
+| `QUIT` | Exit the marketplace client |
+
+**Config keys:** `AIIA_WORK_BASE_URL` (default `https://apis.aiia-frame.work/rest/aiia_work`), `AIIA_WORK_API_KEY`, `AIIA_WORK_SSO_TOKEN`, `AIIA_WORK_KEY_FILE`, `AIIA_WORK_ROLE`, `AIIA_WORK_TIMEOUT`, `AIIA_WORK_RETRIES`.
+
 ---
 
 ## Configuration
@@ -294,6 +329,13 @@ All configuration lives in `config.py`:
 | `SERVER_AUTH_ENABLED` | bool | `false` | Enable global Basic Auth for HTTP server |
 | `SERVER_USERNAME` | str | `admin` | Global auth username (fallback) |
 | `SERVER_PASSWORD` | str | `aiia` | Global auth password (fallback) |
+| `AIIA_WORK_BASE_URL` | str | `https://apis.aiia-frame.work/rest/aiia_work` | aiia_work marketplace API base URL (local dev: `http://localhost:8006/rest/aiia_work`) |
+| `AIIA_WORK_API_KEY` | str | (empty) | Marketplace API key (`X-Api-Key`). Priority: env > config > stored key file |
+| `AIIA_WORK_SSO_TOKEN` | str | (empty) | SSO bearer token (required for `!WORK KEYGEN`) |
+| `AIIA_WORK_KEY_FILE` | str/None | `None` | Stored API key file (default `~/.config/aiia/aiia_work.json`) |
+| `AIIA_WORK_ROLE` | str | `both` | Default keygen role: `giver` \| `worker` \| `both` |
+| `AIIA_WORK_TIMEOUT` | int | `30` | HTTP timeout (seconds) |
+| `AIIA_WORK_RETRIES` | int | `2` | Retries on transient 500s / network errors |
 
 ### Per-Project Config (`aiia.json`)
 
@@ -434,6 +476,7 @@ AIIA/
 ├── run.py                         # Thin entry — CLI parsing, factory reset, persona resolution
 ├── run_orchestra.py               # Orchestra director — multi-agent task dispatcher
 ├── run_worker.py                  # Orchestra worker — connects to director, executes tasks
+├── run_work.py                    # aiia_work marketplace client (python run.py --work)
 ├── config.py                      # All configuration & system prompts
 ├── AUTOVERSION.py                 # Auto-incremented version (git pre-commit hook)
 ├── install.sh                     # Install script — sudo ./install.sh -l to install globally
@@ -443,6 +486,7 @@ AIIA/
 ├── requirements-ollama.txt        # Default backend (Ollama)
 ├── requirements-vllm.txt          # vLLM backend (OpenAI-compatible)
 ├── requirements-gpu.txt           # Optional GPU deps (torch, diffusers, etc.)
+├── requirements-marketplace.txt   # Optional aiia_work marketplace client deps
 ├── AGENTS.md                      # Development notes & conventions
 ├── PLAN.md                        # Current/active plan (working dir only)
 ├── HISTORY.md                     # Session transcript (working dir only)
@@ -555,6 +599,10 @@ AIIA/
 │   ├── tool_ListTips.py          # List all saved tips
 │   ├── tool_DeleteTip.py         # Delete a tip
 │   └── tool_ReinsertTip.py       # Reinsert tip into chat
+│
+├── aiia_work/                     # Standalone aiia_work marketplace client (no src/ deps)
+│   ├── client.py                  # WorkClient — HTTP client for the marketplace API
+│   └── console.py                 # WorkConsole — interactive !WORK command loop
 │
 ├── wwwurljssupport/              # Per-website JS support scripts
 │
