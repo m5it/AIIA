@@ -187,15 +187,34 @@ def _generate_ollama(model, prompt, width, height, steps, seed):
 def _generate_diffusers(model, prompt, width, height, steps, seed):
 	"""Fallback image generation via HuggingFace diffusers (Linux-compatible).
 	Returns PIL Image on success, or error string on failure."""
-	global _diffusers_pipeline, _diffusers_pipeline_model
+	hf_model, err = _map_hf_model(model)
+	if err:
+		return err
+	pipe, err = _ensure_pipeline(hf_model)
+	if err:
+		return err
 
 	try:
 		import torch
-		from diffusers import DiffusionPipeline
-	except ImportError:
-		return ("diffusers backend not available. Install with:\n"
-			"  pip install diffusers torch transformers accelerate")
+		generator = torch.Generator(device="cpu").manual_seed(seed) if seed is not None else None
+		result = pipe(
+			prompt=prompt,
+			width=width,
+			height=height,
+			num_inference_steps=steps or 4,
+			generator=generator,
+		)
+		img = result.images[0]
+		if img.mode in ('RGBA', 'LA', 'P'):
+			img = img.convert('RGBA')
+		return img
+	except Exception as e:
+		return "Diffusers inference failed: {}".format(e)
 
+
+def _map_hf_model(model):
+	"""Map an Ollama-style model name to a HuggingFace model ID.
+	Returns (hf_model, None) or (None, error_string)."""
 	# Map Ollama model names to HuggingFace model IDs
 	# Note: black-forest-labs/FLUX.1-schnell is gated (requires HF login)
 	# Using open Stability AI models instead
@@ -207,10 +226,22 @@ def _generate_diffusers(model, prompt, width, height, steps, seed):
 	}
 	clean_model = model.split(':')[0]  # strip :latest etc.
 	hf_model = HF_MODEL_MAP.get(clean_model, clean_model)
-
 	if '/' not in hf_model:
-		return ("Model '{}' not recognized for diffusers backend. "
+		return None, ("Model '{}' not recognized for diffusers backend. "
 			"Use a HuggingFace model ID (e.g. 'black-forest-labs/FLUX.1-schnell')".format(model))
+	return hf_model, None
+
+
+def _ensure_pipeline(hf_model):
+	"""Load the diffusers pipeline for hf_model, reusing the cached
+	instance. Returns (pipe, None) or (None, error_string)."""
+	global _diffusers_pipeline, _diffusers_pipeline_model
+	try:
+		import torch
+		from diffusers import DiffusionPipeline
+	except ImportError:
+		return None, ("diffusers backend not available. Install with:\n"
+			"  pip install diffusers torch transformers accelerate")
 
 	# Reuse cached pipeline if same model
 	if _diffusers_pipeline is None or _diffusers_pipeline_model != hf_model:
@@ -225,23 +256,8 @@ def _generate_diffusers(model, prompt, width, height, steps, seed):
 			_diffusers_pipeline = pipe
 			_diffusers_pipeline_model = hf_model
 		except Exception as e:
-			return "Failed to load diffusers model '{}': {}".format(hf_model, e)
-
-	try:
-		generator = torch.Generator(device="cpu").manual_seed(seed) if seed is not None else None
-		result = _diffusers_pipeline(
-			prompt=prompt,
-			width=width,
-			height=height,
-			num_inference_steps=steps or 4,
-			generator=generator,
-		)
-		img = result.images[0]
-		if img.mode in ('RGBA', 'LA', 'P'):
-			img = img.convert('RGBA')
-		return img
-	except Exception as e:
-		return "Diffusers inference failed: {}".format(e)
+			return None, "Failed to load diffusers model '{}': {}".format(hf_model, e)
+	return _diffusers_pipeline, None
 
 
 # ---------------------------------------------------------------------------
