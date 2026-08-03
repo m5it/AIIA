@@ -130,55 +130,69 @@ class HandleState():
 			return
 		history_md = os.path.join(working_dir, 'HISTORY.md')
 		total_prompt = total_response = 0
-		last_prompt = last_response = 0
 		if os.path.exists(history_md):
 			self.hHM.Get(path=history_md)
 			self.Options['CONTINUING'] = True
 			self.Options['AI_FILE_LOAD_HISTORY'] = True
 			self.hLG.echo("Loaded session history from {}".format(history_md), {'color':True, 'colorValue':'green'})
-			# Sync AI_ROW_ID to last loaded row + 1
-			if self.hHM.msgs:
-				last_row = max((m.get('rowId', 0) for m in self.hHM.msgs), default=0)
-				self.Options['AI_ROW_ID'] = last_row + 1
-			# Recalculate token counts from loaded history
-			for m in self.hHM.msgs:
-				if m.get('role') == 'assistant':
-					pt = m.get('prompt_tokens', 0)
-					rt = m.get('response_tokens', 0)
-					total_prompt += pt
-					total_response += rt
-					if pt or rt:
-						last_prompt = pt
-						last_response = rt
-			self.Options['NUM_PROMPT_TOKENS'] = total_prompt
-			self.Options['NUM_RESPONSE_TOKENS'] = total_response
-			self.Options['NUM_LAST_PROMPT_TOKENS'] = last_prompt
-			self.Options['NUM_LAST_RESPONSE_TOKENS'] = last_response
+			total_prompt, total_response = self._sync_row_id_and_tokens()
 		# Fallback: if per-message scan found nothing, load from state
 		if total_prompt == 0 and total_response == 0:
-			state = self._read_state()
-			for key in ('NUM_PROMPT_TOKENS', 'NUM_RESPONSE_TOKENS',
-						'NUM_LAST_PROMPT_TOKENS', 'NUM_LAST_RESPONSE_TOKENS'):
-				if key in state:
-					self.Options[key] = state[key]
-
+			self._fallback_state_tokens()
 		# Check if loaded system messages match current mode instructions.
 		# If mode changed (different persona or plan↔build), inject fresh
 		# instructions so the model gets the correct behavior.
 		# Runs whenever history was loaded (not just when token scan is empty).
+		self._ensure_mode_instructions()
+
+	def _sync_row_id_and_tokens(self):
+		"""Sync AI_ROW_ID to the last loaded row and recalculate token
+		counts from the loaded history. Returns (total_prompt, total_response)."""
 		if self.hHM.msgs:
-			current_mode = self.Options.get('MODE', 'plan')
-			current_text = self.hPP._get_mode_instructions(current_mode)
-			header = current_text.strip()[:80]
-			mode_matches = any(
-				header in m.get('content', '')
-				for m in self.hHM.msgs if m.get('role') == 'system'
-			)
-			if not mode_matches:
-				self.hLG.echo(
-					"Mode mismatch detected — injecting fresh {} persona instructions".format(current_mode),
-					{'color': True, 'colorValue': 'yellow'})
-				self.Response('system', {'content': current_text})
+			last_row = max((m.get('rowId', 0) for m in self.hHM.msgs), default=0)
+			self.Options['AI_ROW_ID'] = last_row + 1
+		total_prompt = total_response = 0
+		last_prompt = last_response = 0
+		for m in self.hHM.msgs:
+			if m.get('role') == 'assistant':
+				pt = m.get('prompt_tokens', 0)
+				rt = m.get('response_tokens', 0)
+				total_prompt += pt
+				total_response += rt
+				if pt or rt:
+					last_prompt = pt
+					last_response = rt
+		self.Options['NUM_PROMPT_TOKENS'] = total_prompt
+		self.Options['NUM_RESPONSE_TOKENS'] = total_response
+		self.Options['NUM_LAST_PROMPT_TOKENS'] = last_prompt
+		self.Options['NUM_LAST_RESPONSE_TOKENS'] = last_response
+		return total_prompt, total_response
+
+	def _fallback_state_tokens(self):
+		"""When the per-message scan found nothing, load token counts from state."""
+		state = self._read_state()
+		for key in ('NUM_PROMPT_TOKENS', 'NUM_RESPONSE_TOKENS',
+					'NUM_LAST_PROMPT_TOKENS', 'NUM_LAST_RESPONSE_TOKENS'):
+			if key in state:
+				self.Options[key] = state[key]
+
+	def _ensure_mode_instructions(self):
+		"""When loaded system messages don't match the current mode, inject
+		fresh persona instructions so the model gets the correct behavior."""
+		if not self.hHM.msgs:
+			return
+		current_mode = self.Options.get('MODE', 'plan')
+		current_text = self.hPP._get_mode_instructions(current_mode)
+		header = current_text.strip()[:80]
+		mode_matches = any(
+			header in m.get('content', '')
+			for m in self.hHM.msgs if m.get('role') == 'system'
+		)
+		if not mode_matches:
+			self.hLG.echo(
+				"Mode mismatch detected — injecting fresh {} persona instructions".format(current_mode),
+				{'color': True, 'colorValue': 'yellow'})
+			self.Response('system', {'content': current_text})
 
 	#
 
