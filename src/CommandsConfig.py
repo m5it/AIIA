@@ -6,16 +6,7 @@ class CommandsConfig():
 	def CMD_SET(self, inp=""):
 		a = inp.split(None, 1)
 		if len(a) < 2:
-			print("\nCurrent config (use !SET <key> <value> to change):")
-			for k in sorted(self.handle.Options.keys()):
-				v = self._mask_secret(k, self.handle.Options[k])
-				if isinstance(v, dict):
-					print("  {} = {}".format(k, json.dumps(v)))
-				elif isinstance(v, list):
-					print("  {} = {}".format(k, v))
-				else:
-					print("  {} = {}".format(k, v))
-			print("\nRead-only keys: VERSION, VERSION_NAME, AI_SESS_ID, AI_ROW_ID, path, tools_path, NUM_*_TOKENS")
+			self._set_show_config()
 			return 2
 		parts = a[1].split(None, 1)
 		if len(parts) < 2:
@@ -23,6 +14,26 @@ class CommandsConfig():
 			return 2
 		key = parts[0].rstrip('=')
 		raw = parts[1]
+		if self._set_check_readonly(key):
+			return 2
+		val = _parse_set_value(raw)
+		self._set_apply(key, val)
+		return 2
+
+	def _set_show_config(self):
+		# No args — dump the full current config (secrets masked)
+		print("\nCurrent config (use !SET <key> <value> to change):")
+		for k in sorted(self.handle.Options.keys()):
+			v = self._mask_secret(k, self.handle.Options[k])
+			if isinstance(v, dict):
+				print("  {} = {}".format(k, json.dumps(v)))
+			elif isinstance(v, list):
+				print("  {} = {}".format(k, v))
+			else:
+				print("  {} = {}".format(k, v))
+		print("\nRead-only keys: VERSION, VERSION_NAME, AI_SESS_ID, AI_ROW_ID, path, tools_path, NUM_*_TOKENS")
+
+	def _set_check_readonly(self, key):
 		readonly = {
 			'VERSION', 'VERSION_NAME', 'AI_FILE_STATE', 'AI_FILE_HISTORY',
 			'AI_SESS_ID', 'AI_ROW_ID', 'path', 'tools_path',
@@ -32,37 +43,21 @@ class CommandsConfig():
 		}
 		if key in readonly:
 			print("Cannot set read-only key '{}'.".format(key))
-			return 2
-		# Parse value
-		val = raw
-		if raw.lower() == 'true':
-			val = True
-		elif raw.lower() == 'false':
-			val = False
-		elif raw.lower() == 'none' or raw.lower() == 'null':
-			val = None
-		else:
-			try:
-				val = int(raw)
-			except ValueError:
-				try:
-					val = float(raw)
-				except ValueError:
-					try:
-						val = json.loads(raw)
-					except (json.JSONDecodeError, ValueError):
-						val = raw
+			return True
+		return False
+
+	def _set_apply(self, key, val):
 		# Validate AI_BACKEND values (unknown names silently fall back to ollama)
 		if key == 'AI_BACKEND':
 			if not isinstance(val, str) or val.lower() not in ('ollama', 'vllm'):
 				print("Invalid AI_BACKEND '{}' — must be 'ollama' or 'vllm'. Use !BACKEND <name>.".format(val))
-				return 2
+				return False
 			val = val.lower()
 		# Special handling for AI_OPTIONS (dict deep-merge)
 		if key == 'AI_OPTIONS':
 			if not isinstance(val, dict):
 				print("AI_OPTIONS requires a JSON dict, e.g.: !SET AI_OPTIONS '{\"temperature\":0.8,\"num_predict\":16384}'")
-				return 2
+				return False
 			self.handle.Options['AI_OPTIONS'].update(val)
 			print("AI_OPTIONS updated: {}".format(json.dumps(self.handle.Options['AI_OPTIONS'])))
 		else:
@@ -71,7 +66,7 @@ class CommandsConfig():
 		# Persist key settings to state.aiia
 		if key == 'WWW_USER_AGENT':
 			self.handle._write_state({'WWW_USER_AGENT': val})
-		return 2
+		return True
 	#
 	def CMD_GET(self, inp=""):
 		a = inp.split(None, 1)
@@ -309,3 +304,27 @@ class CommandsConfig():
 			return val[:4] + '...' if len(val) > 4 else '***'
 		return val
 	#
+
+#--
+
+def _parse_set_value(raw):
+	# Parse a raw !SET value string into bool/None/int/float/json/string
+	val = raw
+	if raw.lower() == 'true':
+		val = True
+	elif raw.lower() == 'false':
+		val = False
+	elif raw.lower() == 'none' or raw.lower() == 'null':
+		val = None
+	else:
+		try:
+			val = int(raw)
+		except ValueError:
+			try:
+				val = float(raw)
+			except ValueError:
+				try:
+					val = json.loads(raw)
+				except (json.JSONDecodeError, ValueError):
+					val = raw
+	return val
