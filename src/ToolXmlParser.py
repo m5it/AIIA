@@ -2,7 +2,6 @@
 # class ToolXmlParser — parse XML tool invocations from AI responses
 import re
 class ToolXmlParser():
-	#
 	def ParseTextToolInvocation(self, text):
 		# Parse XML-style tool invocations like: <ReadFile><fileName>test.txt</fileName></ReadFile>
 		# Also handles self-closing tags: <listTools/>
@@ -105,99 +104,156 @@ class ToolXmlParser():
 	#
 	def _format_action(self, toolName, params):
 		"""Return a human-readable action description for a tool invocation."""
-		if toolName == 'ReplaceLine':
-			fileName = params.get('fileName', '?')
-			fl = params.get('fromLine', '?')
-			tl = params.get('toLine', fl)
-			return "Editing '{}' lines {}-{}".format(fileName, fl, tl)
-		elif toolName == 'WriteFile':
-			fileName = params.get('fileName', '?')
-			content = params.get('contentOfFile', '')
-			return "Writing {} bytes to '{}'".format(len(content), fileName)
-		elif toolName == 'AppendFile':
-			fileName = params.get('fileName', '?')
-			fl = params.get('fromLineNumber', '-1')
-			if fl is None or fl == -1 or str(fl) == '-1':
-				fl = 'end'
-			elif str(fl) == '0':
-				fl = 'start'
-			else:
-				fl = 'line {}'.format(fl)
-			content = params.get('contentOfFile', '')
-			return "Appending {} bytes to '{}' at {}".format(len(content), fileName, fl)
-		elif toolName == 'CreateFile':
-			fileName = params.get('fileName', '?')
-			return "Creating new file '{}'".format(fileName)
-		elif toolName == 'ReadFile':
-			fileName = params.get('fileName', '?')
-			return "Reading '{}'".format(fileName)
-		elif toolName == 'Terminal':
-			args = [params.get('arg{}'.format(i), '') for i in range(1, 6)]
-			args = [a for a in args if a]
-			return "$ {}".format(' '.join(args)) if args else "Running terminal command"
-		elif toolName == 'WWW':
-			url = params.get('url', '?')
-			return "Fetching: {}".format(url)
-		elif toolName == 'Grep':
-			pat = params.get('pattern', '?')
-			fn = params.get('fileName', '')
-			return "Searching '{}' in {}".format(pat, fn if fn else 'all files')
-		elif toolName == 'listTools':
-			return "Listing available tools"
-		elif toolName == 'TreeView':
-			path = params.get('path', '.')
-			depth = params.get('depth', '3')
-			return "Tree view of '{}' (depth={})".format(path, depth)
-		elif toolName == 'List':
-			path = params.get('path', '.')
-			return "Listing '{}'".format(path)
-		elif toolName == 'Find':
-			pat = params.get('pattern', '*')
-			path = params.get('path', '.')
-			return "Finding '{}' in '{}'".format(pat, path)
-		elif toolName == 'ExecuteScript':
-			fn = params.get('fileName', '?')
-			args = params.get('args', '')
-			return "Running script '{}' {}".format(fn, args)
-		elif toolName == 'Head':
-			fn = params.get('fileName', '?')
-			n = params.get('lines', '10')
-			return "First {} lines of '{}'".format(n, fn)
-		elif toolName == 'Tail':
-			fn = params.get('fileName', '?')
-			n = params.get('lines', '10')
-			return "Last {} lines of '{}'".format(n, fn)
-		elif toolName == 'Sed':
-			pat = params.get('pattern', '?')
-			fn = params.get('fileName', '?')
-			return "Replacing '{}' in '{}'".format(pat, fn)
-		elif toolName == 'Diff':
-			f1 = params.get('file1', '?')
-			f2 = params.get('file2', '?')
-			return "Comparing '{}' vs '{}'".format(f1, f2)
-		elif toolName == 'Sort':
-			fn = params.get('fileName', '?')
-			return "Sorting '{}'".format(fn)
-		elif toolName == 'SaveTip':
-			title = params.get('title', '?')
-			return "Saving tip '{}'".format(title)
-		elif toolName == 'GetTip':
-			title = params.get('title', '?')
-			return "Loading tip '{}'".format(title)
-		elif toolName == 'ListTips':
-			return "Listing saved tips"
-		elif toolName == 'DeleteTip':
-			title = params.get('title', '?')
-			return "Deleting tip '{}'".format(title)
-		elif toolName == 'ReinsertTip':
-			title = params.get('title', '?')
-			return "Reinserting tip '{}' into context".format(title)
-		elif toolName in ('createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks', 'nextTask', 'jobDone', 'planDone', 'startBuild', 'LogProgress'):
+		formatter = _ACTION_FORMATTERS.get(toolName)
+		if formatter:
+			return formatter(params)
+		if toolName in _PLAN_TOOLS:
 			title = params.get('title', params.get('instruction', ''))
 			if title:
 				return "{}: {}".format(toolName, title[:60])
 			return "{}".format(toolName)
-		else:
-			params_str = ', '.join(['{}={}'.format(k, v) for k, v in params.items()])
-			return "{} {}".format(toolName, params_str if params_str else '')
+		params_str = ', '.join(['{}={}'.format(k, v) for k, v in params.items()])
+		return "{} {}".format(toolName, params_str if params_str else '')
+
+#
+
+def _format_ReplaceLine(params):
+	fileName = params.get('fileName', '?')
+	fl = params.get('fromLine', '?')
+	tl = params.get('toLine', fl)
+	return "Editing '{}' lines {}-{}".format(fileName, fl, tl)
+
+def _format_WriteFile(params):
+	fileName = params.get('fileName', '?')
+	content = params.get('contentOfFile', '')
+	return "Writing {} bytes to '{}'".format(len(content), fileName)
+
+def _format_AppendFile(params):
+	fileName = params.get('fileName', '?')
+	fl = params.get('fromLineNumber', '-1')
+	if fl is None or fl == -1 or str(fl) == '-1':
+		fl = 'end'
+	elif str(fl) == '0':
+		fl = 'start'
+	else:
+		fl = 'line {}'.format(fl)
+	content = params.get('contentOfFile', '')
+	return "Appending {} bytes to '{}' at {}".format(len(content), fileName, fl)
+
+def _format_CreateFile(params):
+	fileName = params.get('fileName', '?')
+	return "Creating new file '{}'".format(fileName)
+
+def _format_ReadFile(params):
+	fileName = params.get('fileName', '?')
+	return "Reading '{}'".format(fileName)
+
+def _format_Terminal(params):
+	args = [params.get('arg{}'.format(i), '') for i in range(1, 6)]
+	args = [a for a in args if a]
+	return "$ {}".format(' '.join(args)) if args else "Running terminal command"
+
+def _format_WWW(params):
+	url = params.get('url', '?')
+	return "Fetching: {}".format(url)
+
+def _format_Grep(params):
+	pat = params.get('pattern', '?')
+	fn = params.get('fileName', '')
+	return "Searching '{}' in {}".format(pat, fn if fn else 'all files')
+
+def _format_listTools(params):
+	return "Listing available tools"
+
+def _format_TreeView(params):
+	path = params.get('path', '.')
+	depth = params.get('depth', '3')
+	return "Tree view of '{}' (depth={})".format(path, depth)
+
+def _format_List(params):
+	path = params.get('path', '.')
+	return "Listing '{}'".format(path)
+
+def _format_Find(params):
+	pat = params.get('pattern', '*')
+	path = params.get('path', '.')
+	return "Finding '{}' in '{}'".format(pat, path)
+
+def _format_ExecuteScript(params):
+	fn = params.get('fileName', '?')
+	args = params.get('args', '')
+	return "Running script '{}' {}".format(fn, args)
+
+def _format_Head(params):
+	fn = params.get('fileName', '?')
+	n = params.get('lines', '10')
+	return "First {} lines of '{}'".format(n, fn)
+
+def _format_Tail(params):
+	fn = params.get('fileName', '?')
+	n = params.get('lines', '10')
+	return "Last {} lines of '{}'".format(n, fn)
+
+def _format_Sed(params):
+	pat = params.get('pattern', '?')
+	fn = params.get('fileName', '?')
+	return "Replacing '{}' in '{}'".format(pat, fn)
+
+def _format_Diff(params):
+	f1 = params.get('file1', '?')
+	f2 = params.get('file2', '?')
+	return "Comparing '{}' vs '{}'".format(f1, f2)
+
+def _format_Sort(params):
+	fn = params.get('fileName', '?')
+	return "Sorting '{}'".format(fn)
+
+def _format_SaveTip(params):
+	title = params.get('title', '?')
+	return "Saving tip '{}'".format(title)
+
+def _format_GetTip(params):
+	title = params.get('title', '?')
+	return "Loading tip '{}'".format(title)
+
+def _format_ListTips(params):
+	return "Listing saved tips"
+
+def _format_DeleteTip(params):
+	title = params.get('title', '?')
+	return "Deleting tip '{}'".format(title)
+
+def _format_ReinsertTip(params):
+	title = params.get('title', '?')
+	return "Reinserting tip '{}' into context".format(title)
+
+_ACTION_FORMATTERS = {
+	'ReplaceLine'    : _format_ReplaceLine,
+	'WriteFile'      : _format_WriteFile,
+	'AppendFile'     : _format_AppendFile,
+	'CreateFile'     : _format_CreateFile,
+	'ReadFile'       : _format_ReadFile,
+	'Terminal'       : _format_Terminal,
+	'WWW'            : _format_WWW,
+	'Grep'           : _format_Grep,
+	'listTools'      : _format_listTools,
+	'TreeView'       : _format_TreeView,
+	'List'           : _format_List,
+	'Find'           : _format_Find,
+	'ExecuteScript'  : _format_ExecuteScript,
+	'Head'           : _format_Head,
+	'Tail'           : _format_Tail,
+	'Sed'            : _format_Sed,
+	'Diff'           : _format_Diff,
+	'Sort'           : _format_Sort,
+	'SaveTip'        : _format_SaveTip,
+	'GetTip'         : _format_GetTip,
+	'ListTips'       : _format_ListTips,
+	'DeleteTip'      : _format_DeleteTip,
+	'ReinsertTip'    : _format_ReinsertTip,
+}
+
+_PLAN_TOOLS = ('createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft',
+	'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks', 'nextTask',
+	'jobDone', 'planDone', 'startBuild', 'LogProgress')
 	#
