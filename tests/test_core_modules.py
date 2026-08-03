@@ -391,3 +391,15 @@ def test_chat_params_think_kept_in_plan_mode_even_when_disabled():
 			}
 	r = Stub()._build_chat_params([{'role': 'user', 'content': 'hi'}])
 	assert r['think'] is True
+
+def test_ph_crc32_same_content_same_hash():
+	from src.CommandsSession import _ph_crc32
+	assert _ph_crc32('hello') == _ph_crc32('hello')
+	assert _ph_crc32('hello') != _ph_crc32('hello ')
+	assert len(_ph_crc32('x')) == 8
+
+def test_ph_crc32_matches_zlib():
+	import zlib
+	from src.CommandsSession import _ph_crc32
+	for s in ('', 'test', 'some longer content\nwith newline'):
+		assert _ph_crc32(s) == '{:08x}'.format(zlib.crc32(s.encode('utf-8')))

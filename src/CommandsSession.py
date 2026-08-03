@@ -1,6 +1,6 @@
 #--
 # class CommandsSession — session & history commands
-import os, json
+import os, json, zlib
 from datetime import datetime
 from src.functions import fwrite
 class CommandsSession():
@@ -174,6 +174,10 @@ _PH_W = '\033[1;37m'  # white — header
 _PH_D = '\033[2m'     # dim
 _PH_BG = '\033[48;5;236m'  # dark gray background
 
+def _ph_crc32(content):
+	"""CRC32B (zlib) hex digest of message content — identical content shares a hash."""
+	return '{:08x}'.format(zlib.crc32((content or '').encode('utf-8')))
+
 def _ph_label(role, tool_name):
 	if role == 'user':
 		return _PH_C, 'USER'
@@ -214,7 +218,7 @@ def _ph_row_view(msgs, row):
 	else:
 		print("\n{}(empty){}\n".format(_PH_D, _PH_R))
 	# Footer
-	print("{}{}═{} ({} chars){}".format(_PH_D, '═' * 50, _PH_R, len(content), _PH_R))
+	print("{}{}═{} ({} chars) {} crc32b:{}{}".format(_PH_D, '═' * 50, _PH_R, len(content), _PH_D, _ph_crc32(content), _PH_R))
 	return 2
 
 #--
@@ -235,7 +239,7 @@ def _ph_list_view(msgs):
 			preview = preview[:80] + '...'
 		elif not preview:
 			preview = '(empty)'
-		print(" {:>3} {}[{}]{} {:<14} {}".format(
-			i, _PH_D, time_str, _PH_R, color + label + _PH_R, _PH_D + preview + _PH_R))
+		print(" {:>3} {} {}[{}]{} {:<14} {}".format(
+			i, _PH_D + _ph_crc32(content) + _PH_R, _PH_D, time_str, _PH_R, color + label + _PH_R, _PH_D + preview + _PH_R))
 	print()
 	return 2
