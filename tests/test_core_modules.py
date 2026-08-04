@@ -430,3 +430,23 @@ def test_restore_config_overrides(tmp_path):
 	stub._restore_config_overrides(stub._read_state())
 	assert stub.Options['AI_INSTRUCT_OPTION'] == 2
 	assert stub.Options['AI_OPTIONS'] == {'num_ctx': 4096, 'temperature': 0.8}
+
+def test_ai_interrupt_menu_choice2_marks_user_stop(monkeypatch):
+	from src.HandleChat import HandleChat
+	class Stub(HandleChat):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+	stub = Stub()
+	monkeypatch.setattr('src.HandleChat.user_input', lambda *a, **k: '2')
+	assert stub._show_ai_interrupt_menu() == 2
+	assert stub._ai_stopped_by_user is True
+
+def test_ai_interrupt_menu_choice3_does_not_mark_user_stop(monkeypatch):
+	from src.HandleChat import HandleChat
+	class Stub(HandleChat):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+	stub = Stub()
+	monkeypatch.setattr('src.HandleChat.user_input', lambda *a, **k: '3')
+	assert stub._show_ai_interrupt_menu() == 3
+	assert not hasattr(stub, '_ai_stopped_by_user')

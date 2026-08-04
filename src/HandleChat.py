@@ -57,6 +57,13 @@ class HandleChat():
 			#
 			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
 
+			# User pressed Ctrl+D and chose "Stop AI — return to chat prompt":
+			# go straight back to the prompt, do NOT auto-re-enter the AI loop.
+			if getattr(self, '_ai_stopped_by_user', False):
+				self._ai_stopped_by_user = False
+				_auto_continue_count = 0
+				continue
+
 			# After planDone — switch to BUILD mode and auto-continue
 			if self._handle_plan_just_done():
 				_skip_you = True
@@ -286,6 +293,7 @@ class HandleChat():
 		ans = user_input({'quit_with_ctrlx':True}).strip()
 		ans = re.sub(r'[^0-9]', '', ans)
 		if ans == '2':
+			self._ai_stopped_by_user = True
 			return 2
 		if ans == '3':
 			return 3
