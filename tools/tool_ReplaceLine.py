@@ -1,6 +1,15 @@
 import os
 import hashlib
+import difflib
+import subprocess
+import tempfile
+import time
 from config import Options
+
+# Context lines shown around the changed region in the verification diff
+_DIFF_CONTEXT = 2
+# Max diff output chars returned to the model (prevents context flooding)
+_DIFF_MAX_CHARS = 6000
 
 class ReplaceLine():
 	def __init__(self):
@@ -8,7 +17,7 @@ class ReplaceLine():
 		idx_desc = "0-indexed (first line = 0)" if zero_indexed else "1-indexed (first line = 1, default)"
 		self.info = {
 			"name":"ReplaceLine",
-			"description":"Replace a specific line or range of lines in a file with new content. Lines are {}. First call previews; second call with confirmed=true executes. If confirmed=true without a prior preview, preview + execute happen in one pass.".format(idx_desc),
+			"description":"Replace a specific line or range of lines in a file with new content. Lines are {}. Three-phase flow: (1) first call previews; (2) call with confirmed=true applies the change, backs up the whole file to /tmp, and shows a verification diff of old vs new; (3) call again with confirmed=finalize to accept the verified diff, or confirmed=revert to restore the original file from backup.".format(idx_desc),
 			"parameters":{
 				"returnType":"string",
 				"required":["fileName","fromLine","replacement"],
@@ -32,7 +41,7 @@ class ReplaceLine():
 					"confirmed":{
 						"type":"string",
 						"default":"false",
-						"description":"Set to true to confirm and execute the replacement after previewing the current content."
+						"description":"true = apply the replacement (after preview) and show a verification diff; finalize = accept the verified diff; revert = restore the file from backup."
 					},
 				},
 			},
@@ -40,6 +49,8 @@ class ReplaceLine():
 		# Two-phase enforcement state
 		self._preview_key = None   # key of last previewed replacement
 		self._saved_hash = None    # SHA256 of file at preview time
+		# Pending-apply state (backup until finalize/revert)
+		self._backup_path = None   # /tmp backup of the whole file before apply
 	#
 	@staticmethod
 	def _make_key(full_path, fromLine, toLine, replacement):
@@ -74,10 +85,95 @@ class ReplaceLine():
 			"```\n{}\n```\n"
 			"Proposed replacement:\n"
 			"```\n{}\n```\n"
-			"To confirm, add <confirmed>true</confirmed> to your ReplaceLine call.").format(
+			"To apply, add <confirmed>true</confirmed> to your ReplaceLine call.").format(
 				's' if tl != fl else '', fl, tl, fileName,
 				old_text.rstrip('\n'),
 				replacement.rstrip('\n'))
+	#
+	def _remove_backup(self):
+		"""Delete any pending backup file and clear the state."""
+		if self._backup_path and os.path.exists(self._backup_path):
+			try:
+				os.remove(self._backup_path)
+			except Exception:
+				pass
+		self._backup_path = None
+	#
+	def _make_backup(self, full_path):
+		"""Save a whole-file backup to /tmp (tmpfs — RAM) and return its path.
+		Any previous pending backup is replaced."""
+		self._remove_backup()
+		fname = 'replaceline_{}_{}_{}.bak'.format(
+			hashlib.sha256(full_path.encode()).hexdigest()[:10],
+			os.getpid(),
+			int(time.time() * 1000))
+		backup_path = os.path.join(tempfile.gettempdir(), fname)
+		with open(full_path, 'rb') as f:
+			data = f.read()
+		with open(backup_path, 'wb') as f:
+			f.write(data)
+		return backup_path
+	#
+	@staticmethod
+	def _restore_file(backup_path, full_path):
+		with open(backup_path, 'rb') as f:
+			data = f.read()
+		with open(full_path, 'wb') as f:
+			f.write(data)
+	#
+	def _clear_pending(self):
+		"""Finalize/revert cleanup — drop backup and preview tokens."""
+		self._remove_backup()
+		self._preview_key = None
+		self._saved_hash = None
+	#
+	def _verification_diff(self, backup_path, full_path):
+		"""Unified diff (old vs new) with context lines around the change.
+		Uses the terminal `diff -U`; falls back to Python difflib."""
+		diff = None
+		try:
+			label_old = 'old/{}'.format(os.path.basename(full_path))
+			label_new = 'new/{}'.format(os.path.basename(full_path))
+			cmd = ['diff', '-U', str(_DIFF_CONTEXT), '--label', label_old,
+				'--label', label_new, backup_path, full_path]
+			r = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+			if r.stdout:
+				diff = r.stdout
+		except Exception:
+			pass
+		if diff is None:
+			try:
+				with open(backup_path) as f:
+					old_l = f.readlines()
+				with open(full_path) as f:
+					new_l = f.readlines()
+				diff = ''.join(difflib.unified_diff(
+					old_l, new_l, 'old/{}'.format(os.path.basename(full_path)),
+					'new/{}'.format(os.path.basename(full_path)), n=_DIFF_CONTEXT))
+			except Exception as e:
+				return "(could not build diff: {})".format(e)
+		if not diff or not diff.strip():
+			return "(no difference detected)"
+		if len(diff) > _DIFF_MAX_CHARS:
+			diff = diff[:_DIFF_MAX_CHARS] + "\n... (diff truncated, {} chars total)".format(len(diff))
+		return diff
+	#
+	def _handle_confirm(self, action, fileName, full_path):
+		"""Handle confirmed=finalize / confirmed=revert after a pending apply."""
+		if not self._backup_path or not os.path.exists(self._backup_path):
+			self._clear_pending()
+			return ("Error: no pending replacement for '{}' to {} — "
+				"run ReplaceLine with <confirmed>true</confirmed> first.").format(fileName, action)
+		if action == 'revert':
+			try:
+				self._restore_file(self._backup_path, full_path)
+			except Exception as e:
+				return "Error: failed to revert '{}': {}".format(fileName, e)
+			self._clear_pending()
+			return "Reverted '{}' — restored original content from backup. Pending state cleared.".format(fileName)
+		# finalize
+		self._clear_pending()
+		return "Finalized — replacement in '{}' accepted (diff reviewed, backup cleared).".format(fileName)
 	#
 	def run(self, fileName="", fromLine=None, toLine=None, replacement="", confirmed="false"):
 		preview_text = None
@@ -116,7 +212,10 @@ class ReplaceLine():
 		if tl > max_line:
 			return "Error: toLine {} exceeds file length ({} lines, max {} {}).".format(tl, total, max_line, idx_label)
 		#
-		confirmed = confirmed.lower() in ('true', '1', 'yes')
+		confirmed_val = (confirmed or '').strip().lower()
+		if confirmed_val in ('finalize', 'revert'):
+			return self._handle_confirm(confirmed_val, fileName, full_path)
+		confirmed = confirmed_val in ('true', '1', 'yes')
 		current_key = self._make_key(full_path, fl, tl, replacement)
 		arr_fl = self._to_array_index(fl)
 		arr_tl = self._to_array_index(tl)
@@ -164,11 +263,19 @@ class ReplaceLine():
 			return "Error: replacement would grow file to {} bytes ({:.0f}x original) — likely incorrect replacement.".format(
 				len(new_content), len(new_content) / max(len(''.join(lines)), 1))
 		#
+		# Back up the whole file before writing (enables revert + diff verification)
+		backup_path = self._make_backup(full_path)
 		try:
 			with open(full_path, 'w') as f:
 				f.writelines(new_lines)
 		except Exception as e:
+			try:
+				self._restore_file(backup_path, full_path)
+			except Exception:
+				pass
+			self._remove_backup()
 			return "Error: {}".format(e)
+		self._backup_path = backup_path
 		#
 		count = tl - fl + 1
 		new_count = len(repl_lines)
@@ -178,5 +285,11 @@ class ReplaceLine():
 			new_count, 's' if new_count != 1 else '',
 			old_text.replace('\n', '\\n')[:200])
 		if preview_text:
-			return preview_text + "\n\n" + result
-		return result
+			result = preview_text + "\n\n" + result
+		#
+		diff = self._verification_diff(backup_path, full_path)
+		return ("{}\n\n--- VERIFICATION DIFF (old vs new, ±{} context) ---\n"
+			"{}\n\nBackup: {}\n"
+			"If the diff is correct, call ReplaceLine again with <confirmed>finalize</confirmed> to accept it. "
+			"If it is wrong, call with <confirmed>revert</confirmed> to restore the original file from backup.").format(
+				result, _DIFF_CONTEXT, diff, backup_path)

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-04 — v1.1.12
+
+### Auto: Version v1.1.12
+
+- Version auto-incremented from v1.1.11
+- Files changed: AGENTS.md, tests/test_replaceline_tool.py, tools/tool_ReplaceLine.py
+
+---
+
+
 ## 2026-08-04 — v1.1.11
 
 ### Auto: Version v1.1.11
