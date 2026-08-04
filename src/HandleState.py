@@ -16,6 +16,7 @@ class HandleState():
 		# Load all persisted state from state.aiia
 		state = self._read_state()
 
+		self._restore_config_overrides(state)
 		self._restore_mode(state)
 		self._restore_persona(state)
 		self._restore_backend(state)
@@ -27,6 +28,22 @@ class HandleState():
 		self._ensure_num_predict()
 		self._load_plan_md(working_dir, framework_dir)
 		self._load_history_md(working_dir, state)
+
+	def _restore_config_overrides(self, state):
+		"""Apply persisted !SET config overrides from state.aiia['config'] into Options.
+		Runs first so curated session state (mode/model/persona/backend) wins on conflict."""
+		cfg = state.get('config')
+		if not isinstance(cfg, dict) or not cfg:
+			return
+		restored = []
+		for k, v in cfg.items():
+			if isinstance(v, dict) and isinstance(self.Options.get(k), dict):
+				self.Options[k].update(v)
+			else:
+				self.Options[k] = v
+			restored.append(k)
+		self.hLG.echo("Restored config override(s): {}".format(', '.join(sorted(restored))),
+			{'color': True, 'colorValue': 'cyan'})
 
 	def _restore_mode(self, state):
 		"""Restore MODE from state.aiia if it holds a valid value."""
@@ -215,7 +232,9 @@ class HandleState():
 	#
 
 	def _write_state(self, updates=None):
-		"""Atomically write state.aiia, merging `updates` into existing state."""
+		"""Atomically write state.aiia, merging `updates` into existing state.
+		The special 'config' key is deep-merged into state['config'] (used to
+		persist !SET overrides without clobbering previous ones)."""
 		path = self.Options.get('AI_FILE_STATE')
 		if not path:
 			return
@@ -227,7 +246,15 @@ class HandleState():
 			except Exception:
 				pass
 		if updates:
-			state.update(updates)
+			new_updates = dict(updates)
+			cfg = new_updates.pop('config', None)
+			if isinstance(cfg, dict):
+				state_cfg = state.get('config', {})
+				if not isinstance(state_cfg, dict):
+					state_cfg = {}
+				state_cfg.update(cfg)
+				state['config'] = state_cfg
+			state.update(new_updates)
 		try:
 			tmp = path + '.tmp'
 			fwrite(tmp, json.dumps(state), True)

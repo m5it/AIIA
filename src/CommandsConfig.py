@@ -1,6 +1,10 @@
 #--
 # class CommandsConfig — config / model / backend commands
 import json
+
+# Keys that should never be persisted as config overrides (runtime-only).
+_SET_NO_PERSIST = {'used_models'}
+
 class CommandsConfig():
 	#
 	def CMD_SET(self, inp=""):
@@ -63,9 +67,15 @@ class CommandsConfig():
 		else:
 			self.handle.Options[key] = val
 			print("Set {} = {}".format(key, val))
-		# Persist key settings to state.aiia
+		# Persist global config overrides to state.aiia (restored on next session).
+		# WWW_USER_AGENT keeps its legacy top-level key; everything else lives under
+		# the deep-merged 'config' section so no previous override is clobbered.
 		if key == 'WWW_USER_AGENT':
-			self.handle._write_state({'WWW_USER_AGENT': val})
+			self.handle._write_state({'WWW_USER_AGENT': val, 'config': {key: val}})
+		elif key not in _SET_NO_PERSIST:
+			persist_val = self.handle.Options['AI_OPTIONS'] if key == 'AI_OPTIONS' else val
+			self.handle._write_state({'config': {key: persist_val}})
+			print("  (saved to state.aiia)")
 		return True
 	#
 	def CMD_GET(self, inp=""):

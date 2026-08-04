@@ -403,3 +403,30 @@ def test_ph_crc32_matches_zlib():
 	from src.CommandsSession import _ph_crc32
 	for s in ('', 'test', 'some longer content\nwith newline'):
 		assert _ph_crc32(s) == '{:08x}'.format(zlib.crc32(s.encode('utf-8')))
+
+def test_write_state_deep_merges_config(tmp_path):
+	from src.HandleState import HandleState
+	class Stub(HandleState):
+		def __init__(self):
+			self.Options = {'AI_FILE_STATE': str(tmp_path / 'state.aiia')}
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+	stub = Stub()
+	stub._write_state({'config': {'AI_INSTRUCT_OPTION': 2}})
+	stub._write_state({'config': {'NUM_PREDICT': 8192}})
+	stub._write_state({'mode': 'build'})
+	import json, os
+	state = json.loads(open(str(tmp_path / 'state.aiia')).read())
+	assert state['config'] == {'AI_INSTRUCT_OPTION': 2, 'NUM_PREDICT': 8192}
+	assert state['mode'] == 'build'
+
+def test_restore_config_overrides(tmp_path):
+	from src.HandleState import HandleState
+	class Stub(HandleState):
+		def __init__(self):
+			self.Options = {'AI_FILE_STATE': str(tmp_path / 'state.aiia'), 'AI_OPTIONS': {'num_ctx': 4096}}
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+	stub = Stub()
+	stub._write_state({'config': {'AI_INSTRUCT_OPTION': 2, 'AI_OPTIONS': {'temperature': 0.8}}})
+	stub._restore_config_overrides(stub._read_state())
+	assert stub.Options['AI_INSTRUCT_OPTION'] == 2
+	assert stub.Options['AI_OPTIONS'] == {'num_ctx': 4096, 'temperature': 0.8}

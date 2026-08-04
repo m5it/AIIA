@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-04 — v1.1.10
+
+### Auto: Version v1.1.10
+
+- Version auto-incremented from v1.1.9
+- Files changed: src/CommandsConfig.py, src/HandleState.py, tests/test_core_modules.py
+
+---
+
+
 ## 2026-08-03 — v1.1.9
 
 ### Auto: Version v1.1.9
