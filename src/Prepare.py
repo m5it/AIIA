@@ -108,18 +108,18 @@ class Prepare():
 		# Main tip: workflow-only instructions
 		entries = []
 		if plan_text:
-			entries.append({'role': 'model', 'content': "[PLAN MODE INSTRUCTIONS]\n" + plan_text})
+			entries.append({'role': 'system', 'content': "[PLAN MODE INSTRUCTIONS]\n" + plan_text})
 		if build_workflow:
-			entries.append({'role': 'model', 'content': "[BUILD MODE INSTRUCTIONS]\n" + build_workflow})
+			entries.append({'role': 'system', 'content': "[BUILD MODE INSTRUCTIONS]\n" + build_workflow})
 		if self.handle and hasattr(self.handle, 'hTM'):
 			self.handle.hTM.delete(base_title, 'model')
 			self.handle.hTM.save(base_title, 'model', entries)
 		# Secondary tip: tool reference docs (on-demand)
 		if build_tools:
 			tool_tip_title = "tool_reference_build"
-			tool_entries = [{'role': 'model', 'content': "[BUILD MODE TOOL REFERENCE]\n" + build_tools}]
+			tool_entries = [{'role': 'system', 'content': "[BUILD MODE TOOL REFERENCE]\n" + build_tools}]
 			if build_text:
-				tool_entries.append({'role': 'model', 'content': "[BUILD MODE WORKFLOW EXAMPLE]\n" + build_text})
+				tool_entries.append({'role': 'system', 'content': "[BUILD MODE WORKFLOW EXAMPLE]\n" + build_text})
 			self.handle.hTM.delete(tool_tip_title, 'model')
 			self.handle.hTM.save(tool_tip_title, 'model', tool_entries)
 	#

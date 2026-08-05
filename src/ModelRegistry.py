@@ -11,6 +11,7 @@ MODEL_DB = [
 	("qwen3:*",                131072, False, False, 16384, "Qwen 3"),
 	("qwen3-coder:*",          131072, False, False, 16384, "Qwen 3 Coder"),
 	("qwen3.5:*",              131072, False, False, 16384, "Qwen 3.5"),
+	("w4d4f4k/qwen25*",        32768,  False, True,  16384, "Qwen 2.5 AIIA Coder"),
 	("minicpm-v:*",            8192,   True,  False, 4096,  "MiniCPM-V Vision"),
 	("ministral-3:*",          32768,  False, False, 8192,  "Mistral Ministral 3B"),
 	("mistral-small3.2:*",     131072, False, False, 16384, "Mistral Small 3.2"),
@@ -40,7 +41,7 @@ def apply(Options, model_name):
 	Returns list of human-readable change strings (empty if no changes)."""
 	caps = lookup(model_name)
 	if caps is None:
-		return _apply_unknown(Options)
+		return _apply_unknown(Options, model_name)
 
 	changes = []
 	if caps['context_size'] > 0:
@@ -50,11 +51,15 @@ def apply(Options, model_name):
 		_apply_num_predict(Options, caps, changes)
 	return changes
 
-def _apply_unknown(Options):
+def _apply_unknown(Options, model_name):
 	"""Model not in the registry — reset capability flags that may have been
 	inherited from a previously active model (e.g. AI_THINK left on after
 	switching away from a thinking model), which would cause a hard error
 	(e.g. Ollama HTTP 400) when the new model does not support them.
+	Also applies a conservative context window so the framework never floods
+	an unknown model's real (possibly small) context — the server silently
+	truncates oversized prompts, which cuts generation off mid-response.
+	Cloud models are skipped (they own their window server-side).
 	Returns list of human-readable change strings (empty if no changes)."""
 	changes = []
 	old_think = Options.get('AI_THINK', False)
@@ -65,6 +70,17 @@ def _apply_unknown(Options):
 	if old_vision:
 		Options['AI_VISION_ENABLED'] = False
 		changes.append("Vision: on -> off (unknown model, no registry entry)")
+	if ':cloud' not in str(model_name or '').lower():
+		ai_opts = Options.get('AI_OPTIONS', {})
+		if not isinstance(ai_opts, dict):
+			ai_opts = {}
+		if 'num_ctx' not in ai_opts:
+			ai_opts['num_ctx'] = 16384
+			Options['AI_OPTIONS'] = ai_opts
+			changes.append("Context: -> 16384 (unknown model, conservative default)")
+			if Options.get('AI_CONTEXT_LIMIT', 262144) > 16384:
+				Options['AI_CONTEXT_LIMIT'] = 16384
+				changes.append("AI_CONTEXT_LIMIT: -> 16384 (unknown model, conservative default)")
 	return changes
 
 def _apply_context(Options, caps, changes):

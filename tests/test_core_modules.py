@@ -337,18 +337,38 @@ def test_model_registry_known_model():
 	assert opts['AI_THINK'] is True
 	assert any('Thinking' in c for c in changes)
 
+def test_model_registry_qwen25_coder_known():
+	from src.ModelRegistry import apply
+	opts = {'AI_THINK': False, 'AI_VISION_ENABLED': False}
+	changes = apply(opts, 'w4d4f4k/qwen25-coder-aiia-v2:latest')
+	assert opts['AI_THINK'] is True
+	assert opts['AI_CONTEXT_LIMIT'] == 32768
+	assert opts['AI_OPTIONS']['num_ctx'] == 32768
+	assert opts['NUM_PREDICT'] == 16384
+	assert any('Context' in c for c in changes)
+
 def test_model_registry_unknown_model_resets_stale_flags():
 	from src.ModelRegistry import apply
 	opts = {'AI_THINK': True, 'AI_VISION_ENABLED': True}
-	changes = apply(opts, 'w4d4f4k/qwen25-coder-aiia:latest')
+	changes = apply(opts, 'custom/unknown-coder:latest')
 	assert opts['AI_THINK'] is False
 	assert opts['AI_VISION_ENABLED'] is False
 	assert any('unknown model' in c for c in changes)
 
-def test_model_registry_unknown_model_no_changes_when_defaults():
+def test_model_registry_unknown_model_conservative_context():
 	from src.ModelRegistry import apply
 	opts = {'AI_THINK': False, 'AI_VISION_ENABLED': False}
-	assert apply(opts, 'some-unknown-model:latest') == []
+	changes = apply(opts, 'some-unknown-model:latest')
+	assert opts['AI_OPTIONS']['num_ctx'] == 16384
+	assert opts['AI_CONTEXT_LIMIT'] == 16384
+	assert any('conservative default' in c for c in changes)
+
+def test_model_registry_unknown_cloud_model_no_context_change():
+	from src.ModelRegistry import apply
+	opts = {'AI_THINK': False, 'AI_VISION_ENABLED': False}
+	changes = apply(opts, 'some-provider/model:cloud')
+	assert 'AI_OPTIONS' not in opts
+	assert any('conservative default' in c for c in changes) is False
 
 def test_chat_params_think_disabled_in_build_mode():
 	from src.HandleChat import HandleChat

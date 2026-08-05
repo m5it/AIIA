@@ -33,7 +33,7 @@ class SaveTip():
 			'title': title,
 			'source': 'model',
 			'saved_at': ts,
-			'entries': [{'role':'model', 'content':content}],
+			'entries': [{'role':'system', 'content':content}],
 		}
 		try:
 			with open(os.path.join(path, "{}.json".format(ts)), 'w') as f:

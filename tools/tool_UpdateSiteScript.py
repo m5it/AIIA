@@ -175,7 +175,7 @@ class UpdateSiteScript():
 				'title': title,
 				'source': 'model',
 				'saved_at': ts,
-				'entries': [{'role': 'model', 'content': content}],
+				'entries': [{'role': 'system', 'content': content}],
 			}
 			with open(os.path.join(dest, "%s.json" % ts), 'w') as f:
 				f.write(json.dumps(data))

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-05 — v1.1.14
+
+### Auto: Version v1.1.14
+
+- Version auto-incremented from v1.1.13
+- Files changed: src/HandleChat.py, src/ModelRegistry.py, src/Prepare.py, src/TipManager.py, tests/test_core_modules.py, tests/test_tip_roles.py, tools/tool_SaveTip.py, tools/tool_UpdateSiteScript.py
+
+---
+
+
 ## 2026-08-05 — v1.1.13
 
 ### Auto: Version v1.1.13

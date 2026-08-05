@@ -110,7 +110,13 @@ class TipManager():
 		count = 0
 		for data in entries:
 			for msg in data.get('entries', []):
-				self.handle.Response(msg.get('role', 'user'), {
+				# Tips replay as system instructions — the training data and
+				# LLM role validation only know system/user/assistant/tool.
+				# Coerce legacy 'model' entries so old tips stay valid.
+				role = msg.get('role', 'user')
+				if role == 'model':
+					role = 'system'
+				self.handle.Response(role, {
 					'content': msg.get('content', ''),
 					'thinking': msg.get('thinking', None),
 					'name': msg.get('name', None),

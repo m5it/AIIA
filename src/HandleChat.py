@@ -3,7 +3,23 @@ from src.functions import rmatch, user_input
 from src.PlanManager import PlanBase, Plan
 
 _AI_LOOP_CONTINUE = object()
-#
+
+_LLM_ROLES = ('system', 'user', 'assistant', 'tool')
+
+def _sanitize_msgs_for_llm(msgs):
+	"""Filter malformed entries and coerce non-standard roles before an LLM call.
+
+	LLM backends only accept system/user/assistant/tool roles. Legacy
+	histories may contain 'model' (old tip entries); coerce it to 'system',
+	drop anything else.
+	"""
+	msgs = [m for m in msgs if isinstance(m, dict) and m.get('role')]
+	msgs = [m for m in msgs if m['role'] in _LLM_ROLES or m['role'] == 'model']
+	for m in msgs:
+		if m['role'] == 'model':
+			m['role'] = 'system'
+	return msgs
+
 class HandleChat():
 
 	#
@@ -349,8 +365,9 @@ class HandleChat():
 			result        = ""
 			res           = {}
 			msgs = copy.deepcopy(self.hHM.msgs)
-			# Strip malformed entries (no `role` key) that slipped into history
-			msgs = [m for m in msgs if isinstance(m, dict) and m.get('role')]
+			# Strip malformed entries + coerce non-standard roles (e.g. legacy
+			# 'model' tip entries) before sending to the LLM backend
+			msgs = _sanitize_msgs_for_llm(msgs)
 
 			# Auto-inject tip availability into last user message
 			self._inject_tip_summary(msgs)
