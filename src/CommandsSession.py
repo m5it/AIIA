@@ -145,6 +145,28 @@ class CommandsSession():
 		# Full history list
 		return _ph_list_view(msgs)
 	#
+	def CMD_SEARCH_HISTORY(self, inp=""):
+		"""!SH <term> — search chat history, printing matching row numbers."""
+		msgs = self.handle.hHM.msgs
+		if not msgs:
+			print("No history.")
+			return 2
+		a = inp.split()
+		if len(a) < 2:
+			print("Usage: !SH <term>   (or !SH -r <regex>)")
+			return 2
+		use_regex = False
+		parts = a[1:]
+		if parts and parts[0] == '-r':
+			use_regex = True
+			parts = parts[1:]
+		if not parts:
+			print("Usage: !SH <term>   (or !SH -r <regex>)")
+			return 2
+		term = ' '.join(parts)
+		matches = _ph_search(msgs, term, regex=use_regex)
+		return _ph_search_view(msgs, matches, term, use_regex)
+	#
 	def CMD_NAME_HISTORY(self, inp=""):
 		"""!NH <name> — give a human-readable name to the current history session."""
 		parts = inp.strip().split()
@@ -245,23 +267,69 @@ def _ph_row_view(msgs, row):
 
 #--
 
+def _ph_format_row(i, msg):
+	role = msg.get('role', '?')
+	content = msg.get('content', '')
+	ts = msg.get('timestamp', 0)
+	tool_name = msg.get('name', '')
+	time_str = datetime.fromtimestamp(ts).strftime('%H:%M') if ts else '??:??'
+	color, label = _ph_label(role, tool_name)
+	# Truncate content to 80 chars, single-line
+	preview = content.replace('\n', ' ').replace('\r', '')
+	if len(preview) > 80:
+		preview = preview[:80] + '...'
+	elif not preview:
+		preview = '(empty)'
+	return " {:>3} {} {}[{}]{} {:<14} {}".format(
+		i, _PH_D + _ph_crc32(content) + _PH_R, _PH_D, time_str, _PH_R, color + label + _PH_R, _PH_D + preview + _PH_R)
+
 def _ph_list_view(msgs):
 	# Full history list
 	print("\n{}=== CHAT HISTORY ({} messages) ==={}\n".format(_PH_W, len(msgs), _PH_R))
 	for i, msg in enumerate(msgs):
-		role = msg.get('role', '?')
-		content = msg.get('content', '')
-		ts = msg.get('timestamp', 0)
-		tool_name = msg.get('name', '')
-		time_str = datetime.fromtimestamp(ts).strftime('%H:%M') if ts else '??:??'
-		color, label = _ph_label(role, tool_name)
-		# Truncate content to 80 chars, single-line
-		preview = content.replace('\n', ' ').replace('\r', '')
-		if len(preview) > 80:
-			preview = preview[:80] + '...'
-		elif not preview:
-			preview = '(empty)'
-		print(" {:>3} {} {}[{}]{} {:<14} {}".format(
-			i, _PH_D + _ph_crc32(content) + _PH_R, _PH_D, time_str, _PH_R, color + label + _PH_R, _PH_D + preview + _PH_R))
+		print(_ph_format_row(i, msg))
+	print()
+
+#--
+
+def _ph_search(msgs, term, regex=False):
+	"""Search history rows. Returns list of (index, msg) matching the term.
+
+	Matches against content, thinking, and tool name. Substring (case-insensitive)
+	by default, or a regex pattern when regex=True."""
+	import re as _re
+	matches = []
+	if regex:
+		try:
+			pattern = _re.compile(term)
+		except _re.error as e:
+			print("Invalid regex: {}".format(e))
+			return matches
+		match = lambda text: bool(pattern.search(text or ''))
+	else:
+		low = term.lower()
+		match = lambda text: low in (text or '').lower()
+	for i, msg in enumerate(msgs):
+		fields = [
+			msg.get('content', ''),
+			msg.get('thinking', ''),
+			msg.get('name', ''),
+		]
+		if any(match(f) for f in fields):
+			matches.append((i, msg))
+	return matches
+
+def _ph_search_view(msgs, matches, term, regex):
+	# Search results — same row format as !PH so numbers feed !PH <N> / !RM <N>
+	if not matches:
+		print("No matches for {}{}{} in {} messages.".format(
+			"regex " if regex else "'", term, "'" if not regex else "", len(msgs)))
+		return 2
+	kind = "REGEX" if regex else "TERM"
+	print("\n{}=== HISTORY SEARCH [{} '{}'] — {} match(es) ==={}\n".format(
+		_PH_W, kind, term, len(matches), _PH_R))
+	for i, msg in matches:
+		print(_ph_format_row(i, msg))
+	print("{}Use !PH <row> to view, !RM <row> to remove.{}".format(_PH_D, _PH_R))
 	print()
 	return 2

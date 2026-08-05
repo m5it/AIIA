@@ -53,6 +53,7 @@ Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `1.0.0`
 | `!SET <key> <value>` | Override any config at runtime (e.g. `!SET NUM_PREDICT 16384`) |
 | `!NEW SESSION` | Full reset |
 | `!REHEAT` | Re-run the startup warm-up: refresh tool infos and reload saved tips |
+| `!SH <term>` | Search chat history for a term; prints matching row numbers (`!SH -r <regex>` for regex) |
 | `!INSTALL_DEPS [persona]` | Install missing persona dependencies |
 | `!SITE_LIST` | List all websites with available JS support scripts |
 | `!SITE <domain>` | Show available scripts for a specific website |

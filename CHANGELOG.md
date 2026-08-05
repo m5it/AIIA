@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-05 — v1.1.15
+
+### Auto: Version v1.1.15
+
+- Version auto-incremented from v1.1.14
+- Files changed: AGENTS.md, src/CommandsSession.py, src/commands_registry.py, tests/test_sh_command.py
+
+---
+
+
 ## 2026-08-05 — v1.1.14
 
 ### Auto: Version v1.1.14

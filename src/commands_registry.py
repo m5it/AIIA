@@ -80,6 +80,13 @@ def _session_commands(self):
 			"usage"      :"!PH [number]",
 			"func"       :self.CMD_PREVIEW_HISTORY,
 		},
+		"SH":{
+			"name"       :"Search History",
+			"description":"Search chat history for a term; prints matching row numbers (use !PH <N> to view, !RM <N> to remove).",
+			"regex"      :r"^!SH(\s+.+)?$",
+			"usage"      :"!SH <term> | !SH -r <regex>",
+			"func"       :self.CMD_SEARCH_HISTORY,
+		},
 		"NAME_HISTORY":{
 			"name"       :"Name History",
 			"description":"Give a human-readable name to the current history session.",
