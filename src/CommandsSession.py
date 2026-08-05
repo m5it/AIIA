@@ -289,6 +289,7 @@ def _ph_list_view(msgs):
 	for i, msg in enumerate(msgs):
 		print(_ph_format_row(i, msg))
 	print()
+	return 2
 
 #--
 

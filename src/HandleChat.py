@@ -116,7 +116,13 @@ class HandleChat():
 			cmds = self.cmds.cmds
 			for k in cmds:
 				if rmatch(inp,cmds[k]['regex']):
-					return cmds[k]['func'](inp)
+					out = cmds[k]['func'](inp)
+					# Defensive: a command that forgets to return crashes the
+					# Chat() loop (e.g. bare !PH did via _ph_list_view). Treat
+					# None as 2 (continue).
+					if out is None:
+						out = 2
+					return out
 			return 2 # as continue
 		# Repeat user input. Content too large
 		if len(inp)>self.Options['AI_MAX_CONTENT_LEN']:

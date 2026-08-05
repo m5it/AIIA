@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-05 — v1.1.16
+
+### Auto: Version v1.1.16
+
+- Version auto-incremented from v1.1.15
+- Files changed: src/CommandsSession.py, src/HandleChat.py, tests/test_sh_command.py
+
+---
+
+
 ## 2026-08-05 — v1.1.15
 
 ### Auto: Version v1.1.15

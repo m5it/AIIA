@@ -111,3 +111,35 @@ def test_ph_format_row_contains_index():
 	line = _ph_format_row(3, msgs[3])
 	assert '  3 ' in line
 	assert 'Terminal' in line
+
+
+def test_ph_list_view_returns_2(capsys):
+	# Regression: bare !PH crashed the Chat() loop because _ph_list_view
+	# returned None (None >= 3 in HandleChat.Chat())
+	from src.CommandsSession import _ph_list_view
+	assert _ph_list_view(_msgs()) == 2
+	out = capsys.readouterr().out
+	assert 'CHAT HISTORY' in out
+
+
+def test_ph_cmd_returns_int_for_all_forms(capsys):
+	c, _ = _make()
+	assert c.CMD_PREVIEW_HISTORY('!PH') == 2
+	assert c.CMD_PREVIEW_HISTORY('!PH 2') == 2
+
+
+def test_you_dispatch_coerces_none_to_2():
+	# Any command that forgets a return must not crash the loop
+	from src.HandleChat import HandleChat
+	c, _ = _make()
+	hc = HandleChat()
+	hc.cmds = c
+	hc.cmds.cmds = dict(hc.cmds.cmds)
+	hc.cmds.cmds['BROKEN'] = {
+		'name': 'Broken',
+		'description': 'returns None',
+		'regex': r'^!BROKEN$',
+		'usage': '!BROKEN',
+		'func': lambda inp: None,
+	}
+	assert hc.You('!BROKEN') == 2
