@@ -3,6 +3,16 @@
 import os, json, zlib
 from datetime import datetime
 from src.functions import fwrite
+
+_REHEAT_MSG = (
+	"[Tool Reheat Session]\n"
+	"Refresh your knowledge of this environment:\n"
+	"1) Call <listTools> to reload all available tools and their parameters.\n"
+	"2) Use <GetTip> or <ReinsertTip> to reload your important tips "
+	"(instruction tips, tool reference tips, and any others you use).\n"
+	"3) Demonstrate at least 2 tools with complete XML examples to confirm."
+)
+
 class CommandsSession():
 	#
 	def CMD_NEW_SESSION(self, inp):
@@ -156,6 +166,18 @@ class CommandsSession():
 		self.handle.hTM.clear_all_caches()
 		self.handle._consumed_tips = set()
 		return 4 # update class Handle()
+	#
+	def CMD_REHEAT(self, inp):
+		"""!REHEAT — re-run the startup warm-up: refresh tool infos and reload tips.
+		Clears tool caches (e.g. listTools) and resets consumed tips so the model
+		can re-collect everything, then injects the warm-up message. Returns 0 so
+		the outer Chat() loop calls AI() (which appends the [Tips: ...] notice)."""
+		self.handle.hTM.clear_all_caches()
+		self.handle._consumed_tips = set()
+		self.handle.hLG.echo("Reheat — refreshing tool infos and reloading tips...",
+			{'color':True, 'colorValue':'cyan','debugOnly':False})
+		self.handle.Response('user', {'content': _REHEAT_MSG})
+		return 0
 	#
 	def CMD_QUIT(self, inp):
 		self.handle.Options['AI_LIVE']=False

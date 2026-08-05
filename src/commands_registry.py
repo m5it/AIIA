@@ -52,6 +52,13 @@ def _session_commands(self):
 			"usage"      :"!CLEAR",
 			"func"       :self.CMD_CLEAR,
 		},
+		"REHEAT":{
+			"name"       :"Reheat",
+			"description":"Re-run the startup warm-up: refresh tool infos and reload saved tips.",
+			"regex"      :r"^!REHEAT$",
+			"usage"      :"!REHEAT",
+			"func"       :self.CMD_REHEAT,
+		},
 		"REMOVE":{
 			"name"       :"Remove Row",
 			"description":"Remove a specific row from chat history by number (use !PH to see row numbers).",

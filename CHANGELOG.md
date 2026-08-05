@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-05 — v1.1.13
+
+### Auto: Version v1.1.13
+
+- Version auto-incremented from v1.1.12
+- Files changed: AGENTS.md, src/CommandsSession.py, src/commands_registry.py, tests/test_reheat_command.py
+
+---
+
+
 ## 2026-08-04 — v1.1.12
 
 ### Auto: Version v1.1.12
