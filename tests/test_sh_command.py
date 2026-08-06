@@ -91,9 +91,17 @@ def test_sh_cmd_prints_row_indexes(capsys):
 	assert ret == 2
 	out = capsys.readouterr().out
 	assert '1 match(es)' in out
-	# Row number printed must match msgs index so !RM <N> works
+	# Row number printed must match msgs index so !RH <N> works
 	assert '  4 ' in out
 	assert '  2 ' not in out
+
+
+def test_remove_command_renamed_to_rh():
+	c, _ = _make()
+	info = c.cmds['REMOVE']
+	assert info['regex'] == r'^!RH\s+\d+$'
+	assert info['usage'] == '!RH <row_num>'
+	assert info['func'] == c.CMD_REMOVE
 
 
 def test_sh_cmd_regex_flag(capsys):

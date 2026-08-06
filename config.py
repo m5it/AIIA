@@ -118,6 +118,7 @@ Options         = {
 	"TOOL_CACHE_ENABLED"  :True,     # Enable tool result caching
 	"TOOL_CACHE_TTL"      :86400,    # Default cache TTL in seconds (1 day)
 	"TOOL_SHOW_LOAD"      :True,     # Show detailed tool loading/executing/Loaded messages instead of compact ⚙️ line
+	"AI_TOOL_PREVIEW"     :0,        # Echo tool results to console: 0 = only in DEBUG (see only model), 1 = always show tool output to the user
 	#
 	# ReplaceLine indexing
 	"REPLACELINE_ZERO_INDEXED": True, # False=1-indexed (first line=1, default), True=0-indexed (first line=0)

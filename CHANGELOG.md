@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-06 — v1.1.19
+
+### Auto: Version v1.1.19
+
+- Version auto-incremented from v1.1.18
+- Files changed: config.py, src/CommandsSession.py, src/ToolExecutor.py, src/commands_registry.py, tests/test_core_modules.py, tests/test_sh_command.py
+
+---
+
+
 ## 2026-08-06 — v1.1.18
 
 ### Auto: Version v1.1.18

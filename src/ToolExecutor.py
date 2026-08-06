@@ -358,6 +358,8 @@ class ToolExecutor():
 			result_str = result_str[:MAX_PREVIEW] + "... (truncated, {} chars total)".format(len(str(result)))
 		#
 		echo_opts = {'color':True, 'colorValue':'green'}
+		if self.handle.Options.get('AI_TOOL_PREVIEW', 0):
+			echo_opts['debugOnly'] = False   # show tool output to the user even without DEBUG
 		if result_str.startswith('Error: ') or result_str.startswith('Warning: '):
 			echo_opts['debugOnly'] = False
 			if result_str.startswith('Error: '):

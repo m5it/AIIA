@@ -62,8 +62,8 @@ def _session_commands(self):
 		"REMOVE":{
 			"name"       :"Remove Row",
 			"description":"Remove a specific row from chat history by number (use !PH to see row numbers).",
-			"regex"      :r"^!RM\s+\d+$",
-			"usage"      :"!RM <row_num>",
+			"regex"      :r"^!RH\s+\d+$",
+			"usage"      :"!RH <row_num>",
 			"func"       :self.CMD_REMOVE,
 		},
 		"SUMMARIZE":{
@@ -82,7 +82,7 @@ def _session_commands(self):
 		},
 		"SH":{
 			"name"       :"Search History",
-			"description":"Search chat history for a term; prints matching row numbers (use !PH <N> to view, !RM <N> to remove).",
+			"description":"Search chat history for a term; prints matching row numbers (use !PH <N> to view, !RH <N> to remove).",
 			"regex"      :r"^!SH(\s+.+)?$",
 			"usage"      :"!SH <term> | !SH -r <regex>",
 			"func"       :self.CMD_SEARCH_HISTORY,

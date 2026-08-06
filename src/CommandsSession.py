@@ -96,7 +96,7 @@ class CommandsSession():
 		from src.PlanSaver import PlanSaver
 		a = inp.strip().split()
 		if len(a) < 2:
-			print("Usage: !RM <row_num>")
+			print("Usage: !RH <row_num>")
 			return 2
 		try:
 			num = int(a[1])
@@ -322,7 +322,7 @@ def _ph_search(msgs, term, regex=False):
 	return matches
 
 def _ph_search_view(msgs, matches, term, regex):
-	# Search results — same row format as !PH so numbers feed !PH <N> / !RM <N>
+	# Search results — same row format as !PH so numbers feed !PH <N> / !RH <N>
 	if not matches:
 		print("No matches for {}{}{} in {} messages.".format(
 			"regex " if regex else "'", term, "'" if not regex else "", len(msgs)))
@@ -332,6 +332,6 @@ def _ph_search_view(msgs, matches, term, regex):
 		_PH_W, kind, term, len(matches), _PH_R))
 	for i, msg in matches:
 		print(_ph_format_row(i, msg))
-	print("{}Use !PH <row> to view, !RM <row> to remove.{}".format(_PH_D, _PH_R))
+	print("{}Use !PH <row> to view, !RH <row> to remove.{}".format(_PH_D, _PH_R))
 	print()
 	return 2

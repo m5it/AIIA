@@ -300,6 +300,58 @@ def test_tool_executor_guard_file_size():
 	assert err is not None and 'AI_MAX_FILE_SIZE' in err
 	assert obj._guard_file_size('ReadFile', {}) is None
 
+
+def _echo_capture_tool_executor(preview_value, options=None):
+	from src.ToolExecutor import ToolExecutor
+	opts = {'AI_TOOL_PREVIEW': preview_value}
+	if options:
+		opts.update(options)
+	captured = {}
+
+	class LG:
+		def echo(self, text, echo_opts=None):
+			captured['text'] = text
+			captured['opts'] = echo_opts or {}
+
+	class Handle:
+		def __init__(self):
+			self.Options = opts
+			self.hLG = LG()
+
+	obj = ToolExecutor.__new__(ToolExecutor)
+	obj.handle = Handle()
+	return obj, captured
+
+
+def test_tool_preview_on_shows_success_to_user():
+	obj, cap = _echo_capture_tool_executor(1)
+	obj._fire_echo_result('ReadFile', 'file content')
+	assert 'ReadFile' in cap['text']
+	assert cap['opts']['debugOnly'] is False
+
+
+def test_tool_preview_off_hides_success_from_user():
+	obj, cap = _echo_capture_tool_executor(0)
+	obj._fire_echo_result('ReadFile', 'file content')
+	# debugOnly unset -> Log.echo() defaults it to True (DEBUG-only)
+	assert 'debugOnly' not in cap['opts']
+
+
+def test_tool_preview_error_always_shown():
+	obj, cap = _echo_capture_tool_executor(0)
+	obj._fire_echo_result('Terminal', 'Error: command failed')
+	assert cap['opts']['debugOnly'] is False
+	obj, cap = _echo_capture_tool_executor(1)
+	obj._fire_echo_result('Terminal', 'Warning: unusual output')
+	assert cap['opts']['debugOnly'] is False
+
+
+def test_tool_preview_keeps_truncation():
+	obj, cap = _echo_capture_tool_executor(1)
+	obj._fire_echo_result('ReadFile', 'x' * 2000)
+	assert len(cap['text']) < 600
+	assert 'truncated' in cap['text']
+
 def test_history_manager_choose_search(monkeypatch):
 	from src.HistoryManager import HistoryManager
 	obj = HistoryManager.__new__(HistoryManager)
