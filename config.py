@@ -25,8 +25,8 @@ Options         = {
 	#"AI_MODEL"            :"gemma4:e4b",
 	"AI_MODEL"            :"kimi-k2.5:cloud",
 	"AI_BACKEND"          :"ollama",  # LLM backend: "ollama" or "vllm" (OpenAI-compatible)
-	"VLLM_HOST"           :"http://localhost:8000/v1",  # vLLM OpenAI-compatible base URL
-	"VLLM_API_KEY"        :"",        # optional API key for vLLM server
+	"VLLM_HOST"           :"http://localhost:8000/v1",  # vLLM OpenAI-compatible base URL. HF Inference API: "https://router.huggingface.co/v1"
+	"VLLM_API_KEY"        :"",        # optional API key for vLLM server; for HF use your hf_<token>
 	"VLLM_TIMEOUT"        :120,       # vLLM request timeout in seconds
 	"AI_IMAGE_BACKEND"    :"auto",    # image generation backend: "auto" (follow AI_BACKEND) | "ollama" | "vllm" | "local" (diffusers)
 	"AI_FILE_STATE"       :"{}/state.aiia".format(os.path.dirname(os.path.abspath(__file__))),
@@ -57,7 +57,7 @@ Options         = {
 	"TOOL_TRAINING_PLAN" :True,   # re-inject tool training when switching to plan mode
 	"TIMER_INTERRUPT" :False,     # if True, timers can inject during AI() iteration loop (default: only during You() prompt)
 	"PERSONA_AUTO_INSTALL_DEPS" :True,   # check and prompt to install persona dependencies
-	"AI_THINK"            :True, # enable think/reasoning API for models that support it (e.g. DeepSeek R1)
+	"AI_THINK"            :True, # enable think/reasoning API for models that support it (e.g. DeepSeek R1). Set false when using the HF Inference API via vllm backend
 	"AI_VISION_ENABLED"   :True, # enable vision/multimodal support (images in chat messages)
 	"AI_MAX_IMAGE_SIZE"   :10485760, # 10MB — max image file size for ReadImage
 	"AI_VISION_NOTE"      :"",  # set dynamically by ModelRegistry on model change; warns if model is not vision-capable

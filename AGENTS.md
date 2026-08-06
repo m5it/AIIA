@@ -85,6 +85,27 @@ Classes:
 - `src/LLMBackends/OllamaBackend.py` — wraps `ollama.Client`; returns native `ChatResponse` objects
 - `src/LLMBackends/VLLMBackend.py` — wraps the `openai` SDK; emits duck-typed stream chunks shaped like Ollama so `Handle.Stream()` needs no changes
 
+### Hugging Face Inference API (serverless OpenAI-compatible router)
+
+HF's hosted router speaks the OpenAI Chat Completions API, so you can point the **existing `vllm` backend** at it — no new backend or code changes:
+
+```bash
+pip install -r requirements-vllm.txt
+python run.py -b vllm -m Qwen/Qwen3-8B
+```
+
+`config.py` / `aiia.json`:
+- `AI_BACKEND: "vllm"`
+- `VLLM_HOST: "https://router.huggingface.co/v1"`
+- `VLLM_API_KEY: "hf_<token>"` — fine-grained HF token with **"Make calls to Inference Providers"** permission (https://huggingface.co/settings/tokens)
+- `AI_MODEL: "<hf model id>"` (e.g. `Qwen/Qwen3-8B`)
+
+Notes:
+- `!MODELS` works — the router exposes `GET /v1/models` (OpenAI-style model list)
+- **Set `AI_THINK: false`** — HF does not accept vLLM's `enable_reasoning` extra body param
+- **Set `AI_IMAGE_BACKEND: "local"`** — HF has no `{host}/images/generations` endpoint (use diffusers for image generation)
+- HF models aren't in the model registry (`src/ModelRegistry.py`), so unknown-model context defaults are conservative — tune with `!SET AI_CONTEXT_LIMIT <n>`
+
 Behavior notes:
 - The `ollama` import is lazy — vLLM-only installs don't need the ollama python package
 - Ollama options are mapped to OpenAI params: `num_predict`→`max_tokens`, `num_ctx` dropped, `think`→`extra_body.enable_reasoning` + `reasoning_content`

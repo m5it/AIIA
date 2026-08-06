@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-06 — v1.1.17
+
+### Auto: Version v1.1.17
+
+- Version auto-incremented from v1.1.16
+- Files changed: AGENTS.md, config.py
+
+---
+
+
 ## 2026-08-05 — v1.1.16
 
 ### Auto: Version v1.1.16
