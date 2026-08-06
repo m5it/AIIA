@@ -280,8 +280,9 @@ def _ph_format_row(i, msg):
 		preview = preview[:80] + '...'
 	elif not preview:
 		preview = '(empty)'
-	return " {:>3} {} {}[{}]{} {:<14} {}".format(
-		i, _PH_D + _ph_crc32(content) + _PH_R, _PH_D, time_str, _PH_R, color + label + _PH_R, _PH_D + preview + _PH_R)
+	return " {:>3} {} {}[{}]{} {:<14} {} {:>6} chars{} {}".format(
+		i, _PH_D + _ph_crc32(content) + _PH_R, _PH_D, time_str, _PH_R, color + label + _PH_R,
+		_PH_D, len(content), _PH_R, _PH_D + preview + _PH_R)
 
 def _ph_list_view(msgs):
 	# Full history list

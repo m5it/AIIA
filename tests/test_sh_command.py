@@ -113,6 +113,25 @@ def test_ph_format_row_contains_index():
 	assert 'Terminal' in line
 
 
+def test_ph_format_row_shows_size():
+	from src.CommandsSession import _ph_format_row
+	msgs = _msgs()
+	line = _ph_format_row(2, msgs[2])
+	assert ' chars' in line
+	assert '{} chars'.format(len(msgs[2]['content'])) in line
+	big = {'role': 'assistant', 'content': 'x' * 12345, 'name': ''}
+	assert '12345 chars' in _ph_format_row(0, big)
+
+
+def test_ph_row_view_shows_size(capsys):
+	from src.CommandsSession import _ph_row_view
+	msgs = _msgs()
+	_ph_row_view(msgs, 1)
+	out = capsys.readouterr().out
+	assert '{} chars'.format(len(msgs[1]['content'])) in out
+	assert 'crc32b:' in out
+
+
 def test_ph_list_view_returns_2(capsys):
 	# Regression: bare !PH crashed the Chat() loop because _ph_list_view
 	# returned None (None >= 3 in HandleChat.Chat())

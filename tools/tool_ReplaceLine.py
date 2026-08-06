@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import time
 from config import Options
+from src.ToolParser import ToolParser
 
 # Context lines shown around the changed region in the verification diff
 _DIFF_CONTEXT = 2
@@ -77,18 +78,19 @@ class ReplaceLine():
 			return line_num
 		return line_num - 1
 	#
-	def _preview(self, fileName, fl, tl, replacement, old_text):
-		new_preview = replacement.replace('\n', '\\n')
-		if len(new_preview) > 200:
-			new_preview = new_preview[:200] + '...'
+	def _preview(self, fileName, fl, tl, replacement, old_text, diff, indent_warn):
 		return ("Line{} {}-{} in '{}' currently reads:\n"
 			"```\n{}\n```\n"
 			"Proposed replacement:\n"
 			"```\n{}\n```\n"
+			"--- PREVIEW DIFF (old vs proposed, ±{} context) ---\n"
+			"{}\n"
+			"{}\n"
 			"To apply, add <confirmed>true</confirmed> to your ReplaceLine call.").format(
 				's' if tl != fl else '', fl, tl, fileName,
 				old_text.rstrip('\n'),
-				replacement.rstrip('\n'))
+				replacement.rstrip('\n'),
+				_DIFF_CONTEXT, diff, indent_warn)
 	#
 	def _remove_backup(self):
 		"""Delete any pending backup file and clear the state."""
@@ -158,6 +160,76 @@ class ReplaceLine():
 			diff = diff[:_DIFF_MAX_CHARS] + "\n... (diff truncated, {} chars total)".format(len(diff))
 		return diff
 	#
+	def _diff_lines(self, old_lines, new_lines, fname):
+		"""Unified diff of two in-memory line lists (used for the preview,
+		before the change is applied). Falls back cleanly on any failure."""
+		try:
+			diff = ''.join(difflib.unified_diff(
+				old_lines, new_lines,
+				'old/{}'.format(os.path.basename(fname)),
+				'new/{}'.format(os.path.basename(fname)), n=_DIFF_CONTEXT))
+		except Exception as e:
+			return "(could not build diff: {})".format(e)
+		if not diff or not diff.strip():
+			return "(no difference detected)"
+		if len(diff) > _DIFF_MAX_CHARS:
+			diff = diff[:_DIFF_MAX_CHARS] + "\n... (diff truncated, {} chars total)".format(len(diff))
+		return diff
+	#
+	def _indent_check(self, lines, new_lines, arr_fl, repl_lines):
+		"""Heuristic indentation check on the replaced block vs its context.
+		Returns a warning string (one line per issue) or '' if nothing looks off.
+		Non-blocking: warns only, never prevents the edit."""
+		def _lead(ln):
+			stripped = ln.lstrip(' \t')
+			return ln[:len(ln) - len(stripped)]
+		block = new_lines[arr_fl:arr_fl + len(repl_lines)]
+		ws = [_lead(l) for l in block if l.strip()]
+		if not ws:
+			return ''
+		warns = []
+		# 1) Mixed tabs and spaces inside the block
+		for i, l in enumerate(block):
+			if l.strip():
+				lead = _lead(l)
+				if '\t' in lead and ' ' in lead:
+					warns.append("replaced block mixes tabs and spaces in indentation (line {}).".format(arr_fl + 1 + i))
+		# 2) Indent family mismatch vs surrounding context
+		ctx_before = ''
+		for i in range(arr_fl - 1, -1, -1):
+			if lines[i].strip():
+				ctx_before = _lead(lines[i])
+				break
+		ctx_after = ''
+		for i in range(arr_fl + len(repl_lines), len(new_lines)):
+			if new_lines[i].strip():
+				ctx_after = _lead(new_lines[i])
+				break
+		base = ws[0]
+		def _fam(x):
+			return 'tabs' if '\t' in x else 'spaces'
+		if base and ctx_before and _fam(base) != _fam(ctx_before):
+			warns.append("replaced block uses {} indentation but the code above uses {}.".format(_fam(base), _fam(ctx_before)))
+		if base and ctx_after and _fam(base) != _fam(ctx_after):
+			warns.append("replaced block uses {} indentation but the code below uses {}.".format(_fam(base), _fam(ctx_after)))
+		# 3) Depth mismatch vs the original line being replaced
+		orig_first = _lead(lines[arr_fl]) if arr_fl < len(lines) else ''
+		if base != orig_first:
+			warns.append("replaced block is indented at level '{}' while the original line was at '{}'.".format(
+				base, orig_first))
+		return '\n'.join('⚠ ' + w for w in warns) if warns else ''
+	#
+	def _echo_user(self, message):
+		"""Print a message to the user's console (if a handle is active).
+		Tool results are normally truncated to 500 chars on the console, so
+		diffs get their own full-length echo."""
+		try:
+			handle = ToolParser._current_handle
+			if handle and handle.hLG:
+				handle.hLG.echo(message, {'color': True, 'colorValue': 'orange'})
+		except Exception:
+			pass
+	#
 	def _handle_confirm(self, action, fileName, full_path):
 		"""Handle confirmed=finalize / confirmed=revert after a pending apply."""
 		if not self._backup_path or not os.path.exists(self._backup_path):
@@ -222,7 +294,21 @@ class ReplaceLine():
 		old_lines = lines[arr_fl:arr_tl + 1]
 		old_text = ''.join(old_lines)
 
+		# Simulate the replacement exactly as the apply step would write it,
+		# so the preview diff matches what confirmed=true will actually produce.
+		repl = replacement
+		if not repl.endswith('\n'):
+			repl += '\n'
+		repl_lines = repl.split('\n')
+		if repl_lines and repl_lines[-1] == '':
+			repl_lines = repl_lines[:-1]
+		repl_lines = [l + '\n' for l in repl_lines]
+		sim_new_lines = lines[:arr_fl] + repl_lines + lines[arr_tl + 1:]
+
 		# --- Two-phase enforcement ---
+		preview_diff = self._diff_lines(lines, sim_new_lines, fileName)
+		indent_warn = self._indent_check(lines, sim_new_lines, arr_fl, repl_lines)
+		preview_echo = preview_diff + (("\n" + indent_warn) if indent_warn else "")
 		if confirmed:
 			# Check: has the file changed since a prior preview?
 			if self._preview_key == current_key:
@@ -232,28 +318,20 @@ class ReplaceLine():
 					self._preview_key = current_key
 					self._saved_hash = current_hash
 					return ("⚠ File changed since preview (another tool or process modified it). "
-						"Showing fresh preview.\n\n") + self._preview(fileName, fl, tl, replacement, old_text)
+						"Showing fresh preview.\n\n") + self._preview(fileName, fl, tl, replacement, old_text, preview_diff, indent_warn)
 			# No matching preview OR file unchanged — preview + execute in one pass
 			self._preview_key = None
 			self._saved_hash = None
-			preview_text = self._preview(fileName, fl, tl, replacement, old_text)
+			preview_text = self._preview(fileName, fl, tl, replacement, old_text, preview_diff, indent_warn)
 		else:
 			# First call (or non-matching) — store preview token
 			self._preview_key = current_key
 			self._saved_hash = self._compute_hash(full_path)
-			return self._preview(fileName, fl, tl, replacement, old_text)
+			self._echo_user("ReplaceLine preview diff for '{}':\n{}".format(fileName, preview_echo))
+			return self._preview(fileName, fl, tl, replacement, old_text, preview_diff, indent_warn)
 
 		# --- Execute the replacement ---
-		repl = replacement
-		if not repl.endswith('\n'):
-			repl += '\n'
-		#
-		repl_lines = repl.split('\n')
-		if repl_lines and repl_lines[-1] == '':
-			repl_lines = repl_lines[:-1]
-		repl_lines = [l + '\n' for l in repl_lines]
-		#
-		new_lines = lines[:arr_fl] + repl_lines + lines[arr_tl + 1:]
+		new_lines = sim_new_lines
 		#
 		# File-size guard
 		new_content = ''.join(new_lines)
@@ -288,6 +366,10 @@ class ReplaceLine():
 			result = preview_text + "\n\n" + result
 		#
 		diff = self._verification_diff(backup_path, full_path)
+		indent_warn = self._indent_check(lines, new_lines, arr_fl, repl_lines)
+		if indent_warn:
+			diff += "\n" + indent_warn
+		self._echo_user("ReplaceLine verification diff for '{}':\n{}".format(fileName, diff))
 		return ("{}\n\n--- VERIFICATION DIFF (old vs new, ±{} context) ---\n"
 			"{}\n\nBackup: {}\n"
 			"If the diff is correct, call ReplaceLine again with <confirmed>finalize</confirmed> to accept it. "

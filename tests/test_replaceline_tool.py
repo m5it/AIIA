@@ -33,6 +33,67 @@ def test_preview_leaves_file_unchanged(tmp_path):
 	assert open(path).read() == 'a\nb\nc\n'
 
 
+def test_preview_shows_diff(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'a\nb\nc\nd\n')
+	t = ReplaceLine()
+	res = t.run(fileName=str(path), fromLine=str(tool_line(2)), replacement='B')
+	assert 'PREVIEW DIFF' in res
+	assert '-b' in res and '+B' in res
+	assert open(path).read() == 'a\nb\nc\nd\n'
+
+
+def test_preview_multiline_diff(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'l1\nl2\nl3\nl4\nl5\n')
+	t = ReplaceLine()
+	res = t.run(fileName=str(path), fromLine=str(tool_line(3)),
+		toLine=str(tool_line(4)), replacement='X1\nX2')
+	assert 'PREVIEW DIFF' in res
+	assert '-l3' in res and '-l4' in res and '+X1' in res and '+X2' in res
+	assert open(path).read() == 'l1\nl2\nl3\nl4\nl5\n'
+
+
+def test_preview_no_difference_detected(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+	t = ReplaceLine()
+	res = t.run(fileName=str(path), fromLine=str(tool_line(2)), replacement='b')
+	assert 'no difference detected' in res
+	assert 'PREVIEW DIFF' in res
+
+
+def test_indent_warning_on_depth_mismatch(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'def f():\n    return 1\n')
+	t = ReplaceLine()
+	res = t.run(fileName=str(path), fromLine=str(tool_line(2)), replacement='  return 2')
+	assert 'PREVIEW DIFF' in res
+	assert 'indented at level' in res
+	assert open(path).read() == 'def f():\n    return 1\n'
+
+
+def test_indent_warning_on_mixed_tabs_spaces(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'def f():\n    return 1\n')
+	t = ReplaceLine()
+	res = t.run(fileName=str(path), fromLine=str(tool_line(2)), replacement='\t return 2')
+	assert 'mixes tabs and spaces' in res
+	assert open(path).read() == 'def f():\n    return 1\n'
+
+
+def test_indent_no_warning_when_matching(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'def f():\n    return 1\n')
+	t = ReplaceLine()
+	res = t.run(fileName=str(path), fromLine=str(tool_line(2)), replacement='    return 2')
+	assert 'PREVIEW DIFF' in res
+	assert 'indented at level' not in res
+
+
+def test_indent_warning_on_verification_diff(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'def f():\n    return 1\n')
+	t = ReplaceLine()
+	res = _apply(t, str(path), 2, '  return 2')
+	assert 'VERIFICATION DIFF' in res
+	assert 'indented at level' in res
+	assert open(path).read() == 'def f():\n  return 2\n'
+
+
 def test_apply_shows_diff_creates_backup_and_pending(tmp_path):
 	path = _write(tmp_path / 'f.txt', 'a\nb\nc\nd\n')
 	t = ReplaceLine()

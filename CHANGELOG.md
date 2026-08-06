@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-06 — v1.1.18
+
+### Auto: Version v1.1.18
+
+- Version auto-incremented from v1.1.17
+- Files changed: AGENTS.md, src/CommandsSession.py, tests/test_replaceline_tool.py, tests/test_sh_command.py, tools/tool_ReplaceLine.py
+
+---
+
+
 ## 2026-08-06 — v1.1.17
 
 ### Auto: Version v1.1.17
