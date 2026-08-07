@@ -1,7 +1,7 @@
 #--
 # class ToolExecutor — load, validate and execute tool invocations
 import os, time, json, subprocess, shlex
-from src.functions import initmodule, importmodule, splitFileNameExtension
+from src.functions import initmodule, importmodule, splitFileNameExtension, fread
 class ToolExecutor():
 	#
 	_write_tools_validate = {'WriteFile', 'CreateFile', 'AppendFile', 'ReplaceLine', 'Sed'}
@@ -157,6 +157,10 @@ class ToolExecutor():
 		finally:
 			ToolParser._current_handle = None
 		#
+		# File buffer cache — keep the assembled content of write tools in memory
+		# (plan-gated) so it can be reinjected after a context auto-clear.
+		self._cache_file_buffer(toolName, params, result)
+		#
 		# Cache save: if tool has cache_ttl and result is not an error, save it
 		if cache_ttl > 0 and cache_enabled and result and not str(result).startswith('Error'):
 			key = self._cache_key(toolName, params)
@@ -164,6 +168,49 @@ class ToolExecutor():
 			self.handle.hLG.echo("Cached {} result (TTL: {}s)".format(toolName, cache_ttl), {'color':True, 'colorValue':'cyan'})
 		#
 		return result
+
+	def _cache_file_buffer(self, toolName, params, result):
+		"""Cache the assembled content of a write tool's target file in memory
+		(self.handle.file_buffer_cache), keyed by fileName as the model passed it.
+
+		Only runs when a plan is active and TOOL_FILE_CACHE is enabled.  Reads the
+		file back from disk after each successful run, so chunked
+		WriteFile+AppendFile sequences and ReplaceLine/Sed edits assemble
+		naturally.  Files larger than TOOL_FILE_CACHE_MAX_FILE are skipped, and
+		the oldest entries are evicted past TOOL_FILE_CACHE_MAX_FILES."""
+		try:
+			if toolName not in self._write_tools_validate:
+				return
+			if not self.handle.Options.get('TOOL_FILE_CACHE', True):
+				return
+			if self.handle.Options.get('TOOL_FILE_CACHE_ON_PLAN', True):
+				if not self.handle._active_plan_text():
+					return
+			if not result or str(result).startswith('Error'):
+				return
+			if toolName == 'Sed' and not params.get('inplace'):
+				return
+			fileName = params.get('fileName', '')
+			if not fileName:
+				return
+			max_file = self.handle.Options.get('TOOL_FILE_CACHE_MAX_FILE', 100000)
+			if os.path.isfile(fileName) and os.path.getsize(fileName) > max_file:
+				return
+			content = fread(fileName)
+			if content is None:
+				return
+			cache = self.handle.file_buffer_cache
+			cache[fileName] = content
+			max_files = self.handle.Options.get('TOOL_FILE_CACHE_MAX_FILES', 20)
+			while len(cache) > max_files:
+				cache.pop(next(iter(cache)))
+			self.handle.hLG.echo(
+				"File buffer cached: {} ({} chars, {} files)".format(
+					fileName, len(content), len(cache)),
+				{'color': True, 'colorValue': 'gray', 'debugOnly': True})
+		except Exception as E:
+			self.handle.hLG.echo("File buffer cache error: {}".format(E),
+				{'color': True, 'colorValue': 'red', 'debugOnly': True})
 
 	def _cache_key(self, toolName, params):
 		import hashlib, json

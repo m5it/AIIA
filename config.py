@@ -120,6 +120,18 @@ Options         = {
 	"TOOL_SHOW_LOAD"      :True,     # Show detailed tool loading/executing/Loaded messages instead of compact ⚙️ line
 	"AI_TOOL_PREVIEW"     :1,        # Echo tool results to console: 0 = only in DEBUG (see only model), 1 = always show tool output to the user
 	#
+	# File buffer cache — in-memory cache of write-tool targets (WriteFile/CreateFile/
+	# AppendFile/ReplaceLine/Sed) that is reinjected after a context auto-clear so the
+	# model can continue chunked writes on small-context models. Only populated while a
+	# plan is active (project work).
+	"TOOL_FILE_CACHE"            :True,      # master toggle for the write-tool file buffer cache
+	"TOOL_FILE_CACHE_ON_PLAN"    :True,      # only cache when a plan exists
+	"TOOL_FILE_CACHE_MAX_FILE"   :100000,    # skip caching files larger than this (chars)
+	"TOOL_FILE_CACHE_MAX_FILES"  :20,        # evict the oldest entries beyond this many cached files
+	"TOOL_FILE_CACHE_REINJECT"   :True,      # append the cache to context after auto-clear/summarize
+	"TOOL_FILE_CACHE_REINJECT_MAX"   :5000,  # per-file cap when reinjecting (chars)
+	"TOOL_FILE_CACHE_REINJECT_TOTAL" :30000, # total cap for the reinjected block (chars)
+	#
 	# ReplaceLine indexing
 	"REPLACELINE_ZERO_INDEXED": True, # False=1-indexed (first line=1, default), True=0-indexed (first line=0)
 	#

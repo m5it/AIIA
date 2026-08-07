@@ -170,6 +170,9 @@ class HandleContext():
 		plan_text = self._active_plan_text()
 		if plan_text:
 			content += "\n\n[ACTIVE PLAN]\n" + plan_text.rstrip() + "\n"
+		cache_section = self._file_cache_section()
+		if cache_section:
+			content += "\n\n" + cache_section
 		summary_msg = {
 			'role': 'system',
 			'content': content,
@@ -247,11 +250,52 @@ class HandleContext():
 			content = sys_msg
 			if plan_text:
 				content += "\n\n---\n[ACTIVE PLAN]\n" + plan_text.rstrip() + "\n"
+			cache_section = self._file_cache_section()
+			if cache_section:
+				content += "\n\n" + cache_section
 			self.Response('system', {'content': content})
 		elif plan_text:
 			content = ("[Context auto-cleared — continue working on the active plan.]\n\n"
 				"[ACTIVE PLAN]\n" + plan_text.rstrip() + "\n")
+			cache_section = self._file_cache_section()
+			if cache_section:
+				content += "\n\n" + cache_section
 			self.Response('system', {'content': content})
+
+	#
+
+	def _file_cache_section(self):
+		"""Build a '[CACHED FILE BUFFERS]' block from handle.file_buffer_cache, or
+		'' when disabled/empty.  Per-file content is capped at
+		TOOL_FILE_CACHE_REINJECT_MAX chars; once the block reaches
+		TOOL_FILE_CACHE_REINJECT_TOTAL chars, the remaining files are listed as
+		one-line manifest entries (path + size) so the model can ReadFile them."""
+		if not self.Options.get('TOOL_FILE_CACHE_REINJECT', True):
+			return ''
+		handle = getattr(self, 'handle', None)
+		cache = getattr(handle, 'file_buffer_cache', None) if handle is not None else None
+		if not cache:
+			return ''
+		per_file = int(self.Options.get('TOOL_FILE_CACHE_REINJECT_MAX', 5000))
+		total = int(self.Options.get('TOOL_FILE_CACHE_REINJECT_TOTAL', 30000))
+		out = []
+		used = 0
+		items = list(cache.items())
+		for i, (fileName, content) in enumerate(items):
+			header = "### {} ({} chars)".format(fileName, len(content))
+			trunc = len(content) > per_file
+			body = content[:per_file] if trunc else content
+			block_size = len(header) + len(body) + 2
+			if used + block_size > total:
+				for name, cnt in items[i:]:
+					out.append("- {} ({} chars)".format(name, len(cnt)))
+				break
+			out.append(header)
+			out.append(body)
+			if trunc:
+				out.append("... truncated ({} chars total, use <ReadFile>)".format(len(content)))
+			used += block_size
+		return "\n".join(["[CACHED FILE BUFFERS]"] + out)
 
 	#
 

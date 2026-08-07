@@ -124,6 +124,12 @@ class Plan:
 		self.endTimestamp = time.time()
 		PlanBase.done[str(self.id)] = self.to_dict()
 		PlanBase.draft = None
+		# Clear the write-tool file buffer cache — the plan is finished, so its
+		# buffers must not be reinjected on a later context clear.
+		try:
+			handle.file_buffer_cache = {}
+		except Exception:
+			pass
 		self.save()
 		return {"plan_id": self.id, "status": "completed", "summary": "Plan finished"}
 

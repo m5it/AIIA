@@ -60,6 +60,7 @@ Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `1.0.0`
 | `!SAVE_HISTORY [filename]` | Export current chat history as a reloadable `.dbk`-style file (saved to `history/` and the framework root); a bare name without an extension gets `.dbk` appended |
 | `!AH [search_term]` | List all available history files, or search them by term — matches filename OR content (same as the startup history chooser) |
 | `!INSTALL_DEPS [persona]` | Install missing persona dependencies |
+| `!CACHE` | List the write-tool file buffer cache (`!CACHE SHOW <file>` previews, `!CACHE CLEAR` empties it) |
 | `!SITE_LIST` | List all websites with available JS support scripts |
 | `!SITE <domain>` | Show available scripts for a specific website |
 | `!SITE_UPDATE <domain> <script>` | Create or update a website JS support script |
@@ -197,6 +198,8 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 - `ReinsertTip` — Reinsert a saved tip's entries into current chat history (params: `<title>`)
 
 **Tool result caching:** Tools with a `cache_ttl` class attribute (e.g., listTools=600s, TreeView=300s) automatically cache results. Cache entries stored under `~/.config/aiia/tips/_cache/{toolname}/{key_hash}.json`. Cache invalidates on TTL expiry, tool file mtime change, `!CACHE_CLEAR`, `!NEW SESSION`, or `!UPDATE HANDLE`. Global default TTL: 86400s (1 day) via `TOOL_CACHE_TTL` in config.
+
+**File buffer cache (long data):** When a plan is active, the write tools (`WriteFile`/`CreateFile`/`AppendFile`/`ReplaceLine`/`Sed`-inplace) cache the assembled content of each file they touch in memory (`handle.file_buffer_cache`, keyed by the fileName the model passed). After a context auto-clear or summarize, the cached buffers are re-appended into the injected system message (plan-gated) so the model can continue chunked writes on small-context models. Config: `TOOL_FILE_CACHE` (master toggle), `TOOL_FILE_CACHE_ON_PLAN`, `TOOL_FILE_CACHE_MAX_FILE` (skip larger files), `TOOL_FILE_CACHE_MAX_FILES` (eviction), `TOOL_FILE_CACHE_REINJECT` (reinject on clear), `TOOL_FILE_CACHE_REINJECT_MAX` (per-file cap), `TOOL_FILE_CACHE_REINJECT_TOTAL` (total cap; files beyond it become one-line manifest entries). Cache is cleared when the plan finishes (`jobDone`) or via `!CACHE CLEAR`; inspect with `!CACHE` / `!CACHE SHOW <file>`.
 
 **Large file writing:** When `num_predict` is set, the model may hit the output token limit mid-write. If truncation is detected, the model is warned automatically and chunked writing instructions are injected into the persona. Use `<WriteFile>` for the first ~200 lines, then `<AppendFile>` for subsequent chunks. Override with `!SET CHUNKED_WRITE_HINT true/false`.
 

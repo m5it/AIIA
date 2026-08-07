@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-07 — v1.1.27
+
+### Auto: Version v1.1.27
+
+- Version auto-incremented from v1.1.26
+- Files changed: AGENTS.md, config.py, src/Commands.py, src/CommandsCache.py, src/Handle.py, src/HandleContext.py, src/PlanManager.py, src/ToolExecutor.py, src/commands_registry.py, template2.dbk, tests/test_file_buffer_cache.py
+
+---
+
+
 ## 2026-08-07 — v1.1.26
 
 ### Auto: Version v1.1.26

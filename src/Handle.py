@@ -86,6 +86,7 @@ class Handle(HandleStream, HandleParse, HandleContext, HandleState, HandleChat):
 		self._consumed_tips = set()
 		self._last_response_hash = None
 		self._direct_tool_results = [] # results from direct user tool calls (no AI)
+		self.file_buffer_cache = {} # {fileName: full content} assembled from write tools (plan-gated)
 
 	#
 	def _init_koslenium(self):

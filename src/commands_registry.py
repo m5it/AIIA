@@ -17,6 +17,7 @@ def build_registry(self):
 	registry.update(_persona_commands(self))
 	registry.update(_sites_commands(self))
 	registry.update(_plan_commands(self))
+	registry.update(_cache_commands(self))
 	registry.update(_timers_commands(self))
 	registry.update(_workers_commands(self))
 	return registry
@@ -121,6 +122,19 @@ def _session_commands(self):
 			"regex"      :r"^!QUIT$",
 			"usage"      :"!QUIT",
 			"func"       :self.CMD_QUIT,
+		},
+	}
+
+	#
+
+def _cache_commands(self):
+	return {
+		"CACHE":{
+			"name"       :"File Buffer Cache",
+			"description":"View / manage the write-tool file buffer cache (populated while a plan is active).",
+			"regex"      :r"^!CACHE(\s+(SHOW|CLEAR)(\s+.+)?)?$",
+			"usage"      :"!CACHE | !CACHE SHOW <file> | !CACHE CLEAR",
+			"func"       :self.CMD_CACHE,
 		},
 	}
 

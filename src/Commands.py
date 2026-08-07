@@ -12,8 +12,9 @@ from src.CommandsTimers import CommandsTimers
 from src.CommandsSites import CommandsSites
 from src.CommandsPlan import CommandsPlan
 from src.CommandsWorkers import CommandsWorkers
+from src.CommandsCache import CommandsCache
 class Commands(CommandsConfig, CommandsSession, CommandsPersona, CommandsTips,
-	CommandsTimers, CommandsSites, CommandsPlan, CommandsWorkers):
+	CommandsTimers, CommandsSites, CommandsPlan, CommandsWorkers, CommandsCache):
 	#
 	def __init__(self, opts={}):
 		#print("Handle.Commands.__init__() START")
