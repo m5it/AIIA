@@ -18,6 +18,8 @@ python run.py -P "You are a coding assistant"  # custom system message prefix
 python run.py -Y "prompt"        # single request, no interactive session
 python run.py -d                 # enable debug output
 python run.py -T 0.8             # set temperature
+python run.py -c                 # continue a previous project session (loads state.aiia and HISTORY.md, skips startup prompts)
+python run.py -Q                 # quick mode — skip startup prompts (use with -c to restore state without interactive prompts)
 
 python run.py --work             # start aiia_work marketplace client (!WORK commands)
 python run_orchestra.py --port 9876        # start orchestra director
@@ -150,7 +152,7 @@ CODECOV_TOKEN="$CODECOV_TOKEN" codecovcli upload-report
 - **Tools**: `tools/` directory — dynamically loaded Python classes that the AI invokes via `<ToolName>` XML syntax
 - **Dependency system**: `src/DependencyChecker.py` + `src/DependencyInstaller.py` — check/install per-persona deps into isolated venvs at `~/.config/aiia/envs/<persona>/`, tracked in `~/.config/aiia/persona_deps.json`. Personas define requirements via `requirements()` method (pip packages + HF models). Automatically checked on persona switch; manual trigger via `!INSTALL_DEPS`.
 - **Plan/build loop**: plan-mode auto-continues as long as last AI response used tools and plan is not yet complete. Blocked tools (WriteFile/CreateFile/ReplaceLine/Sed/ExecuteScript) during planning show a 1-4 user menu. Plan completion detected via key phrases in assistant output.
-- **History**: `history/` (gitignored) — session-based chat history, session ID tracked in `sessid.aiia`
+- **Per-project state**: `state.aiia` (project dir when running from a project) stores model, mode, persona, token counters, and `!SET` overrides. `HISTORY.md` (project dir) stores the current session chat. `python run.py -c` loads both and resumes the session without startup prompts.
 - **Working dirs**: `workin/` (input for tools), `workout/` (output) — both gitignored
 
 ## XML Tool Invocation

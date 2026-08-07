@@ -59,6 +59,21 @@ class Prepare():
 		mode = self.handle.Options.get('MODE', 'build')
 		tool_instructions = self._get_mode_instructions(mode)
 		#
+		# When continuing from state.aiia (-c / --continue) or when the persona
+		# was already chosen via -p, skip the interactive system-message prompt.
+		# The settings are already loaded; just set the system message directly.
+		continuing_from_state = self.handle.Options.get('CONTINUE') or self.handle.Options.get('INSTRUCT_CLASS_OVERRIDE')
+		if continuing_from_state:
+			custom = self.handle.Options.get('AI_SYSTEM_MESSAGE', '')
+			if custom:
+				system_content = "{}\n\n{}".format(custom, tool_instructions)
+			else:
+				system_content = tool_instructions
+			system_content = self._inject_agents_md(system_content)
+			self.handle.Response('system', {'content': system_content})
+			self.handle.hLG.echo("Continuing from state.aiia — system message set", {'color': True, 'colorValue': 'cyan'})
+			return True
+		#
 		quick = self.handle.Options.get('AI_QUICK', False) or not self.handle.Options.get('AI_LIVE', True)
 		if quick:
 			# Non-interactive: use persona instructions + optional --prompt prefix

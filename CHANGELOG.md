@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-07 — v1.1.31
+
+### Auto: Version v1.1.31
+
+- Version auto-incremented from v1.1.30
+- Files changed: AGENTS.md, src/Prepare.py, tests/test_prepare_continue.py
+
+---
+
+
 ## 2026-08-07 — v1.1.30
 
 ### Auto: Version v1.1.30
