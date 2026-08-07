@@ -103,9 +103,9 @@ def _session_commands(self):
 		},
 		"VIEW_HISTORY":{
 			"name"       :"Available History",
-			"description":"List all available history files with sizes and display names.",
-			"regex"      :r"^!AH$",
-			"usage"      :"!AH",
+			"description":"List all available history files, or search by term (same as startup chooser search).",
+			"regex"      :r"^!AH(\s+.+)?$",
+			"usage"      :"!AH [search_term]",
 			"func"       :self.CMD_VIEW_HISTORY,
 		},
 		"UPDATE_HANDLE":{

@@ -250,8 +250,20 @@ class CommandsSession():
 		return 2
 	#
 	def CMD_VIEW_HISTORY(self, inp=""):
-		"""!AH — list all available history files with sizes and display names."""
-		self.handle.hHM.Available()
+		"""!AH [term] — list all available history files, or search them by term
+		(same grep-based search as the startup history chooser)."""
+		h = self.handle.hHM
+		h.Update()
+		a = inp.split()
+		if len(a) > 1:
+			term = ' '.join(a[1:])
+			results = h._search(term)
+			if not results:
+				print("No history files matching '{}'.".format(term))
+			else:
+				h._show_list(results, h._load_names())
+		else:
+			h.Available()
 		return 2
 	#
 	def CMD_UPDATE_HANDLE(self, inp):

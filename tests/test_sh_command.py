@@ -238,6 +238,73 @@ def test_save_history_no_history(tmp_path, capsys):
 	assert 'No history' in capsys.readouterr().out
 
 
+def _make_history_handle(msgs, tmp_path):
+	"""Fake handle whose hHM is a real HistoryManager (for !AH search)."""
+	from src.HistoryManager import HistoryManager
+	h = _make_handle(msgs, tmp_path)
+	h.hHM = HistoryManager({'handle': h, 'quiet': False, 'path': str(tmp_path / 'history')})
+	return h
+
+
+def _write_history_file(tmp_path, fname, content):
+	(tmp_path / 'history' / fname).write_text(
+		'{}\n'.format(json.dumps({'role': 'user', 'content': content, 'name': ''})))
+
+
+def test_ah_registered():
+	c, _ = _make()
+	assert 'VIEW_HISTORY' in c.cmds
+	info = c.cmds['VIEW_HISTORY']
+	assert info['regex'] == r'^!AH(\s+.+)?$'
+	assert info['usage'] == '!AH [search_term]'
+	assert info['func'] == c.CMD_VIEW_HISTORY
+
+
+def test_ah_search_finds_matching_history(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_history_handle([], tmp_path)
+	_write_history_file(tmp_path, 'abc12345_7.dbk', 'template matching firewall config')
+	_write_history_file(tmp_path, 'abc12345_8.dbk', 'unrelated setup notes')
+	c = Commands({'handle': h})
+	ret = c.CMD_VIEW_HISTORY('!AH template')
+	assert ret == 2
+	out = capsys.readouterr().out
+	assert 'abc12345_7.dbk' in out
+	assert 'abc12345_8.dbk' not in out
+
+
+def test_ah_search_case_insensitive(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_history_handle([], tmp_path)
+	_write_history_file(tmp_path, 'abc12345_7.dbk', 'deploy the TEMPLATE stack')
+	c = Commands({'handle': h})
+	c.CMD_VIEW_HISTORY('!AH template')
+	assert 'abc12345_7.dbk' in capsys.readouterr().out
+
+
+def test_ah_search_no_match(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_history_handle([], tmp_path)
+	_write_history_file(tmp_path, 'abc12345_7.dbk', 'template notes')
+	c = Commands({'handle': h})
+	ret = c.CMD_VIEW_HISTORY('!AH zzz_not_here')
+	assert ret == 2
+	assert 'No history files matching' in capsys.readouterr().out
+
+
+def test_ah_lists_all_history(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_history_handle([], tmp_path)
+	_write_history_file(tmp_path, 'abc12345_7.dbk', 'first session')
+	_write_history_file(tmp_path, 'abc12345_8.dbk', 'second session')
+	c = Commands({'handle': h})
+	ret = c.CMD_VIEW_HISTORY('!AH')
+	assert ret == 2
+	out = capsys.readouterr().out
+	assert 'abc12345_7.dbk' in out
+	assert 'abc12345_8.dbk' in out
+
+
 def test_sh_cmd_regex_flag(capsys):
 	c, _ = _make()
 	ret = c.CMD_SEARCH_HISTORY('!SH -r ^check')
