@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-07 — v1.1.25
+
+### Auto: Version v1.1.25
+
+- Version auto-incremented from v1.1.24
+- Files changed: AGENTS.md, README.md, src/CommandsConfig.py, src/CommandsPlan.py, src/CommandsSession.py, src/HandleChat.py, src/commands_registry.py, tests/test_mode_instructions.py, tests/test_summarize_command.py
+
+---
+
+
 ## 2026-08-07 — v1.1.24
 
 ### Auto: Version v1.1.24

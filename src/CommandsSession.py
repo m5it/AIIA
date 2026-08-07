@@ -13,6 +13,17 @@ _REHEAT_MSG = (
 	"3) Demonstrate at least 2 tools with complete XML examples to confirm."
 )
 
+_SUMMARIZE_MSG = (
+	"[Context Summarized]\n"
+	"The chat history was cleared to free context; system instructions were kept.\n"
+	"Rebuild your working knowledge of this environment:\n"
+	"1) Call <listTools> to reload all available tools and their parameters.\n"
+	"2) Retrieve your core instructions and any tips you rely on with <GetTip>, "
+	"e.g. <GetTip><title>instruct_developer</title></GetTip>, "
+	"and reload them via <ReinsertTip>.\n"
+	"3) Continue the current task using the tools."
+)
+
 class CommandsSession():
 	#
 	def CMD_NEW_SESSION(self, inp):
@@ -198,10 +209,16 @@ class CommandsSession():
 	#
 	#
 	def CMD_SUMMARIZE(self, inp=""):
+		"""!SUMMARIZE — clear chat history (keeps system messages) then warm the
+		model back up: reload the tool list and tips so the next turn starts with
+		working tool knowledge (useful for cloud models with no memory)."""
 		self.handle.hLG.echo("Summarizing — clearing history, keeping system messages...",
 			{'color':True, 'colorValue':'orange','debugOnly':False})
 		self.handle._auto_clear()
-		return 2
+		self.handle.hTM.clear_all_caches()
+		self.handle._consumed_tips = set()
+		self.handle.Response('user', {'content': _SUMMARIZE_MSG})
+		return 0
 
 	def CMD_PREVIEW_HISTORY(self, inp=""):
 		"""!PH — compact color-coded preview of chat history."""

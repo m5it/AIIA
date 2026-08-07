@@ -13,7 +13,7 @@ class CommandsPlan():
 		if self.handle.Options.get('MODE') == 'plan':
 			self.handle.Options['MODE'] = 'build'
 			self.handle._write_state({'mode': 'build'})
-			self.handle._replace_system_prompt(self.handle.hPP._get_mode_instructions('build'))
+			self.handle._set_mode_instructions('build')
 		self.handle.StartBuild(plan_id)
 		return 0
 

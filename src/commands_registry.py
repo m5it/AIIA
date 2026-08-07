@@ -75,7 +75,7 @@ def _session_commands(self):
 		},
 		"SUMMARIZE":{
 			"name"       :"Summarize",
-			"description":"Clear chat history (keeps system messages). Use when context gets too large.",
+			"description":"Clear chat history (keeps system messages), then warm up the model on available tools and tips.",
 			"regex"      :r"^!SUMMARIZE$",
 			"usage"      :"!SUMMARIZE",
 			"func"       :self.CMD_SUMMARIZE,

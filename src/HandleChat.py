@@ -20,6 +20,37 @@ def _sanitize_msgs_for_llm(msgs):
 			m['role'] = 'system'
 	return msgs
 
+
+def _prune_mode_instructions(msgs, current_text, other_text, cur_prefix, other_prefix):
+	"""Drop stale mode instructions, keep exactly one copy of the current one.
+
+	A system message counts as mode instructions when its content equals the
+	mode's generated text or starts with its '[.. MODE INSTRUCTIONS]' prefix
+	(reinserted instruct_* tip entries). The other mode's instructions are
+	removed entirely; the current mode's exact-text messages are deduped to a
+	single (normalized) copy. Everything else — context summaries, other tips,
+	project instructions, non-system messages — is left untouched. Handles the
+	shared-text case (AI_INSTRUCT_OPTION=2, where plan()==build()) correctly.
+
+	Returns (new_msgs, has_current) — the caller appends current_text when
+	has_current is False.
+	"""
+	keep = []
+	has_current = False
+	for m in msgs:
+		if isinstance(m, dict) and m.get('role') == 'system':
+			c = m.get('content', '') or ''
+			is_exact_current = (c == current_text)
+			if (c == other_text or c.startswith(other_prefix)) and not is_exact_current:
+				continue
+			if is_exact_current:
+				if has_current:
+					continue
+				m['content'] = current_text
+				has_current = True
+		keep.append(m)
+	return keep, has_current
+
 class HandleChat():
 
 	#
@@ -798,6 +829,26 @@ class HandleChat():
 
 	#
 
+	def _set_mode_instructions(self, mode):
+		"""Drop stale instructions for the other mode and ensure exactly one
+		system message carries the current mode's instructions. Persists the
+		pruned history so the change survives a reload. Returns the current
+		mode instructions text."""
+		current_text = self.hPP._get_mode_instructions(mode)
+		other_mode = 'build' if mode == 'plan' else 'plan'
+		other_text = self.hPP._get_mode_instructions(other_mode)
+		cur_prefix = '[{} MODE INSTRUCTIONS]'.format(mode.upper())
+		other_prefix = '[{} MODE INSTRUCTIONS]'.format(other_mode.upper())
+		new_msgs, has_current = _prune_mode_instructions(
+			self.hHM.msgs, current_text, other_text, cur_prefix, other_prefix)
+		self.hHM.msgs = new_msgs
+		if not has_current:
+			self.Response('system', {'content': current_text})
+		self._rewrite_history(self.hHM.msgs)
+		return current_text
+
+	#
+
 	def StartBuild(self, plan_id=None):
 		if not self._ensure_plan_loaded(plan_id):
 			return
@@ -889,7 +940,7 @@ class HandleChat():
 		if self.Options.get('MODE') != 'build':
 			self.Options['MODE'] = 'build'
 			self._write_state({'mode': 'build'})
-			self._replace_system_prompt(self.hPP._get_mode_instructions('build'))
+			self._set_mode_instructions('build')
 		self.hLG.echo("Plan complete — switched to BUILD mode. Starting first task.",
 			{'color':True, 'colorValue':'green','debugOnly':False})
 		self.bg_log("Chat: _plan_just_done — switching to build, triggering StartBuild")
@@ -927,7 +978,7 @@ class HandleChat():
 		if ans == '1':
 			self.Options['MODE'] = 'build'
 			self._write_state({'mode': 'build'})
-			self._replace_system_prompt(self.hPP._get_mode_instructions('build'))
+			self._set_mode_instructions('build')
 			self.StartBuild()
 			return True
 		if ans == '3':

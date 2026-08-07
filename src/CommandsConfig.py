@@ -118,11 +118,10 @@ class CommandsConfig():
 		self.handle._write_state({'mode': new_mode})
 		#
 		#--
-		# Update System message with new mode!
-		# Find last system message in history and replace it; append if none.
-		# Ollama support multiple system prompts in one chat history!
+		# Update System message with new mode! Drop stale instructions for the
+		# other mode so only the current mode's instructions stay in history.
 		#--
-		self.handle._replace_system_prompt(self.handle.hPP._get_mode_instructions(self.handle.Options['MODE']))
+		self.handle._set_mode_instructions(self.handle.Options['MODE'])
 		#--
 		# Optionally inject plan-mode tool training
 		if new_mode == 'plan' and self.handle.Options.get('TOOL_TRAINING_PLAN', True):
