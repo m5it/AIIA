@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-07 — v1.1.20
+
+### Auto: Version v1.1.20
+
+- Version auto-incremented from v1.1.19
+- Files changed: config.py
+
+---
+
+
 ## 2026-08-06 — v1.1.19
 
 ### Auto: Version v1.1.19

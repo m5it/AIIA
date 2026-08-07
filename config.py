@@ -23,7 +23,7 @@ Options         = {
 	#"AI_MODEL"            :"qwen3:latest",
 	#"AI_MODEL"            :"llama3.2:latest",
 	#"AI_MODEL"            :"gemma4:e4b",
-	"AI_MODEL"            :"kimi-k2.5:cloud",
+	"AI_MODEL"            :"kimi-k2.7-code:cloud",
 	"AI_BACKEND"          :"ollama",  # LLM backend: "ollama" or "vllm" (OpenAI-compatible)
 	"VLLM_HOST"           :"http://localhost:8000/v1",  # vLLM OpenAI-compatible base URL. HF Inference API: "https://router.huggingface.co/v1"
 	"VLLM_API_KEY"        :"",        # optional API key for vLLM server; for HF use your hf_<token>
@@ -40,7 +40,7 @@ Options         = {
 	"AI_MAX_ITERATIONS"   :10, # max tool-call rounds per AI() turn (overridable by persona)
 	"AI_MODEL_TIMEOUT"    :120, # seconds before model API call times out (0 = no timeout)
 	"STREAM_CHUNK_TIMEOUT":120, # seconds — abort stream if no chunk arrives (prevents indefinite hangs)
-	"ALTERNATIVE_MODELS"  :["kimi-k2.5:cloud", "kimi-k2.7-code:cloud"], # fallback models on stream stall (empty = disabled)
+	"ALTERNATIVE_MODELS"  :["kimi-k2.7-code:cloud"], # fallback models on stream stall (empty = disabled)
 	"AI_MODEL_RETRIES"    :3,   # max retries on failed model calls before recommending switch
 	"AI_CONTEXT_LIMIT"    :262144, # model's max context window in tokens (per-model)
 	"AI_CLEAR_THRESHOLD"  :0.8,    # fraction of context limit that triggers summarization/clear
