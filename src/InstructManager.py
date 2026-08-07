@@ -118,6 +118,12 @@ class InstructManager():
 				for c in reg_changes:
 					self.handle.hLG.echo("  Model config: {}".format(c),
 						{'color':True, 'colorValue':'cyan'})
+		# Persist persona and any derived settings so -c resumes correctly
+		self.handle._write_state({
+			'persona': name,
+			'model': self.handle.Options.get('AI_MODEL', ''),
+			'mode': self.handle.Options.get('MODE', ''),
+		})
 		# Check persona dependencies
 		if self.handle.Options.get('PERSONA_AUTO_INSTALL_DEPS', True):
 			self._check_persona_deps(name, cls)

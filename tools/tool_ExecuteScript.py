@@ -35,8 +35,14 @@ class ExecuteScript():
 		#
 		if not is_file:
 			# Try as a command in PATH
-			if shutil.which(fileName):
+			cmd_name = fileName
+			if not shutil.which(cmd_name):
+				# Common interpreter fallbacks (model often says "python" on systems that only have python3)
+				fallback_map = {"python": "python3"}
+				cmd_name = fallback_map.get(cmd_name, cmd_name)
+			if shutil.which(cmd_name):
 				is_command = True
+				fileName = cmd_name
 			else:
 				return "Error: '{}' not found as file or command.".format(fileName)
 		#

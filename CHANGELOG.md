@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-08-07 — v1.1.33
+
+### Auto: Version v1.1.33
+
+- Version auto-incremented from v1.1.32
+- Files changed: (none)
+
+---
+
+
+## 2026-08-07 — v1.1.32
+
+### Auto: Version v1.1.32
+
+- Version auto-incremented from v1.1.31
+- Files changed: src/CommandsConfig.py, src/InstructManager.py, tools/tool_ExecuteScript.py
+
+---
+
+
 ## 2026-08-07 — v1.1.31
 
 ### Auto: Version v1.1.31

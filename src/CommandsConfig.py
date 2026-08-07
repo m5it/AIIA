@@ -192,6 +192,8 @@ class CommandsConfig():
 			print("Already using '{}'".format(current))
 			return 2
 		self.handle.Options['AI_BACKEND'] = new_backend
+		# Persist backend switch so -c resumes on the same backend
+		self.handle._write_state({'backend': new_backend})
 		# Force backend re-creation on next use
 		self.handle.hBackend = None
 		backend = self.handle._get_backend()
@@ -220,6 +222,8 @@ class CommandsConfig():
 			print("Already using '{}'".format(old))
 			return 2
 		self.handle.Options['AI_MODEL'] = new_model
+		# Persist model switch so -c resumes on the same model
+		self.handle._write_state({'model': new_model})
 		# Track in used_models
 		models = self.handle.Options.get('used_models', [])
 		if new_model not in models:
