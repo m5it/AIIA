@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-07 — v1.1.28
+
+### Auto: Version v1.1.28
+
+- Version auto-incremented from v1.1.27
+- Files changed: template2.dbk
+
+---
+
+
 ## 2026-08-07 — v1.1.27
 
 ### Auto: Version v1.1.27
