@@ -61,10 +61,17 @@ def _session_commands(self):
 		},
 		"REMOVE":{
 			"name"       :"Remove Row",
-			"description":"Remove a specific row from chat history by number (use !PH to see row numbers).",
-			"regex"      :r"^!RH\s+\d+$",
-			"usage"      :"!RH <row_num>",
+			"description":"Remove a row, or a range of rows (inclusive), from chat history (use !PH to see row numbers).",
+			"regex"      :r"^!RH\s+\d+(\s+\d+)?$",
+			"usage"      :"!RH <row_num> | !RH <from_row> <to_row>",
 			"func"       :self.CMD_REMOVE,
+		},
+		"SAVE_HISTORY":{
+			"name"       :"Save History",
+			"description":"Save current chat history as a reloadable .dbk-style file in history/ and the framework root.",
+			"regex"      :r"^!SAVE_HISTORY(\s+\S+)?$",
+			"usage"      :"!SAVE_HISTORY [filename]",
+			"func"       :self.CMD_SAVE_HISTORY,
 		},
 		"SUMMARIZE":{
 			"name"       :"Summarize",

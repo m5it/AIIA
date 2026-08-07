@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-07 — v1.1.22
+
+### Auto: Version v1.1.22
+
+- Version auto-incremented from v1.1.21
+- Files changed: AGENTS.md, README.md, src/CommandsSession.py, src/commands_registry.py, template1, tests/test_sh_command.py
+
+---
+
+
 ## 2026-08-07 — v1.1.21
 
 ### Auto: Version v1.1.21

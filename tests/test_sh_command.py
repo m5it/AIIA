@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, json
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 
@@ -26,6 +26,22 @@ def _make(msgs=None):
 	from src.Commands import Commands
 	c = Commands({'handle': FakeHandle(_msgs() if msgs is None else msgs)})
 	return c, c.handle
+
+
+def _make_handle(msgs, tmp_path):
+	"""Fake handle with Options + history dir, for commands that touch disk."""
+	h = type('H', (), {})()
+	h.hHM = FakeHistory(msgs)
+	h.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+	h.Options = {
+		'path': str(tmp_path),
+		'AI_FILE_HISTORY': 'test_sess.dbk',
+		'working_dir': None,
+		'AI_SESS_PREFIX': '',
+		'AI_SESS_ID': 0,
+	}
+	(tmp_path / 'history').mkdir(exist_ok=True)
+	return h
 
 
 def test_sh_registered():
@@ -99,9 +115,127 @@ def test_sh_cmd_prints_row_indexes(capsys):
 def test_remove_command_renamed_to_rh():
 	c, _ = _make()
 	info = c.cmds['REMOVE']
-	assert info['regex'] == r'^!RH\s+\d+$'
-	assert info['usage'] == '!RH <row_num>'
+	assert info['regex'] == r'^!RH\s+\d+(\s+\d+)?$'
+	assert info['usage'] == '!RH <row_num> | !RH <from_row> <to_row>'
 	assert info['func'] == c.CMD_REMOVE
+
+
+def test_remove_single_row(tmp_path):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_REMOVE('!RH 2')
+	assert ret == 2
+	assert [m['role'] for m in h.hHM.msgs] == ['system', 'user', 'tool', 'user']
+
+
+def test_remove_range_removes_inclusive(tmp_path):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_REMOVE('!RH 1 3')
+	assert ret == 2
+	assert [m['role'] for m in h.hHM.msgs] == ['system', 'user']
+
+
+def test_remove_range_swaps_order(tmp_path):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_REMOVE('!RH 3 1')
+	assert ret == 2
+	assert [m['role'] for m in h.hHM.msgs] == ['system', 'user']
+
+
+def test_remove_range_out_of_bounds(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_REMOVE('!RH 0 99')
+	assert ret == 2
+	assert len(h.hHM.msgs) == 5
+	assert 'out of range' in capsys.readouterr().out
+
+
+def test_remove_too_many_args_usage(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_REMOVE('!RH 1 2 3')
+	assert ret == 2
+	assert 'Usage' in capsys.readouterr().out
+	assert len(h.hHM.msgs) == 5
+
+
+def test_remove_range_rebuilds_history_file(tmp_path):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	c.CMD_REMOVE('!RH 1 3')
+	p = tmp_path / 'history' / 'test_sess.dbk'
+	assert p.exists()
+	lines = [l for l in p.read_text().strip().split('\n') if l]
+	assert len(lines) == 2
+	assert all(json.loads(l)['role'] == m['role'] for l, m in zip(lines, h.hHM.msgs))
+
+
+def test_save_history_registered():
+	c, _ = _make()
+	assert 'SAVE_HISTORY' in c.cmds
+	info = c.cmds['SAVE_HISTORY']
+	assert info['regex'] == r'^!SAVE_HISTORY(\s+\S+)?$'
+	assert info['usage'] == '!SAVE_HISTORY [filename]'
+	assert info['func'] == c.CMD_SAVE_HISTORY
+
+
+def test_save_history_writes_both_copies(tmp_path):
+	from src.Commands import Commands
+	from src.HistoryManager import HistoryManager
+	msgs = _msgs()
+	h = _make_handle(msgs, tmp_path)
+	h.Options['AI_SESS_PREFIX'] = 'abc12345'
+	h.Options['AI_SESS_ID'] = 7
+	c = Commands({'handle': h})
+	ret = c.CMD_SAVE_HISTORY('!SAVE_HISTORY')
+	assert ret == 2
+	saves = [f for f in (tmp_path / 'history').iterdir() if '.save.' in f.name]
+	assert len(saves) == 1
+	assert (tmp_path / saves[0].name).exists()
+	loaded = [json.loads(l) for l in saves[0].read_text().strip().split('\n') if l]
+	assert len(loaded) == len(msgs)
+	assert [m['role'] for m in loaded] == [m['role'] for m in msgs]
+	hm = HistoryManager({'handle': h, 'quiet': True, 'path': str(tmp_path / 'history')})
+	hm.Get(path=str(saves[0]))
+	assert len(hm.msgs) == len(msgs)
+
+
+def test_save_history_custom_filename(tmp_path):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_SAVE_HISTORY('!SAVE_HISTORY myexport.md')
+	assert ret == 2
+	assert (tmp_path / 'history' / 'myexport.md').exists()
+	assert (tmp_path / 'myexport.md').exists()
+
+
+def test_save_history_does_not_clobber_active(tmp_path):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_SAVE_HISTORY('!SAVE_HISTORY test_sess.dbk')
+	assert ret == 2
+	assert (tmp_path / 'history' / 'save_test_sess.dbk').exists()
+	assert (tmp_path / 'save_test_sess.dbk').exists()
+
+
+def test_save_history_no_history(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_handle([], tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_SAVE_HISTORY('!SAVE_HISTORY')
+	assert ret == 2
+	assert 'No history' in capsys.readouterr().out
 
 
 def test_sh_cmd_regex_flag(capsys):

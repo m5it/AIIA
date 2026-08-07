@@ -1,6 +1,6 @@
 #--
 # class CommandsSession — session & history commands
-import os, json, zlib
+import os, json, zlib, time
 from datetime import datetime
 from src.functions import fwrite
 
@@ -95,34 +95,104 @@ class CommandsSession():
 	def CMD_REMOVE(self, inp):
 		from src.PlanSaver import PlanSaver
 		a = inp.strip().split()
-		if len(a) < 2:
-			print("Usage: !RH <row_num>")
+		if len(a) < 2 or len(a) > 3:
+			print("Usage: !RH <row_num> | !RH <from_row> <to_row>")
 			return 2
 		try:
-			num = int(a[1])
+			nums = [int(x) for x in a[1:]]
 		except ValueError:
-			print("Row number must be an integer.")
+			print("Row numbers must be integers.")
 			return 2
-		if num < 0 or num >= len(self.handle.hHM.msgs):
-			print("Row {} does not exist. History has {} rows.".format(num, len(self.handle.hHM.msgs)))
+		if len(nums) == 1:
+			from_row = to_row = nums[0]
+		else:
+			from_row, to_row = nums
+			if from_row > to_row:
+				from_row, to_row = to_row, from_row
+		msgs = self.handle.hHM.msgs
+		if from_row < 0 or to_row >= len(msgs):
+			print("Rows {}-{} out of range. History has {} rows.".format(from_row, to_row, len(msgs)))
 			return 2
-		removed = self.handle.hHM.msgs.pop(num)
-		print("Removed row {}: [{}] {}".format(num, removed.get('role','?'), removed.get('content','')[:80]))
+		removed = msgs[from_row:to_row + 1]
+		del msgs[from_row:to_row + 1]
+		if len(removed) == 1:
+			print("Removed row {}: [{}] {}".format(from_row, removed[0].get('role','?'), removed[0].get('content','')[:80]))
+		else:
+			roles = {}
+			for m in removed:
+				roles[m.get('role','?')] = roles.get(m.get('role','?'), 0) + 1
+			parts = ', '.join("{} {}".format(n, r) for r, n in sorted(roles.items()))
+			print("Removed rows {}-{} ({} rows: {}).".format(from_row, to_row, len(removed), parts))
 		# Rebuild main history file on disk
 		main_path = "{}/{}".format("{}/history".format(self.handle.Options.get('path', '')), self.handle.Options['AI_FILE_HISTORY'])
 		try:
 			os.remove(main_path)
 		except Exception:
 			pass
-		for m in self.handle.hHM.msgs:
+		for m in msgs:
 			fwrite(main_path, "{}\n".format(json.dumps(m)), False)
 		# Rebuild project HISTORY.md
 		proj_dir = self.handle.Options.get('working_dir')
 		framework_dir = self.handle.Options.get('path', '').rstrip('/')
 		if proj_dir and proj_dir != framework_dir:
 			proj_history = os.path.join(proj_dir, 'HISTORY.md')
-			PlanSaver.rebuild_history(proj_history, self.handle.hHM.msgs)
+			PlanSaver.rebuild_history(proj_history, msgs)
 		return 2
+	#
+	#
+	def CMD_SAVE_HISTORY(self, inp=""):
+		"""!SAVE_HISTORY [filename] — save current chat history as a reloadable
+		.dbk-style file (one JSON msg per line, like history/*.dbk) in the
+		history/ folder and the framework root. Default filename uses the
+		session prefix so it appears in !AH / the history chooser."""
+		msgs = self.handle.hHM.msgs
+		if not msgs:
+			print("No history to save.")
+			return 2
+		a = inp.strip().split()
+		if len(a) > 2:
+			print("Usage: !SAVE_HISTORY [filename]")
+			return 2
+		if len(a) == 2:
+			filename = a[1]
+		else:
+			_prefix = self.handle.Options.get('AI_SESS_PREFIX', '')
+			sid = self.handle.Options.get('AI_SESS_ID', 0)
+			filename = "{}_{}.save.{}.dbk".format(_prefix, sid, int(time.time()))
+		if '/' in filename or '\\' in filename or filename in ('.', '..'):
+			print("Filename must be a simple name (no path separators).")
+			return 2
+		# Never overwrite the active session history file
+		active = self.handle.Options.get('AI_FILE_HISTORY', '')
+		if filename == active:
+			filename = "save_{}".format(filename)
+		# Write main copy into history/ dir
+		history_dir = "{}/history".format(self.handle.Options.get('path', '').rstrip('/'))
+		main_path = os.path.join(history_dir, filename)
+		self._write_history_lines(main_path, msgs)
+		# Second copy in the framework root
+		root_path = os.path.join(self.handle.Options.get('path', '').rstrip('/'), filename)
+		self._write_history_lines(root_path, msgs)
+		print("Saved history to {} and {}".format(main_path, root_path))
+		return 2
+	#
+	@staticmethod
+	def _write_history_lines(path, msgs):
+		"""Write messages as plain JSON-lines (one msg per line) — same layout
+		as history/*.dbk so HistoryManager.Get() can reload them."""
+		import os as _os
+		dir_name = _os.path.dirname(path)
+		if dir_name:
+			try:
+				_os.makedirs(dir_name, exist_ok=True)
+			except Exception:
+				pass
+		try:
+			_os.remove(path)
+		except Exception:
+			pass
+		for m in msgs:
+			fwrite(path, "{}\n".format(json.dumps(m)), False)
 	#
 	#
 	def CMD_SUMMARIZE(self, inp=""):
@@ -332,6 +402,6 @@ def _ph_search_view(msgs, matches, term, regex):
 		_PH_W, kind, term, len(matches), _PH_R))
 	for i, msg in matches:
 		print(_ph_format_row(i, msg))
-	print("{}Use !PH <row> to view, !RH <row> to remove.{}".format(_PH_D, _PH_R))
+	print("{}Use !PH <row> to view, !RH <row> (or <from> <to>) to remove.{}".format(_PH_D, _PH_R))
 	print()
 	return 2

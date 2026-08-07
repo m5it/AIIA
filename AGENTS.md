@@ -54,6 +54,9 @@ Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `1.0.0`
 | `!NEW SESSION` | Full reset |
 | `!REHEAT` | Re-run the startup warm-up: refresh tool infos and reload saved tips |
 | `!SH <term>` | Search chat history for a term; prints matching row numbers (`!SH -r <regex>` for regex) |
+| `!PH [row]` | Preview chat history; `!PH <N>` shows a single row in full |
+| `!RH <row>` or `!RH <from> <to>` | Remove a row, or an inclusive range of rows, from chat history |
+| `!SAVE_HISTORY [filename]` | Export current chat history as a reloadable `.dbk`-style file (saved to `history/` and the framework root) |
 | `!INSTALL_DEPS [persona]` | Install missing persona dependencies |
 | `!SITE_LIST` | List all websites with available JS support scripts |
 | `!SITE <domain>` | Show available scripts for a specific website |
