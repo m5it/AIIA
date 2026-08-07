@@ -166,9 +166,13 @@ class HandleContext():
 		after the last system prompt."""
 		new_msgs = [msgs[i] for i in sorted(keep)]
 		last_sys = sum(1 for m in new_msgs if m['role'] == 'system') - 1
+		content = "[Context summary: {}]".format(summary)
+		plan_text = self._active_plan_text()
+		if plan_text:
+			content += "\n\n[ACTIVE PLAN]\n" + plan_text.rstrip() + "\n"
 		summary_msg = {
 			'role': 'system',
-			'content': "[Context summary: {}]".format(summary),
+			'content': content,
 			'sessionId': self.Options['AI_SESS_ID'],
 			'rowId': self.Options['AI_ROW_ID'] + 1,
 			'timestamp': time.time(),
@@ -193,8 +197,37 @@ class HandleContext():
 
 	#
 
-	def _auto_clear(self):
-		"""Keep only system messages, clear everything else.  Resets counters."""
+	def _active_plan_text(self):
+		"""Render the active plan to a text block, or '' when none is available.
+		Uses PlanBase.draft when set; otherwise falls back to the most recently
+		saved plan on disk (without mutating PlanBase.draft)."""
+		try:
+			from src.PlanManager import PlanBase, Plan
+		except Exception:
+			return ""
+		plan = getattr(PlanBase, 'draft', None)
+		if plan is None:
+			try:
+				plans_dir = self.Options.get('plans_path', 'plans')
+				if os.path.isdir(plans_dir):
+					json_files = sorted(
+						[f for f in os.listdir(plans_dir) if f.endswith('.json')],
+						key=lambda f: os.path.getmtime(os.path.join(plans_dir, f)),
+						reverse=True)
+					if json_files:
+						plan = Plan.load(json_files[0].replace('.json', ''), plans_dir)
+			except Exception:
+				plan = None
+		if plan is None:
+			return ""
+		return PlanSaver.plan_to_text(plan)
+
+	def _auto_clear(self, sys_msg=None):
+		"""Keep only system messages, clear everything else.  Resets counters.
+
+		Afterwards injects a single system message: the given sys_msg (with the
+		active plan appended when one exists), or just the active plan when no
+		sys_msg is given.  Nothing is injected when neither is available."""
 		msg_count = len(self.hHM.msgs)
 		archive_name = self._archive_history('cleared')
 		if archive_name:
@@ -209,6 +242,16 @@ class HandleContext():
 		self.Options['NUM_LAST_RESPONSE_TOKENS'] = 0
 		self.hLG.echo("Context limit reached — auto-cleared chat history",
 			{'color': True, 'colorValue': 'orange', 'debugOnly': False})
+		plan_text = self._active_plan_text()
+		if sys_msg:
+			content = sys_msg
+			if plan_text:
+				content += "\n\n---\n[ACTIVE PLAN]\n" + plan_text.rstrip() + "\n"
+			self.Response('system', {'content': content})
+		elif plan_text:
+			content = ("[Context auto-cleared — continue working on the active plan.]\n\n"
+				"[ACTIVE PLAN]\n" + plan_text.rstrip() + "\n")
+			self.Response('system', {'content': content})
 
 	#
 

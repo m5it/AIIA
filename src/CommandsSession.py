@@ -210,14 +210,15 @@ class CommandsSession():
 	#
 	def CMD_SUMMARIZE(self, inp=""):
 		"""!SUMMARIZE — clear chat history (keeps system messages) then warm the
-		model back up: reload the tool list and tips so the next turn starts with
-		working tool knowledge (useful for cloud models with no memory)."""
+		model back up via a single system message: reload the tool list and tips
+		so the next turn starts with working tool knowledge (useful for cloud
+		models with no memory).  The active plan is appended to that message so
+		it survives the summary."""
 		self.handle.hLG.echo("Summarizing — clearing history, keeping system messages...",
 			{'color':True, 'colorValue':'orange','debugOnly':False})
-		self.handle._auto_clear()
+		self.handle._auto_clear(sys_msg=_SUMMARIZE_MSG)
 		self.handle.hTM.clear_all_caches()
 		self.handle._consumed_tips = set()
-		self.handle.Response('user', {'content': _SUMMARIZE_MSG})
 		return 0
 
 	def CMD_PREVIEW_HISTORY(self, inp=""):

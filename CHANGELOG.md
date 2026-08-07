@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-07 — v1.1.26
+
+### Auto: Version v1.1.26
+
+- Version auto-incremented from v1.1.25
+- Files changed: AGENTS.md, README.md, config.py, src/CommandsSession.py, src/HandleContext.py, src/HandleParse.py, src/HandleStream.py, src/Log.py, src/PlanSaver.py, src/ToolXmlParser.py, tests/test_core_modules.py, tests/test_summarize_command.py
+
+---
+
+
 ## 2026-08-07 — v1.1.25
 
 ### Auto: Version v1.1.25

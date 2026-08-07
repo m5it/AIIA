@@ -69,6 +69,12 @@ class HandleParse():
 		stream_error = None
 		response = self.Stream( res, color, opt_stream_cb )
 		#
+		# Strip <think>...</think> from content — the model may include these
+		# in its content field (separate from native thinking API).  Stripping
+		# early (before any early-return path) prevents spurious tool detection,
+		# hash mismatches, and history pollution from interrupted streams.
+		self._strip_think_tags(response)
+		#
 		# Stream error — signal auto-clear for request-too-large errors
 		if 'error' in response:
 			stream_error = response['error']
@@ -89,12 +95,6 @@ class HandleParse():
 			if _done is not _PARSE_CONTINUE:
 				return _done
 
-		# Strip <think>...</think> from content — the model may include these
-		# in its content field (separate from native thinking API).  Stripping
-		# early prevents spurious tool detection, hash mismatches, and history
-		# pollution.
-		self._strip_think_tags(response)
-		
 		# Detect repeated responses (model looping)
 		# _last_response_hash persists across AI() calls — only reset by new user input in You()
 		# Skip check for thinking-only responses (empty content) — they all hash to the same
@@ -218,9 +218,16 @@ class HandleParse():
 		"""Strip <think>...</think> from content — the model may include these
 		in its content field (separate from native thinking API).  Stripping
 		early prevents spurious tool detection, hash mismatches, and history
-		pollution."""
-		response['content'] = re.sub(r'<think>.*?</think>', '', response.get('content', ''), flags=re.DOTALL)
-		response['content'] = re.sub(r'</think>', '', response.get('content', ''))
+		pollution.  Handles case variants, tags with attributes, orphan
+		closers, and unclosed blocks at the end of the content."""
+		content = response.get('content', '')
+		# Complete blocks (case-insensitive, optional attributes)
+		content = re.sub(r'<think\b[^>]*>.*?</think\s*>', '', content, flags=re.I | re.DOTALL)
+		# Orphan closing tags without an opener
+		content = re.sub(r'</think\s*>', '', content, flags=re.I)
+		# Unclosed opening tag — treat the remainder as thinking
+		content = re.sub(r'<think\b[^>]*>.*', '', content, flags=re.I | re.DOTALL)
+		response['content'] = content
 
 	#
 

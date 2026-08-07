@@ -129,8 +129,21 @@ class HandleStream():
 			self.hLG.echo("Stream error: {}".format(str(e)), {'color':True, 'colorValue':'red','debugOnly':False,})
 			self.bg_log("Stream error: {} (got {} chunks, {} response chars)".format(
 				str(e), _stream_chunk_count, len(state['response'])), "WARN")
+			self._flush_think_buffer(state)
 			return {'content':state['response'], 'thinking':state['thinking'], 'native_tool_calls':state['native_tool_calls'], 'prompt_tokens':0, 'response_tokens':0, 'error':str(e), 'early_abort':abort_reason}
+		self._flush_think_buffer(state)
 		return {'content':state['response'], 'thinking':state['thinking'], 'native_tool_calls':state['native_tool_calls'], 'prompt_tokens':prompt_tokens, 'response_tokens':response_tokens, 'early_abort':abort_reason}
+
+	#
+
+	def _flush_think_buffer(self, state):
+		"""Flush any buffered (unclosed <think>) text into the thinking buffer
+		at stream end — never into the answer content."""
+		pending = state.get('_think_pending', '')
+		if pending:
+			state['thinking'] = state.get('thinking', '') + pending
+			state['_think_pending'] = ''
+		state['_in_think'] = False
 
 	#
 
@@ -145,6 +158,7 @@ class HandleStream():
 			{'color':True, 'colorValue':'blue','debugOnly':False})
 		if stream_callback:
 			stream_callback({'type':'interrupt','reason':'ctrl_d'})
+		self._flush_think_buffer(state)
 		return {'content': state['response'], 'thinking': state['thinking'],
 				'native_tool_calls': state['native_tool_calls'],
 				'prompt_tokens': 0, 'response_tokens': 0,
@@ -181,22 +195,79 @@ class HandleStream():
 			# Don't print tool calls, just collect them
 		# speaking
 		elif chunk.message.content:
-			#
-			if not state['if_speaking']:
-				print('\n\nAnswer:\n', end='')
-				state['if_thinking'] = False
-				state['if_speaking'] = True
-			#
 			part = chunk.message.content
-			state['response'] += part
-			# Early abort: detect misguided tool calls mid-stream
-			abort_reason = self._check_stream_abort(state['response'])
-			if abort_reason:
-				return abort_reason
-			if stream_callback:
-				stream_callback({'type':'token','text':part})
-			self.hLG.echo(part,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
+			# Split <think>...</think> blocks out of the content stream — cloud
+			# models often write their reasoning into content wrapped in think
+			# tags.  Route those to the gray thinking display instead of the
+			# answer output.
+			answer, think_part = self._split_content_think(part, state)
+			if think_part:
+				if not state['if_thinking']:
+					state['if_thinking'] = True
+					if not self.Options.get('BUILD_THINKING_DISABLED', False):
+						print('Thinking:\n', end='')
+				state['thinking'] += think_part
+				if not self.Options.get('BUILD_THINKING_DISABLED', False):
+					self.hLG.echo(think_part, {'color':True,'colorValue':'gray','end':'','flush':True,'debugOnly':False})
+				if stream_callback:
+					stream_callback({'type':'thinking','text':think_part})
+			if answer:
+				#
+				if not state['if_speaking']:
+					print('\n\nAnswer:\n', end='')
+					state['if_thinking'] = False
+					state['if_speaking'] = True
+				#
+				state['response'] += answer
+				# Early abort: detect misguided tool calls mid-stream
+				abort_reason = self._check_stream_abort(state['response'])
+				if abort_reason:
+					return abort_reason
+				if stream_callback:
+					stream_callback({'type':'token','text':answer})
+				self.hLG.echo(answer,{'color':color,'end':'','flush':True, 'debugOnly':False, 'echoByNewLine':True,'speak':True})
 		return abort_reason
+
+	#
+
+	def _split_content_think(self, part, state):
+		"""Split a content chunk into (answer, thinking) parts, pulling any
+		<think>...</think> blocks (which may span multiple chunks) out of the
+		answer stream.  Thinking text is returned separately and is never
+		added to state['response'].  Cross-chunk state is kept in
+		state['_think_pending'] / state['_in_think']."""
+		pending = state.get('_think_pending', '') + part
+		state['_think_pending'] = ''
+		in_think = state.get('_in_think', False)
+		answer = []
+		thinking = []
+		pos = 0
+		while True:
+			m = re.search(r'<think\b[^>]*>|</think\s*>', pending[pos:], re.I)
+			if not m:
+				break
+			seg = pending[pos:pos + m.start()]
+			if in_think:
+				thinking.append(seg)
+			else:
+				answer.append(seg)
+			tag = m.group(0)
+			if tag.lower().startswith('</'):
+				if in_think:
+					in_think = False
+				# orphan </think> (no opener) — drop it
+			else:
+				in_think = True
+			pos += m.end()
+		if in_think:
+			thinking.append(pending[pos:])
+			state['_in_think'] = True
+			state['_think_pending'] = ''.join(thinking)
+			thinking = []
+		else:
+			answer.append(pending[pos:])
+			state['_in_think'] = False
+		return ''.join(answer), ''.join(thinking)
 
 	#
 

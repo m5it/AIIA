@@ -316,6 +316,7 @@ def test_fire_plan_tools_run_before_blocked_write(tmp_path):
 	assert PlanBase.draft is not None
 	assert len(PlanBase.draft.tasks) == 1
 	assert any(t.status == "in_progress" for t in PlanBase.draft.tasks.values())
+	PlanBase.draft = None
 
 def test_parse_ctrl_d_saves_partial():
 	from src.HandleParse import HandleParse
@@ -355,6 +356,8 @@ def test_context_collect_drop_indices_malformed():
 
 def test_context_insert_summary():
 	from src.HandleContext import HandleContext
+	from src.PlanManager import PlanBase
+	PlanBase.draft = None
 	obj = HandleContext.__new__(HandleContext)
 	obj.Options = {'AI_SESS_ID': 's1', 'AI_ROW_ID': 5}
 	msgs = [{'role': 'system', 'content': 'S1'}, {'role': 'user', 'content': 'u'}]
@@ -640,3 +643,118 @@ def test_ai_interrupt_menu_choice3_does_not_mark_user_stop(monkeypatch):
 	monkeypatch.setattr('src.HandleChat.user_input', lambda *a, **k: '3')
 	assert stub._show_ai_interrupt_menu() == 3
 	assert not hasattr(stub, '_ai_stopped_by_user')
+
+# --- think-block streaming & stripping (buffer-until-close rule) ---
+
+def test_split_content_think_basic():
+	from src.HandleStream import HandleStream
+	stub = HandleStream.__new__(HandleStream)
+	state = {}
+	answer, thinking = stub._split_content_think('hi<think>secret</think>bye', state)
+	assert answer == 'hibye' and thinking == 'secret'
+
+
+def test_split_content_think_nested_open_is_data():
+	from src.HandleStream import HandleStream
+	stub = HandleStream.__new__(HandleStream)
+	state = {}
+	answer, thinking = stub._split_content_think('<think>a<think>b</think>c', state)
+	# Only </think> stops the buffer; the nested <think> is just data
+	assert answer == 'c' and thinking == 'ab'
+
+
+def test_split_content_think_across_chunks():
+	from src.HandleStream import HandleStream
+	stub = HandleStream.__new__(HandleStream)
+	state = {}
+	a1, t1 = stub._split_content_think('<think>abc', state)
+	assert a1 == '' and t1 == '' and state['_in_think'] is True
+	a2, t2 = stub._split_content_think('def</think>ghi', state)
+	assert a2 == 'ghi' and t2 == 'abcdef' and state['_in_think'] is False
+
+
+def test_split_content_think_orphan_close_dropped():
+	from src.HandleStream import HandleStream
+	stub = HandleStream.__new__(HandleStream)
+	state = {}
+	answer, thinking = stub._split_content_think('text</think>more', state)
+	assert answer == 'textmore' and thinking == ''
+
+
+def test_split_content_think_unclosed_flushed_at_end():
+	from src.HandleStream import HandleStream
+	stub = HandleStream.__new__(HandleStream)
+	state = {'_in_think': True, '_think_pending': 'partial'}
+	stub._flush_think_buffer(state)
+	assert state['thinking'] == 'partial' and state['_think_pending'] == ''
+
+
+def test_stream_process_chunk_content_think_split():
+	from src.HandleStream import HandleStream
+	class Stub(HandleStream):
+		def __init__(self):
+			self.Options = {'BUILD_THINKING_DISABLED': True}
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self._check_stream_abort = lambda s: None
+	class Msg:
+		def __init__(self, content):
+			self.thinking = ''
+			self.content = content
+			self.tool_calls = []
+	stub = Stub()
+	state = {'response': '', 'thinking': '', 'native_tool_calls': [], 'if_thinking': False, 'if_speaking': False}
+	assert stub._process_stream_chunk(type('C', (), {'message': Msg('think: <think>secret</think> answer')})(), state, True, None) is None
+	assert state['response'] == 'think:  answer'
+	assert state['thinking'] == 'secret'
+
+
+def test_strip_think_tags_robust():
+	from src.HandleParse import HandleParse
+	stub = HandleParse.__new__(HandleParse)
+	r = {'content': 'a<think>one</think>b'}
+	stub._strip_think_tags(r)
+	assert r['content'] == 'ab'
+	# case-insensitive + attributes
+	r = {'content': 'a<Think mode="x">two</THINK>b'}
+	stub._strip_think_tags(r)
+	assert r['content'] == 'ab'
+	# nested open is data, only close stops
+	r = {'content': 'a<think>x<think>y</think>b'}
+	stub._strip_think_tags(r)
+	assert r['content'] == 'ab'
+	# orphan close
+	r = {'content': 'a</think>b'}
+	stub._strip_think_tags(r)
+	assert r['content'] == 'ab'
+	# unclosed at end strips remainder
+	r = {'content': 'a<think>rest of thinking here'}
+	stub._strip_think_tags(r)
+	assert r['content'] == 'a'
+
+
+def test_parse_ignores_think_blocks():
+	from src.ToolXmlParser import ToolXmlParser
+	tp = ToolXmlParser()
+	inv = tp.ParseTextToolInvocation('<think>let me plan</think><listTools/>')
+	assert inv == [{'name': 'listTools', 'parameters': {}}]
+	# nested/unclosed think must not be treated as a tool
+	inv = tp.ParseTextToolInvocation('<think>a<think>b</think><WriteFile/>')
+	assert inv == [{'name': 'WriteFile', 'parameters': {}}]
+
+
+def test_log_gray_color_emits_ansi():
+	from src.Log import Log
+	log = Log.__new__(Log)
+	log.hSpeak = None
+	log.debug = False
+	log.streamData = ''
+	log.CRED = '\033[1;31m'
+	log.CGREEN = '\033[1;32m'
+	log.CORANGE = '\033[1;33m'
+	log.CGRAY = '\033[90m'
+	log.CNC = '\033[0m'
+	import io, contextlib
+	buf = io.StringIO()
+	with contextlib.redirect_stdout(buf):
+		log._echo_print('', {'color': True, 'colorValue': 'gray', 'returnStream': False, 'speak': False, 'end': '', 'flush': True})
+	assert buf.getvalue() == '\033[90m\033[0m'

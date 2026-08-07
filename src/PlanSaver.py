@@ -13,18 +13,19 @@ class PlanSaver:
 			PlanSaver.save_history_to_file(msg, file_path)
 
 	@staticmethod
-	def save_plan_to_file(plan, file_path):
+	def plan_to_text(plan):
+		"""Render a plan to a compact text block (title, id, status, goal, tasks)."""
 		timestamp = datetime.fromtimestamp(plan.startTimestamp).strftime('%Y-%m-%d %H:%M:%S')
 		status = "in_progress" if plan.endTimestamp is None else "completed"
-		
+
 		content = "# Plan: {}\n".format(plan.title)
 		content += "## ID: {}\n".format(plan.id)
 		content += "## Created: {}\n".format(timestamp)
 		content += "## Status: {}\n\n".format(status)
-		
+
 		if plan.instructions:
 			content += "### Goal:\n{}\n\n".format(plan.instructions)
-		
+
 		if plan.tasks:
 			content += "### Tasks ({}):\n".format(len(plan.tasks))
 			task_num = 1
@@ -35,9 +36,12 @@ class PlanSaver:
 					content += "   Progress logs: {} entries\n".format(len(task.log))
 				content += "\n"
 				task_num += 1
-		
-		content += "---\n\n"
-		
+
+		return content
+
+	@staticmethod
+	def save_plan_to_file(plan, file_path):
+		content = PlanSaver.plan_to_text(plan) + "---\n\n"
 		with open(file_path, 'w') as f:
 			f.write(content)
 	

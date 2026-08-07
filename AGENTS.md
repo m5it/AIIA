@@ -52,7 +52,7 @@ Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `1.0.0`
 | `!STATS` | Token counts |
 | `!SET <key> <value>` | Override any config at runtime (e.g. `!SET NUM_PREDICT 16384`) |
 | `!NEW SESSION` | Full reset |
-| `!SUMMARIZE` | Clear chat history (keeps system messages), then warm the model back up on available tools and tips |
+| `!SUMMARIZE` | Clear chat history (keeps system messages), then warm the model back up on available tools and tips — as a single system message that also preserves the active plan |
 | `!REHEAT` | Re-run the startup warm-up: refresh tool infos and reload saved tips |
 | `!SH <term>` | Search chat history for a term; prints matching row numbers (`!SH -r <regex>` for regex) |
 | `!PH [row]` | Preview chat history; `!PH <N>` shows a single row in full |

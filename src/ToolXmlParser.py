@@ -58,10 +58,13 @@ class ToolXmlParser():
 		#
 		# Strip <think>...</think> tags — the model may include these in the
 		# content field (separate from the native thinking API).  They should
-		# NOT be treated as tool calls.
-		text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
-		# Also strip orphan </think> closing tags that appear without openers
-		text = re.sub(r'</think>', '', text)
+		# NOT be treated as tool calls.  Once <think> opens, everything until
+		# </think> is concatenated into the buffer (nested <think> is data);
+		# only the closing tag stops it.  Handles case variants, attributes,
+		# orphan closers, and unclosed blocks at the end.
+		text = re.sub(r'<think\b[^>]*>.*?</think\s*>', '', text, flags=re.I | re.DOTALL)
+		text = re.sub(r'</think\s*>', '', text, flags=re.I)
+		text = re.sub(r'<think\b[^>]*>.*', '', text, flags=re.I | re.DOTALL)
 		return text
 
 	def _parse_self_closing(self, text):

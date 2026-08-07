@@ -31,7 +31,7 @@
 - **Tool Result Caching** — Tools with `cache_ttl` class attribute (e.g., listTools=600s, TreeView=300s) cache results to files; `!CACHE_CLEAR` to flush all caches; global TTL in config
 - **Terminal Improvements** — `rm`/`rmdir`/`ln`/`install` added to allowlist; `./` and `/` paths bypass allowlist for user scripts; argument-smash detection returns specific XML correction error
 - **Orchestra System** — Multi-agent task distribution: one director process dispatches tasks to any number of worker processes over TCP; each worker has its own model, persona, and tools; planning can be delegated to a designated worker
-- **Session Management** — `!CLEAR` to clear chat history (keep persona), `!RH <row>` or `!RH <from> <to>` to remove rows, `!SUMMARIZE` to clear and warm the model back up on tools/tips, `!SAVE_HISTORY [file]` to export history, `!NEW SESSION` for a full reset
+- **Session Management** — `!CLEAR` to clear chat history (keep persona), `!RH <row>` or `!RH <from> <to>` to remove rows, `!SUMMARIZE` to clear and warm the model back up on tools/tips while preserving the active plan, `!SAVE_HISTORY [file]` to export history, `!NEW SESSION` for a full reset
 - **Factory Reset** — `-R` flag resets all state (history, plans, session ID, tips, cookies) to factory defaults with confirmation prompt
 
 ---

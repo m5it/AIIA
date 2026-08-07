@@ -28,6 +28,7 @@ class Log:
 		self.CORANGE    = '\033[1;33m'
 		self.CGREEN     = '\033[1;32m' # GREEN
 		self.CRED       = '\033[1;31m' # RED
+		self.CGRAY      = '\033[90m'   # GRAY
 		self.CNC        = '\033[0m'
 
 	def _log_background(self, text):
@@ -111,6 +112,8 @@ class Log:
 					tmpcolor = self.CGREEN
 				if o['colorValue']=='orange':
 					tmpcolor = self.CORANGE
+				if o['colorValue']=='gray':
+					tmpcolor = self.CGRAY
 			if o['returnStream']==False:
 				if self.hSpeak!=None and o['speak']:
 					#print("Log().echo() d1 len {}".format( len(self.streamData) ))
