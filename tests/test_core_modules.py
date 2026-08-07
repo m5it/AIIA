@@ -115,6 +115,45 @@ def test_toolparser_mixins_import():
 		assert name in mro
 	assert isinstance(ToolParser._plan_tools, set)
 	assert 'listTasks' in ToolParser._plan_tools
+	assert {'CreatePlan', 'CreateTask', 'AppendTask'} <= ToolParser._plan_tools
+
+
+def test_plan_tool_aliases_registered():
+	from src.ToolParser import ToolParser
+	from src.ToolXmlParser import _PLAN_TOOLS
+	aliases = ('CreatePlan', 'CreateTask', 'AppendTask')
+	assert all(a in _PLAN_TOOLS for a in aliases)
+	assert all(a in ToolParser._plan_tools for a in aliases)
+
+
+def test_plan_tool_alias_sort_keys():
+	from src.ToolExecutor import ToolExecutor
+	sk = ToolExecutor._fire_sort_key
+	assert sk({'name': 'CreateTask'}) == sk({'name': 'createTask'})
+	assert sk({'name': 'AppendTask'}) == sk({'name': 'createTask'})
+	assert sk({'name': 'CreatePlan'}) == sk({'name': 'createPlan'})
+
+
+def test_plan_tool_aliases_route_to_handlers(tmp_path, monkeypatch):
+	from src.PlanToolHandler import PlanToolHandler
+	calls = []
+
+	obj = PlanToolHandler.__new__(PlanToolHandler)
+	obj.handle = type('H', (), {
+		'Options': {'plans_path': str(tmp_path / 'plans')},
+	})()
+	monkeypatch.setattr(obj, '_plan_createPlan', lambda p, pl: calls.append(('createPlan', pl)) or 'ok')
+	monkeypatch.setattr(obj, '_plan_createTask', lambda p, pl: calls.append(('createTask', pl)) or 'ok')
+	monkeypatch.setattr(obj, '_plan_addTask', lambda p, pl: calls.append(('addTask', pl)) or 'ok')
+
+	obj.HandlePlanTool('CreatePlan', {'title': 't', 'instructions': 'i'})
+	obj.HandlePlanTool('CreateTask', {'title': 't', 'instruction': 'i'})
+	obj.HandlePlanTool('AppendTask', {'title': 't', 'instruction': 'i'})
+	assert calls == [
+		('createPlan', str(tmp_path / 'plans')),
+		('addTask', str(tmp_path / 'plans')),
+		('addTask', str(tmp_path / 'plans')),
+	]
 
 def test_toolparser_known_tools():
 	from src.ToolParser import ToolParser
@@ -198,6 +237,85 @@ def test_parse_stream_error_too_large():
 	assert r['stream_too_large'] is True and r['invocations'] == []
 	assert Stub()._parse_stream_error('some error', {'content': 'x'}, False) is _PARSE_CONTINUE
 	assert Stub()._parse_stream_error(None, {'content': 'x'}, False) is _PARSE_CONTINUE
+
+def test_detect_tool_invocations_merges_native_and_xml():
+	from src.HandleParse import HandleParse
+	class Stub(HandleParse):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self.hTP = __import__('src.ToolParser', fromlist=['ToolParser']).ToolParser()
+		def _convert_native_tool_calls(self, native_tool_calls):
+			return [{'name': c['function']['name'], 'parameters': c['function']['arguments']} for c in native_tool_calls]
+	stub = Stub()
+	response = {
+		'content': "<createPlan><title>Hello</title><description>hi</description></createPlan>\n"
+		           "<createTask><id>1</id><title>Write hello.py</title></createTask>\n"
+		           "<planDone></planDone>",
+		'native_tool_calls': [{'function': {'name': 'WriteFile',
+		                                    'arguments': {'fileName': 'hello.py', 'contentOfFile': 'print(1)'}}}],
+	}
+	inv = stub._detect_tool_invocations(response)
+	names = [i['name'] for i in inv]
+	assert names == ['WriteFile', 'createPlan', 'createTask', 'planDone']
+
+def test_detect_tool_invocations_dedupes_native_over_xml():
+	from src.HandleParse import HandleParse
+	class Stub(HandleParse):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self.hTP = __import__('src.ToolParser', fromlist=['ToolParser']).ToolParser()
+		def _convert_native_tool_calls(self, native_tool_calls):
+			return [{'name': c['function']['name'], 'parameters': c['function']['arguments']} for c in native_tool_calls]
+	stub = Stub()
+	response = {
+		'content': "<WriteFile><fileName>dup.py</fileName><contentOfFile>xml</contentOfFile></WriteFile>",
+		'native_tool_calls': [{'function': {'name': 'WriteFile',
+		                                    'arguments': {'fileName': 'dup.py', 'contentOfFile': 'native'}}}],
+	}
+	inv = stub._detect_tool_invocations(response)
+	assert len(inv) == 1
+	assert inv[0]['parameters']['contentOfFile'] == 'native'
+
+def test_fire_plan_tools_run_before_blocked_write(tmp_path):
+	from src.ToolParser import ToolParser
+	from src.PlanManager import PlanBase
+	class LG:
+		def echo(self, *a, **k): pass
+	handle = type('H', (), {})()
+	handle.Options = {
+		'plans_path': str(tmp_path / 'plans'),
+		'working_dir': str(tmp_path),
+		'MODE': 'plan',
+		'TOOL_ALLOWED': [],
+		'TOOL_BLOCKED': [],
+		'TOOL_SHOW_LOAD': False,
+		'TOOL_CODE_VALIDATE': True,
+		'NUM_PREDICT': None,
+		'NUM_LAST_RESPONSE_TOKENS': 0,
+		'AI_TOOL_PREVIEW': 0,
+		'TOOL_RESULT_AS_SYSTEM': False,
+		'TOOL_RESULT_AS_USER': False,
+	}
+	handle.hLG = LG()
+	handle.Response = lambda role, content: None
+	handle.tool_iteration = 0
+	handle.tool_errors = 0
+	handle._last_failed_tool = None
+	handle._last_failed_tool_count = 0
+	handle._plan_blocked_tool = None
+	PlanBase.draft = None
+	tp = ToolParser({'handle': handle, 'logger': None})
+	invocations = [
+		{'name': 'WriteFile', 'parameters': {'fileName': 'hello.py', 'contentOfFile': 'print(1)'}},
+		{'name': 'createPlan', 'parameters': {'title': 'Hello', 'instructions': 'Create hello world script'}},
+		{'name': 'createTask', 'parameters': {'title': 'Write hello.py', 'instruction': 'Create the script'}},
+		{'name': 'planDone', 'parameters': {}},
+	]
+	tp.FireToolInvocation(invocations)
+	assert handle._plan_blocked_tool == 'WriteFile'
+	assert PlanBase.draft is not None
+	assert len(PlanBase.draft.tasks) == 1
+	assert any(t.status == "in_progress" for t in PlanBase.draft.tasks.values())
 
 def test_parse_ctrl_d_saves_partial():
 	from src.HandleParse import HandleParse

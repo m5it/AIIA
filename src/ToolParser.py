@@ -22,6 +22,7 @@ class ToolParser(ToolXmlParser, ToolExecutor, PlanToolHandler):
 		'addTask', 'createTask', 'createPlan', 'deleteTask', 'deletePlan',
 		'deleteDraft', 'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks',
 		'nextTask', 'jobDone', 'planDone', 'startBuild', 'LogProgress',
+		'CreatePlan', 'CreateTask', 'AppendTask',
 	}
 	#--
 	def __init__(self, opts={}):

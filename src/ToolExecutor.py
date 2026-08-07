@@ -228,8 +228,8 @@ class ToolExecutor():
 	def FireToolInvocation(self, tool_invocations):
 		#
 		is_plan_mode = self.handle.Options.get('MODE') == 'plan'
-		plan_tools = ['addTask', 'createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks']
-		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks', 'jobDone', 'startBuild', 'planDone', 'addTask', 'createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask']
+		plan_tools = ['addTask', 'createTask', 'createPlan', 'CreatePlan', 'CreateTask', 'AppendTask', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks']
+		build_tools = ['LogProgress', 'nextTask', 'viewTask', 'listTasks', 'jobDone', 'startBuild', 'planDone', 'addTask', 'createTask', 'createPlan', 'CreatePlan', 'CreateTask', 'AppendTask', 'deleteTask', 'deletePlan', 'deleteDraft', 'deleteAllPlans', 'updateTask']
 		#
 		# Sort to process createTask before other tools
 		tool_invocations = sorted(tool_invocations, key=self._fire_sort_key)
@@ -261,9 +261,11 @@ class ToolExecutor():
 				break
 			#
 			# PLAN mode guard — block write/execute tools and intercept startBuild
-			# (user's TOOL_ALLOWED overrides plan blocking)
+			# (user's TOOL_ALLOWED overrides plan blocking).
+			# `continue` (not break) so plan tools (e.g. planDone) in the same
+			# response still execute after a blocked write.
 			if self._guard_plan_mode(toolName, user_allowed, is_plan_mode) is not None:
-				break
+				continue
 			#
 			# Route to plan tools if in plan mode, or build tools (like LogProgress)
 			if (is_plan_mode and toolName in plan_tools) or (toolName in build_tools):
@@ -371,9 +373,9 @@ class ToolExecutor():
 	@staticmethod
 	def _fire_sort_key(inv):
 		name = inv['name']
-		if name in ('addTask', 'createTask'):
+		if name in ('addTask', 'createTask', 'CreateTask', 'AppendTask'):
 			return -1
-		elif name == 'createPlan':
+		elif name in ('createPlan', 'CreatePlan'):
 			return -2
 		return 0
 

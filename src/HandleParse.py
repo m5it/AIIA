@@ -247,16 +247,22 @@ class HandleParse():
 	def _detect_tool_invocations(self, response):
 		"""Detect tool invocations before adding the assistant response
 		(needs to be first so we can clean XML from assistant content if
-		needed). Uses native Ollama tool calls when present, else XML text."""
+		needed). Native tool calls are merged with any XML invocations in
+		the content, deduped by tool name so a tool invoked natively is
+		not fired twice from its XML form."""
 		tool_invocations = []
 		native_tool_calls = response.get('native_tool_calls', [])
 		if native_tool_calls:
 			self.hLG.echo("Parse() detected {} native Ollama tool call(s)".format(len(native_tool_calls)), {'color':True, 'colorValue':'cyan'})
 			tool_invocations = self._convert_native_tool_calls(native_tool_calls)
-		if not tool_invocations:
-			tool_invocations = self.hTP.ParseTextToolInvocation( response['content'] )
+		xml_invocations = self.hTP.ParseTextToolInvocation( response['content'] )
+		if xml_invocations:
+			native_names = set(inv['name'] for inv in tool_invocations)
+			for inv in xml_invocations:
+				if inv['name'] not in native_names:
+					tool_invocations.append(inv)
 			if tool_invocations:
-				self.hLG.echo("Parse() detected {} XML tool invocation(s)".format(len(tool_invocations)), {'color':True, 'colorValue':'orange'})
+				self.hLG.echo("Parse() detected {} XML tool invocation(s) merged with native".format(len(xml_invocations)), {'color':True, 'colorValue':'orange'})
 		return tool_invocations
 
 	#
@@ -275,11 +281,14 @@ class HandleParse():
 				opt_stream_cb({'type':'tool_result','tool':inv['name'],'success':not result_str.startswith('Error:'),'result':result_str[:2000]})
 		#
 		plan_blocked = getattr(self, '_plan_blocked_tool', None)
+		plan_done = any(inv['name'] == 'planDone' for inv in tool_invocations)
 		if plan_blocked:
 			self._plan_blocked_tool = None
+			if plan_done:
+				self._plan_done_called = True
 			return {'invocations': tool_invocations, 'response': response['content'],
 					'job_done': job_done, 'stream_error': stream_error,
-					'plan_blocked': plan_blocked}
+					'plan_blocked': plan_blocked, 'plan_done': plan_done}
 		# Handle nextTask response in build mode - auto-add next task to history
 		if self.Options.get('MODE') == 'build':
 			for inv in tool_invocations:
@@ -302,7 +311,6 @@ class HandleParse():
 						self.Response('user', {'content': "Mode changed to BUILD. You can now make changes.\n\n{} - {}".format(task_info, instruction)})
 						self._write_current_task()
 		# Handle planDone in any mode — inject user message and signal completion
-		plan_done = any(inv['name'] == 'planDone' for inv in tool_invocations)
 		if plan_done:
 			result_str = str(result) if result else ""
 			if result_str.startswith("PLAN_DONE|"):

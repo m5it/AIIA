@@ -266,5 +266,5 @@ _ACTION_FORMATTERS = {
 
 _PLAN_TOOLS = ('createTask', 'createPlan', 'deleteTask', 'deletePlan', 'deleteDraft',
 	'deleteAllPlans', 'updateTask', 'viewTask', 'listTasks', 'nextTask',
-	'jobDone', 'planDone', 'startBuild', 'LogProgress')
+	'jobDone', 'planDone', 'startBuild', 'LogProgress', 'CreatePlan', 'CreateTask', 'AppendTask')
 	#

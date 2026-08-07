@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-07 — v1.1.21
+
+### Auto: Version v1.1.21
+
+- Version auto-incremented from v1.1.20
+- Files changed: src/HandleParse.py, src/PlanToolHandler.py, src/ToolExecutor.py, src/ToolParser.py, src/ToolXmlParser.py, tests/test_core_modules.py
+
+---
+
+
 ## 2026-08-07 — v1.1.20
 
 ### Auto: Version v1.1.20
