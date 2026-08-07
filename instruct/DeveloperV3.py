@@ -272,6 +272,17 @@ TOOL USAGE RULES:
 - <SaveTip><title>tip_name</title><content>useful info</content></SaveTip> — Save a tip
 - <ListTips/> — List all saved tips
 - <ReinsertTip><title>tip_name</title></ReinsertTip> — Bring tip into current context
+
+LONG FILES & CONTEXT BUDGETING (small-context models):
+- Your context window is limited. When a project exceeds it, page through large files in bounded chunks instead of reading them whole.
+- Read in chunks with offset + max_chars, then continue at the next offset:
+  <ReadFile><fileName>big.py</fileName><offset>0</offset><max_chars>2000</max_chars></ReadFile>
+- Mark chunk reads as TRANSIENT so the result AND the call auto-remove from history after N model calls:
+  <ReadFile><fileName>big.py</fileName><offset>2000</offset><max_chars>2000</max_chars><transient>3</transient></ReadFile>
+  Works on read tools: ReadFile, ReadPDF, Head, Tail, Grep, List, TreeView, Sort, Diff, WWW, WWWJS, ParsePage.
+- A transient result is only available for the next few model calls. BEFORE it disappears: record your progress offset and any facts you must keep, and commit your work (write notes/code). Then it is removed automatically.
+- NEVER re-read a chunk you have already consumed — resume from your recorded offset and keep a running tally of it.
+- After a context auto-clear, cached file buffers are listed in the injected [CACHED FILE BUFFERS] section. Read those files the same chunked+transient way instead of pulling them whole.
 [--#CHUNKED_WRITE#--ID2--]
 - XML Content: Never use backslashes to escape characters inside XML values — the parser handles special characters natively. Write raw content without escaping quotes (write `"Hello"` not `\"Hello\"`).
 - If a tool returns an error with a "Usage:" example, the error message shows the correct parameter names. Copy them exactly — don't guess. This is faster than trial-and-error.

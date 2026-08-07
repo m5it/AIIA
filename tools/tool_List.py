@@ -25,19 +25,26 @@ class List():
 		print("List.run() STARTING, path: {}, opts: {}".format( path, opts ))
 		opt_match       = None if "match" not in opts else opts["match"] # regex
 		opt_hiddenpath  = "" if "hiddenpath" not in opts else opts["hiddenpath"] # ai dont need to know real path
-		usepath         = "{}{}".format(opt_hiddenpath,path)
+		# Normalize the real path (hiddenpath + visible path) and the visible path
+		# so entry paths are never concatenated without a separator.
+		visible_path = path if path and path != "." else ""
+		real_path = opt_hiddenpath if opt_hiddenpath else visible_path
+		if opt_hiddenpath and visible_path:
+			real_path = os.path.join(opt_hiddenpath, visible_path)
+		if not real_path:
+			real_path = "."
 		ret             = {}
-		print("List.run() usepath: {}".format( usepath ))
+		print("List.run() real_path: {}, visible_path: {}".format(real_path, visible_path))
 		#
-		for n in os.listdir( usepath ):
+		for n in os.listdir( real_path ):
 			#print("List.run() DEBUG n: {}".format(n))
 			#
 			if opt_match != None:
 				if rmatch(n,opt_match)==False:
 					continue
 			#
-			rfp = "{}{}".format(usepath, n)
-			ffp = "{}{}".format(path,n)
+			rfp = os.path.join(real_path, n)
+			ffp = os.path.join(visible_path, n) if visible_path else n
 			ft  = 'file' if os.path.isfile(rfp) else 'directory'
 			#
 			nodename = os.path.basename(rfp)

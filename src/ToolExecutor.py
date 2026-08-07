@@ -5,6 +5,7 @@ from src.functions import initmodule, importmodule, splitFileNameExtension, frea
 class ToolExecutor():
 	#
 	_write_tools_validate = {'WriteFile', 'CreateFile', 'AppendFile', 'ReplaceLine', 'Sed'}
+	_read_tools_transient = {'ReadFile', 'ReadPDF', 'Head', 'Tail', 'Grep', 'List', 'TreeView', 'Sort', 'Diff', 'WWW', 'WWWJS', 'ParsePage'}
 	#
 	def ExecuteTextTool(self, toolName, params):
 		# Execute a tool based on XML invocation
@@ -102,6 +103,14 @@ class ToolExecutor():
 	def _execute_tool_call(self, toolName, params):
 		# Validate and execute the tool
 		h = None
+		# Pop the <transient>N</transient> control param before running so tool
+		# signatures never receive it; restore the clamped value afterwards so
+		# FireToolInvocation can mark the result/call rows for auto-removal.
+		transient_raw = params.get('transient')
+		transient_clamped = 0
+		if transient_raw is not None:
+			params.pop('transient', None)
+			transient_clamped = self._clamp_transient(transient_raw)
 		try:
 			h = self.handle.hTC.handles[toolName]['handle']
 			info = getattr(h, 'info', {})
@@ -117,6 +126,50 @@ class ToolExecutor():
 			info = getattr(h, 'info', {}) if h else {}
 			self._track_tool_failure(toolName, "errors", info)
 			return "Error executing {}: {}{}".format(toolName, E, self._tool_usage(info))
+		finally:
+			if transient_raw is not None:
+				params['transient'] = transient_clamped
+
+	def _clamp_transient(self, raw):
+		"""Coerce <transient>N</transient> to an int step count, clamped to
+		TOOL_TRANSIENT_MAX_STEPS. Invalid/negative values become 0 (disabled)."""
+		try:
+			steps = int(raw)
+		except (ValueError, TypeError):
+			return 0
+		if steps < 0:
+			return 0
+		max_steps = self.handle.Options.get('TOOL_TRANSIENT_MAX_STEPS', 10)
+		return min(steps, max_steps)
+
+	def _mark_transient_rows(self, steps):
+		"""Mark the just-created tool result row and its issuing assistant row with
+		a 'transient' step counter so _sweep_transient_rows() auto-removes them."""
+		try:
+			msgs = self.handle.hHM.msgs
+			if not msgs:
+				return
+			steps = int(steps)
+			marked = False
+			last = msgs[-1]
+			if last.get('role') == 'tool':
+				last['transient'] = steps
+				marked = True
+			for i in range(len(msgs) - 1, -1, -1):
+				if msgs[i].get('role') == 'assistant':
+					cur = int(msgs[i].get('transient') or 0)
+					if steps > cur:
+						msgs[i]['transient'] = steps
+						marked = True
+					break
+			if marked:
+				self.handle._rewrite_history(msgs)
+				self.handle.hLG.echo(
+					"Transient read marked: auto-remove after {} steps".format(steps),
+					{'color': True, 'colorValue': 'gray', 'debugOnly': True})
+		except Exception as E:
+			self.handle.hLG.echo("Transient mark error: {}".format(E),
+				{'color': True, 'colorValue': 'red', 'debugOnly': True})
 
 	def _track_tool_failure(self, toolName, details, info):
 		# Record a tool failure, tracking consecutive same-tool failures.
@@ -333,6 +386,13 @@ class ToolExecutor():
 			self._fire_show_loaded(toolName, result, show_load, _tool_start, _input_size)
 			#
 			self._fire_respond_result(toolName, result)
+			#
+			# Transient read results — mark the result + call rows for auto-removal
+			transient = params.get('transient')
+			if (transient
+				and self.handle.Options.get('TOOL_TRANSIENT_ENABLED', True)
+				and toolName in self._read_tools_transient):
+				self._mark_transient_rows(transient)
 			#
 			self._fire_echo_result(toolName, result)
 			#

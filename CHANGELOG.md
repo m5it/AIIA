@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-08-07 — v1.1.30
+
+### Auto: Version v1.1.30
+
+- Version auto-incremented from v1.1.29
+- Files changed: (none)
+
+---
+
+
+## 2026-08-07 — v1.1.29
+
+### Auto: Version v1.1.29
+
+- Version auto-incremented from v1.1.28
+- Files changed: AGENTS.md, config.py, instruct/Developer.py, instruct/DeveloperV2.py, instruct/DeveloperV3.py, src/HandleContext.py, src/ToolExecutor.py, tests/test_tool_list.py, tests/test_transient_tool_result.py, tools/tool_List.py
+
+---
+
+
 ## 2026-08-07 — v1.1.28
 
 ### Auto: Version v1.1.28

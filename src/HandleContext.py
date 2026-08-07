@@ -326,6 +326,10 @@ class HandleContext():
 	def _manage_context(self):
 		"""Check estimated token count against limit.  Summarize first, clear as
 		fallback.  Called at the start of AI() before any model request."""
+		# Drop expired transient read results first — frees context before the
+		# next model call and can prevent summarization/auto-clear entirely.
+		self._sweep_transient_rows()
+		#
 		limit = self.Options.get('AI_CONTEXT_LIMIT', 262144)
 		threshold = self.Options.get('AI_CLEAR_THRESHOLD', 0.8)
 		max_allowed = int(limit * threshold)
@@ -349,3 +353,33 @@ class HandleContext():
 				return
 
 		self._auto_clear()
+
+	#
+
+	def _sweep_transient_rows(self):
+		"""Decrement the 'transient' step counter on history rows and remove the
+		rows that reached zero (their content has been consumed).  Called before
+		every model request so transient read results free context automatically."""
+		msgs = getattr(self.hHM, 'msgs', None)
+		if not msgs:
+			return
+		remove = []
+		for i, m in enumerate(msgs):
+			steps = m.get('transient')
+			if steps is None or steps is False or steps == 0:
+				continue
+			try:
+				steps = int(steps)
+			except (ValueError, TypeError):
+				m.pop('transient', None)
+				continue
+			if steps > 1:
+				m['transient'] = steps - 1
+			else:
+				remove.append(i)
+		if remove:
+			for i in reversed(remove):
+				del msgs[i]
+			self._rewrite_history(msgs)
+			self.hLG.echo("Transient results removed ({} row(s))".format(len(remove)),
+				{'color': True, 'colorValue': 'green', 'debugOnly': False})

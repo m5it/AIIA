@@ -132,6 +132,13 @@ Options         = {
 	"TOOL_FILE_CACHE_REINJECT_MAX"   :5000,  # per-file cap when reinjecting (chars)
 	"TOOL_FILE_CACHE_REINJECT_TOTAL" :30000, # total cap for the reinjected block (chars)
 	#
+	# Transient tool results — a read tool call may carry <transient>N</transient> so the
+	# tool result (and the assistant row that made the call) auto-removes from history
+	# after N AI-loop iterations. Lets small-context models page through large data in
+	# bounded chunks without re-filling the context window.
+	"TOOL_TRANSIENT_ENABLED"    :True,   # allow <transient>N</transient> on read tools
+	"TOOL_TRANSIENT_MAX_STEPS"  :10,     # clamp N (auto-removal after N model calls)
+	#
 	# ReplaceLine indexing
 	"REPLACELINE_ZERO_INDEXED": True, # False=1-indexed (first line=1, default), True=0-indexed (first line=0)
 	#
