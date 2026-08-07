@@ -155,6 +155,8 @@ class CommandsSession():
 			return 2
 		if len(a) == 2:
 			filename = a[1]
+			if not os.path.splitext(filename)[1]:
+				filename = "{}.dbk".format(filename)
 		else:
 			_prefix = self.handle.Options.get('AI_SESS_PREFIX', '')
 			sid = self.handle.Options.get('AI_SESS_ID', 0)

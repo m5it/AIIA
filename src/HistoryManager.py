@@ -42,7 +42,7 @@ class HistoryManager():
 			return "Error: index must be a number."
 		if not self.available:
 			self.Update()
-		self.available.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]), reverse=False)
+		self.available.sort(key=self._sort_key, reverse=False)
 		if idx < 0 or idx >= len(self.available):
 			return "Error: index {} out of range (0-{}).".format(idx, len(self.available) - 1)
 		fname = self.available[idx]
@@ -58,6 +58,14 @@ class HistoryManager():
 
 	def get_name(self, key):
 		return self._load_names().get(key, None)
+
+	def _sort_key(self, name):
+		"""Sort key for history filenames: numeric session ids first, custom
+		names (e.g. 'template1.dbk') last."""
+		try:
+			return int(name.split('_')[-1].split('.')[0])
+		except (ValueError, TypeError):
+			return float('inf')
 
 	def set_current_name(self, name):
 		fname = self.handle.Options.get('AI_FILE_HISTORY', '')
@@ -116,19 +124,25 @@ class HistoryManager():
 			return '?', '(unreadable)'
 
 	def _search(self, query):
-		"""Search .dbk files for query. Returns list of dicts sorted by date desc."""
+		"""Search history files for query (matches filename OR content).
+		Returns list of dicts sorted by date desc."""
 		results = []
+		q = query.lower()
 		try:
 			proc = subprocess.run(
-				['grep', '-ril', '--include=*.dbk', query, self._history_dir],
+				['grep', '-ril', query, self._history_dir],
 				capture_output=True, text=True, timeout=30
 			)
 			if proc.returncode not in (0, 1):
 				return []
-			matches = [os.path.basename(f) for f in proc.stdout.strip().split('\n') if f]
+			matched = set(os.path.basename(f) for f in proc.stdout.strip().split('\n') if f)
 		except Exception:
-			return []
-		for fname in matches:
+			matched = set()
+		# filename matches are also hits (case-insensitive)
+		for fname in self.available:
+			if q in fname.lower():
+				matched.add(fname)
+		for fname in sorted(matched):
 			file_path = os.path.join(self._history_dir, fname)
 			date_str, preview = self._get_preview(file_path)
 			try:
@@ -139,6 +153,22 @@ class HistoryManager():
 		results.sort(key=lambda x: x['date'], reverse=True)
 		return results
 
+	def _looks_like_history(self, file_path):
+		"""True if the first JSON line of the file is a chat message (has a 'role' key)."""
+		try:
+			with open(file_path) as f:
+				for line in f:
+					line = line.strip()
+					if not line or not line.startswith('{'):
+						continue
+					try:
+						return isinstance(json.loads(line).get('role'), str)
+					except Exception:
+						return False
+		except Exception:
+			return False
+		return False
+
 	# update self.available (list history files)
 	def Update(self):
 		#
@@ -147,7 +177,12 @@ class HistoryManager():
 		if not os.path.isdir(self._history_dir):
 			return
 		for tmp in os.listdir(self._history_dir):
-			if rmatch(tmp,r"^[a-f0-9]+_\d+\..*") or rmatch(tmp,r"^\d+\..*"):
+			if tmp == 'names.json':
+				continue
+			path = os.path.join(self._history_dir, tmp)
+			if not os.path.isfile(path):
+				continue
+			if tmp.endswith('.dbk') or self._looks_like_history(path):
 				self.available.append(tmp)
 	
 	# method get() - load chat history from a file (append to self.msgs)
@@ -199,7 +234,7 @@ class HistoryManager():
 	#
 	def Available(self, compact=False):
 		self.Update()
-		self.available.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]), reverse=False)
+		self.available.sort(key=self._sort_key, reverse=False)
 		if self.opt_quiet == False:
 			if not self.available:
 				print("No history files found.")

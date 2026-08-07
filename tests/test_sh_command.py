@@ -238,6 +238,17 @@ def test_save_history_no_history(tmp_path, capsys):
 	assert 'No history' in capsys.readouterr().out
 
 
+def test_save_history_bare_name_gets_dbk_extension(tmp_path):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_SAVE_HISTORY('!SAVE_HISTORY template1')
+	assert ret == 2
+	assert (tmp_path / 'history' / 'template1.dbk').exists()
+	assert (tmp_path / 'template1.dbk').exists()
+	assert not (tmp_path / 'history' / 'template1').exists()
+
+
 def _make_history_handle(msgs, tmp_path):
 	"""Fake handle whose hHM is a real HistoryManager (for !AH search)."""
 	from src.HistoryManager import HistoryManager
@@ -303,6 +314,43 @@ def test_ah_lists_all_history(tmp_path, capsys):
 	out = capsys.readouterr().out
 	assert 'abc12345_7.dbk' in out
 	assert 'abc12345_8.dbk' in out
+
+
+def test_ah_search_matches_by_filename_only(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_history_handle([], tmp_path)
+	_write_history_file(tmp_path, 'template1.dbk', 'firewall setup notes')
+	c = Commands({'handle': h})
+	ret = c.CMD_VIEW_HISTORY('!AH template1')
+	assert ret == 2
+	assert 'template1.dbk' in capsys.readouterr().out
+
+
+def test_ah_lists_and_finds_extensionless_save(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_history_handle([], tmp_path)
+	(tmp_path / 'history' / 'template1').write_text(
+		'{}\n'.format(json.dumps({'role': 'user', 'content': 'saved session', 'name': ''})))
+	c = Commands({'handle': h})
+	assert c.CMD_VIEW_HISTORY('!AH') == 2
+	assert 'template1' in capsys.readouterr().out
+	assert c.CMD_VIEW_HISTORY('!AH template1') == 2
+	assert 'template1' in capsys.readouterr().out
+
+
+def test_ah_custom_names_do_not_break_sorting(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_history_handle([], tmp_path)
+	_write_history_file(tmp_path, '1.dbk', 'first session')
+	_write_history_file(tmp_path, 'abc12345_7.dbk', 'second session')
+	_write_history_file(tmp_path, 'template1.dbk', 'custom save')
+	c = Commands({'handle': h})
+	ret = c.CMD_VIEW_HISTORY('!AH')
+	assert ret == 2
+	out = capsys.readouterr().out
+	assert '1.dbk' in out
+	assert 'abc12345_7.dbk' in out
+	assert 'template1.dbk' in out
 
 
 def test_sh_cmd_regex_flag(capsys):
