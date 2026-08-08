@@ -107,8 +107,11 @@ class InstructManager():
 		# Read optional mode attribute
 		mode = getattr(cls, 'mode', None)
 		if mode is not None:
-			self.handle.Options['MODE'] = str(mode)
-			self.handle.hLG.echo("Persona '{}' sets mode: {}".format(name, str(mode)), {'color':True, 'colorValue':'cyan'})
+			if self.handle.Options.pop('_MODE_RESTORED', False):
+				self.handle.hLG.echo("Persona '{}' default mode '{}' skipped because mode was restored from state.".format(name, str(mode)), {'color':True, 'colorValue':'cyan'})
+			else:
+				self.handle.Options['MODE'] = str(mode)
+				self.handle.hLG.echo("Persona '{}' sets mode: {}".format(name, str(mode)), {'color':True, 'colorValue':'cyan'})
 		# Apply model registry (context limit, num_ctx, vision, think)
 		model_name = self.handle.Options.get('AI_MODEL', '')
 		if model_name:

@@ -50,6 +50,7 @@ class HandleState():
 		saved_mode = state.get('mode', '')
 		if saved_mode in ('plan', 'build'):
 			self.Options['MODE'] = saved_mode
+			self.Options['_MODE_RESTORED'] = True
 			self.hLG.echo("Restored MODE: {}".format(saved_mode),
 				{'color': True, 'colorValue': 'green'})
 
@@ -194,22 +195,30 @@ class HandleState():
 				self.Options[key] = state[key]
 
 	def _ensure_mode_instructions(self):
-		"""When loaded system messages don't match the current mode, inject
-		fresh persona instructions so the model gets the correct behavior."""
+		"""When loaded system messages don't match the current mode, replace
+		stale mode instructions with the correct ones so the model behaves
+		according to the restored state."""
 		if not self.hHM.msgs:
 			return
 		current_mode = self.Options.get('MODE', 'plan')
+		other_mode = 'build' if current_mode == 'plan' else 'plan'
 		current_text = self.hPP._get_mode_instructions(current_mode)
-		header = current_text.strip()[:80]
+		other_text = self.hPP._get_mode_instructions(other_mode)
+		cur_prefix = '[{} MODE INSTRUCTIONS]'.format(current_mode.upper())
+		other_prefix = '[{} MODE INSTRUCTIONS]'.format(other_mode.upper())
 		mode_matches = any(
-			header in m.get('content', '')
+			m.get('content', '') == current_text or m.get('content', '').startswith(cur_prefix)
 			for m in self.hHM.msgs if m.get('role') == 'system'
 		)
-		if not mode_matches:
+		stale_present = any(
+			m.get('content', '') == other_text or m.get('content', '').startswith(other_prefix)
+			for m in self.hHM.msgs if m.get('role') == 'system'
+		)
+		if stale_present or not mode_matches:
 			self.hLG.echo(
-				"Mode mismatch detected — injecting fresh {} persona instructions".format(current_mode),
+				"Mode mismatch detected — refreshing {} persona instructions".format(current_mode),
 				{'color': True, 'colorValue': 'yellow'})
-			self.Response('system', {'content': current_text})
+			self._set_mode_instructions(current_mode)
 
 	#
 

@@ -163,19 +163,17 @@ class HandleContext():
 
 	def _insert_summary(self, msgs, keep, summary):
 		"""Rebuild history: keep the older messages, insert the summary right
-		after the last system prompt."""
+		after the last system prompt.
+
+		The summary is a concise system-level recap only.  Active-plan details
+		and file-cache buffers are kept in the surviving recent exchanges, so
+		we avoid duplicating them into a single large system message that would
+		defeat the purpose of summarization."""
 		new_msgs = [msgs[i] for i in sorted(keep)]
 		last_sys = sum(1 for m in new_msgs if m['role'] == 'system') - 1
-		content = "[Context summary: {}]".format(summary)
-		plan_text = self._active_plan_text()
-		if plan_text:
-			content += "\n\n[ACTIVE PLAN]\n" + plan_text.rstrip() + "\n"
-		cache_section = self._file_cache_section()
-		if cache_section:
-			content += "\n\n" + cache_section
 		summary_msg = {
 			'role': 'system',
-			'content': content,
+			'content': "[Context summary: {}]".format(summary),
 			'sessionId': self.Options['AI_SESS_ID'],
 			'rowId': self.Options['AI_ROW_ID'] + 1,
 			'timestamp': time.time(),
@@ -225,12 +223,29 @@ class HandleContext():
 			return ""
 		return PlanSaver.plan_to_text(plan)
 
-	def _auto_clear(self, sys_msg=None):
+	def _build_continue_prompt(self, base="Continue with the task."):
+		"""Build a user-message prompt for post-clear/post-summarize continuation.
+
+		Includes the active mode, the active plan and cached file buffers so the
+		model can pick up exactly where it left off, without inflating the
+		system-prompt area."""
+		mode = self.Options.get('MODE', 'plan')
+		parts = ["Current mode: {}.\n".format(mode.upper())]
+		parts.append(base)
+		plan_text = self._active_plan_text()
+		if plan_text:
+			parts.append("\n\n[ACTIVE PLAN]\n" + plan_text.rstrip() + "\n")
+		cache_section = self._file_cache_section()
+		if cache_section:
+			parts.append("\n\n" + cache_section)
+		return "".join(parts)
+
+	def _auto_clear(self):
 		"""Keep only system messages, clear everything else.  Resets counters.
 
-		Afterwards injects a single system message: the given sys_msg (with the
-		active plan appended when one exists), or just the active plan when no
-		sys_msg is given.  Nothing is injected when neither is available."""
+		This method is intentionally pure: it does NOT inject any new system,
+		user, or tool messages.  Callers are responsible for adding the next
+		appropriate turn so the conversation role alternation is preserved."""
 		msg_count = len(self.hHM.msgs)
 		archive_name = self._archive_history('cleared')
 		if archive_name:
@@ -243,37 +258,21 @@ class HandleContext():
 		self.Options['NUM_RESPONSE_TOKENS'] = 0
 		self.Options['NUM_LAST_PROMPT_TOKENS'] = 0
 		self.Options['NUM_LAST_RESPONSE_TOKENS'] = 0
+		self._auto_clear_this_turn = True
 		self.hLG.echo("Context limit reached — auto-cleared chat history",
 			{'color': True, 'colorValue': 'orange', 'debugOnly': False})
-		plan_text = self._active_plan_text()
-		if sys_msg:
-			content = sys_msg
-			if plan_text:
-				content += "\n\n---\n[ACTIVE PLAN]\n" + plan_text.rstrip() + "\n"
-			cache_section = self._file_cache_section()
-			if cache_section:
-				content += "\n\n" + cache_section
-			self.Response('system', {'content': content})
-		elif plan_text:
-			content = ("[Context auto-cleared — continue working on the active plan.]\n\n"
-				"[ACTIVE PLAN]\n" + plan_text.rstrip() + "\n")
-			cache_section = self._file_cache_section()
-			if cache_section:
-				content += "\n\n" + cache_section
-			self.Response('system', {'content': content})
 
 	#
 
 	def _file_cache_section(self):
-		"""Build a '[CACHED FILE BUFFERS]' block from handle.file_buffer_cache, or
+		"""Build a '[CACHED FILE BUFFERS]' block from self.file_buffer_cache, or
 		'' when disabled/empty.  Per-file content is capped at
 		TOOL_FILE_CACHE_REINJECT_MAX chars; once the block reaches
 		TOOL_FILE_CACHE_REINJECT_TOTAL chars, the remaining files are listed as
 		one-line manifest entries (path + size) so the model can ReadFile them."""
 		if not self.Options.get('TOOL_FILE_CACHE_REINJECT', True):
 			return ''
-		handle = getattr(self, 'handle', None)
-		cache = getattr(handle, 'file_buffer_cache', None) if handle is not None else None
+		cache = getattr(self, 'file_buffer_cache', None)
 		if not cache:
 			return ''
 		per_file = int(self.Options.get('TOOL_FILE_CACHE_REINJECT_MAX', 5000))
@@ -330,6 +329,12 @@ class HandleContext():
 		# next model call and can prevent summarization/auto-clear entirely.
 		self._sweep_transient_rows()
 		#
+		# Prevent a cascade: once we auto-cleared this turn, trust the remaining
+		# system messages + the user message we injected below.  Re-clearing
+		# would wipe the user turn and produce assistant-after-system sequences.
+		if getattr(self, '_auto_clear_this_turn', False):
+			return
+
 		limit = self.Options.get('AI_CONTEXT_LIMIT', 262144)
 		threshold = self.Options.get('AI_CLEAR_THRESHOLD', 0.8)
 		max_allowed = int(limit * threshold)
@@ -353,6 +358,9 @@ class HandleContext():
 				return
 
 		self._auto_clear()
+		# Preserve the user→assistant turn order by inserting the continuation
+		# prompt as a user message after the clear.
+		self.Response('user', {'content': self._build_continue_prompt()})
 
 	#
 

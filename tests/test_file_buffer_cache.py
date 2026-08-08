@@ -119,8 +119,7 @@ def _context_obj(cache, options=None, plan_text='plan'):
 	obj.Options = dict({'TOOL_FILE_CACHE_REINJECT': True,
 		'TOOL_FILE_CACHE_REINJECT_MAX': 5000,
 		'TOOL_FILE_CACHE_REINJECT_TOTAL': 30000}, **(options or {}))
-	handle = ToolStubHandle(plan_text=plan_text, cache=cache, options={})
-	obj.handle = handle
+	obj.file_buffer_cache = cache
 	return obj
 
 
@@ -158,7 +157,7 @@ def test_file_cache_section_total_cap_manifest():
 	assert '### b.py' not in section
 
 
-def test_insert_summary_includes_cache_section():
+def test_insert_summary_does_not_include_cache_section():
 	from src.HandleContext import HandleContext
 	from src.PlanManager import PlanBase
 	obj = _context_obj({'workout/out.txt': 'cached data'})
@@ -166,8 +165,17 @@ def test_insert_summary_includes_cache_section():
 	PlanBase.draft = None
 	msgs = [{'role': 'system', 'content': 'S1'}, {'role': 'user', 'content': 'u'}]
 	new = obj._insert_summary(msgs, {0, 1}, 'SUM')
-	assert '[CACHED FILE BUFFERS]' in new[1]['content']
-	assert 'cached data' in new[1]['content']
+	assert '[CACHED FILE BUFFERS]' not in new[1]['content']
+	assert 'cached data' not in new[1]['content']
+
+
+def test_continue_prompt_includes_cache_section():
+	from src.PlanManager import PlanBase
+	obj = _context_obj({'workout/out.txt': 'cached data'})
+	PlanBase.draft = None
+	prompt = obj._build_continue_prompt()
+	assert '[CACHED FILE BUFFERS]' in prompt
+	assert 'cached data' in prompt
 
 
 def test_jobdone_clears_cache():

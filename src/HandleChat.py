@@ -360,6 +360,10 @@ class HandleChat():
 		#
 		self.hLG.echo("Handle.AI() STARTING, opts: {}".format(opts),{'color':False})
 		#
+		# Each top-level AI() call is a fresh user turn; allow one auto-clear
+		# inside this turn if needed, but not a cascade.
+		self._auto_clear_this_turn = False
+		#
 		opt_return_object = opts['return_object'] if 'return_object' in opts else False
 		opt_stream_cb     = opts.get('stream_callback')
 		#
@@ -783,6 +787,10 @@ class HandleChat():
 		self.hLG.echo("AI request too large — auto-clearing context and retrying...",
 			{'color':True, 'colorValue':'orange','debugOnly':False})
 		self._auto_clear()
+		# Re-establish the user turn after the clear so the model reply stays
+		# in the correct role alternation.
+		self.Response('user', {'content': self._build_continue_prompt(
+			base="Retry the previous request. Continue with the task.")})
 		return True
 
 	def _retry_exhausted(self, max_retries, e):

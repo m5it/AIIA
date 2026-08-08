@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-08 — v1.1.34
+
+### Auto: Version v1.1.34
+
+- Version auto-incremented from v1.1.33
+- Files changed: src/CommandsSession.py, src/HandleChat.py, src/HandleContext.py, src/HandleState.py, src/InstructManager.py, tests/test_file_buffer_cache.py, tests/test_summarize_command.py
+
+---
+
+
 ## 2026-08-07 — v1.1.33
 
 ### Auto: Version v1.1.33

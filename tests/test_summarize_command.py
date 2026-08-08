@@ -34,12 +34,13 @@ class FakeHandle:
 			{'role': 'tool', 'content': '=== nftables ruleset ===', 'name': 'Terminal'},
 		]
 
-	def _auto_clear(self, sys_msg=None):
+	def _auto_clear(self):
 		self._auto_clear_calls += 1
 		self.hHM.msgs = [m for m in self.hHM.msgs if m.get('role') == 'system']
 		self.Options['AI_ROW_ID'] = 0
-		if sys_msg:
-			self.Response('system', {'content': sys_msg})
+
+	def _build_continue_prompt(self, base="Continue with the task."):
+		return base
 
 	def Response(self, role, opts):
 		msg = {'role': role, 'content': opts['content']}
@@ -78,8 +79,12 @@ def _make_stub(tmp_path):
 				'AI_ROW_ID': 0,
 				'AI_SESS_ID': 'sess-test',
 				'plans_path': str(tmp_path / 'plans'),
+				'TOOL_FILE_CACHE_REINJECT': True,
+				'TOOL_FILE_CACHE_REINJECT_MAX': 5000,
+				'TOOL_FILE_CACHE_REINJECT_TOTAL': 30000,
 			}
 			self.injected = []
+			self.file_buffer_cache = {}
 
 		def _archive_history(self, label):
 			return None
@@ -120,18 +125,18 @@ def test_summarize_clears_to_system_and_resets_tools():
 	assert fake.hTM.cleared
 	assert fake._consumed_tips == set()
 	assert ret == 0
-	# Only system messages remain, plus the single injected warm-up system message
+	# Only system messages remain, plus the single injected warm-up user message
 	roles = [m['role'] for m in fake.hHM.msgs]
-	assert roles == ['system', 'system']
+	assert roles == ['system', 'user']
 
 
-def test_summarize_injects_single_system_message():
+def test_summarize_injects_single_user_message():
 	c, fake = _make()
 	c.CMD_SUMMARIZE('!SUMMARIZE')
 	sys_msgs = [m for m in fake.hHM.msgs if m['role'] == 'system']
-	assert len(sys_msgs) == 2  # original system message + exactly one injected
+	assert len(sys_msgs) == 1  # original system message kept
 	last = fake.hHM.msgs[-1]
-	assert last['role'] == 'system'
+	assert last['role'] == 'user'
 	assert '[Context Summarized]' in last['content']
 	assert '<listTools>' in last['content']
 	assert '<GetTip>' in last['content']
@@ -146,7 +151,7 @@ def test_summarize_help_output_contains(capsys):
 	assert '!SUMMARIZE' in out
 
 
-def test_auto_clear_without_plan_injects_nothing(tmp_path):
+def test_auto_clear_keeps_system_only(tmp_path):
 	stub = _make_stub(tmp_path)
 	stub._auto_clear()
 	assert stub.injected == []
@@ -154,39 +159,34 @@ def test_auto_clear_without_plan_injects_nothing(tmp_path):
 	assert len(stub.hHM.msgs) == 1
 
 
-def test_auto_clear_with_plan_injects_single_system(tmp_path):
+def test_auto_clear_with_plan_injects_nothing(tmp_path):
 	from src.PlanManager import PlanBase
 	stub = _make_stub(tmp_path)
 	PlanBase.draft = _sample_plan()
 	stub._auto_clear()
-	assert len(stub.injected) == 1
-	role, content = stub.injected[0]
-	assert role == 'system'
-	assert '[ACTIVE PLAN]' in content
-	assert 'Deploy Fix' in content
+	assert stub.injected == []
 	assert all(m['role'] == 'system' for m in stub.hHM.msgs)
+	assert len(stub.hHM.msgs) == 1
 
 
-def test_auto_clear_sys_msg_with_plan(tmp_path):
+def test_build_continue_prompt_with_plan_and_cache(tmp_path):
 	from src.PlanManager import PlanBase
 	stub = _make_stub(tmp_path)
+	stub.file_buffer_cache = {'workout/a.py': 'hello'}
 	PlanBase.draft = _sample_plan()
-	stub._auto_clear(sys_msg='[Context Summarized]\nWarm up')
-	assert len(stub.injected) == 1
-	role, content = stub.injected[0]
-	assert role == 'system'
-	assert '[Context Summarized]' in content
-	assert '[ACTIVE PLAN]' in content
-	assert 'Deploy Fix' in content
+	prompt = stub._build_continue_prompt()
+	assert '[ACTIVE PLAN]' in prompt
+	assert 'Deploy Fix' in prompt
+	assert '[CACHED FILE BUFFERS]' in prompt
+	assert 'hello' in prompt
 
 
-def test_auto_clear_sys_msg_no_plan(tmp_path):
+def test_build_continue_prompt_base_only(tmp_path):
 	stub = _make_stub(tmp_path)
-	stub._auto_clear(sys_msg='[Context Summarized]\nWarm up')
-	assert len(stub.injected) == 1
-	assert stub.injected[0][0] == 'system'
-	assert stub.injected[0][1] == '[Context Summarized]\nWarm up'
-	assert '[ACTIVE PLAN]' not in stub.injected[0][1]
+	stub.Options['MODE'] = 'build'
+	prompt = stub._build_continue_prompt()
+	assert "Current mode: BUILD." in prompt
+	assert "Continue with the task." in prompt
 
 
 def test_active_plan_text_uses_draft(tmp_path):
@@ -213,7 +213,7 @@ def test_active_plan_text_none(tmp_path):
 	assert stub._active_plan_text() == ''
 
 
-def test_insert_summary_appends_plan(tmp_path):
+def test_insert_summary_keeps_plan_out_of_summary(tmp_path):
 	from src.PlanManager import PlanBase
 	stub = _make_stub(tmp_path)
 	PlanBase.draft = _sample_plan()
@@ -225,5 +225,5 @@ def test_insert_summary_appends_plan(tmp_path):
 	new = stub._insert_summary(msgs, {0, 1}, 'the summary')
 	summary_msgs = [m for m in new if m['content'].startswith('[Context summary:')]
 	assert len(summary_msgs) == 1
-	assert '[ACTIVE PLAN]' in summary_msgs[0]['content']
-	assert 'Deploy Fix' in summary_msgs[0]['content']
+	assert '[ACTIVE PLAN]' not in summary_msgs[0]['content']
+	assert 'Deploy Fix' not in summary_msgs[0]['content']
