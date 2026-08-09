@@ -19,21 +19,66 @@ class InstructManager():
 			if f.endswith('.py') and f != '__init__.py':
 				name = f[:-3]
 				desc = ""
+				category = "other"
 				mod = importmodule(name, False, {'path': cls_path})
 				if mod and hasattr(mod, name):
 					cls = getattr(mod, name)
 					desc = getattr(cls, 'description', '')
+					category = getattr(cls, 'category', 'other')
 				self.available.append({
 					'class_name': name,
 					'description': desc,
+					'category': category,
 				})
 	#
-	def Available(self):
+	def Available(self, category=None):
 		self.Update()
 		cnt = 0
-		for p in self.available:
+		groups = [('aiia', 'AIIA instructs (trained models — minimal prompts)'),
+				  ('other', 'OTHER instructs (general personas)')]
+		for cat, label in groups:
+			items = [p for p in self.available if p['category'] == cat] if category is None else [
+				p for p in self.available if p['category'] == category]
+			if not items:
+				continue
+			print("{}".format(label))
+			for p in items:
+				print("  {}) {} - {}".format(cnt, p['class_name'], p['description']))
+				cnt = cnt + 1
+	#
+	def _choose_from(self, category):
+		"""List personas of a single category and prompt for a numeric choice."""
+		items = [p for p in self.available if p['category'] == category]
+		if not items:
+			self.handle.hLG.echo("No instructs in that category.", {'color': True, 'colorValue': 'orange', 'debugOnly': False})
+			return False
+		cnt = 0
+		for p in items:
 			print("{}) {} - {}".format(cnt, p['class_name'], p['description']))
 			cnt = cnt + 1
+		while True:
+			self.handle.hLG.echo("Choose available number (x to cancel): ", {'color': True, 'colorValue': 'orange', 'debugOnly': False})
+			tmp = user_input()
+			if tmp == 'x' or not tmp:
+				self.handle.hLG.echo("Canceling persona selection...", {'color': True, 'colorValue': 'red', 'debugOnly': False})
+				self.choosed = True
+				return False
+			try:
+				choice = int(tmp)
+				if choice < 0 or choice >= len(items):
+					print("Invalid number, try again")
+					continue
+				cls_name = items[choice]['class_name']
+				self.handle.Options['INSTRUCT_CLASS'] = cls_name
+				self.handle.hLG.echo("Chosen persona: {}".format(cls_name), {'color': True, 'colorValue': 'green'})
+				self.ApplyPersonaModel(cls_name)
+				self.choosed = True
+				return True
+			except ValueError:
+				print("Invalid input, enter a number or x to cancel")
+			except Exception as E:
+				print("Choosing persona failed, error: {}".format(E))
+				return False
 	#
 	def Exists(self, name):
 		cls_path = self.handle.Options.get('INSTRUCT_PATH', 'instruct')
@@ -41,6 +86,14 @@ class InstructManager():
 		instruct_dir = "{}{}".format(base_path, cls_path)
 		filepath = "{}/{}.py".format(instruct_dir, name)
 		return os.path.isfile(filepath)
+	#
+	def Category(self, name):
+		"""Return the category ('aiia'|'other') for a persona class name."""
+		cls_path = self.handle.Options.get('INSTRUCT_PATH', 'instruct')
+		mod = importmodule(name, False, {'path': cls_path})
+		if mod and hasattr(mod, name):
+			return getattr(getattr(mod, name), 'category', 'other')
+		return 'other'
 	#
 	def Choose(self):
 		if self.handle.Options.get('INSTRUCT_CLASS_OVERRIDE', False):
@@ -51,28 +104,37 @@ class InstructManager():
 		self.handle.hLG.echo("Choose persona START...: ",{'color':True,'colorValue':'orange','debugOnly':False})
 		self.available = []
 		self.choosed = False
-		self.Available()
-		while not self.choosed and len(self.available):
-			self.handle.hLG.echo("Choose available number (x to cancel): ",{'color':True,'colorValue':'orange','debugOnly':False})
+		self.Update()
+		if not len(self.available):
+			return
+		# First pick a category: AIIA (trained models) vs OTHER (general personas)
+		cat_options = {
+			0: 'aiia',
+			1: 'other',
+		}
+		cat_labels = {
+			'aiia': 'AIIA instructs (trained models — minimal prompts)',
+			'other': 'OTHER instructs (general personas)',
+		}
+		while not self.choosed:
+			self.handle.hLG.echo("Choose instruct category (x to cancel): ", {'color': True, 'colorValue': 'orange', 'debugOnly': False})
+			print("  0) {}".format(cat_labels['aiia']))
+			print("  1) {}".format(cat_labels['other']))
 			tmp = user_input()
 			if tmp == 'x' or not tmp:
-				self.handle.hLG.echo("Canceling persona selection...",{'color':True,'colorValue':'red','debugOnly':False})
+				self.handle.hLG.echo("Canceling persona selection...", {'color': True, 'colorValue': 'red', 'debugOnly': False})
 				self.choosed = True
 				break
 			try:
 				choice = int(tmp)
-				if choice < 0 or choice >= len(self.available):
+				category = cat_options.get(choice)
+				if category is None:
 					print("Invalid number, try again")
 					continue
-				cls_name = self.available[choice]['class_name']
-				self.handle.Options['INSTRUCT_CLASS'] = cls_name
-				self.handle.hLG.echo("Chosen persona: {}".format(cls_name),{'color':True,'colorValue':'green'})
-				self.ApplyPersonaModel(cls_name)
-				self.choosed = True
+				if self._choose_from(category):
+					return
 			except ValueError:
 				print("Invalid input, enter a number or x to cancel")
-			except Exception as E:
-				print("Choosing persona failed, error: {}".format(E))
 	#
 	def ApplyPersonaModel(self, name):
 		cls_path = self.handle.Options.get('INSTRUCT_PATH', 'instruct')

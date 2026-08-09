@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-09 — v1.1.38
+
+### Auto: Version v1.1.38
+
+- Version auto-incremented from v1.1.37
+- Files changed: instruct/AIIACoderCompact.py, instruct/AIIACoderListTools.py, instruct/AIIACoderRole.py, src/CommandsPersona.py, src/HandleChat.py, src/HandleContext.py, src/InstructManager.py, src/Prepare.py, tests/test_aiia_instructs.py, tests/test_mode_instructions.py, tests/test_summarize_command.py
+
+---
+
+
 ## 2026-08-09 — v1.1.37
 
 ### Auto: Version v1.1.37

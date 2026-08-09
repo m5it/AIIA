@@ -227,3 +227,61 @@ def test_insert_summary_keeps_plan_out_of_summary(tmp_path):
 	assert len(summary_msgs) == 1
 	assert '[ACTIVE PLAN]' not in summary_msgs[0]['content']
 	assert 'Deploy Fix' not in summary_msgs[0]['content']
+
+
+def test_insert_summary_concats_into_single_row_and_places_after_standing_block(tmp_path):
+	stub = _make_stub(tmp_path)
+	msgs = [
+		{'role': 'system', 'content': 'MODE: BUILD', 'name': ''},
+		{'role': 'system', 'content': '## Project Instructions', 'name': ''},
+		{'role': 'user', 'content': 'u1', 'name': ''},
+		{'role': 'assistant', 'content': 'a1', 'name': ''},
+		{'role': 'user', 'content': 'u2', 'name': ''},
+		{'role': 'assistant', 'content': 'a2', 'name': ''},
+	]
+	# keep all system + last user exchange
+	new = stub._insert_summary(msgs, {0, 1, 4, 5}, 'first summary')
+	summary_msgs = [m for m in new if m['content'].startswith('[Context summary:')]
+	assert len(summary_msgs) == 1
+	assert 'first summary' in summary_msgs[0]['content']
+	# placed after the standing system block, before the recent exchanges
+	assert new[2]['role'] == 'system' and new[2]['content'].startswith('[Context summary:')
+	assert new[3] == {'role': 'user', 'content': 'u2', 'name': ''}
+	assert new[4] == {'role': 'assistant', 'content': 'a2', 'name': ''}
+	# second summarize merges into the same row instead of adding a new one
+	new2 = stub._insert_summary(new, {0, 1, 2, 3, 4}, 'second summary')
+	summary_msgs2 = [m for m in new2 if m['content'].startswith('[Context summary:')]
+	assert len(summary_msgs2) == 1
+	assert 'second summary' in summary_msgs2[0]['content']
+	assert 'first summary' in summary_msgs2[0]['content']
+
+
+def test_insert_summary_collapses_legacy_summary_pile(tmp_path):
+	stub = _make_stub(tmp_path)
+	msgs = [
+		{'role': 'system', 'content': 'MODE: BUILD', 'name': ''},
+		{'role': 'system', 'content': '[Context summary: old one]', 'name': ''},
+		{'role': 'system', 'content': '[Context summary: older two]', 'name': ''},
+		{'role': 'user', 'content': 'u2', 'name': ''},
+	]
+	new = stub._insert_summary(msgs, {0, 1, 2, 3}, 'fresh')
+	summary_msgs = [m for m in new if m['content'].startswith('[Context summary:')]
+	assert len(summary_msgs) == 1
+	assert 'fresh' in summary_msgs[0]['content']
+	assert 'old one' in summary_msgs[0]['content']
+	assert 'older two' in summary_msgs[0]['content']
+	assert [m['content'] for m in new] == [
+		'MODE: BUILD',
+		summary_msgs[0]['content'],
+		'u2',
+	]
+
+
+def test_merge_summary_content_respects_cap():
+	from src.HandleChat import _merge_summary_content
+	merged = _merge_summary_content('[Context summary: {}]'.format('x' * 1000), 'new', cap=100)
+	# newest stays whole, older chunk is trimmed to fit the cap
+	assert 'new' in merged
+	assert merged.startswith('[Context summary: new')
+	assert len(merged) <= 100 + 20
+	assert 'x' * 1000 not in merged

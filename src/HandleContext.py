@@ -163,24 +163,58 @@ class HandleContext():
 
 	def _insert_summary(self, msgs, keep, summary):
 		"""Rebuild history: keep the older messages, insert the summary right
-		after the last system prompt.
+		after the standing mode-instructions block (before the recent exchanges).
 
 		The summary is a concise system-level recap only.  Active-plan details
 		and file-cache buffers are kept in the surviving recent exchanges, so
 		we avoid duplicating them into a single large system message that would
-		defeat the purpose of summarization."""
+		defeat the purpose of summarization.
+
+		If one or more `[Context summary:]` system messages already exist, the
+		new summary is merged into a single summary row (capped, newest kept,
+		legacy rows collapsed) instead of adding yet another row — so repeated
+		summarizes don't pile summary messages at the head of history."""
+		from src.HandleChat import _merge_summary_content
 		new_msgs = [msgs[i] for i in sorted(keep)]
-		last_sys = sum(1 for m in new_msgs if m['role'] == 'system') - 1
+		cap = self.Options.get('CONTEXT_SUMMARY_CAP', 5000)
+		# Collect existing summary texts in chronological (oldest-first) order.
+		chunks = []
+		has_existing = False
+		for m in new_msgs:
+			if isinstance(m, dict) and m.get('role') == 'system':
+				c = m.get('content', '') or ''
+				if c.startswith('[Context summary:'):
+					chunks.append(c[len('[Context summary:'):].strip())
+					has_existing = True
+		chunks.append(summary)  # newest last
+		merged = ''
+		for chunk in chunks:
+			merged = _merge_summary_content(merged, chunk, cap)
 		summary_msg = {
 			'role': 'system',
-			'content': "[Context summary: {}]".format(summary),
+			'content': merged,
 			'sessionId': self.Options['AI_SESS_ID'],
 			'rowId': self.Options['AI_ROW_ID'] + 1,
 			'timestamp': time.time(),
 			'date': str(date.today()),
 		}
-		new_msgs.insert(last_sys + 1, summary_msg)
-		return new_msgs
+		# Drop old summary rows; keep everything else in original order.
+		kept = [
+			m for m in new_msgs
+			if not (isinstance(m, dict) and m.get('role') == 'system'
+					and (m.get('content', '') or '').startswith('[Context summary:'))
+		]
+		# Place the summary right after the standing instructions block (the
+		# contiguous run of system messages at the head of the kept history),
+		# before the recent exchanges — not hoisted above unrelated system rows.
+		insert_idx = 0
+		for i, m in enumerate(kept):
+			if isinstance(m, dict) and m.get('role') == 'system':
+				insert_idx = i + 1
+			else:
+				break
+		kept.insert(insert_idx, summary_msg)
+		return kept
 
 	#
 

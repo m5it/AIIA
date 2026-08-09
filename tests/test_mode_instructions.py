@@ -65,6 +65,55 @@ def test_no_current_returns_false():
 	assert out == []
 
 
+def test_drops_other_mode_tool_reference_and_workflow_blocks():
+	from src.HandleChat import _prune_mode_instructions
+	msgs = [
+		_sys(PLAN),
+		_sys(BUILD),
+		_sys('[PLAN MODE TOOL REFERENCE]\ntool docs'),
+		_sys('[PLAN MODE WORKFLOW EXAMPLE]\nworkflow example'),
+		_sys('[Context summary: keep me]'),
+	]
+	out, has = _prune_mode_instructions(
+		msgs, BUILD, PLAN, BUILD_PREFIX, PLAN_PREFIX,
+		'[PLAN MODE TOOL REFERENCE]', '[PLAN MODE WORKFLOW EXAMPLE]')
+	assert has is True
+	assert [m['content'] for m in out] == [BUILD, '[Context summary: keep me]']
+
+
+def test_replace_system_prompt_targets_mode_instructions_not_summary():
+	from src.HandleChat import HandleChat
+	fake = _make_fake([
+		_sys(BUILD),
+		{'role': 'user', 'content': 'u'},
+		_sys('[Context summary: old recap]'),
+	])
+	HandleChat._replace_system_prompt(fake, 'NEW BUILD TEXT')
+	# The trailing summary is left alone; the standing mode message was replaced.
+	assert fake.hHM.msgs[0]['content'] == 'NEW BUILD TEXT'
+	assert fake.hHM.msgs[2]['content'] == '[Context summary: old recap]'
+	assert fake.appended == []
+
+
+def test_replace_system_prompt_uses_prefix_match_for_tip_entries():
+	from src.HandleChat import HandleChat
+	fake = _make_fake([
+		_sys(BUILD_PREFIX + '\n' + BUILD),
+		{'role': 'user', 'content': 'u'},
+	])
+	HandleChat._replace_system_prompt(fake, 'NEW')
+	assert fake.hHM.msgs[0]['content'] == 'NEW'
+	assert fake.hHM.msgs[1]['content'] == 'u'
+
+
+def test_replace_system_prompt_appends_when_no_mode_message():
+	from src.HandleChat import HandleChat
+	fake = _make_fake([{'role': 'user', 'content': 'u'}])
+	HandleChat._replace_system_prompt(fake, 'NEW')
+	assert fake.appended == [('system', 'NEW')]
+	assert fake.hHM.msgs[-1] == {'role': 'system', 'content': 'NEW'}
+
+
 def test_malformed_entries_untouched():
 	msgs = [None, _sys(PLAN), 'junk', _sys(BUILD)]
 	out, has = _prune(msgs)
@@ -72,7 +121,7 @@ def test_malformed_entries_untouched():
 	assert out == [None, 'junk', _sys(BUILD)]
 
 
-def _make_fake(msgs):
+def _make_fake(msgs, mode='build'):
 	class FakePP:
 		def _get_mode_instructions(self, mode):
 			return BUILD if mode == 'build' else PLAN
@@ -80,6 +129,7 @@ def _make_fake(msgs):
 	class Fake:
 		def __init__(self):
 			self.hPP = FakePP()
+			self.Options = {'MODE': mode}
 			self.hHM = type('H', (), {'msgs': msgs})()
 			self.rewrote = []
 			self.appended = []

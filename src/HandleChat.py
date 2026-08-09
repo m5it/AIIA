@@ -21,16 +21,19 @@ def _sanitize_msgs_for_llm(msgs):
 	return msgs
 
 
-def _prune_mode_instructions(msgs, current_text, other_text, cur_prefix, other_prefix):
+def _prune_mode_instructions(msgs, current_text, other_text, cur_prefix, other_prefix,
+		other_tool_prefix='', other_workflow_prefix=''):
 	"""Drop stale mode instructions, keep exactly one copy of the current one.
 
 	A system message counts as mode instructions when its content equals the
 	mode's generated text or starts with its '[.. MODE INSTRUCTIONS]' prefix
 	(reinserted instruct_* tip entries). The other mode's instructions are
-	removed entirely; the current mode's exact-text messages are deduped to a
-	single (normalized) copy. Everything else — context summaries, other tips,
-	project instructions, non-system messages — is left untouched. Handles the
-	shared-text case (AI_INSTRUCT_OPTION=2, where plan()==build()) correctly.
+	removed entirely, along with the other mode's '[.. MODE TOOL REFERENCE]'
+	and '[.. MODE WORKFLOW EXAMPLE]' blocks; the current mode's exact-text
+	messages are deduped to a single (normalized) copy. Everything else —
+	context summaries, other tips, project instructions, non-system messages —
+	is left untouched. Handles the shared-text case (AI_INSTRUCT_OPTION=2,
+	where plan()==build()) correctly.
 
 	Returns (new_msgs, has_current) — the caller appends current_text when
 	has_current is False.
@@ -41,7 +44,13 @@ def _prune_mode_instructions(msgs, current_text, other_text, cur_prefix, other_p
 		if isinstance(m, dict) and m.get('role') == 'system':
 			c = m.get('content', '') or ''
 			is_exact_current = (c == current_text)
-			if (c == other_text or c.startswith(other_prefix)) and not is_exact_current:
+			is_other = (
+				c == other_text
+				or (other_prefix and c.startswith(other_prefix))
+				or (other_tool_prefix and c.startswith(other_tool_prefix))
+				or (other_workflow_prefix and c.startswith(other_workflow_prefix))
+			)
+			if is_other and not is_exact_current:
 				continue
 			if is_exact_current:
 				if has_current:
@@ -50,6 +59,55 @@ def _prune_mode_instructions(msgs, current_text, other_text, cur_prefix, other_p
 				has_current = True
 		keep.append(m)
 	return keep, has_current
+
+
+def _is_aux_system_message(content):
+	"""True for system rows that are NOT the standing mode instructions:
+	context summaries, tool-result-as-system rows, and reinserted instruct/
+	tool tip blocks. Used to avoid clobbering these when upserting the mode
+	instructions in place."""
+	if not content:
+		return True
+	if content.startswith('[Context summary:') or content.startswith('☰ Tool ['):
+		return True
+	for marker in (
+		'[PLAN MODE INSTRUCTIONS]', '[BUILD MODE INSTRUCTIONS]',
+		'[PLAN MODE TOOL REFERENCE]', '[BUILD MODE TOOL REFERENCE]',
+		'[PLAN MODE WORKFLOW EXAMPLE]', '[BUILD MODE WORKFLOW EXAMPLE]',
+	):
+		if content.startswith(marker):
+			return True
+	return False
+
+
+def _merge_summary_content(existing, new_summary, cap=5000):
+	"""Append a new context summary onto an existing one, newest first.
+
+	The existing content is unwrapped from its '[Context summary: ...]' shell,
+	split into chunks on blank lines, and rebuilt as
+	'[Context summary: <new>\n\n<previous>\n\n...]'. Newest is kept whole;
+	older chunks are trimmed (or dropped entirely, oldest first) once the cap
+	is exceeded."""
+	old = existing
+	if old.startswith('[Context summary:') and old.endswith(']'):
+		old = old[len('[Context summary:'):-1].strip()
+	old_chunks = [s for s in old.split('\n\n') if s.strip()]
+	combined = [new_summary] + old_chunks
+	out = []
+	used = 0
+	for chunk in combined:
+		room = cap - used
+		if room <= 0:
+			break
+		if len(chunk) + 2 <= room:
+			out.append(chunk)
+			used += len(chunk) + 2
+		elif room > 40:
+			out.append(chunk[:room])
+			break
+		else:
+			break
+	return "[Context summary: {}]".format("\n\n".join(out))
 
 class HandleChat():
 
@@ -827,12 +885,44 @@ class HandleChat():
 	#
 
 	def _replace_system_prompt(self, text):
-		"""Replace the last system message in history with `text`.
-		If no system message exists, append a new one."""
+		"""Replace the standing mode-instructions system message with `text`.
+
+		Targets the message that carries the current mode's instructions — a
+		`[X MODE INSTRUCTIONS]` tip entry, the short 'Your role:' prompt, or
+		the last non-auxiliary system message — rather than blindly overwriting
+		whichever system message is last, so a trailing `[Context summary:]` or
+		tool-result-as-system row is never clobbered. If no mode-instructions
+		row exists, appends a new system message."""
+		mode = self.Options.get('MODE', 'plan')
+		cur_prefix = '[{} MODE INSTRUCTIONS]'.format(mode.upper())
+		# 1) Prefer an explicit current-mode instructions marker.
 		for i in range(len(self.hHM.msgs) - 1, -1, -1):
-			if self.hHM.msgs[i].get('role') == 'system':
-				self.hHM.msgs[i]['content'] = text
+			m = self.hHM.msgs[i]
+			if not (isinstance(m, dict) and m.get('role') == 'system'):
+				continue
+			c = m.get('content', '') or ''
+			if c.startswith(cur_prefix):
+				m['content'] = text
 				return
+		# 2) Prefer the short 'Your role:' prompt (AI_INSTRUCT_OPTION=2).
+		for i in range(len(self.hHM.msgs) - 1, -1, -1):
+			m = self.hHM.msgs[i]
+			if not (isinstance(m, dict) and m.get('role') == 'system'):
+				continue
+			c = m.get('content', '') or ''
+			if c.startswith('Your role:'):
+				m['content'] = text
+				return
+		# 3) Fall back to the last non-auxiliary system message (option 1,
+		#    where the standing prompt is the raw persona text).
+		for i in range(len(self.hHM.msgs) - 1, -1, -1):
+			m = self.hHM.msgs[i]
+			if not (isinstance(m, dict) and m.get('role') == 'system'):
+				continue
+			if _is_aux_system_message(m.get('content', '') or ''):
+				continue
+			m['content'] = text
+			return
 		self.Response('system', {'content': text})
 
 	#
@@ -847,8 +937,11 @@ class HandleChat():
 		other_text = self.hPP._get_mode_instructions(other_mode)
 		cur_prefix = '[{} MODE INSTRUCTIONS]'.format(mode.upper())
 		other_prefix = '[{} MODE INSTRUCTIONS]'.format(other_mode.upper())
+		other_tool_prefix = '[{} MODE TOOL REFERENCE]'.format(other_mode.upper())
+		other_workflow_prefix = '[{} MODE WORKFLOW EXAMPLE]'.format(other_mode.upper())
 		new_msgs, has_current = _prune_mode_instructions(
-			self.hHM.msgs, current_text, other_text, cur_prefix, other_prefix)
+			self.hHM.msgs, current_text, other_text, cur_prefix, other_prefix,
+			other_tool_prefix, other_workflow_prefix)
 		self.hHM.msgs = new_msgs
 		if not has_current:
 			self.Response('system', {'content': current_text})
@@ -923,6 +1016,11 @@ class HandleChat():
 
 	def _chat_tool_training(self):
 		"""Tool training: on fresh sessions, let the AI demonstrate tool usage once."""
+		# Skip for AIIA instructs — trained models already know the XML tool calls.
+		if getattr(self, 'hIM', None) and self.hIM.Category(
+				self.Options.get('INSTRUCT_CLASS', '')) == 'aiia':
+			self.hLG.echo("Tool training skipped (AIIA instruct)", {'color':True, 'colorValue':'cyan','debugOnly':False})
+			return
 		if (self.Options.get('TOOL_TRAINING', True) and
 			not self.Options.get('CONTINUE', False) and
 			len(self.hHM.msgs) <= 2):

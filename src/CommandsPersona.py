@@ -288,10 +288,7 @@ class CommandsPersona():
 		self.handle.hIM.ApplyPersonaModel(name)
 		mode = self.handle.Options.get('MODE', 'build')
 		system_content = self.handle.hPP._get_mode_instructions(mode)
-		if self.handle.hHM.msgs and self.handle.hHM.msgs[-1]['role'] == 'system':
-			self.handle.hHM.msgs[-1]['content'] = system_content
-		else:
-			self.handle.Response('system', {'content': system_content})
+		self.handle._replace_system_prompt(system_content)
 		self.handle.hLG.echo("Switched persona to '{}'".format(name), {'color':True, 'colorValue':'green'})
 		return 2
 

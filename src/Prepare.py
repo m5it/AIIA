@@ -107,10 +107,15 @@ class Prepare():
 		Splits build() at 'AVAILABLE TOOLS' into two tips:
 		- instruct_{name}:       workflow rules only (small, loaded via ReinsertTip)
 		- tool_reference_build:  detailed tool docs (larger, loaded on demand)
+
+		For AIIA instructs (trained models that already know the XML tool calls)
+		the tool_reference_build tip is skipped — the model doesn't need the
+		detailed docs, keeping the tip surface minimal.
 		"""
 		base_title = "instruct_{}".format(cls_name.lower())
 		plan_text = cls.plan() if hasattr(cls, 'plan') else ""
 		build_text = cls.build() if hasattr(cls, 'build') else ""
+		is_aiia = getattr(cls, 'category', 'other') == 'aiia'
 		# Split build text at "AVAILABLE TOOLS" marker
 		tool_marker = "\nAVAILABLE TOOLS"
 		split_pos = build_text.find(tool_marker)
@@ -129,8 +134,8 @@ class Prepare():
 		if self.handle and hasattr(self.handle, 'hTM'):
 			self.handle.hTM.delete(base_title, 'model')
 			self.handle.hTM.save(base_title, 'model', entries)
-		# Secondary tip: tool reference docs (on-demand)
-		if build_tools:
+		# Secondary tip: tool reference docs (on-demand) — skipped for AIIA instructs
+		if build_tools and not is_aiia:
 			tool_tip_title = "tool_reference_build"
 			tool_entries = [{'role': 'system', 'content': "[BUILD MODE TOOL REFERENCE]\n" + build_tools}]
 			if build_text:
