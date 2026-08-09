@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-09 — v1.1.37
+
+### Auto: Version v1.1.37
+
+- Version auto-incremented from v1.1.36
+- Files changed: src/CommandsConfig.py, src/HandleChat.py, src/HandleParse.py, tests/test_core_modules.py
+
+---
+
+
 ## 2026-08-09 — v1.1.36
 
 ### Auto: Version v1.1.36

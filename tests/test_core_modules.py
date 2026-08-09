@@ -337,6 +337,58 @@ def test_parse_repeated_return_object():
 	r = Stub()._parse_repeated({'content': 'again'}, True, None)
 	assert r['invocations'] == [] and r['response'] == 'again'
 
+def test_parse_early_abort_fires_complete_invocations():
+	from src.HandleParse import HandleParse
+	class Stub(HandleParse):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self.Options = {'MODE': 'plan'}
+			self.responses = []
+			self.Response = lambda role, content: self.responses.append((role, content))
+			self.fired = None
+			self.history_called = False
+			self.inv = [{'name': 'GetTip', 'parameters': {'title': 'instruct_developer'}}]
+		def _detect_tool_invocations(self, response):
+			return self.inv
+		def _parse_assistant_history(self, response, tool_invocations, opt_skip_history, color):
+			self.history_called = True
+			self.Response('assistant', {'content': response['content']})
+		def _fire_tool_invocations(self, tool_invocations, response, opt_stream_cb, stream_error):
+			self.fired = tool_invocations
+			return {'invocations': tool_invocations, 'response': response['content'],
+					'job_done': False, 'stream_error': stream_error}
+	stub = Stub()
+	response = {
+		'content': "<GetTip><title>instruct_developer</title></GetTip>\n<WriteFile>",
+		'thinking': 'th',
+	}
+	r = stub._parse_early_abort(response, False, True, True, None,
+		"'WriteFile' cannot be used in PLAN mode")
+	assert stub.history_called is True
+	assert stub.fired is not None and stub.fired[0]['name'] == 'GetTip'
+	assert r['plan_blocked'] == 'WriteFile'
+	assert r['invocations'][0]['name'] == 'GetTip'
+
+def test_parse_early_abort_no_invocations_keeps_old_path():
+	from src.HandleParse import HandleParse
+	class Stub(HandleParse):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self.Options = {'MODE': 'plan'}
+			self.responses = []
+			self.Response = lambda role, content: self.responses.append((role, content))
+			self.fired = None
+		def _detect_tool_invocations(self, response):
+			return []
+	stub = Stub()
+	response = {'content': 'plain text <WriteFile', 'thinking': 'th'}
+	r = stub._parse_early_abort(response, False, True, True, None,
+		"'WriteFile' cannot be used in PLAN mode")
+	assert stub.fired is None
+	assert stub.responses[0][0] == 'assistant'
+	assert r['invocations'] == []
+	assert r['plan_blocked'] == 'WriteFile'
+
 def test_context_collect_drop_indices():
 	from src.HandleContext import HandleContext
 	msgs = [{'role': 'system', 'content': 'S'}]

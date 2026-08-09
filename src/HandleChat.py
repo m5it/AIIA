@@ -928,12 +928,17 @@ class HandleChat():
 			len(self.hHM.msgs) <= 2):
 			self.hLG.echo("Tool training — warming up model on available tools...",
 				{'color':True, 'colorValue':'cyan','debugOnly':False})
+			mode = self.Options.get('MODE', 'build')
+			if mode == 'plan':
+				examples = "TreeView, ReadFile, and listTools"
+			else:
+				examples = "TreeView, ReadFile, and WriteFile"
 			self.Response('user', {'content':
 				"[Tool Training Session]\n"
 				"List all tools you have available. Use <GetTip> to retrieve your core "
 				"instructions and important tips, then demonstrate at least 3 other tools "
 				"with complete XML examples showing the required parameters "
-				"(e.g. TreeView, ReadFile, and WriteFile)."})
+				"(e.g. {}).".format(examples)})
 			self.AI()
 			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
 

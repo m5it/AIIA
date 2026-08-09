@@ -160,9 +160,29 @@ class HandleParse():
 	#
 
 	def _parse_early_abort(self, response, opt_skip_history, opt_return_object, color, stream_error, early_abort):
-		"""Early abort from Stream() — skip tool invocation detection."""
+		"""Early abort from Stream(). Fire any complete tool invocations already
+		present in the partial response (e.g. <GetTip> emitted before a blocked
+		<WriteFile>), then surface the blocked-tool alert."""
 		self.hLG.echo("Stream aborted: {}".format(early_abort),
 			{'color':True, 'colorValue':'red','debugOnly':False})
+		# Extract blocked tool name from early_abort message for user prompt
+		plan_blocked = None
+		if self.Options.get('MODE') == 'plan':
+			m = re.search(r"'(\w+)'", early_abort)
+			if m:
+				plan_blocked = m.group(1)
+		# Detect complete tool invocations in the partial response. The blocked
+		# tool itself is truncated (no closing tag) so it is not detected here —
+		# only fully-formed calls like <GetTip> are fired, so the model still
+		# retrieves its tips before the blocked-tool menu shows.
+		tool_invocations = self._detect_tool_invocations(response)
+		if tool_invocations:
+			self._parse_assistant_history(response, tool_invocations, opt_skip_history, color)
+			result = self._fire_tool_invocations(tool_invocations, response, None, stream_error)
+			result['plan_blocked'] = result.get('plan_blocked') or plan_blocked
+			if opt_return_object:
+				return result
+			return True
 		self.Response('assistant',{
 			'content': response.get('content', ''),
 			'thinking': response.get('thinking', ''),
@@ -171,12 +191,6 @@ class HandleParse():
 			'response_tokens': response.get('response_tokens', 0),
 		})
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
-		# Extract blocked tool name from early_abort message for user prompt
-		plan_blocked = None
-		if self.Options.get('MODE') == 'plan':
-			m = re.search(r"'(\w+)'", early_abort)
-			if m:
-				plan_blocked = m.group(1)
 		if opt_return_object:
 			return {'invocations': [], 'response': response.get('content', ''),
 					'stream_error': stream_error, 'plan_blocked': plan_blocked}
