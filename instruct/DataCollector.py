@@ -147,7 +147,7 @@ WORKFLOW RULES:
 
 AVAILABLE TOOLS (use exact XML format):
 - <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Use ONLY for one-liners.
-- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Params: <fileName>, <offset>, <lines>, <max_chars>
+- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Params: <fileName>, <offset>, <lines>, <max_chars>, <lineNumbers>
 - <WriteFile><fileName>README.md</fileName><contentOfFile># content</contentOfFile></WriteFile>: Write file. Use for content < 4096 bytes. For larger content, use WriteFile first chunk then AppendFile.
 - <AppendFile><fileName>README.md</fileName><contentOfFile># line</contentOfFile></AppendFile>: Append to file.
 - <CreateFile><fileName>test.sh</fileName><contentOfFile># content</contentOfFile></CreateFile>: Create new file (fails if exists).
@@ -161,7 +161,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <ReplaceLine><fileName>file.txt</fileName><fromLine>10</fromLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s). Use for targeted edits instead of rewriting the whole file.
   **CRITICAL:**
   - Use <replacement>, NEVER <content> or <contentOfFile>. Wrong parameter causes "Missing required parameter(s): replacement".
-  - Always ReadFile first to get correct line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config).
+  - Always ReadFile with <lineNumbers>true</lineNumbers> first to get correct line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config).
   - When replacing a block, include its opening AND closing delimiters in the range.
   - After ReplaceLine, ReadFile to verify. Multi-line replacements shift later line numbers.
   - **Edge case — last block in file**: When editing the final block (e.g. `if __name__ == "__main__":`), include the block header in the `fromLine`..`toLine` range. If you replace only the indented body, the header is left orphaned.

@@ -959,12 +959,13 @@ class HandleChat():
 			PlanBase.LogProgress(first_task.id, "Build started", self.Options.get('plans_path', 'plans'))
 			task_number = sum(1 for t in PlanBase.draft.tasks.values() if t.status in ["completed", "in_progress"])
 			total_tasks = len(PlanBase.draft.tasks)
-			self.Response('user', {'content': "Mode changed to BUILD. You can now make changes.\n\nTask {}/{} - {}".format(task_number, total_tasks, first_task.instruction)})
+			# Mode-switch + task notification as system so the model treats it as instruction
+			self.Response('system', {'content': "Mode changed to BUILD. You can now make changes.\n\nTask {}/{} - {}".format(task_number, total_tasks, first_task.instruction)})
 			self.hLG.echo("Started build: Task {}/{}".format(task_number, total_tasks), {'color':True, 'colorValue':'green'})
 			self._write_current_task()
 		else:
 			self.hLG.echo("No pending tasks in plan!", {'color':True, 'colorValue':'orange'})
-			self.Response('user', {'content': "Mode changed to BUILD. All tasks in the plan are completed. Waiting for your instruction."})
+			self.Response('system', {'content': "Mode changed to BUILD. All tasks in the plan are completed. Waiting for your instruction."})
 
 	def _ensure_plan_loaded(self, plan_id=None):
 		# Make sure PlanBase.draft is set, loading by id or latest from disk.

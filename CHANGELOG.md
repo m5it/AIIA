@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-09 — v1.1.39
+
+### Auto: Version v1.1.39
+
+- Version auto-incremented from v1.1.38
+- Files changed: AGENTS.md, config.py, instruct/AIIACoderCompact.py, instruct/AIIACoderListTools.py, instruct/AIIACoderRole.py, instruct/DataCollector.py, instruct/Developer.py, instruct/DeveloperV2.py, instruct/DeveloperV3.py, instruct/Generalist.py, instruct/Researcher.py, instruct/SysAdmin.py, instruct/TechTalker.py, src/HandleChat.py, src/HandleParse.py, src/HandleStream.py, src/ToolExecutor.py, tests/test_core_modules.py, tools/tool_ReadFile.py
+
+---
+
+
 ## 2026-08-09 — v1.1.38
 
 ### Auto: Version v1.1.38

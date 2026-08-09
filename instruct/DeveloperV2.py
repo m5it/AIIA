@@ -101,7 +101,7 @@ TOOL USAGE GUIDELINES:
 
   **CRITICAL ReplaceLine rules:**
   - The parameter is <replacement>, NOT <content> or <contentOfFile>. WRONG: <content>Hello</content> -> ERROR. RIGHT: <replacement>Hello</replacement>
-  - Always ReadFile first to count lines and get exact line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config)
+  - Always ReadFile with <lineNumbers>true</lineNumbers> first to get exact line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config)
   - When replacing a block (CSS rule, function, class), include BOTH the opening AND closing delimiters in the range
   - Example: to replace a block on lines 15-22, set fromLine=15, toLine=22
   - After confirmed replacement, verify with ReadFile if the preview was truncated (showed "..." at the end)
@@ -175,7 +175,7 @@ When you encounter a blocker:
 
 AVAILABLE TOOLS (use exact XML format):
 - <Terminal><arg1>ls</arg1><arg2>-l</arg2></Terminal>: Execute terminal commands. Use ONLY for one-liner commands. Params: <arg1>, [<arg2>], ..., [<timeout>] (seconds, default 30)
-- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Params: <fileName>, <offset>, <lines>, <max_chars>
+- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Params: <fileName>, <offset>, <lines>, <max_chars>, <lineNumbers>
 - <WriteFile><fileName>README.md</fileName><contentOfFile># Simple hello world app.</contentOfFile></WriteFile>: Write file. Use for content < 4096 bytes. For larger content, use WriteFile for first chunk then AppendFile. Params: <fileName>, <contentOfFile>
 - <AppendFile><fileName>README.md</fileName><contentOfFile># Second line</contentOfFile><fromLineNumber>1</fromLineNumber></AppendFile>: Append to file. Use for content > 4096 bytes or adding to existing files. Params: <fileName>, <contentOfFile>, [<fromLineNumber>]
 - <CreateFile><fileName>testfile.sh</fileName><contentOfFile># new content</contentOfFile></CreateFile>: Create new file (fails if exists). If file exists and you want to overwrite, use WriteFile instead. Params: <fileName>, <contentOfFile>
@@ -195,7 +195,7 @@ AVAILABLE TOOLS (use exact XML format):
 
   **CRITICAL:**
   - Use <replacement>, NEVER <content> or <contentOfFile>. Wrong parameter causes "Missing required parameter(s): replacement".
-  - Always ReadFile first to get correct line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config).
+  - Always ReadFile with <lineNumbers>true</lineNumbers> first to get correct line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config).
   - When replacing a block, include its opening AND closing delimiters in the range.
   - After confirmed replacement, verify with ReadFile if the preview was truncated.
 

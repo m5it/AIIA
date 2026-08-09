@@ -810,3 +810,272 @@ def test_log_gray_color_emits_ansi():
 	with contextlib.redirect_stdout(buf):
 		log._echo_print('', {'color': True, 'colorValue': 'gray', 'returnStream': False, 'speak': False, 'end': '', 'flush': True})
 	assert buf.getvalue() == '\033[90m\033[0m'
+
+
+def test_readfile_line_numbers_default_off():
+	import tempfile
+	from tools.tool_ReadFile import ReadFile
+	tf = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt')
+	tf.write("line one\nline two\nline three\n")
+	tf.close()
+	rf = ReadFile()
+	out = rf.run(tf.name)
+	assert out == "line one\nline two\nline three\n"
+
+
+def test_readfile_line_numbers_on():
+	import tempfile
+	from tools.tool_ReadFile import ReadFile
+	tf = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt')
+	tf.write("line one\nline two\nline three\n")
+	tf.close()
+	rf = ReadFile()
+	out = rf.run(tf.name, lineNumbers='True')
+	assert out == "1: line one\n2: line two\n3: line three\n"
+
+
+def test_readfile_line_numbers_with_lines():
+	import tempfile
+	from tools.tool_ReadFile import ReadFile
+	tf = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt')
+	tf.write("line one\nline two\nline three\nline four\n")
+	tf.close()
+	rf = ReadFile()
+	out = rf.run(tf.name, lines='2', lineNumbers='True')
+	assert out.startswith("1: line one\n2: line two")
+	assert "Lines truncated" in out
+
+
+def test_readfile_line_numbers_with_offset():
+	import tempfile
+	from tools.tool_ReadFile import ReadFile
+	tf = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt')
+	tf.write("line one\nline two\nline three\nline four\n")
+	tf.close()
+	rf = ReadFile()
+	offset = len("line one\nline two\n")
+	out = rf.run(tf.name, offset=str(offset), lineNumbers='True')
+	assert out == "3: line three\n4: line four\n"
+
+
+def test_stream_think_limit_native():
+	from src.HandleStream import HandleStream
+	class Stub(HandleStream):
+		def __init__(self):
+			self.Options = {'AI_THINK_LIMIT': 10, 'BUILD_THINKING_DISABLED': True}
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+	class Msg:
+		def __init__(self, thinking):
+			self.thinking = thinking
+			self.content = ''
+			self.tool_calls = []
+	stub = Stub()
+	state = {'response': '', 'thinking': '', 'native_tool_calls': [], 'if_thinking': False, 'if_speaking': False}
+	assert stub._process_stream_chunk(type('C', (), {'message': Msg('1234567890')})(), state, True, None) is None
+	assert state['thinking'] == '1234567890'
+	assert stub._process_stream_chunk(type('C', (), {'message': Msg('x')})(), state, True, None) == 'think_limit'
+
+
+def test_stream_think_limit_content_tag():
+	from src.HandleStream import HandleStream
+	class Stub(HandleStream):
+		def __init__(self):
+			self.Options = {'AI_THINK_LIMIT': 8, 'BUILD_THINKING_DISABLED': True}
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self._check_stream_abort = lambda s: None
+	class Msg:
+		def __init__(self, content):
+			self.thinking = ''
+			self.content = content
+			self.tool_calls = []
+	stub = Stub()
+	state = {'response': '', 'thinking': '', 'native_tool_calls': [], 'if_thinking': False, 'if_speaking': False}
+	# First chunk opens an unclosed <think> block — thinking is buffered, not counted yet
+	assert stub._process_stream_chunk(type('C', (), {'message': Msg('<think>hello')})(), state, True, None) is None
+	assert state['thinking'] == ''
+	# Second chunk closes the block; total thinking "hello world" (11 chars) exceeds limit 8
+	assert stub._process_stream_chunk(type('C', (), {'message': Msg(' world</think>')})(), state, True, None) == 'think_limit'
+	assert state['thinking'] == 'hello world'
+
+
+def test_stream_content_limit():
+	from src.HandleStream import HandleStream
+	class Stub(HandleStream):
+		def __init__(self):
+			self.Options = {'AI_MAX_CONTENT_LEN': 10, 'BUILD_THINKING_DISABLED': True}
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self._check_stream_abort = lambda s: None
+	class Msg:
+		def __init__(self, content):
+			self.thinking = ''
+			self.content = content
+			self.tool_calls = []
+	stub = Stub()
+	state = {'response': '', 'thinking': '', 'native_tool_calls': [], 'if_thinking': False, 'if_speaking': False}
+	assert stub._process_stream_chunk(type('C', (), {'message': Msg('1234567890')})(), state, True, None) is None
+	assert state['response'] == '1234567890'
+	assert stub._process_stream_chunk(type('C', (), {'message': Msg('x')})(), state, True, None) == 'content_limit'
+
+
+def test_parse_limit_abort_think():
+	from src.HandleParse import HandleParse
+	class Stub(HandleParse):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self.Options = {'AI_THINK_LIMIT': 10}
+			self.responses = []
+		def Response(self, role, content):
+			self.responses.append((role, content))
+	stub = Stub()
+	r = stub._parse_limit_abort({'content': 'ans', 'thinking': 'th'}, False, True, True, None, 'think_limit')
+	assert r['think_limit'] is True
+	assert r['invocations'] == []
+	assert stub.responses[0][0] == 'assistant'
+	assert stub.responses[1][0] == 'user'
+	assert 'AI_THINK_LIMIT' in stub.responses[1][1]['content']
+
+
+def test_parse_limit_abort_content():
+	from src.HandleParse import HandleParse
+	class Stub(HandleParse):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self.Options = {'AI_MAX_CONTENT_LEN': 20}
+			self.responses = []
+		def Response(self, role, content):
+			self.responses.append((role, content))
+	stub = Stub()
+	r = stub._parse_limit_abort({'content': 'ans', 'thinking': ''}, False, True, True, None, 'content_limit')
+	assert r['content_limit'] is True
+	assert r['invocations'] == []
+	assert stub.responses[0][0] == 'assistant'
+	assert stub.responses[1][0] == 'user'
+	assert 'AI_MAX_CONTENT_LEN' in stub.responses[1][1]['content']
+
+
+def test_parse_fire_plan_done_system_message(tmp_path):
+	from src.HandleParse import HandleParse
+	from src.PlanManager import PlanBase, Plan
+	class MockTP:
+		def FireToolInvocation(self, invocations):
+			return "PLAN_DONE|Task 1/1|Build the game"
+	class Stub(HandleParse):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self.Options = {'MODE': 'plan', 'plans_path': str(tmp_path / 'plans')}
+			self.responses = []
+			self.Response = lambda role, content: self.responses.append((role, content))
+			self.hTP = MockTP()
+			self._write_current_task = lambda: None
+	PlanBase.draft = Plan('test')
+	PlanBase.draft.createTask('Build the game', 'Build game')
+	stub = Stub()
+	r = stub._fire_tool_invocations([{'name': 'planDone', 'parameters': {}}], {'content': 'ok'}, None, None)
+	assert r['plan_done'] is True
+	assert stub.responses[-1][0] == 'system'
+	assert 'Plan is ready' in stub.responses[-1][1]['content']
+	PlanBase.draft = None
+
+
+def test_parse_fire_start_build_system_message(tmp_path):
+	from src.HandleParse import HandleParse
+	from src.PlanManager import PlanBase, Plan
+	class MockTP:
+		def FireToolInvocation(self, invocations):
+			return "START_BUILD|Task 1/1|Build the game"
+	class Stub(HandleParse):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self.Options = {'MODE': 'build', 'plans_path': str(tmp_path / 'plans')}
+			self.responses = []
+			self.Response = lambda role, content: self.responses.append((role, content))
+			self.hTP = MockTP()
+			self._write_current_task = lambda: None
+	PlanBase.draft = Plan('test')
+	PlanBase.draft.createTask('Build the game', 'Build game')
+	stub = Stub()
+	r = stub._fire_tool_invocations([{'name': 'startBuild', 'parameters': {}}], {'content': 'ok'}, None, None)
+	assert stub.responses[-1][0] == 'system'
+	assert 'Mode changed to BUILD' in stub.responses[-1][1]['content']
+	PlanBase.draft = None
+
+
+def test_start_build_command_injects_system_message(tmp_path):
+	from src.HandleChat import HandleChat
+	from src.PlanManager import PlanBase, Plan
+	class Stub(HandleChat):
+		def __init__(self):
+			self.Options = {'plans_path': str(tmp_path / 'plans'), 'MODE': 'build'}
+			self.responses = []
+			self.Response = lambda role, content: self.responses.append((role, content))
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self._write_current_task = lambda: None
+		def _ensure_plan_loaded(self, plan_id=None):
+			return True
+		def _find_first_task(self):
+			if PlanBase.draft:
+				for t in PlanBase.draft.tasks.values():
+					return t
+			return None
+	PlanBase.draft = Plan('test')
+	PlanBase.draft.createTask('Build the game', 'Build game')
+	stub = Stub()
+	stub.StartBuild()
+	assert stub.responses[-1][0] == 'system'
+	assert 'Mode changed to BUILD' in stub.responses[-1][1]['content']
+	PlanBase.draft = None
+
+
+def test_start_build_command_no_tasks_system_message(tmp_path):
+	from src.HandleChat import HandleChat
+	from src.PlanManager import PlanBase, Plan
+	class Stub(HandleChat):
+		def __init__(self):
+			self.Options = {'plans_path': str(tmp_path / 'plans'), 'MODE': 'build'}
+			self.responses = []
+			self.Response = lambda role, content: self.responses.append((role, content))
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self._write_current_task = lambda: None
+		def _ensure_plan_loaded(self, plan_id=None):
+			return True
+		def _find_first_task(self):
+			return None
+	PlanBase.draft = Plan('test')
+	stub = Stub()
+	stub.StartBuild()
+	assert stub.responses[-1][0] == 'system'
+	assert 'All tasks in the plan are completed' in stub.responses[-1][1]['content']
+	PlanBase.draft = None
+
+
+def test_toolexecutor_lowercase_createfile_loads():
+	"""Regression: initmodule() returns False when the first class name does not
+	exist. The old code only checked `if h is None`, so False was treated as a
+	valid handle and then `_execute_tool_call` failed with 'bool' object has no
+	attribute 'run'. The fix checks `if not h:` and falls back to the case-insensitive
+	class scan, which finds the real CreateFile tool."""
+	import os, tempfile, sys
+	from src.ToolExecutor import ToolExecutor
+	class FakeLG:
+		def echo(self, msg, opts=None):
+			pass
+	class FakeTC:
+		def __init__(self):
+			self.handles = {}
+	class FakeHandle:
+		def __init__(self, tools_path):
+			self.Options = {'tools_path': tools_path, 'MODE': 'build'}
+			self.hTC = FakeTC()
+			self.hLG = FakeLG()
+	# Use the real tools/ directory but write output into a temp workout dir
+	real_tools = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tools')
+	with tempfile.TemporaryDirectory() as tmp:
+		if real_tools not in sys.path:
+			sys.path.insert(0, real_tools)
+		out_path = os.path.join(tmp, 'out.txt')
+		obj = ToolExecutor.__new__(ToolExecutor)
+		handle = FakeHandle(real_tools)
+		obj.handle = handle
+		res = obj.ExecuteTextTool('createFile', {'fileName': out_path, 'contentOfFile': 'hello'})
+		assert res.startswith('File {} created successfully'.format(out_path))
+		assert open(out_path).read() == 'hello'

@@ -80,7 +80,7 @@ class ToolExecutor():
 					except Exception:
 						continue
 				# Fallback: scan module for any class matching case-insensitively
-				if h is None:
+				if not h:
 					import inspect
 					for attr_name, attr_val in inspect.getmembers(mod, inspect.isclass):
 						if attr_name.lower() == toolName.lower():
@@ -90,7 +90,7 @@ class ToolExecutor():
 							except Exception:
 								continue
 				#
-				if h is None:
+				if not h:
 					return "Failed to initialize tool `{}`".format(toolName)
 				#
 				# Store in handles

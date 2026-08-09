@@ -36,6 +36,7 @@ Options         = {
 	"AI_ROW_ID"           :0,
 	"AI_MAX_CONTENT_LEN"  :20000,  # response content. if exceed, cancel response, append to chat history and append warning as role:user
 	"AI_MAX_SESSION_LEN"  :200000, # whole session content
+	"AI_THINK_LIMIT"      :8192,   # max characters of thinking/reasoning output per response (0 = no limit)
 	"AI_LIVE"             :True,
 	"AI_MAX_ITERATIONS"   :10, # max tool-call rounds per AI() turn (overridable by persona)
 	"AI_MODEL_TIMEOUT"    :120, # seconds before model API call times out (0 = no timeout)

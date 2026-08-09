@@ -168,7 +168,7 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 ```
 
 **Available tools (30 total):**
-- `ReadFile` — Read from `workin/` (params: `<fileName>`, `<offset>` optional, `<lines>` optional, `<max_chars>` optional)
+- `ReadFile` — Read from `workin/` (params: `<fileName>`, `<offset>` optional, `<lines>` optional, `<max_chars>` optional, `<lineNumbers>` optional — when `true`, prepends original 1-based line numbers, useful before `ReplaceLine`)
 - `ReadPDF` — Extract text and metadata from PDF files (params: `<fileName>`, `<fromPage>` optional, `<toPage>` optional, `<limit>` optional)
 - `WriteFile` — Write to `workout/` (params: `<fileName>`, `<contentOfFile>`)
 - `AppendFile` — Append in `workout/` (params: `<fileName>`, `<contentOfFile>`)
@@ -374,6 +374,11 @@ Place an `aiia.json` file in your project directory to override global `config.p
 **Merge rules**: dict-typed options (e.g. `AI_OPTIONS`) are deep-merged — individual keys update rather than replacing the entire dict. Simple values replace the global default. CLI flags always win.
 
 Only loaded when CWD differs from the framework directory (i.e., when you `cd` into a project and run `aiia` from there).
+
+## Response Limits
+
+- `AI_MAX_CONTENT_LEN` (default `20000`) — max assistant response content characters; user input already rejected above it, and assistant responses now abort mid-stream and append a warning.
+- `AI_THINK_LIMIT` (default `8192`) — max thinking/reasoning characters per response. Streams are aborted and a warning is injected as a `user` message so the model is forced to be concise. Set to `0` to disable.
 
 ## Cookie Sharing
 

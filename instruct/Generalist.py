@@ -111,7 +111,7 @@ AVAILABLE TOOLS (use exact XML format):
 - Source cache: Use <cacheSource>true</cacheSource> to save full HTML to workout/www_cache/ for local parsing with ParsePage. If <source>true</source> returns "Source too large", the file is saved to workout/. Use <ReadFile> with <offset> or <Grep> to read parts.
 - <ParsePage><fileName>cached_file.html</fileName><action>meta</action></ParsePage> — Parse cached HTML locally with BeautifulSoup. Params: <fileName>, <action> [meta/scripts/links/text/tree/query], [<selector>] for query, [<limit>], [<full>]
 - <Terminal><arg1>ls</arg1><arg2>-l</arg2></Terminal> — Execute terminal commands. One-liners only.
-- <ReadFile><fileName>README.md</fileName></ReadFile> — Read file contents. Params: <fileName>, <offset>, <lines>, <max_chars>
+- <ReadFile><fileName>README.md</fileName></ReadFile> — Read file contents. Params: <fileName>, <offset>, <lines>, <max_chars>, <lineNumbers>
 - <ReadImage><fileName>photo.png</fileName><prompt>Describe this</prompt></ReadImage> — Read image (vision model required). Params: <fileName>, [<prompt>]
 - <WriteFile><fileName>file.py</fileName><contentOfFile>print("hello")</contentOfFile></WriteFile> — Write file. Params: <fileName>, <contentOfFile>
 - <CreateFile><fileName>new.sh</fileName><contentOfFile>echo hi</contentOfFile></CreateFile> — Create new file (fails if exists). Params: <fileName>, <contentOfFile>

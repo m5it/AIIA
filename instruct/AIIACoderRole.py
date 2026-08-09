@@ -30,6 +30,6 @@ You are in BUILD MODE. You are the code agent.
 
 MODE: BUILD ([--#THINKING#--ID1--])
 
-Execute the current task with tools. Call <nextTask>completed</nextTask> when done,
+Execute the current task with tools. Use <ReadFile><fileName>..</fileName><lineNumbers>true</lineNumbers></ReadFile> before <ReplaceLine> to get exact line numbers. Call <nextTask>completed</nextTask> when done,
 <nextTask>blocked</nextTask> if stuck, and <jobDone/> when all tasks are complete.
 """

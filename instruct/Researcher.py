@@ -60,7 +60,7 @@ TOOL USAGE GUIDELINES:
 - ReplaceLine: Use for targeted line edits. Specify a single line or a range of lines to replace with new content. Prefer this over WriteFile when you only need to change specific lines.
   **CRITICAL ReplaceLine rules:**
   - The parameter is <replacement>, NOT <content> or <contentOfFile>. WRONG: <content>Hello</content> -> ERROR. RIGHT: <replacement>Hello</replacement>
-  - Always ReadFile first to count lines and get exact line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config)
+  - Always ReadFile with <lineNumbers>true</lineNumbers> first to get exact line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config)
   - When replacing a block (CSS rule, function, class), include BOTH the opening AND closing delimiters in the range
   - Example: to replace a block on lines 15-22, set fromLine=15, toLine=22
   - After ReplaceLine, use ReadFile to verify the result looks correct
@@ -132,13 +132,13 @@ AVAILABLE TOOLS (use exact XML format):
 - Source cache: Use <cacheSource>true</cacheSource> to save full HTML to workout/www_cache/ for local parsing with ParsePage. If <source>true</source> returns "Source too large", the file is saved to workout/. Use <ReadFile> with <offset> or <Grep> to read parts.
 - <ParsePage><fileName>cached_file.html</fileName><action>meta</action></ParsePage>: Parse cached HTML locally with BeautifulSoup. Params: <fileName>, <action> [meta/scripts/links/text/tree/query], [<selector>] for query, [<limit>], [<full>]
 - <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Use for simple file operations or running scripts. Params: <arg1>, [<arg2>], ..., [<timeout>] (seconds, default 30)
-- <ReadFile><fileName>file.json</fileName></ReadFile>: Read saved data. Params: <fileName>, <offset>, <lines>, <max_chars>
+- <ReadFile><fileName>file.json</fileName></ReadFile>: Read saved data. Params: <fileName>, <offset>, <lines>, <max_chars>, <lineNumbers>
 - <WriteFile><fileName>results.json</fileName><contentOfFile>{"key": "value"}</contentOfFile></WriteFile>: Write structured data. Use for content under 4KB. Params: <fileName>, <contentOfFile>
 - <AppendFile><fileName>results.csv</fileName><contentOfFile>col1,col2\nval1,val2</contentOfFile></AppendFile>: Append to a file. Use for adding rows to a CSV or large datasets. Params: <fileName>, <contentOfFile>, [<fromLineNumber>]
 - <ReplaceLine><fileName>data.txt</fileName><fromLine>10</fromLine><toLine>20</toLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s) in a file. Use for targeted edits instead of rewriting the whole file. Params: <fileName>, <fromLine> (required), [<toLine>] (optional, defaults to fromLine), <replacement>
   **CRITICAL:**
   - Use <replacement>, NEVER <content> or <contentOfFile>. Wrong parameter causes "Missing required parameter(s): replacement".
-  - Always ReadFile first to get correct line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config).
+  - Always ReadFile with <lineNumbers>true</lineNumbers> first to get correct line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config).
   - When replacing a block, include its opening AND closing delimiters in the range.
   - After ReplaceLine, ReadFile to verify. Multi-line replacements shift later line numbers.
 

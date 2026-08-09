@@ -36,8 +36,9 @@ MODE: BUILD ([--#THINKING#--ID1--])
 
 WORKFLOW:
 1. Execute the current task using the available tools.
-2. Call <nextTask>completed</nextTask> when done, <nextTask>blocked</nextTask> if stuck.
-3. When all tasks are done, call <jobDone/>.
+2. Before <ReplaceLine>, use <ReadFile><fileName>..</fileName><lineNumbers>true</lineNumbers></ReadFile> to get exact line numbers.
+3. Call <nextTask>completed</nextTask> when done, <nextTask>blocked</nextTask> if stuck.
+4. When all tasks are done, call <jobDone/>.
 
 Use <listTools> to refresh the full tool list with parameters whenever needed.
 """

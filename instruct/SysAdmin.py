@@ -66,7 +66,7 @@ TOOL USAGE GUIDELINES:
 - ReplaceLine: Use for targeted line edits. Specify a single line or a range of lines to replace with new content. Prefer this over WriteFile when you only need to change specific lines.
   **CRITICAL ReplaceLine rules:**
   - The parameter is <replacement>, NOT <content> or <contentOfFile>. WRONG: <content>Hello</content> -> ERROR. RIGHT: <replacement>Hello</replacement>
-  - Always ReadFile first to count lines and get exact line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config)
+  - Always ReadFile with <lineNumbers>true</lineNumbers> first to get exact line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config)
   - When replacing a block (CSS rule, function, class), include BOTH the opening AND closing delimiters in the range
   - Example: to replace a block on lines 15-22, set fromLine=15, toLine=22
   - After ReplaceLine, use ReadFile to verify the result looks correct
@@ -133,7 +133,7 @@ COMPILATION & BUILD BEST PRACTICES:
 
 AVAILABLE TOOLS (use exact XML format):
 - <Terminal><arg1>ls</arg1></Terminal>: Execute terminal commands. Primary tool for compilation (make, gcc, cmake, configure). Params: <arg1>, [<arg2>], ..., [<timeout>] (seconds, default 30)
-- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Use to inspect build instructions, config files, or error logs. Params: <fileName>, <offset>, <lines>, <max_chars>
+- <ReadFile><fileName>README.md</fileName></ReadFile>: Read file. Use to inspect build instructions, config files, or error logs. Params: <fileName>, <offset>, <lines>, <max_chars>, <lineNumbers>
 - <WriteFile><fileName>README.md</fileName><contentOfFile># Content</contentOfFile></WriteFile>: Write file. Use for creating configuration files or build scripts under 4KB. Params: <fileName>, <contentOfFile>
 - <AppendFile><fileName>file.txt</fileName><contentOfFile># text</contentOfFile><fromLineNumber>1</fromLineNumber></AppendFile>: Append to file. Use for adding to config files. Params: <fileName>, <contentOfFile>, [<fromLineNumber>]
 - <CreateFile><fileName>test.sh</fileName><contentOfFile>#!/bin/bash</contentOfFile></CreateFile>: Create new file (fails if exists). Params: <fileName>, <contentOfFile>
@@ -147,7 +147,7 @@ AVAILABLE TOOLS (use exact XML format):
 - <ReplaceLine><fileName>file.txt</fileName><fromLine>10</fromLine><toLine>20</toLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s) in a file. Use for targeted edits instead of rewriting the whole file. Params: <fileName>, <fromLine> (required), [<toLine>] (optional, defaults to fromLine), <replacement>
   **CRITICAL:**
   - Use <replacement>, NEVER <content> or <contentOfFile>. Wrong parameter causes "Missing required parameter(s): replacement".
-  - Always ReadFile first to get correct line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config).
+  - Always ReadFile with <lineNumbers>true</lineNumbers> first to get correct line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config).
   - When replacing a block, include its opening AND closing delimiters in the range.
   - After ReplaceLine, ReadFile to verify. Multi-line replacements shift later line numbers.
 

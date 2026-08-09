@@ -163,6 +163,9 @@ class HandleParse():
 		"""Early abort from Stream(). Fire any complete tool invocations already
 		present in the partial response (e.g. <GetTip> emitted before a blocked
 		<WriteFile>), then surface the blocked-tool alert."""
+		# Length-limit aborts get their own warning injection path
+		if early_abort in ('think_limit', 'content_limit'):
+			return self._parse_limit_abort(response, opt_skip_history, opt_return_object, color, stream_error, early_abort)
 		self.hLG.echo("Stream aborted: {}".format(early_abort),
 			{'color':True, 'colorValue':'red','debugOnly':False})
 		# Extract blocked tool name from early_abort message for user prompt
@@ -194,6 +197,36 @@ class HandleParse():
 		if opt_return_object:
 			return {'invocations': [], 'response': response.get('content', ''),
 					'stream_error': stream_error, 'plan_blocked': plan_blocked}
+		return True
+
+	def _parse_limit_abort(self, response, opt_skip_history, opt_return_object, color, stream_error, reason):
+		"""Handle think_limit or content_limit aborts: record the partial assistant
+		response, then inject a user warning so the model is forced to be concise."""
+		if reason == 'think_limit':
+			limit = self.Options.get('AI_THINK_LIMIT', 0)
+			label = 'thinking/reasoning'
+		else:
+			limit = self.Options.get('AI_MAX_CONTENT_LEN', 0)
+			label = 'response'
+		self.hLG.echo("\n[{} output exceeded limit of {} chars — aborting stream]".format(label.capitalize(), limit),
+			{'color': True, 'colorValue': 'red', 'debugOnly': False})
+		self.Response('assistant', {
+			'content': response.get('content', ''),
+			'thinking': response.get('thinking', ''),
+			'skip_history': opt_skip_history,
+			'prompt_tokens': response.get('prompt_tokens', 0),
+			'response_tokens': response.get('response_tokens', 0),
+		})
+		self.hLG.echo("\n", {'end': '', 'flush': True, 'color': color, 'streamDone': True,
+						'debugOnly': False, 'echoByNewLine': True, 'speak': True})
+		warning = (
+			"[System: Your {} output exceeded the {} limit of {} characters. "
+			"The stream was aborted. Be concise, avoid long internal reasoning, and proceed with the next action."
+		).format(label, 'AI_THINK_LIMIT' if reason == 'think_limit' else 'AI_MAX_CONTENT_LEN', limit)
+		self.Response('user', {'content': warning})
+		if opt_return_object:
+			return {'invocations': [], 'response': response.get('content', ''),
+					'stream_error': stream_error, reason: True}
 		return True
 
 	#
@@ -329,16 +362,16 @@ class HandleParse():
 						parts = result_str.split("|", 2)
 						task_info = parts[1]
 						instruction = parts[2]
-						self.Response('user', {'content': "Mode changed to BUILD. You can now make changes.\n\n{} - {}".format(task_info, instruction)})
+						self.Response('system', {'content': "Mode changed to BUILD. You can now make changes.\n\n{} - {}".format(task_info, instruction)})
 						self._write_current_task()
-		# Handle planDone in any mode — inject user message and signal completion
+		# Handle planDone in any mode — inject system message and signal completion
 		if plan_done:
 			result_str = str(result) if result else ""
 			if result_str.startswith("PLAN_DONE|"):
 				parts = result_str.split("|", 2)
 				task_info = parts[1]
 				instruction = parts[2]
-				self.Response('user', {'content': "Plan is ready! Starting first task.\n\n{} - {}".format(task_info, instruction)})
+				self.Response('system', {'content': "Plan is ready! Starting first task.\n\n{} - {}".format(task_info, instruction)})
 				self._write_current_task()
 		#
 		# Return the original response so caller knows tools were executed

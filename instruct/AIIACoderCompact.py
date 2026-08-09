@@ -15,7 +15,7 @@ class AIIACoderCompact():
 	}
 	# Terse one-line tool reference — model knows the XML format, just needs names+params.
 	_tools = (
-		"ReadFile <fileName offset lines> · ReadPDF <fileName> · ReadImage <fileName> · "
+		"ReadFile <fileName offset lines lineNumbers> · ReadPDF <fileName> · ReadImage <fileName> · "
 		"WriteFile <fileName contentOfFile> · CreateFile <fileName content> · "
 		"AppendFile <fileName contentOfFile> · ReplaceLine <fileName fromLine toLine replacement> · "
 		"Sed <pattern replacement fileName> · TreeView <path depth> · List <path> · "

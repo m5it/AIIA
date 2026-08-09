@@ -186,6 +186,9 @@ class HandleStream():
 				print(part, end='', flush=True)
 			if stream_callback:
 				stream_callback({'type':'thinking','text':part})
+			abort_reason = self._check_think_limit(state)
+			if abort_reason:
+				return abort_reason
 		# Check for native tool calls
 		elif hasattr(chunk.message, 'tool_calls') and chunk.message.tool_calls:
 			# Collect native Ollama tool calls
@@ -211,6 +214,9 @@ class HandleStream():
 					self.hLG.echo(think_part, {'color':True,'colorValue':'gray','end':'','flush':True,'debugOnly':False})
 				if stream_callback:
 					stream_callback({'type':'thinking','text':think_part})
+				abort_reason = self._check_think_limit(state)
+				if abort_reason:
+					return abort_reason
 			if answer:
 				#
 				if not state['if_speaking']:
@@ -221,6 +227,10 @@ class HandleStream():
 				state['response'] += answer
 				# Early abort: detect misguided tool calls mid-stream
 				abort_reason = self._check_stream_abort(state['response'])
+				if abort_reason:
+					return abort_reason
+				# Content limit: stop runaway assistant responses
+				abort_reason = self._check_content_limit(state)
 				if abort_reason:
 					return abort_reason
 				if stream_callback:
@@ -293,4 +303,24 @@ class HandleStream():
 				if name in self.hTP._plan_blocked and name not in user_allowed:
 					return "'{}' cannot be used in PLAN mode".format(name)
 
+		return None
+
+	#
+
+	def _check_think_limit(self, state):
+		"""Return 'think_limit' if accumulated thinking exceeds AI_THINK_LIMIT."""
+		limit = self.Options.get('AI_THINK_LIMIT', 0)
+		if limit and len(state.get('thinking', '')) > limit:
+			self.hLG.echo("\n[Thinking limit exceeded: {} chars]".format(limit),
+				{'color': True, 'colorValue': 'red', 'debugOnly': False})
+			return 'think_limit'
+		return None
+
+	def _check_content_limit(self, state):
+		"""Return 'content_limit' if accumulated response content exceeds AI_MAX_CONTENT_LEN."""
+		limit = self.Options.get('AI_MAX_CONTENT_LEN', 0)
+		if limit and len(state.get('response', '')) > limit:
+			self.hLG.echo("\n[Response limit exceeded: {} chars]".format(limit),
+				{'color': True, 'colorValue': 'red', 'debugOnly': False})
+			return 'content_limit'
 		return None
