@@ -127,10 +127,10 @@ class CommandsConfig():
 		if new_mode == 'plan' and self.handle.Options.get('TOOL_TRAINING_PLAN', True):
 			self.handle.Response('user', {'content':
 				"[Tool Training — Plan Mode]\n"
-				"You are now in PLAN mode. List all tools available to you in plan mode "
-				"and demonstrate at least 3 of them with complete XML examples showing "
-				"the required parameters. "
-				"Do NOT use GetTip — use TreeView, ReadFile, and WriteFile instead."})
+				"You are now in PLAN mode. List all tools available to you in plan mode. "
+				"Use <GetTip> to retrieve your core instructions and important tips, then "
+				"demonstrate at least 3 other tools with complete XML examples showing "
+				"the required parameters (e.g. TreeView, ReadFile, and WriteFile)."})
 			self.handle._train_skip_you = True
 		# Depend if plan contain tasks then StartBuild() || <startBuild/> and auto continue to AI
 		return ret

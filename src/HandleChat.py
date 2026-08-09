@@ -930,9 +930,10 @@ class HandleChat():
 				{'color':True, 'colorValue':'cyan','debugOnly':False})
 			self.Response('user', {'content':
 				"[Tool Training Session]\n"
-				"List all tools you have available and demonstrate at least 3 of them "
-				"with complete XML examples showing the required parameters. "
-				"Do NOT use GetTip — use TreeView, ReadFile, and WriteFile instead."})
+				"List all tools you have available. Use <GetTip> to retrieve your core "
+				"instructions and important tips, then demonstrate at least 3 other tools "
+				"with complete XML examples showing the required parameters "
+				"(e.g. TreeView, ReadFile, and WriteFile)."})
 			self.AI()
 			self.Options['AI_ROW_ID'] = self.Options['AI_ROW_ID']+1
 
