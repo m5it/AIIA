@@ -16,7 +16,8 @@ def _msgs():
 	return [
 		{'role': 'system', 'content': 'MODE: BUILD', 'name': ''},
 		{'role': 'user', 'content': 'check the network config', 'name': ''},
-		{'role': 'assistant', 'content': 'I will read fw.sh', 'thinking': 'need to inspect the firewall rules', 'name': ''},
+		{'role': 'assistant', 'content': 'I will read fw.sh', 'thinking': 'need to inspect the firewall rules', 'name': '',
+		 'prompt_tokens': 100, 'response_tokens': 50},
 		{'role': 'tool', 'content': '=== nftables ruleset ===', 'name': 'Terminal'},
 		{'role': 'user', 'content': 'now remove DROP rule', 'name': ''},
 	]
@@ -396,6 +397,17 @@ def test_ph_list_view_returns_2(capsys):
 	assert _ph_list_view(_msgs()) == 2
 	out = capsys.readouterr().out
 	assert 'CHAT HISTORY' in out
+	assert 'STATISTICS' in out
+
+
+def test_ph_stats_values():
+	from src.CommandsSession import _ph_stats
+	stats = _ph_stats(_msgs())
+	assert stats['all'] == (5, 96, 150)
+	assert stats['system'] == (1, 11, 0)
+	assert stats['user'] == (2, 44, 0)
+	assert stats['assistant'] == (1, 17, 150)
+	assert stats['tool'] == (1, 24, 0)
 
 
 def test_ph_cmd_returns_int_for_all_forms(capsys):

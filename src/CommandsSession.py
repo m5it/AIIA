@@ -388,12 +388,63 @@ def _ph_format_row(i, msg):
 		i, _PH_D + _ph_crc32(content) + _PH_R, _PH_D, time_str, _PH_R, color + label + _PH_R,
 		_PH_D, len(content), _PH_R, _PH_D + preview + _PH_R)
 
+def _ph_stats(msgs):
+	"""Compute per-role stats from history rows.
+	Returns a dict: role -> (count, chars, tokens), plus 'all'.
+	Tokens are the per-message attributed cost (prompt+response tokens stored
+	on the row, e.g. assistant rows)."""
+	stats = {}
+	total_count = 0
+	total_chars = 0
+	total_tokens = 0
+	for msg in msgs:
+		if not isinstance(msg, dict):
+			continue
+		role = msg.get('role', '?') or '?'
+		chars = len(msg.get('content', '') or '')
+		tokens = int(msg.get('prompt_tokens', 0) or 0) + int(msg.get('response_tokens', 0) or 0)
+		count, acc_chars, acc_tokens = stats.get(role, (0, 0, 0))
+		stats[role] = (count + 1, acc_chars + chars, acc_tokens + tokens)
+		total_count += 1
+		total_chars += chars
+		total_tokens += tokens
+	stats['all'] = (total_count, total_chars, total_tokens)
+	return stats
+
+def _ph_stats_view(stats):
+	"""Render the !PH statistics block — message counts, char totals and
+	attributed tokens per role."""
+	if not stats:
+		return
+	order = ['all', 'system', 'user', 'assistant', 'tool']
+	colors = {
+		'all': _PH_W,
+		'system': _PH_Y,
+		'user': _PH_C,
+		'assistant': _PH_G,
+		'tool': _PH_B,
+	}
+	print("{}=== STATISTICS ==={}\n".format(_PH_W, _PH_R))
+	for role in order:
+		entry = stats.get(role)
+		if entry is None:
+			continue
+		count, chars, tokens = entry
+		label = role.upper()
+		msg_word = 'msg' if count == 1 else 'msgs'
+		print("  {}{:<10}{} {}{:>5} {} / {}{:>7} chars / {}{:>8} tok{}".format(
+			colors.get(role, _PH_R), label, _PH_R,
+			_PH_D, count, msg_word,
+			_PH_D, chars,
+			_PH_D, tokens, _PH_R))
+	print()
+
 def _ph_list_view(msgs):
 	# Full history list
 	print("\n{}=== CHAT HISTORY ({} messages) ==={}\n".format(_PH_W, len(msgs), _PH_R))
 	for i, msg in enumerate(msgs):
 		print(_ph_format_row(i, msg))
-	print()
+	_ph_stats_view(_ph_stats(msgs))
 	return 2
 
 #--
