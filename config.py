@@ -141,7 +141,7 @@ Options         = {
 	"TOOL_TRANSIENT_MAX_STEPS"  :10,     # clamp N (auto-removal after N model calls)
 	#
 	# ReplaceLine indexing
-	"REPLACELINE_ZERO_INDEXED": True, # False=1-indexed (first line=1, default), True=0-indexed (first line=0)
+	"REPLACELINE_ZERO_INDEXED": False, # False=1-indexed (first line=1, default), True=0-indexed (first line=0)
 	#
 	# Image injection limits
 	"MAX_INJECT_IMAGE_DIMENSION" :1024, # max pixel dimension when ReadImage injects into conversation (0=no limit)

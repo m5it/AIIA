@@ -168,12 +168,12 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 ```
 
 **Available tools (30 total):**
-- `ReadFile` — Read from `workin/` (params: `<fileName>`, `<offset>` optional, `<lines>` optional, `<max_chars>` optional, `<lineNumbers>` optional — when `true`, prepends original 1-based line numbers, useful before `ReplaceLine`)
+- `ReadFile` — Read from `workin/` (params: `<fileName>`, `<offset>` optional, `<lines>` optional, `<max_chars>` optional, `<lineNumbers>` optional — when `true`, prepends original 1-based line numbers, useful before `ReplaceLine`/`AppendFile`)
 - `ReadPDF` — Extract text and metadata from PDF files (params: `<fileName>`, `<fromPage>` optional, `<toPage>` optional, `<limit>` optional)
 - `WriteFile` — Write to `workout/` (params: `<fileName>`, `<contentOfFile>`)
-- `AppendFile` — Append in `workout/` (params: `<fileName>`, `<contentOfFile>`)
+- `AppendFile` — Append or insert in a file (params: `<fileName>`, `<contentOfFile>`, `<fromLineNumber>` optional — `0` = before first line, `N` = after line `N` using the 1-indexed line numbers from `ReadFile <lineNumbers>true</lineNumbers>`, `-1`/omitted = append at end)
 - `CreateFile` — Create new file in `workout/` (fails if exists) (params: `<fileName>`, `<content>`)
-- `ReplaceLine` — Replace specific line(s) in a file (params: `<fileName>`, `<fromLine>`, `<toLine>` optional, `<replacement>`, `<confirmed>`). Three-phase flow: preview (includes a unified diff + indentation check) → `confirmed=true` applies + shows a verification diff (whole-file backup saved to `/tmp`) → `confirmed=finalize` accepts or `confirmed=revert` restores from backup
+- `ReplaceLine` — Replace specific line(s) in a file (params: `<fileName>`, `<fromLine>`, `<toLine>` optional, `<replacement>`, `<confirmed>`). Line numbers are 1-indexed by default (config `REPLACELINE_ZERO_INDEXED`). Three-phase flow: preview (includes a unified diff + indentation check) → `confirmed=true` applies + shows a verification diff (whole-file backup saved to `/tmp`) → `confirmed=finalize` accepts or `confirmed=revert` restores from backup
 - `ReadImage` — Read an image file, inject into conversation (params: `<fileName>`, `<prompt>` optional)
 - `ImageTransform` — Transform images (resize, crop, convert, flip, rotate) (params: `<fileName>`, `<operation>`, `<params>` optional, `<output>` optional)
 - `TreeView` — ASCII tree view of directory structure (params: `<path>` optional, `<depth>` default 3, `<pattern>` optional, `<showHidden>` optional)

@@ -20,10 +20,10 @@ class AppendFile():
 						"type":"string", 
 						"description":"Content that we have generated and will save into file with specific filename."
 					},
-					"fromLineNumber":{
-						"type":"integer", 
-						"description":"Line number to insert at. 0=prepend at start, -1 or omitted=append at end, positive=insert at that line."
-					},
+				"fromLineNumber":{
+					"type":"integer", 
+					"description":"Insert after this 1-indexed line number. 0 = before the first line, N = after line N (use the line numbers shown by ReadFile with <lineNumbers>true</lineNumbers>), -1 or omitted = append at the end."
+				},
 				},
 			},
 		}
@@ -45,30 +45,28 @@ class AppendFile():
 			lines = []
 			if os.path.exists(file_path):
 				lines = fread(file_path).split('\n')
+				# split('\n') on a file ending with a newline produces an extra
+				# empty string at the end. That is not a real line; drop it so
+				# we don't insert content before that trailing newline.
+				if lines and lines[-1] == '':
+					lines.pop()
 			
 			if fromLineNumber is None or fromLineNumber == -1:
-				if lines:
-					if lines[-1] == '':
-						lines.append(contentOfFile)
-					else:
-						lines.append(contentOfFile)
-				else:
-					lines.append(contentOfFile)
+				lines.append(contentOfFile)
 			elif fromLineNumber == 0:
-				if lines and lines[-1] == '':
-					pass
-				else:
-					lines.append('')
 				lines.insert(0, contentOfFile)
 			else:
+				# fromLineNumber is 1-indexed: insert after that line.
+				# Python list.insert(pos) inserts before the element at index pos,
+				# so fromLineNumber=N inserts after line N (1-indexed).
 				pos = max(0, min(fromLineNumber, len(lines)))
 				lines.insert(pos, contentOfFile)
 			
 			content = '\n'.join(lines)
-			if not content.endswith('\n') and (lines and lines[-1] != ''):
+			if not content.endswith('\n'):
 				content += '\n'
 			
-			fwrite(file_path, content, False)
+			fwrite(file_path, content, True)
 		except Exception as E:
 			print("AppendFile.run() ERROR: {}".format(E))
 			return "Error: {}".format(E)
