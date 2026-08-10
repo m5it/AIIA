@@ -320,6 +320,8 @@ All configuration lives in `config.py`:
 | `TOOL_CACHE_TTL` | int | `86400` | Default cache TTL in seconds (1 day) |
 | `TOOL_CACHE_ENABLED` | bool | `true` | Enable/disable tool result caching globally |
 | `REPLACELINE_ZERO_INDEXED` | bool | `false` | ReplaceLine uses 0-indexed lines when `true` (default: 1-indexed) |
+| `AI_FREEZE_HISTORY` | bool | `false` | Testing: skip ALL chat-history appends until reset to `0` (model keeps seeing the frozen context) |
+| `AI_FREEZE_LOOP` | bool | `false` | Testing: repeat the last user turn instead of prompting (Ctrl+C "Stop AI" breaks out) |
 | `COOKIE_FILE` | str/None | `None` | Shared cookie file for WWW tools |
 | `WWW_SOURCE_MAX_SIZE` | int | `80000` | Max chars for `<source>true</source>` before saving to disk |
 | `working_dir` | str | `$OURAI_PROJECT_DIR` | Project working directory |

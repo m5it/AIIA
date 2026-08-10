@@ -3,7 +3,9 @@
 import json
 
 # Keys that should never be persisted as config overrides (runtime-only).
-_SET_NO_PERSIST = {'used_models'}
+# AI_FREEZE_* are session-only testing flags — a leftover 1 in state.aiia would
+# freeze/repeat the next session too.
+_SET_NO_PERSIST = {'used_models', 'AI_FREEZE_HISTORY', 'AI_FREEZE_LOOP'}
 
 class CommandsConfig():
 	#

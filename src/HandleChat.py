@@ -138,9 +138,22 @@ class HandleChat():
 					self._timer_skip_you = False
 					_skip_you = True
 					continue
-				x = self.You() # return: 0, 1, 2=continue, 3=break, 5=start build, 6=new session
-				self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False})
-				_auto_continue_count = 0  # reset on any direct user interaction
+				# AI_FREEZE_LOOP: repeat the last user turn instead of prompting.
+				# Pointer stays on role:user — the same prompt re-enters AI()
+				# until the flag is reset to 0. Ctrl+C "Stop AI" pauses the
+				# repeat so the prompt can show again.
+				if self._freeze_loop_repeat():
+					self._last_response_hash = None   # allow identical responses — repeat-detector would cancel them
+					self.tool_errors = 0
+					self._last_failed_tool = None
+					self._last_failed_tool_count = 0
+					self.Response('user', {'content': self._last_user_input})
+					x = 0
+					_auto_continue_count = 0
+				else:
+					x = self.You() # return: 0, 1, 2=continue, 3=break, 5=start build, 6=new session
+					self.hLG.echo("Handle.Chat() You() response: {}\n\n".format(x),{'color':False})
+					_auto_continue_count = 0  # reset on any direct user interaction
 			else:
 				x = 0
 				_skip_you = False
@@ -164,8 +177,10 @@ class HandleChat():
 
 			# User pressed Ctrl+D and chose "Stop AI — return to chat prompt":
 			# go straight back to the prompt, do NOT auto-re-enter the AI loop.
+			# Also pause AI_FREEZE_LOOP so the repeat stops and the prompt shows.
 			if getattr(self, '_ai_stopped_by_user', False):
 				self._ai_stopped_by_user = False
+				self._freeze_loop_paused = True
 				_auto_continue_count = 0
 				continue
 
@@ -184,6 +199,21 @@ class HandleChat():
 			if _reenter:
 				_skip_you = True
 				continue
+
+	#
+
+	def _freeze_loop_repeat(self):
+		"""AI_FREEZE_LOOP: True → re-send the last user input instead of prompting.
+		The pointer stays on role:user until the flag is reset to 0. Paused after a
+		user interrupt (Ctrl+C/D 'Stop AI') so the prompt can show again; cleared
+		by the next real user input in You()."""
+		if not self.Options.get('AI_FREEZE_LOOP', 0):
+			return False
+		if getattr(self, '_freeze_loop_paused', False):
+			return False
+		if not getattr(self, '_last_user_input', None):
+			return False
+		return True
 
 	#
 
@@ -226,6 +256,10 @@ class HandleChat():
 				inp = notice + "\n\n" + inp
 				self._pending_tool_notice = None
 			self._last_response_hash = None
+			# Track last user input for AI_FREEZE_LOOP repeats; new input also
+			# clears the pause so repeats resume with the new message.
+			self._last_user_input = inp
+			self._freeze_loop_paused = False
 			# Reset consecutive error tracking on new user input
 			self.tool_errors = 0
 			self._last_failed_tool = None

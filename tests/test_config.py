@@ -8,7 +8,7 @@ def test_config_imports():
 
 def test_config_has_key_keys():
 	from config import Options
-	for k in ["VERSION", "AI_MODEL", "MODE", "INSTRUCT_CLASS", "AI_MAX_ITERATIONS"]:
+	for k in ["VERSION", "AI_MODEL", "MODE", "INSTRUCT_CLASS", "AI_MAX_ITERATIONS", "AI_FREEZE_HISTORY", "AI_FREEZE_LOOP"]:
 		assert k in Options, "Missing key: {}".format(k)
 
 def test_config_default_mode():

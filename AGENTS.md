@@ -380,6 +380,13 @@ Only loaded when CWD differs from the framework directory (i.e., when you `cd` i
 - `AI_MAX_CONTENT_LEN` (default `20000`) — max assistant response content characters; user input already rejected above it, and assistant responses now abort mid-stream and append a warning.
 - `AI_THINK_LIMIT` (default `8192`) — max thinking/reasoning characters per response. Streams are aborted and a warning is injected as a `user` message so the model is forced to be concise. Set to `0` to disable.
 
+## Testing Flags
+
+Session-only testing toggles (never persisted to `state.aiia`; flip with `!SET`).
+
+- `AI_FREEZE_HISTORY` (default `0`) — when `1`, **every** chat-history append is skipped (disk + `HISTORY.md` + in-memory `msgs`), for all roles (user/assistant/tool/system). The model keeps seeing the exact context that was loaded when the flag was set. Typical use: start the framework, load an old history, `!SET AI_FREEZE_HISTORY 1`, then query the model repeatedly — responses stay stable since the context never changes. Set `!SET AI_FREEZE_HISTORY 0` to resume normal history recording.
+- `AI_FREEZE_LOOP` (default `0`) — when `1`, the conversation pointer stays on `role:user`: instead of showing the prompt for new input, the last user message is re-sent to the model, repeating forever until reset. **Escape hatch:** press Ctrl+C/D during streaming and choose "2. Stop AI" — this pauses the repeat and returns to the prompt, where you can `!SET AI_FREEZE_LOOP 0`. Any new typed input clears the pause and resumes repeating with the new message.
+
 ## Cookie Sharing
 
 The model can use a shared cookie file so `WWW` and `WWWJS` tools stay logged in across calls.

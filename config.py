@@ -39,6 +39,8 @@ Options         = {
 	"AI_THINK_LIMIT"      :8192,   # max characters of thinking/reasoning output per response (0 = no limit)
 	"AI_LIVE"             :True,
 	"AI_MAX_ITERATIONS"   :10, # max tool-call rounds per AI() turn (overridable by persona)
+	"AI_FREEZE_HISTORY"   :0,  # testing: 1 = skip ALL chat-history appends until reset to 0 (model keeps seeing the frozen context)
+	"AI_FREEZE_LOOP"      :0,  # testing: 1 = repeat the last user turn instead of prompting (Ctrl+C "Stop AI" to break out)
 	"AI_MODEL_TIMEOUT"    :120, # seconds before model API call times out (0 = no timeout)
 	"STREAM_CHUNK_TIMEOUT":120, # seconds — abort stream if no chunk arrives (prevents indefinite hangs)
 	"ALTERNATIVE_MODELS"  :["kimi-k2.7-code:cloud"], # fallback models on stream stall (empty = disabled)

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-10 — v1.1.41
+
+### Auto: Version v1.1.41
+
+- Version auto-incremented from v1.1.40
+- Files changed: AGENTS.md, README.md, config.py, src/CommandsConfig.py, src/Handle.py, src/HandleChat.py, tests/test_config.py, tests/test_freeze_history.py
+
+---
+
+
 ## 2026-08-10 — v1.1.40
 
 ### Auto: Version v1.1.40

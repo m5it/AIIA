@@ -252,6 +252,11 @@ class Handle(HandleStream, HandleParse, HandleContext, HandleState, HandleChat):
 	def _persist_response(self, obj, opt_skip_history):
 		"""Write history here. (similar to save memory just here we save all chat history)
 		Used messages are saved with SaveMemory()"""
+		# AI_FREEZE_HISTORY: skip every history append (disk + HISTORY.md + hHM.msgs)
+		# so the model keeps seeing the exact frozen context. Testing flag — flip
+		# back to 0 with !SET to resume normal history recording.
+		if self.Options.get('AI_FREEZE_HISTORY', 0):
+			return
 		if opt_skip_history==False:
 			history_path = "{}/{}".format("{}/history".format(self.Options.get('path', '')), self.Options['AI_FILE_HISTORY'])
 			fwrite(history_path,"{}\n".format(json.dumps(obj)),False)
