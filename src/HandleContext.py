@@ -80,6 +80,75 @@ class HandleContext():
 
 	#
 
+	def _pb_anchor_indices(self, msgs):
+		"""Return the indices of task-instruction anchors in history order:
+		the first user message, then every injected plan/build instruction
+		(planDone → 'Plan is ready!...' system msg, startBuild/mode-switch
+		system msg, and each '<nextTask>' user msg). Anchors are detected by
+		content marker so they survive pruning (indices shift) and restarts."""
+		anchors = []
+		for idx, m in enumerate(msgs):
+			if not isinstance(m, dict):
+				continue
+			role = m.get('role')
+			content = m.get('content', '')
+			if role == 'user' and not anchors:
+				anchors.append(idx)
+			elif role == 'system' and content.startswith('Plan is ready! Starting first task.'):
+				anchors.append(idx)
+			elif role == 'system' and content.startswith('Mode changed to BUILD.'):
+				anchors.append(idx)
+			elif role == 'user' and content.startswith('<nextTask>\n\n'):
+				anchors.append(idx)
+		return anchors
+
+	#
+
+	def _pb_autoclean(self):
+		"""AI_PLANBUILD_AUTOCLEAN: prune finished plan/build task work from the
+		model context with a sliding window between task-instruction anchors.
+		Keeps all system messages, the first user message, and every task
+		anchor; drops the OLDEST uncleaned block of non-system messages
+		strictly between two adjacent anchors (planning phase first, then each
+		finished task's work in order). Only HISTORY.md is rewritten — the raw
+		session .dbk in root/history/ keeps all rows, and '-c' continue
+		restores the cleaned view. Returns True if a clean was performed."""
+		wait = int(self.Options.get('AI_PLANBUILD_WAIT', 5) or 1)
+		wait = max(wait, 1)
+		msgs = getattr(self.hHM, 'msgs', None)
+		if not msgs:
+			return False
+		anchors = self._pb_anchor_indices(msgs)
+		if len(anchors) < 2:
+			return False
+		for previous, current in zip(anchors, anchors[1:]):
+			if current - previous < 2:
+				continue
+			removed = 0
+			new_msgs = []
+			for idx, m in enumerate(msgs):
+				if previous < idx < current and m.get('role') != 'system':
+					removed += 1
+					continue
+				new_msgs.append(m)
+			if removed == 0:
+				continue
+			self.hHM.msgs = new_msgs
+			framework_dir = self.Options.get('path', '').rstrip('/')
+			proj_dir = self.Options.get('working_dir')
+			if proj_dir and proj_dir != framework_dir:
+				proj_history = os.path.join(proj_dir, 'HISTORY.md')
+				PlanSaver.rebuild_history(proj_history, new_msgs)
+			sync = getattr(self, '_sync_row_id_and_tokens', None)
+			if sync:
+				sync()
+			self.hLG.echo("Plan/build autoclean: removed {} message(s) before task anchor".format(removed),
+				{'color': True, 'colorValue': 'cyan', 'debugOnly': False})
+			return True
+		return False
+
+	#
+
 	def _summarize_context(self, msgs, limit, threshold):
 		"""Summarize older messages, keeping last 5 exchanges + all system prompts.
 		Returns True if summarization was performed."""

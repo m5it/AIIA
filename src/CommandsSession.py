@@ -68,6 +68,7 @@ class CommandsSession():
 		# Clear caches and consumed tips
 		self.handle.hTM.clear_all_caches()
 		self.handle._consumed_tips = set()
+		self.handle._pb_clean_counter = 0
 		return 6
 	#
 	def CMD_CLEAR(self, inp):

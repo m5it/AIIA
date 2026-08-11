@@ -387,6 +387,21 @@ Session-only testing toggles (never persisted to `state.aiia`; flip with `!SET`)
 - `AI_FREEZE_HISTORY` (default `0`) — when `1`, **every** chat-history append is skipped (disk + `HISTORY.md` + in-memory `msgs`), for all roles (user/assistant/tool/system). The model keeps seeing the exact context that was loaded when the flag was set. Typical use: start the framework, load an old history, `!SET AI_FREEZE_HISTORY 1`, then query the model repeatedly — responses stay stable since the context never changes. Set `!SET AI_FREEZE_HISTORY 0` to resume normal history recording.
 - `AI_FREEZE_LOOP` (default `0`) — when `1`, the conversation pointer stays on `role:user`: instead of showing the prompt for new input, the last user message is re-sent to the model, repeating forever until reset. **Escape hatch:** press Ctrl+C/D during streaming and choose "2. Stop AI" — this pauses the repeat and returns to the prompt, where you can `!SET AI_FREEZE_LOOP 0`. Any new typed input clears the pause and resumes repeating with the new message.
 
+## Plan/Build Autoclean
+
+Persisted feature flags (saved to `state.aiia`; flip with `!SET`).
+
+- `AI_PLANBUILD_AUTOCLEAN` (default `0`) — when `1`, finished plan/build task work is auto-pruned from the model context so long plan tasks don't re-fill the context window.
+- `AI_PLANBUILD_WAIT` (default `5`, min `1`) — number of assistant responses after the latest task anchor before a clean triggers.
+
+How it works:
+
+1. The framework detects "task anchors" by content marker in history: the first `user` message, the `planDone` system message (`"Plan is ready! Starting first task."`), the `startBuild`/mode-switch system message (`"Mode changed to BUILD."`), and each `<nextTask>` user message.
+2. After `AI_PLANBUILD_WAIT` assistant responses following the latest anchor, the **oldest uncleaned** block of non-system messages strictly between two adjacent anchors is dropped — the planning phase first, then each finished task's work in order (a sliding window that never touches the current task's work).
+3. Only `HISTORY.md` is rebuilt (so `python run.py -c` resumes the cleaned view); the raw session `.dbk` in `root/history/` keeps **all** rows untouched. A later explicit history rewrite (`!RH`, `!SUMMARIZE`, `!NEW SESSION`, `_auto_clear`, mode switch) re-syncs `.dbk` from the pruned in-memory history.
+
+Cleaning is skipped while `AI_FREEZE_HISTORY=1`, outside build mode, when fewer than 2 anchors exist, once the plan is fully completed (`jobDone`), and on turns that themselves fire `planDone`/`startBuild`/`nextTask` (those register a fresh anchor and reset the counter instead).
+
 ## Cookie Sharing
 
 The model can use a shared cookie file so `WWW` and `WWWJS` tools stay logged in across calls.

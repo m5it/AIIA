@@ -37,7 +37,7 @@ MODE: PLAN ([--#THINKING#--ID1--])
 WORKFLOW: Explore with TreeView/ReadFile, then <createPlan>, <createTask> per step,
 <planDone/> when ready.
 
-TOOLS (XML format — use <listTools> for full details if unsure):
+TOOLS (XML format — use <listTools/> for full details if unsure):
 {}
 """.format(self._tools)
 
@@ -50,6 +50,6 @@ MODE: BUILD ([--#THINKING#--ID1--])
 WORKFLOW: Execute the current task, then <nextTask>completed</nextTask> /
 <nextTask>blocked</nextTask>; <jobDone/> when all done.
 
-TOOLS (XML format — use <listTools> for full details if unsure):
+TOOLS (XML format — use <listTools/> for full details if unsure):
 {}
 """.format(self._tools)

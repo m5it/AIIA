@@ -83,6 +83,7 @@ class Handle(HandleStream, HandleParse, HandleContext, HandleState, HandleChat):
 		self._last_failed_tool_count    = 0
 		self._last_ai_had_tools        = False
 		self._iterations_since_nextTask = 0
+		self._pb_clean_counter = 0 # assistant responses since latest plan/build task anchor (AI_PLANBUILD_AUTOCLEAN)
 		self._consumed_tips = set()
 		self._last_response_hash = None
 		self._direct_tool_results = [] # results from direct user tool calls (no AI)

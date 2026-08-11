@@ -258,6 +258,46 @@ class HandleParse():
 			'response_tokens':response.get('response_tokens', 0),
 		})
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
+		# AI_PLANBUILD_AUTOCLEAN: turns that fire planDone/startBuild/nextTask
+		# register a fresh task anchor in _fire_tool_invocations — reset the
+		# wait counter instead of counting/cleaning against the new anchor.
+		if any(inv.get('name') in ('planDone', 'startBuild', 'nextTask') for inv in (tool_invocations or [])):
+			self._pb_clean_counter = 0
+		else:
+			self._pb_after_assistant()
+
+	#
+
+	def _pb_after_assistant(self):
+		"""AI_PLANBUILD_AUTOCLEAN: count each recorded assistant response since
+		the latest task anchor; once AI_PLANBUILD_WAIT responses have accumulated
+		(and 2+ anchors exist), prune the finished task's work from the model
+		context via _pb_autoclean()."""
+		if not self.Options.get('AI_PLANBUILD_AUTOCLEAN', 0):
+			return
+		if self.Options.get('AI_FREEZE_HISTORY', 0):
+			return
+		if self.Options.get('MODE', 'plan') != 'build':
+			return
+		msgs = getattr(getattr(self, 'hHM', None), 'msgs', None)
+		if not msgs:
+			return
+		# Stop cleaning once the plan is fully completed (after jobDone)
+		try:
+			from src.PlanManager import PlanBase
+			draft = getattr(PlanBase, 'draft', None)
+			if draft is not None and draft.tasks and all(t.status == 'completed' for t in draft.tasks.values()):
+				return
+		except Exception:
+			pass
+		if len(self._pb_anchor_indices(msgs)) < 2:
+			return
+		wait = int(self.Options.get('AI_PLANBUILD_WAIT', 5) or 1)
+		wait = max(wait, 1)
+		self._pb_clean_counter = getattr(self, '_pb_clean_counter', 0) + 1
+		if self._pb_clean_counter >= wait:
+			self._pb_clean_counter = 0
+			self._pb_autoclean()
 
 	#
 

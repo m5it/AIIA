@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-11 — v1.1.42
+
+### Auto: Version v1.1.42
+
+- Version auto-incremented from v1.1.41
+- Files changed: AGENTS.md, README.md, config.py, instruct/AIIACoderCompact.py, instruct/AIIACoderListTools.py, src/CommandsSession.py, src/Handle.py, src/HandleContext.py, src/HandleParse.py, tests/test_config.py, tests/test_planbuild_autoclean.py
+
+---
+
+
 ## 2026-08-10 — v1.1.41
 
 ### Auto: Version v1.1.41

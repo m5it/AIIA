@@ -25,7 +25,7 @@ WORKFLOW:
 2. Call <createPlan> to open the plan, then <createTask> for each step.
 3. When done, call <planDone/>.
 
-Use <listTools> to refresh the full tool list with parameters whenever needed.
+Use <listTools/> to refresh the full tool list with parameters whenever needed.
 """
 
 	def build(self):
@@ -40,5 +40,5 @@ WORKFLOW:
 3. Call <nextTask>completed</nextTask> when done, <nextTask>blocked</nextTask> if stuck.
 4. When all tasks are done, call <jobDone/>.
 
-Use <listTools> to refresh the full tool list with parameters whenever needed.
+Use <listTools/> to refresh the full tool list with parameters whenever needed.
 """

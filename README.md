@@ -322,6 +322,8 @@ All configuration lives in `config.py`:
 | `REPLACELINE_ZERO_INDEXED` | bool | `false` | ReplaceLine uses 0-indexed lines when `true` (default: 1-indexed) |
 | `AI_FREEZE_HISTORY` | bool | `false` | Testing: skip ALL chat-history appends until reset to `0` (model keeps seeing the frozen context) |
 | `AI_FREEZE_LOOP` | bool | `false` | Testing: repeat the last user turn instead of prompting (Ctrl+C "Stop AI" breaks out) |
+| `AI_PLANBUILD_AUTOCLEAN` | int | `0` | Auto-prune finished plan/build task work from the model context (sliding window between task anchors) |
+| `AI_PLANBUILD_WAIT` | int | `5` | Assistant responses after the latest task anchor before an autoclean triggers (min `1`) |
 | `COOKIE_FILE` | str/None | `None` | Shared cookie file for WWW tools |
 | `WWW_SOURCE_MAX_SIZE` | int | `80000` | Max chars for `<source>true</source>` before saving to disk |
 | `working_dir` | str | `$OURAI_PROJECT_DIR` | Project working directory |
