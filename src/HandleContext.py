@@ -104,61 +104,72 @@ class HandleContext():
 
 	#
 
+	def _is_nexttask_msg(self, m):
+		"""True for a '<nextTask>' instruction user message (a task anchor)."""
+		return (m.get('role') == 'user'
+				and (m.get('content', '') or '').startswith('<nextTask>\n\n'))
+
 	def _pb_autoclean(self):
 		"""AI_PLANBUILD_AUTOCLEAN: prune finished plan/build task work from the
-		model context with a sliding window between task-instruction anchors.
-		Keeps all system messages and the planning phase (first user message
-		through the 'Plan is ready!' and 'Mode changed to BUILD' anchors) so
-		the model remembers the plan it created; only drops the OLDEST uncleaned
-		block of non-system messages strictly between anchors that come AFTER the
-		'Mode changed to BUILD' anchor (i.e., the work of each completed task in
-		order). Only HISTORY.md is rewritten — the raw session .dbk in
-		root/history/ keeps all rows, and '-c' continue restores the cleaned
-		view. Returns True if a clean was performed."""
-		wait = int(self.Options.get('AI_PLANBUILD_WAIT', 5) or 1)
-		wait = max(wait, 1)
+		model context. Cleaning is ONLY triggered by a '<nextTask>' transition
+		(the just-completed task's block is dropped); planDone/startBuild never
+		trigger it. On the FIRST nextTask the planning phase (plan-creation
+		rows before 'Mode changed to BUILD.', including the first user message)
+		is pruned as well. System messages are always kept. Only HISTORY.md is
+		rewritten — the raw session .dbk in root/history/ keeps all rows, and
+		'-c' continue restores the cleaned view. Returns True if a clean was
+		performed."""
 		msgs = getattr(self.hHM, 'msgs', None)
 		if not msgs:
 			return False
 		anchors = self._pb_anchor_indices(msgs)
 		if len(anchors) < 2:
 			return False
-		# Locate the 'Mode changed to BUILD' anchor: preserve everything before
-		# it (the planning phase), and only clean blocks of finished task work.
-		start_idx = None
-		for i, idx in enumerate(anchors):
-			m = msgs[idx]
-			if m.get('role') == 'system' and m.get('content', '').startswith('Mode changed to BUILD.'):
-				start_idx = i
-				break
-		if start_idx is None:
+		# Gate: the latest anchor must be a nextTask user message — the model
+		# just completed a task, so its work block is the one to drop.
+		last = msgs[anchors[-1]]
+		if not self._is_nexttask_msg(last):
 			return False
-		for i in range(start_idx, len(anchors) - 1):
-			previous, current = anchors[i], anchors[i+1]
-			if current - previous < 2:
-				continue
-			removed = 0
-			new_msgs = []
-			for idx, m in enumerate(msgs):
-				if previous < idx < current and m.get('role') != 'system':
-					removed += 1
-					continue
-				new_msgs.append(m)
-			if removed == 0:
-				continue
-			self.hHM.msgs = new_msgs
-			framework_dir = self.Options.get('path', '').rstrip('/')
-			proj_dir = self.Options.get('working_dir')
-			if proj_dir and proj_dir != framework_dir:
-				proj_history = os.path.join(proj_dir, 'HISTORY.md')
-				PlanSaver.rebuild_history(proj_history, new_msgs)
-			sync = getattr(self, '_sync_row_id_and_tokens', None)
-			if sync:
-				sync()
-			self.hLG.echo("Plan/build autoclean: removed {} message(s) before task anchor".format(removed),
-				{'color': True, 'colorValue': 'cyan', 'debugOnly': False})
-			return True
-		return False
+		current = anchors[-1]
+		previous = anchors[-2]
+		next_anchor_count = sum(1 for i in anchors if self._is_nexttask_msg(msgs[i]))
+		first_nexttask = (next_anchor_count == 1)
+		# Locate the 'Mode changed to BUILD' anchor (marks the end of the
+		# planning phase) — only needed for the first-nextTask plan cleanup.
+		build_idx = None
+		if first_nexttask:
+			for idx in anchors:
+				m = msgs[idx]
+				if m.get('role') == 'system' and (m.get('content', '') or '').startswith('Mode changed to BUILD.'):
+					build_idx = idx
+					break
+		remove = set()
+		# Just-completed task block: non-system messages strictly between the
+		# previous task anchor and the current nextTask anchor.
+		for idx in range(previous + 1, current):
+			if msgs[idx].get('role') != 'system':
+				remove.add(idx)
+		# First nextTask: also prune the planning phase (non-system rows before
+		# the 'Mode changed to BUILD.' anchor, including the first user message).
+		if build_idx is not None:
+			for idx in range(0, build_idx):
+				if msgs[idx].get('role') != 'system':
+					remove.add(idx)
+		if not remove:
+			return False
+		new_msgs = [m for i, m in enumerate(msgs) if i not in remove]
+		self.hHM.msgs = new_msgs
+		framework_dir = self.Options.get('path', '').rstrip('/')
+		proj_dir = self.Options.get('working_dir')
+		if proj_dir and proj_dir != framework_dir:
+			proj_history = os.path.join(proj_dir, 'HISTORY.md')
+			PlanSaver.rebuild_history(proj_history, new_msgs)
+		sync = getattr(self, '_sync_row_id_and_tokens', None)
+		if sync:
+			sync()
+		self.hLG.echo("Plan/build autoclean: removed {} message(s) for completed task".format(len(remove)),
+			{'color': True, 'colorValue': 'cyan', 'debugOnly': False})
+		return True
 
 	#
 

@@ -397,10 +397,11 @@ Persisted feature flags (saved to `state.aiia`; flip with `!SET`).
 How it works:
 
 1. The framework detects "task anchors" by content marker in history: the first `user` message, the `planDone` system message (`"Plan is ready! Starting first task."`), the `startBuild`/mode-switch system message (`"Mode changed to BUILD."`), and each `<nextTask>` user message.
-2. After `AI_PLANBUILD_WAIT` assistant responses following the latest anchor, the **oldest uncleaned** block of non-system messages strictly between two adjacent anchors is dropped — but only for blocks that come **after** the `Mode changed to BUILD...` system anchor. The planning phase (`first user` → `Plan is ready!...` → `Mode changed to BUILD...`) is preserved so the model remembers the plan it created. Task work is cleaned in order: first task, second task, etc. (a sliding window that never touches the current task's work).
-3. Only `HISTORY.md` is rebuilt (so `python run.py -c` resumes the cleaned view); the raw session `.dbk` in `root/history/` keeps **all** rows untouched. A later explicit history rewrite (`!RH`, `!SUMMARIZE`, `!NEW SESSION`, `_auto_clear`, mode switch) re-syncs `.dbk` from the pruned in-memory history.
+2. Cleaning is triggered **only by a `<nextTask>` transition** — never by `planDone`/`startBuild`, and never mid-task. When a task completes, `AI_PLANBUILD_WAIT` assistant responses are counted, then the **just-completed task's block** (the non-system messages between the previous task anchor and that `nextTask`) is dropped.
+3. On the **first** `nextTask`, the planning phase is also pruned: the plan-creation rows before `Mode changed to BUILD...` (including the first `user` message) are dropped alongside the first task's work. From the second `nextTask` on, only the just-completed task's own block is pruned — earlier task work stays in context. System messages (anchors) are always kept.
+4. Only `HISTORY.md` is rebuilt (so `python run.py -c` resumes the cleaned view); the raw session `.dbk` in `root/history/` keeps **all** rows untouched. A later explicit history rewrite (`!RH`, `!SUMMARIZE`, `!NEW SESSION`, `_auto_clear`, mode switch) re-syncs `.dbk` from the pruned in-memory history.
 
-Cleaning is skipped while `AI_FREEZE_HISTORY=1`, outside build mode, when fewer than 2 anchors exist, once the plan is fully completed (`jobDone`), and on turns that themselves fire `planDone`/`startBuild`/`nextTask` (those register a fresh anchor and reset the counter instead).
+Cleaning is skipped while `AI_FREEZE_HISTORY=1`, outside build mode, when fewer than 2 anchors exist, once the plan is fully completed (`jobDone`), and on turns that fire `planDone`/`startBuild` (which reset the counter and disarm the pending clean instead).
 
 ## Cookie Sharing
 

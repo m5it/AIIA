@@ -259,25 +259,33 @@ class HandleParse():
 		})
 		self.hLG.echo("\n",{'end':'','flush':True,'color':color,'streamDone':True,'debugOnly':False,'echoByNewLine':True,'speak':True})
 		# AI_PLANBUILD_AUTOCLEAN: turns that fire planDone/startBuild/nextTask
-		# register a fresh task anchor in _fire_tool_invocations — reset the
-		# wait counter instead of counting/cleaning against the new anchor.
-		if any(inv.get('name') in ('planDone', 'startBuild', 'nextTask') for inv in (tool_invocations or [])):
+		# register a fresh task anchor in _fire_tool_invocations. A nextTask
+		# turn arms the wait counter (a task just completed); planDone/startBuild
+		# turns disarm it (no cleaning on the planning phase).
+		if any(inv.get('name') in ('planDone', 'startBuild') for inv in (tool_invocations or [])):
 			self._pb_clean_counter = 0
+			self._pb_clean_pending = False
+		elif any(inv.get('name') == 'nextTask' for inv in (tool_invocations or [])):
+			self._pb_clean_counter = 0
+			self._pb_clean_pending = True
 		else:
 			self._pb_after_assistant()
 
 	#
 
 	def _pb_after_assistant(self):
-		"""AI_PLANBUILD_AUTOCLEAN: count each recorded assistant response since
-		the latest task anchor; once AI_PLANBUILD_WAIT responses have accumulated
-		(and 2+ anchors exist), prune the finished task's work from the model
-		context via _pb_autoclean()."""
+		"""AI_PLANBUILD_AUTOCLEAN: count each recorded assistant response after a
+		'<nextTask>' transition (armed by _parse_assistant_history); once
+		AI_PLANBUILD_WAIT responses have accumulated, prune the just-completed
+		task's work from the model context via _pb_autoclean(). Cleaning only
+		happens in build mode after a nextTask — never on planDone/startBuild."""
 		if not self.Options.get('AI_PLANBUILD_AUTOCLEAN', 0):
 			return
 		if self.Options.get('AI_FREEZE_HISTORY', 0):
 			return
 		if self.Options.get('MODE', 'plan') != 'build':
+			return
+		if not getattr(self, '_pb_clean_pending', False):
 			return
 		msgs = getattr(getattr(self, 'hHM', None), 'msgs', None)
 		if not msgs:
