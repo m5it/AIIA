@@ -76,15 +76,17 @@ def test_autoclean_removes_finished_task_between_anchors():
 		_asst('current work'),
 	]
 	stub = _make_stub(_options(), msgs)
-	# Last anchor is a nextTask → the just-completed task-2 block is dropped
+	# Last anchor is a nextTask → the just-completed task-2 block is dropped.
+	# The plan prompt is removed and the build switch is relocated to the end.
 	assert _bind_clean(stub) is True
 	assert [m.get('role') for m in stub.hHM.msgs] == [
-		'user', 'assistant', 'tool', 'assistant', 'system', 'system',
-		'assistant', 'tool', 'assistant', 'user', 'user', 'assistant',
+		'user', 'assistant', 'tool', 'assistant', 'assistant', 'tool',
+		'assistant', 'user', 'user', 'assistant', 'system',
 	]
-	assert stub.hHM.msgs[9] == _next_task_usr(2)
-	assert stub.hHM.msgs[10] == _next_task_usr(3)
-	assert stub.hHM.msgs[11] == _asst('current work')
+	assert stub.hHM.msgs[7] == _next_task_usr(2)
+	assert stub.hHM.msgs[8] == _next_task_usr(3)
+	assert stub.hHM.msgs[9] == _asst('current work')
+	assert stub.hHM.msgs[10] == _startbuild_sys()
 	# second call on the same state: nothing new to remove
 	assert _bind_clean(stub) is False
 
@@ -98,15 +100,15 @@ def test_autoclean_cleans_plan_phase_on_first_nexttask():
 	]
 	stub = _make_stub(_options(), msgs)
 	assert _bind_clean(stub) is True
-	# planning phase (user + assistant/tool + planDone) pruned on FIRST nextTask,
-	# plus the just-completed task-1 block — system anchors and task-2 kept
+	# planning phase (user + assistant/tool) pruned on FIRST nextTask,
+	# just-completed task-1 block removed, plan prompt removed, and the
+	# build-switch system anchor relocated to the end.
 	assert [m.get('role') for m in stub.hHM.msgs] == [
-		'system', 'system', 'user', 'assistant',
+		'user', 'assistant', 'system',
 	]
-	assert stub.hHM.msgs[0] == _plan_done_sys()
-	assert stub.hHM.msgs[1] == _startbuild_sys()
-	assert stub.hHM.msgs[2] == _next_task_usr(2)
-	assert stub.hHM.msgs[3] == _asst('task2 work')
+	assert stub.hHM.msgs[0] == _next_task_usr(2)
+	assert stub.hHM.msgs[1] == _asst('task2 work')
+	assert stub.hHM.msgs[2] == _startbuild_sys()
 
 
 def test_autoclean_preserves_planning_phase():
@@ -148,9 +150,26 @@ def test_autoclean_needs_startbuild_anchor():
 	msgs = [_usr('make a thing'), _plan_done_sys(), _asst(), _tool(), _next_task_usr()]
 	stub = _make_stub(_options(), msgs)
 	# no startBuild anchor → no planning phase, but the first nextTask still
-	# drops the just-completed block (task work after planDone)
+	# drops the just-completed block (task work after planDone). The lone
+	# plan-ready anchor is also relocated to the end.
 	assert HandleContext._pb_autoclean(stub) is True
-	assert [m.get('role') for m in stub.hHM.msgs] == ['user', 'system', 'user']
+	assert [m.get('role') for m in stub.hHM.msgs] == ['user', 'user', 'system']
+
+
+def test_autoclean_build_anchor_replaces_previous_system_at_end():
+	msgs = [
+		_usr('make a thing'), _asst('plan note'),
+		_plan_done_sys(), _startbuild_sys(),
+		_asst('task1 work'), _next_task_usr(2),
+		_sys('extra instruction'),
+	]
+	stub = _make_stub(_options(), msgs)
+	assert _bind_clean(stub) is True
+	# plan prompt removed, build switch moved to end; previous message at
+	# end is a system message, so build switch replaces it.
+	assert [m.get('role') for m in stub.hHM.msgs] == ['user', 'system']
+	assert stub.hHM.msgs[0] == _next_task_usr(2)
+	assert stub.hHM.msgs[1] == _startbuild_sys()
 
 
 def test_autoclean_no_removal_returns_false():
@@ -164,10 +183,12 @@ def test_autoclean_no_removal_returns_false():
 def test_autoclean_first_nexttask_removes_plan_phase_user():
 	msgs = [_usr('make a thing'), _plan_done_sys(), _startbuild_sys(), _next_task_usr(2)]
 	stub = _make_stub(_options(), msgs)
-	# first nextTask: plan phase (first user message) is pruned, anchors kept
+	# first nextTask: plan phase (first user message) is pruned, plan prompt
+	# is removed, and the build switch is relocated to the end.
 	assert HandleContext._pb_autoclean(stub) is True
-	assert [m.get('role') for m in stub.hHM.msgs] == ['system', 'system', 'user']
-	assert stub.hHM.msgs[2] == _next_task_usr(2)
+	assert [m.get('role') for m in stub.hHM.msgs] == ['user', 'system']
+	assert stub.hHM.msgs[0] == _next_task_usr(2)
+	assert stub.hHM.msgs[1] == _startbuild_sys()
 
 
 def test_autoclean_rewrites_history_md_not_dbk(monkeypatch):
@@ -183,7 +204,7 @@ def test_autoclean_rewrites_history_md_not_dbk(monkeypatch):
 	assert _bind_clean(stub) is True
 	assert len(calls) == 1
 	assert calls[0][0] == os.path.join('/proj', 'HISTORY.md')
-	assert [m.get('role') for m in calls[0][1]] == ['system', 'system', 'user']
+	assert [m.get('role') for m in calls[0][1]] == ['user', 'system']
 
 
 def test_after_assistant_disabled():

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-11 — v1.1.46
+
+### Auto: Version v1.1.46
+
+- Version auto-incremented from v1.1.45
+- Files changed: AGENTS.md, src/HandleContext.py, src/HandleParse.py, tests/test_planbuild_autoclean.py
+
+---
+
+
 ## 2026-08-11 — v1.1.45
 
 ### Auto: Version v1.1.45
