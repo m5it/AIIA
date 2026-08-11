@@ -265,9 +265,12 @@ class HandleParse():
 		if any(inv.get('name') in ('planDone', 'startBuild') for inv in (tool_invocations or [])):
 			self._pb_clean_counter = 0
 			self._pb_clean_pending = False
+			fired = ', '.join(inv.get('name') or '' for inv in (tool_invocations or []) if inv.get('name') in ('planDone', 'startBuild'))
+			self._pb_log("AUTOCLEAN: {} fired — clean disarmed (pending=False)".format(fired))
 		elif any(inv.get('name') == 'nextTask' for inv in (tool_invocations or [])):
 			self._pb_clean_counter = 0
 			self._pb_clean_pending = True
+			self._pb_log("AUTOCLEAN: nextTask fired — clean armed (pending=True, counter=0)")
 		else:
 			self._pb_after_assistant()
 
@@ -303,9 +306,12 @@ class HandleParse():
 		wait = int(self.Options.get('AI_PLANBUILD_WAIT', 5) or 1)
 		wait = max(wait, 1)
 		self._pb_clean_counter = getattr(self, '_pb_clean_counter', 0) + 1
+		self._pb_log("AUTOCLEAN: assistant response {} after nextTask (wait={})".format(
+			self._pb_clean_counter, wait))
 		if self._pb_clean_counter >= wait:
 			self._pb_clean_counter = 0
-			self._pb_autoclean()
+			did_clean = self._pb_autoclean()
+			self._pb_log("AUTOCLEAN: reached wait={} — clean fired, pruned={}".format(wait, did_clean))
 
 	#
 

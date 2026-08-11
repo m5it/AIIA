@@ -109,6 +109,15 @@ class HandleContext():
 		return (m.get('role') == 'user'
 				and (m.get('content', '') or '').startswith('<nextTask>\n\n'))
 
+	def _pb_log(self, msg, level="INFO"):
+		"""Log an autoclean line to background.log if available."""
+		cb = getattr(self, 'bg_log', None)
+		if cb:
+			try:
+				cb(msg, level)
+			except Exception:
+				pass
+
 	def _pb_autoclean(self):
 		"""AI_PLANBUILD_AUTOCLEAN: prune finished plan/build task work from the
 		model context. Cleaning is ONLY triggered by a '<nextTask>' transition
@@ -121,14 +130,17 @@ class HandleContext():
 		performed."""
 		msgs = getattr(self.hHM, 'msgs', None)
 		if not msgs:
+			self._pb_log("AUTOCLEAN: skip — no msgs")
 			return False
 		anchors = self._pb_anchor_indices(msgs)
 		if len(anchors) < 2:
+			self._pb_log("AUTOCLEAN: skip — fewer than 2 anchors ({})".format(len(anchors)))
 			return False
 		# Gate: the latest anchor must be a nextTask user message — the model
 		# just completed a task, so its work block is the one to drop.
 		last = msgs[anchors[-1]]
 		if not self._is_nexttask_msg(last):
+			self._pb_log("AUTOCLEAN: skip — latest anchor is not a nextTask")
 			return False
 		current = anchors[-1]
 		previous = anchors[-2]
@@ -156,7 +168,12 @@ class HandleContext():
 				if msgs[idx].get('role') != 'system':
 					remove.add(idx)
 		if not remove:
+			self._pb_log("AUTOCLEAN: fired on nextTask but nothing to remove (anchor {})".format(current))
 			return False
+		roles_removed = {}
+		for i in sorted(remove):
+			r = msgs[i].get('role', '?')
+			roles_removed[r] = roles_removed.get(r, 0) + 1
 		new_msgs = [m for i, m in enumerate(msgs) if i not in remove]
 		self.hHM.msgs = new_msgs
 		framework_dir = self.Options.get('path', '').rstrip('/')
@@ -167,6 +184,8 @@ class HandleContext():
 		sync = getattr(self, '_sync_row_id_and_tokens', None)
 		if sync:
 			sync()
+		self._pb_log("AUTOCLEAN: pruned {} msg(s) ({}): prev_anchor={}, next_anchor={}, first_nextTask={}, msgs {}→{}".format(
+			len(remove), roles_removed, previous, current, first_nexttask, len(msgs), len(new_msgs)))
 		self.hLG.echo("Plan/build autoclean: removed {} message(s) for completed task".format(len(remove)),
 			{'color': True, 'colorValue': 'cyan', 'debugOnly': False})
 		return True

@@ -43,6 +43,7 @@ def _make_stub(options, msgs, calls=None):
 	stub.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
 	stub._pb_anchor_indices = lambda msgs: HandleContext._pb_anchor_indices(stub, msgs)
 	stub._is_nexttask_msg = lambda m: HandleContext._is_nexttask_msg(stub, m)
+	stub._pb_log = lambda msg, level='INFO': None
 	if calls is not None:
 		stub._clean_calls = calls
 		stub._pb_autoclean = lambda: stub._clean_calls.append(True)
@@ -264,6 +265,7 @@ def test_parse_assistant_history_anchor_turn_arms_pending():
 	stub.Options = _options()
 	stub.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
 	stub.Response = lambda role, opts=None: records.append((role, opts))
+	stub._pb_log = lambda msg, level='INFO': None
 	stub._pb_clean_counter = 3
 	stub._pb_clean_pending = False
 	stub._pb_after_assistant = lambda: records.append(('after_assistant', None))
@@ -283,6 +285,7 @@ def test_parse_assistant_history_startbuild_turn_disarms():
 	stub.Options = _options()
 	stub.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
 	stub.Response = lambda role, opts=None: records.append((role, opts))
+	stub._pb_log = lambda msg, level='INFO': None
 	stub._pb_clean_counter = 3
 	stub._pb_clean_pending = True
 	stub._pb_after_assistant = lambda: records.append(('after_assistant', None))
@@ -302,6 +305,7 @@ def test_parse_assistant_history_normal_turn_counts():
 	stub.Options = _options()
 	stub.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
 	stub.Response = lambda role, opts=None: records.append((role, opts))
+	stub._pb_log = lambda msg, level='INFO': None
 	stub._pb_clean_counter = 0
 	stub._pb_clean_pending = True
 	stub._pb_after_assistant = lambda: records.append(('after_assistant', None))
