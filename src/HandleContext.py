@@ -107,12 +107,14 @@ class HandleContext():
 	def _pb_autoclean(self):
 		"""AI_PLANBUILD_AUTOCLEAN: prune finished plan/build task work from the
 		model context with a sliding window between task-instruction anchors.
-		Keeps all system messages, the first user message, and every task
-		anchor; drops the OLDEST uncleaned block of non-system messages
-		strictly between two adjacent anchors (planning phase first, then each
-		finished task's work in order). Only HISTORY.md is rewritten — the raw
-		session .dbk in root/history/ keeps all rows, and '-c' continue
-		restores the cleaned view. Returns True if a clean was performed."""
+		Keeps all system messages and the planning phase (first user message
+		through the 'Plan is ready!' and 'Mode changed to BUILD' anchors) so
+		the model remembers the plan it created; only drops the OLDEST uncleaned
+		block of non-system messages strictly between anchors that come AFTER the
+		'Mode changed to BUILD' anchor (i.e., the work of each completed task in
+		order). Only HISTORY.md is rewritten — the raw session .dbk in
+		root/history/ keeps all rows, and '-c' continue restores the cleaned
+		view. Returns True if a clean was performed."""
 		wait = int(self.Options.get('AI_PLANBUILD_WAIT', 5) or 1)
 		wait = max(wait, 1)
 		msgs = getattr(self.hHM, 'msgs', None)
@@ -121,7 +123,18 @@ class HandleContext():
 		anchors = self._pb_anchor_indices(msgs)
 		if len(anchors) < 2:
 			return False
-		for previous, current in zip(anchors, anchors[1:]):
+		# Locate the 'Mode changed to BUILD' anchor: preserve everything before
+		# it (the planning phase), and only clean blocks of finished task work.
+		start_idx = None
+		for i, idx in enumerate(anchors):
+			m = msgs[idx]
+			if m.get('role') == 'system' and m.get('content', '').startswith('Mode changed to BUILD.'):
+				start_idx = i
+				break
+		if start_idx is None:
+			return False
+		for i in range(start_idx, len(anchors) - 1):
+			previous, current = anchors[i], anchors[i+1]
 			if current - previous < 2:
 				continue
 			removed = 0

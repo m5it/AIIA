@@ -184,8 +184,10 @@ class PlanToolHandler():
 			return "No active plan. Use createPlan first to create a new plan."
 		status = params.get('status', 'completed')
 		result = PlanBase.draft.nextTask(self.handle, status)
-		# Persist task state to disk right away
+		# Persist task state to disk right away (JSON + PLAN.md)
 		PlanBase.draft.save(plans_path)
+		from src.PlanSaver import PlanSaver
+		PlanSaver.save_plan(PlanBase.draft, self.handle.Options.get('working_dir'))
 		if hasattr(self.handle, '_write_current_task'):
 			self.handle._write_current_task()
 		if result.get('done'):
@@ -210,6 +212,13 @@ class PlanToolHandler():
 	def _plan_planDone(self, params, plans_path):
 		if not PlanBase.draft:
 			return "No active plan. Use createPlan first."
+		# Guard: planDone finalizes the planning phase. Once a task is already
+		# in_progress, the build has started and planDone is a no-op. This
+		# prevents the model from accidentally re-entering plan mode when it
+		# calls planDone again in build mode (e.g., after autoclean removed the
+		# planning-phase assistant/tool messages from context).
+		if any(t.status == "in_progress" for t in PlanBase.draft.tasks.values()):
+			return "Build already started — use <nextTask>completed</nextTask> to advance to the next task, or <jobDone/> when all tasks are complete."
 		first_task = None
 		for tid, task in PlanBase.draft.tasks.items():
 			if task.status == "pending":
@@ -219,6 +228,8 @@ class PlanToolHandler():
 				break
 		if first_task:
 			PlanBase.draft.save(plans_path)
+			from src.PlanSaver import PlanSaver
+			PlanSaver.save_plan(PlanBase.draft, self.handle.Options.get('working_dir'))
 			PlanBase.LogProgress(first_task.id, "Build started", plans_path)
 			task_number = sum(1 for t in PlanBase.draft.tasks.values() if t.status in ["completed", "in_progress"])
 			total_tasks = len(PlanBase.draft.tasks)

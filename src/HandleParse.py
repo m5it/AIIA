@@ -413,6 +413,11 @@ class HandleParse():
 				instruction = parts[2]
 				self.Response('system', {'content': "Plan is ready! Starting first task.\n\n{} - {}".format(task_info, instruction)})
 				self._write_current_task()
+			else:
+				# planDone was called but refused (e.g., build already started).
+				# Don't signal plan completion to the AI loop so it doesn't exit
+				# and doesn't trigger another StartBuild/duplicate anchors.
+				plan_done = False
 		#
 		# Return the original response so caller knows tools were executed
 		return {'invocations': tool_invocations, 'response': response['content'],

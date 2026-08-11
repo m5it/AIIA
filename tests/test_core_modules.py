@@ -977,6 +977,46 @@ def test_parse_fire_plan_done_system_message(tmp_path):
 	PlanBase.draft = None
 
 
+def test_plan_planDone_refused_when_build_started(tmp_path):
+	from src.PlanToolHandler import PlanToolHandler
+	from src.PlanManager import PlanBase, Plan
+	obj = PlanToolHandler.__new__(PlanToolHandler)
+	obj.handle = type('H', (), {'Options': {'plans_path': str(tmp_path / 'plans')}})()
+	PlanBase.draft = Plan('test')
+	PlanBase.draft.createTask('Build the game', 'Build game')
+	# Simulate build already started
+	for t in PlanBase.draft.tasks.values():
+		t.status = 'in_progress'
+	result = obj._plan_planDone({}, str(tmp_path / 'plans'))
+	assert not result.startswith('PLAN_DONE|')
+	assert 'Build already started' in result
+	PlanBase.draft = None
+
+
+def test_parse_fire_plan_done_refused_when_build_started(tmp_path):
+	from src.HandleParse import HandleParse
+	from src.PlanManager import PlanBase, Plan
+	class MockTP:
+		def FireToolInvocation(self, invocations):
+			return "Build already started — use <nextTask>completed</nextTask> to advance..."
+	class Stub(HandleParse):
+		def __init__(self):
+			self.hLG = type('LG', (), {'echo': lambda *a, **k: None})()
+			self.Options = {'MODE': 'build', 'plans_path': str(tmp_path / 'plans')}
+			self.responses = []
+			self.Response = lambda role, content: self.responses.append((role, content))
+			self.hTP = MockTP()
+			self._write_current_task = lambda: None
+	PlanBase.draft = Plan('test')
+	PlanBase.draft.createTask('Build the game', 'Build game')
+	PlanBase.draft.tasks[list(PlanBase.draft.tasks.keys())[0]].status = 'in_progress'
+	stub = Stub()
+	r = stub._fire_tool_invocations([{'name': 'planDone', 'parameters': {}}], {'content': 'ok'}, None, None)
+	assert r['plan_done'] is False
+	assert not any(role == 'system' and 'Plan is ready' in content for role, content in stub.responses)
+	PlanBase.draft = None
+
+
 def test_parse_fire_start_build_system_message(tmp_path):
 	from src.HandleParse import HandleParse
 	from src.PlanManager import PlanBase, Plan

@@ -65,26 +65,57 @@ def _options(**kw):
 	return o
 
 
-def test_autoclean_removes_between_anchors():
+def test_autoclean_removes_finished_task_between_anchors():
 	msgs = [
-		_usr('make a thing'), _asst(), _tool(), _asst(),
+		_usr('make a thing'), _asst('plan note'), _tool(), _asst(),
 		_plan_done_sys(), _startbuild_sys(),
-		_asst(), _tool(), _asst(), _next_task_usr(),
+		_asst('task1 work'), _tool(), _asst('task1 more'), _next_task_usr(2),
+		_asst('task2 work'), _tool(), _asst('task2 more'), _next_task_usr(3),
 		_asst('current work'),
 	]
 	stub = _make_stub(_options(), msgs)
-	# first call cleans the OLDEST uncleaned block: the planning phase
+	# first call cleans the first finished task block after startBuild
 	assert _bind_clean(stub) is True
 	assert [m.get('role') for m in stub.hHM.msgs] == [
-		'user', 'system', 'system', 'assistant', 'tool', 'assistant', 'user', 'assistant',
+		'user', 'assistant', 'tool', 'assistant', 'system', 'system',
+		'user', 'assistant', 'tool', 'assistant', 'user', 'assistant',
 	]
-	# second call advances the sliding window: the finished task-1 work
+	assert stub.hHM.msgs[6] == _next_task_usr(2)
+	# second call advances the sliding window: the finished task-2 work
 	assert _bind_clean(stub) is True
 	assert [m.get('role') for m in stub.hHM.msgs] == [
-		'user', 'system', 'system', 'user', 'assistant',
+		'user', 'assistant', 'tool', 'assistant', 'system', 'system',
+		'user', 'user', 'assistant',
 	]
-	assert stub.hHM.msgs[-2] == _next_task_usr()
+	assert stub.hHM.msgs[-3] == _next_task_usr(2)
+	assert stub.hHM.msgs[-2] == _next_task_usr(3)
 	assert stub.hHM.msgs[-1] == _asst('current work')
+
+
+def test_autoclean_preserves_planning_phase():
+	msgs = [
+		_usr('make a thing'), _asst('plan note'), _tool(), _asst('plan note 2'),
+		_plan_done_sys(),
+	]
+	stub = _make_stub(_options(), msgs)
+	# no startBuild anchor yet, so planning phase is preserved
+	assert _bind_clean(stub) is False
+	assert len(stub.hHM.msgs) == 5
+
+
+def test_autoclean_preserves_planning_phase_after_startbuild():
+	msgs = [
+		_usr('make a thing'), _asst('plan note'), _tool(), _asst('plan note 2'),
+		_plan_done_sys(), _startbuild_sys(),
+		_asst('task1 work'), _next_task_usr(2),
+	]
+	stub = _make_stub(_options(), msgs)
+	assert _bind_clean(stub) is True
+	# planning phase (user + assistant/tool + planDone + startBuild) kept
+	assert [m.get('role') for m in stub.hHM.msgs] == [
+		'user', 'assistant', 'tool', 'assistant', 'system', 'system', 'user',
+	]
+	assert stub.hHM.msgs[1]['content'] == 'plan note'
 
 
 def test_autoclean_keeps_system_messages_in_window():
@@ -97,22 +128,12 @@ def test_autoclean_keeps_system_messages_in_window():
 	assert any(m.get('role') == 'system' and m.get('content') == 'extra instruction' for m in stub.hHM.msgs)
 
 
-def test_autoclean_first_clean_drops_planning_phase():
-	msgs = [
-		_usr('make a thing'), _asst('plan note'), _tool(), _asst(),
-		_plan_done_sys(),
-	]
+def test_autoclean_needs_startbuild_anchor():
+	msgs = [_usr('make a thing'), _plan_done_sys(), _asst(), _tool(), _next_task_usr()]
 	stub = _make_stub(_options(), msgs)
-	assert _bind_clean(stub) is True
-	assert [m.get('role') for m in stub.hHM.msgs] == ['user', 'system']
-
-
-def test_autoclean_needs_two_anchors():
-	msgs = [_usr('make a thing'), _asst(), _tool()]
-	stub = _make_stub(_options(), msgs)
-	# single anchor → no clean
+	# no startBuild anchor, so no finished task block to clean
 	assert HandleContext._pb_autoclean(stub) is False
-	assert len(stub.hHM.msgs) == 3
+	assert len(stub.hHM.msgs) == 5
 
 
 def test_autoclean_no_removal_returns_false():
@@ -135,12 +156,12 @@ def test_autoclean_rewrites_history_md_not_dbk(monkeypatch):
 	assert _bind_clean(stub) is True
 	assert len(calls) == 1
 	assert calls[0][0] == os.path.join('/proj', 'HISTORY.md')
-	assert [m.get('role') for m in calls[0][1]] == ['user', 'system', 'system', 'assistant', 'user']
+	assert [m.get('role') for m in calls[0][1]] == ['user', 'assistant', 'tool', 'system', 'system', 'user']
 
 
 def test_after_assistant_disabled():
 	stub = _make_stub(_options(AI_PLANBUILD_AUTOCLEAN=0),
-		[_usr('x'), _plan_done_sys(), _next_task_usr()])
+		[_usr('x'), _plan_done_sys(), _startbuild_sys(), _next_task_usr()])
 	stub._pb_clean_counter = 7
 	HandleParse._pb_after_assistant(stub)
 	assert stub._pb_clean_counter == 7
@@ -148,7 +169,7 @@ def test_after_assistant_disabled():
 
 def test_after_assistant_freeze_history():
 	stub = _make_stub(_options(AI_FREEZE_HISTORY=1),
-		[_usr('x'), _plan_done_sys(), _next_task_usr()])
+		[_usr('x'), _plan_done_sys(), _startbuild_sys(), _next_task_usr()])
 	stub._pb_clean_counter = 0
 	HandleParse._pb_after_assistant(stub)
 	assert stub._pb_clean_counter == 0
@@ -156,7 +177,7 @@ def test_after_assistant_freeze_history():
 
 def test_after_assistant_plan_mode_no_count():
 	stub = _make_stub(_options(MODE='plan'),
-		[_usr('x'), _plan_done_sys(), _next_task_usr()])
+		[_usr('x'), _plan_done_sys(), _startbuild_sys(), _next_task_usr()])
 	stub._pb_clean_counter = 0
 	HandleParse._pb_after_assistant(stub)
 	assert stub._pb_clean_counter == 0
