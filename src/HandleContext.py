@@ -175,11 +175,10 @@ class HandleContext():
 			r = msgs[i].get('role', '?')
 			roles_removed[r] = roles_removed.get(r, 0) + 1
 		new_msgs = [m for i, m in enumerate(msgs) if i not in remove]
-		# AI_PLANBUILD_AUTOCLEAN layout: keep the current mode's instruction
-		# system message at the end of the chat. In build mode, drop the
-		# obsolete "Plan is ready!" anchor and move "Mode changed to BUILD."
-		# to the end, appending it (or replacing the last message if that
-		# message is also a system message, per the user's placement rule).
+		# AI_PLANBUILD_AUTOCLEAN: drop the obsolete "Plan is ready!" anchor
+		# when the build-switch anchor exists. The build-switch anchor stays in
+		# its original position (start of the build phase) so it never becomes
+		# a stale instruction placed after the current task work.
 		plan_ready_idx = None
 		build_switch_idx = None
 		for idx, m in enumerate(new_msgs):
@@ -194,21 +193,6 @@ class HandleContext():
 		# switch anchor. If both exist, remove the plan-ready one.
 		if plan_ready_idx is not None and build_switch_idx is not None:
 			new_msgs.pop(plan_ready_idx)
-			if build_switch_idx > plan_ready_idx:
-				build_switch_idx -= 1
-			plan_ready_idx = None
-		# Move the active mode-switch anchor (build switch, or plan-ready if
-		# no build switch) to the end of the chat. If the last message is a
-		# system message, replace it instead of duplicating system messages.
-		active_idx = build_switch_idx if build_switch_idx is not None else plan_ready_idx
-		if active_idx is not None and active_idx < len(new_msgs) - 1:
-			active_msg = new_msgs.pop(active_idx)
-			if new_msgs and new_msgs[-1].get('role') == 'system':
-				new_msgs[-1] = active_msg
-				self._pb_log("AUTOCLEAN: relocated active system anchor to end (replaced previous system)")
-			else:
-				new_msgs.append(active_msg)
-				self._pb_log("AUTOCLEAN: relocated active system anchor to end")
 		self.hHM.msgs = new_msgs
 		framework_dir = self.Options.get('path', '').rstrip('/')
 		proj_dir = self.Options.get('working_dir')
