@@ -246,8 +246,10 @@ def test_insert_summary_concats_into_single_row_and_places_after_standing_block(
 	assert 'first summary' in summary_msgs[0]['content']
 	# placed after the standing system block, before the recent exchanges
 	assert new[2]['role'] == 'system' and new[2]['content'].startswith('[Context summary:')
-	assert new[3] == {'role': 'user', 'content': 'u2', 'name': ''}
-	assert new[4] == {'role': 'assistant', 'content': 'a2', 'name': ''}
+	assert new[3]['role'] == 'user' and new[3]['content'] == 'u2'
+	assert new[4]['role'] == 'assistant' and new[4]['content'] == 'a2'
+	# rowIds are renumbered after summarization so no duplicates remain
+	assert [m.get('rowId', i) for i, m in enumerate(new)] == list(range(len(new)))
 	# second summarize merges into the same row instead of adding a new one
 	new2 = stub._insert_summary(new, {0, 1, 2, 3, 4}, 'second summary')
 	summary_msgs2 = [m for m in new2 if m['content'].startswith('[Context summary:')]
@@ -285,3 +287,38 @@ def test_merge_summary_content_respects_cap():
 	assert merged.startswith('[Context summary: new')
 	assert len(merged) <= 100 + 20
 	assert 'x' * 1000 not in merged
+
+
+def test_insert_summary_collapses_transient_state_messages(tmp_path):
+	"""Mode/plan state updates are transient and should not be kept as
+	separate system messages at the head of the summarized history."""
+	stub = _make_stub(tmp_path)
+	msgs = [
+		{'role': 'system', 'content': 'Your role: AIIA coding agent.', 'name': ''},
+		{'role': 'system', 'content': 'Mode changed to BUILD. You can now make changes.\n\nTask 1/7 - old task.', 'name': ''},
+		{'role': 'system', 'content': 'Plan is ready! Starting first task.\n\nTask 1/5 - current task.', 'name': ''},
+		{'role': 'user', 'content': 'Continue task 1/5...', 'name': ''},
+		{'role': 'assistant', 'content': 'Let me check this section:', 'name': ''},
+	]
+	new = stub._insert_summary(msgs, {0, 1, 2, 3, 4}, 'the summary')
+	# Only the initial standing system message remains at the head.
+	assert new[0]['content'] == 'Your role: AIIA coding agent.'
+	assert new[0]['role'] == 'system'
+	# The latest transient state is captured inside the summary.
+	summary = [m for m in new if m['content'].startswith('[Context summary:')]
+	assert len(summary) == 1
+	assert 'current task' in summary[0]['content']
+	assert 'Task 1/7' not in summary[0]['content']
+	# The old standalone mode/plan messages are gone.
+	standalone_states = [
+		m for m in new
+		if m['role'] == 'system'
+		and (m['content'].startswith('Mode changed to')
+			 or m['content'].startswith('Plan is ready!'))
+	]
+	assert len(standalone_states) == 0
+	# Recent exchanges survive.
+	assert new[-2]['content'] == 'Continue task 1/5...'
+	assert new[-1]['content'] == 'Let me check this section:'
+	# rowIds are renumbered.
+	assert [m.get('rowId', i) for i, m in enumerate(new)] == list(range(len(new)))

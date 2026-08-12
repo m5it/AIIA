@@ -456,6 +456,77 @@ python run.py --work --base-url http://localhost:8006/rest/aiia_work
 
 Config keys: `AIIA_WORK_BASE_URL` (default `https://apis.aiia-frame.work/rest/aiia_work`), `AIIA_WORK_API_KEY`, `AIIA_WORK_SSO_TOKEN`, `AIIA_WORK_KEY_FILE`, `AIIA_WORK_ROLE`, `AIIA_WORK_TIMEOUT`, `AIIA_WORK_RETRIES`.
 
+## Gemma3 12B Training (Hugging Face Spaces)
+
+Train custom adapters on Google's `gemma-3-12b-it` using the v8 AIIA thinking dataset, then merge and deploy locally.
+
+### Dataset
+
+```bash
+# v8 dataset: 4,320 records (v2 corpus + cleaned new sessions + gap examples)
+llmteacher/space/thinking_dataset/out/aiia_thinking_chatml_v8.jsonl
+```
+
+### Training Scripts (llmteacher/space/gemma_ft/)
+
+| File | Purpose |
+|------|---------|
+| `train_gemma3_12b_v8.py` | QLoRA segment-based trainer (3072 seq len, 16GB GPU) |
+| `train_gemma3_12b_v8.sh` | Launcher script (warm-starts from v3 adapter) |
+| `merge_v8_gemma3_cpu.py` | Merge adapter into base model on CPU |
+| `Modelfile_v8_gemma3` | Ollama template with `<think>` support |
+| `deploy_v8_gemma3.sh` | Full deploy: merge → GGUF → quantize → Ollama |
+
+### HF Space Training Workflow
+
+1. **Push dataset to Space** (`m5it/gemma-think-aiia` or similar)
+2. **Train adapter** using Dockerfile with CMD:
+   ```bash
+   --data aiia_thinking_chatml_v8.jsonl --epochs 2 --max-seq-length 3072 \
+   --token-budget 3072 --save-adapter-only --push-to-hub \
+   m5it/gemma3-12b-aiia-think-adapter-v8 --push-every 100
+   ```
+3. **Wait for completion** (~15h on L4x1, checkpoints at step 100+)
+4. **Adapter pushed to** `m5it/gemma3-12b-aiia-think-adapter-v8`
+
+### Local Merge & Deploy
+
+```bash
+cd llmteacher/space/gemma_ft
+
+# Merge adapter (CPU, bf16) - requires HF_TOKEN env var
+python3 merge_v8_gemma3_cpu.py
+
+# Convert to GGUF (llama.cpp)
+python3 ../llama.cpp/convert_hf_to_gguf.py space1/gemma3_12b_v8_merged \
+  --outfile space1/gemma3_12b_v8_merged/gemma3_12b_aiia_v8-f16.gguf
+
+# Quantize to Q5_K_M (recommended for Gemma3)
+./llama.cpp/build/bin/llama-quantize space1/gemma3_12b_v8_merged/gemma3_12b_aiia_v8-f16.gguf \
+  space1/gemma3_12b_v8_Q5_K_M.gguf Q5_K_M
+
+# Create Ollama model
+ollama create w4d4f4k/gemma3-12b-aiia-think-v8 -f Modelfile_v8_gemma3
+
+# Push to Ollama
+ollama push w4d4f4k/gemma3-12b-aiia-think-v8
+```
+
+### Previous Versions
+
+| Version | HF Model | Training Notes |
+|---------|----------|----------------|
+| v4 | `m5it/gemma3-12b-aiia-think-v4` | Trained on HF Space (2026-08-05), v3 dataset + gap examples (3,324 recs), merge script: `hf_merge_space/merge_gemma_v4_hf.py` |
+| v8 | `m5it/gemma3-12b-aiia-think-adapter-v8` (adapter only) | Local QLoRA training completed (4,320 recs, 4412 steps, loss 0.007), GGUF conversion blocked by llama.cpp multimodal incompatibility |
+
+**Note**: Gemma3-12B uses `Gemma3ForConditionalGeneration` (multimodal architecture). llama.cpp converter may fail on tensor naming. Workaround: export text-only submodel or wait for llama.cpp Gemma3 support.
+
+### Key Files (v4 Reference)
+
+- Adapter: `m5it/gemma3-12b-aiia-think-adapter-v4` (HF Hub)
+- Merge script: `llmteacher/space/gemma_ft/hf_merge_space/merge_gemma_v4_hf.py`
+- Trained model: `w4d4f4k/gemma3-12b-aiia-think-v4:latest` (Ollama, Q5_K_M)
+
 ## Quirks
 
 - **Indentation**: code uses tabs (not spaces) despite being Python

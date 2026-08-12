@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-12 — v1.1.48
+
+### Auto: Version v1.1.48
+
+- Version auto-incremented from v1.1.47
+- Files changed: AGENTS.md, src/HandleContext.py, tests/test_core_modules.py, tests/test_summarize_command.py
+
+---
+
+
 ## 2026-08-12 — v1.1.47
 
 ### Auto: Version v1.1.47

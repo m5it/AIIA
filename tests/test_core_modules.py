@@ -415,7 +415,8 @@ def test_context_insert_summary():
 	msgs = [{'role': 'system', 'content': 'S1'}, {'role': 'user', 'content': 'u'}]
 	new = obj._insert_summary(msgs, {0, 1}, 'SUM')
 	assert new[1]['role'] == 'system' and new[1]['content'] == '[Context summary: SUM]'
-	assert new[1]['rowId'] == 6
+	# rowIds are renumbered after summarization so no duplicates remain
+	assert new[1]['rowId'] == 1
 
 def test_context_request_summary_truncates():
 	from src.HandleContext import HandleContext
