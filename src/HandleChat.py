@@ -1,4 +1,5 @@
 import copy, os, re, sys, time
+from datetime import date
 from src.functions import rmatch, user_input
 from src.PlanManager import PlanBase, Plan
 
@@ -1009,7 +1010,17 @@ class HandleChat():
 			other_tool_prefix, other_workflow_prefix)
 		self.hHM.msgs = new_msgs
 		if not has_current:
-			self.Response('system', {'content': current_text})
+			# Insert mode instructions at the head of the conversation so the
+			# last user/assistant message is preserved when continuing (-c).
+			new_msg = {
+				'role': 'system',
+				'content': current_text,
+				'sessionId': self.Options.get('AI_SESS_ID', 0),
+				'rowId': self.Options.get('AI_ROW_ID', 0),
+				'timestamp': time.time(),
+				'date': "{}".format(date.today()),
+			}
+			self.hHM.msgs.insert(0, new_msg)
 		self._rewrite_history(self.hHM.msgs)
 		return current_text
 

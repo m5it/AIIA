@@ -235,3 +235,68 @@ def test_reinsert_tip_does_not_filter_arbitrary_tips():
 	}]
 	count = tm.reinsert('legacy_tip')
 	assert count == 2
+
+
+def test_set_mode_instructions_inserts_at_beginning_when_missing():
+	"""When instructions are missing, insert them at the head, not the tail."""
+	from src.HandleChat import HandleChat
+
+	stub = _make_stub_with_both_instructions('build')
+	# Drop all system messages so instructions must be re-injected.
+	stub.hHM.msgs = [m for m in stub.hHM.msgs if m.get('role') != 'system']
+	stub.hHM.msgs.append({'role': 'user', 'content': 'last user message'})
+
+	class HCH(HandleChat):
+		def __init__(self, s):
+			self.hLG = s.hLG
+			self.hHM = s.hHM
+			self.Options = s.Options
+			self.hPP = s.hPP
+			self._consumed_tips = s._consumed_tips
+			self._rewritten = s._rewritten
+
+		def _rewrite_history(self, msgs):
+			self._rewritten.append(list(msgs))
+			self.hHM.msgs = list(msgs)
+
+	hch = HCH(stub)
+	hch._set_mode_instructions('build')
+
+	roles = [m.get('role') for m in stub.hHM.msgs]
+	assert roles[0] == 'system'
+	assert roles[-1] == 'user'
+	system_contents = [(m.get('content', '') or '') for m in stub.hHM.msgs if m.get('role') == 'system']
+	assert len(system_contents) == 1
+	assert system_contents[0].startswith('Your role:')
+	assert stub._rewritten
+
+
+def test_ensure_mode_instructions_preserves_last_user_message_on_continue():
+	"""_ensure_mode_instructions during -c should not make role:system the last row."""
+	from src.HandleChat import HandleChat
+	from src.HandleState import HandleState
+
+	stub = _make_stub_with_both_instructions('build')
+	# Simulate a loaded history where only the user message survived.
+	stub.hHM.msgs = [{'role': 'user', 'content': 'continue from here'}]
+
+	class HCombined(HandleChat, HandleState):
+		def __init__(self, s):
+			self.hLG = s.hLG
+			self.hHM = s.hHM
+			self.Options = s.Options
+			self.hPP = s.hPP
+			self._consumed_tips = s._consumed_tips
+			self._rewritten = s._rewritten
+
+		def _rewrite_history(self, msgs):
+			self._rewritten.append(list(msgs))
+			self.hHM.msgs = list(msgs)
+
+	hc = HCombined(stub)
+	hc._ensure_mode_instructions()
+
+	roles = [m.get('role') for m in stub.hHM.msgs]
+	assert roles[0] == 'system'
+	assert roles[-1] == 'user'
+	assert stub._rewritten

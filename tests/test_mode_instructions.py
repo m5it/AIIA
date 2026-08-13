@@ -144,12 +144,13 @@ def _make_fake(msgs, mode='build'):
 	return Fake()
 
 
-def test_build_missing_append_in_method():
+def test_build_missing_inserts_at_head():
 	from src.HandleChat import HandleChat
 	fake = _make_fake([_sys(PLAN), {'role': 'user', 'content': 'x'}])
 	HandleChat._set_mode_instructions(fake, 'build')
-	assert fake.hHM.msgs == [{'role': 'user', 'content': 'x'}, _sys(BUILD)]
-	assert fake.appended == [('system', BUILD)]
+	assert fake.hHM.msgs[0]['role'] == 'system'
+	assert fake.hHM.msgs[0]['content'] == BUILD
+	assert fake.hHM.msgs[-1] == {'role': 'user', 'content': 'x'}
 	assert len(fake.rewrote) == 1
 
 
