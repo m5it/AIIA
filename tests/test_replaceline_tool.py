@@ -2,12 +2,21 @@ import os
 import re
 import tempfile
 
+import pytest
+
 from config import Options as _opts
 from tools.tool_ReplaceLine import ReplaceLine
 
 # The tool is 0- or 1-indexed depending on config — convert a 1-indexed
 # conceptual line number into the tool's line numbering.
 ZERO_INDEXED = _opts.get('REPLACELINE_ZERO_INDEXED', False)
+
+
+@pytest.fixture(autouse=True)
+def _force_preview_mode(monkeypatch):
+	"""These tests exercise the preview/confirm/finalize workflow, so keep
+	REPLACELINE_SIMPLE_MODE disabled even when the global default is True."""
+	monkeypatch.setitem(_opts, 'REPLACELINE_SIMPLE_MODE', False)
 
 
 def tool_line(n1):

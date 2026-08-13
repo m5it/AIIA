@@ -145,6 +145,11 @@ Options         = {
 	"TOOL_TRANSIENT_ENABLED"    :True,   # allow <transient>N</transient> on read tools
 	"TOOL_TRANSIENT_MAX_STEPS"  :10,     # clamp N (auto-removal after N model calls)
 	#
+	# Read-tool deduplication — when a read tool returns content identical to a
+	# previous result still in the current context, replace the duplicate with a
+	# reference to the existing row and inject a user reminder not to re-read.
+	"TOOL_DEDUPLICATE_READS"    :True,
+	#
 	# ReplaceLine indexing
 	"REPLACELINE_ZERO_INDEXED": False, # False=1-indexed (first line=1, default), True=0-indexed (first line=0)
 	"REPLACELINE_SIMPLE_MODE": True, # True=ReplaceLine applies directly without preview/confirm/finalize

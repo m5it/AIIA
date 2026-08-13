@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-13 — v1.1.57
+
+### Auto: Version v1.1.57
+
+- Version auto-incremented from v1.1.56
+- Files changed: AGENTS.md, config.py, src/CommandsSession.py, src/ToolExecutor.py, tests/test_read_deduplication.py, tests/test_replaceline_tool.py
+
+---
+
+
 ## 2026-08-13 — v1.1.56
 
 ### Auto: Version v1.1.56

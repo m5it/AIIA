@@ -6,6 +6,7 @@ class ToolExecutor():
 	#
 	_write_tools_validate = {'WriteFile', 'CreateFile', 'AppendFile', 'ReplaceLine', 'Sed'}
 	_read_tools_transient = {'ReadFile', 'ReadPDF', 'Head', 'Tail', 'Grep', 'List', 'TreeView', 'Sort', 'Diff', 'WWW', 'WWWJS', 'ParsePage'}
+	_read_tools_dedup = {'ReadFile', 'ReadPDF', 'Head', 'Tail', 'Grep', 'List', 'TreeView', 'Sort', 'Diff', 'WWW', 'WWWJS', 'ParsePage'}
 	#
 	def ExecuteTextTool(self, toolName, params):
 		# Execute a tool based on XML invocation
@@ -270,6 +271,33 @@ class ToolExecutor():
 		raw = "{}:{}".format(toolName, json.dumps(params, sort_keys=True))
 		return hashlib.md5(raw.encode()).hexdigest()[:16]
 
+	def _read_content_hash(self, content):
+		"""Stable CRC32B hash for a tool result string."""
+		import zlib
+		return '{:08x}'.format(zlib.crc32(str(content or '').encode('utf-8')))
+
+	def _find_duplicate_read_result(self, toolName, content):
+		"""Search current history for an earlier tool result with the same
+		tool name and identical content. Returns the row index, or None."""
+		try:
+			new_hash = self._read_content_hash(content)
+		except Exception:
+			return None
+		msgs = getattr(self.handle, 'hHM', None)
+		if not msgs or not hasattr(msgs, 'msgs'):
+			return None
+		for i in range(len(msgs.msgs) - 1, -1, -1):
+			msg = msgs.msgs[i]
+			if not isinstance(msg, dict):
+				continue
+			if msg.get('role') == 'tool' and msg.get('name') == toolName:
+				try:
+					if self._read_content_hash(msg.get('content', '')) == new_hash:
+						return i
+				except Exception:
+					pass
+		return None
+
 	def _tool_usage(self, info):
 		name = info.get('name', 'Tool')
 		params = info.get('parameters', {})
@@ -382,10 +410,34 @@ class ToolExecutor():
 			result = self._fire_truncation_warning(toolName, params, result)
 			last_result = result
 			#
+			# Duplicate read detection — avoid returning the same file content again
+			# when the model re-reads something already in the current context.
+			dup_row = None
+			if (self.handle.Options.get('TOOL_DEDUPLICATE_READS', True)
+				and toolName in self._read_tools_dedup
+				and result
+				and not str(result).startswith('Error')):
+				dup_row = self._find_duplicate_read_result(toolName, result)
+				if dup_row is not None:
+					notice = ("[Duplicate result: same content already returned by {} at row {} "
+						"({} chars). Use that result instead of re-reading.]".format(
+							toolName, dup_row, len(str(result))))
+					self.handle.hLG.echo(
+						"Duplicate read result from {} — referencing row {}".format(toolName, dup_row),
+						{'color': True, 'colorValue': 'orange', 'debugOnly': False})
+					result = notice
+					last_result = result
+			#
 			# Show loaded message with timing and sizes (verbose mode)
 			self._fire_show_loaded(toolName, result, show_load, _tool_start, _input_size)
 			#
 			self._fire_respond_result(toolName, result)
+			#
+			# If we deduplicated, also inject a user reminder so the model sees it.
+			if dup_row is not None:
+				self.handle.Response('user', {
+					'content': "You already read this exact content at row {}. Do not re-read it.".format(dup_row)
+				})
 			#
 			# Transient read results — mark the result + call rows for auto-removal
 			transient = params.get('transient')

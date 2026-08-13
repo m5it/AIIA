@@ -206,6 +206,8 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 
 **Transient tool results (small-context paging):** Read tools (`ReadFile`/`ReadPDF`/`Head`/`Tail`/`Grep`/`List`/`TreeView`/`Sort`/`Diff`/`WWW`/`WWWJS`/`ParsePage`) accept a `<transient>N</transient>` parameter. The tool result (and the assistant row that issued it) are auto-removed from history after N AI-loop iterations, so the model can page through large files in bounded chunks without re-filling the context window. Example: `<ReadFile><fileName>big.py</fileName><offset>0</offset><max_chars>2000</max_chars><transient>3</transient></ReadFile>`. Config: `TOOL_TRANSIENT_ENABLED`, `TOOL_TRANSIENT_MAX_STEPS` (clamp).
 
+**Read-tool deduplication:** When a read tool returns byte-identical content to a previous tool result that is still in the current context, the duplicate is replaced with a reference to the existing row and a user reminder is injected so the model does not re-read the same data. Config: `TOOL_DEDUPLICATE_READS` (default `true`). Duplicate content is also flagged with `DUP` in the `!PH` history preview.
+
 **Large file writing:** When `num_predict` is set, the model may hit the output token limit mid-write. If truncation is detected, the model is warned automatically and chunked writing instructions are injected into the persona. Use `<WriteFile>` for the first ~200 lines, then `<AppendFile>` for subsequent chunks. Override with `!SET CHUNKED_WRITE_HINT true/false`.
 
 **Example model output:**

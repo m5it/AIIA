@@ -380,7 +380,7 @@ def _ph_row_view(msgs, row):
 
 #--
 
-def _ph_format_row(i, msg):
+def _ph_format_row(i, msg, seen_hashes=None):
 	role = msg.get('role', '?')
 	content = msg.get('content', '')
 	ts = msg.get('timestamp', 0)
@@ -393,9 +393,16 @@ def _ph_format_row(i, msg):
 		preview = preview[:80] + '...'
 	elif not preview:
 		preview = '(empty)'
-	return " {:>3} {} {}[{}]{} {:<14} {} {:>6} chars{} {}".format(
-		i, _PH_D + _ph_crc32(content) + _PH_R, _PH_D, time_str, _PH_R, color + label + _PH_R,
-		_PH_D, len(content), _PH_R, _PH_D + preview + _PH_R)
+	hash_str = _ph_crc32(content)
+	# Mark duplicate content with a DUP label so repeated tool results are visible
+	dup_marker = ''
+	if seen_hashes is not None:
+		if hash_str in seen_hashes:
+			dup_marker = ' {}DUP{}'.format(_PH_D, _PH_R)
+		seen_hashes.add(hash_str)
+	return " {:>3} {} {}[{}]{} {:<14} {} {:>6} chars{}{} {}".format(
+		i, _PH_D + hash_str + _PH_R, _PH_D, time_str, _PH_R, color + label + _PH_R,
+		_PH_D, len(content), _PH_R, dup_marker, _PH_D + preview + _PH_R)
 
 def _ph_stats(msgs):
 	"""Compute per-role stats from history rows.
@@ -451,8 +458,9 @@ def _ph_stats_view(stats):
 def _ph_list_view(msgs):
 	# Full history list
 	print("\n{}=== CHAT HISTORY ({} messages) ==={}\n".format(_PH_W, len(msgs), _PH_R))
+	seen_hashes = set()
 	for i, msg in enumerate(msgs):
-		print(_ph_format_row(i, msg))
+		print(_ph_format_row(i, msg, seen_hashes))
 	_ph_stats_view(_ph_stats(msgs))
 	return 2
 
@@ -494,8 +502,9 @@ def _ph_search_view(msgs, matches, term, regex):
 	kind = "REGEX" if regex else "TERM"
 	print("\n{}=== HISTORY SEARCH [{} '{}'] — {} match(es) ==={}\n".format(
 		_PH_W, kind, term, len(matches), _PH_R))
+	seen_hashes = set()
 	for i, msg in matches:
-		print(_ph_format_row(i, msg))
+		print(_ph_format_row(i, msg, seen_hashes))
 	print("{}Use !PH <row> to view, !RH <row> (or <from> <to>) to remove.{}".format(_PH_D, _PH_R))
 	print()
 	return 2
