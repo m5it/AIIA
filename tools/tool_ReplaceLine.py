@@ -16,9 +16,14 @@ class ReplaceLine():
 	def __init__(self):
 		zero_indexed = Options.get('REPLACELINE_ZERO_INDEXED', False)
 		idx_desc = "0-indexed (first line = 0)" if zero_indexed else "1-indexed (first line = 1, default)"
+		simple_mode = self._is_simple_mode()
+		if simple_mode:
+			desc = "Replace a specific line or range of lines in a file with new content. Lines are {}. SIMPLE MODE is enabled: ReadFile with <lineNumbers>true</lineNumbers> first, then call ReplaceLine directly with the exact line numbers and the replacement text. The change is applied immediately without preview/confirmation.".format(idx_desc)
+		else:
+			desc = "Replace a specific line or range of lines in a file with new content. Lines are {}. Three-phase flow: (1) first call previews; (2) call with confirmed=true applies the change, backs up the whole file to /tmp, and shows a verification diff of old vs new; (3) call again with confirmed=finalize to accept the verified diff, or confirmed=revert to restore the original file from backup.".format(idx_desc)
 		self.info = {
 			"name":"ReplaceLine",
-			"description":"Replace a specific line or range of lines in a file with new content. Lines are {}. Three-phase flow: (1) first call previews; (2) call with confirmed=true applies the change, backs up the whole file to /tmp, and shows a verification diff of old vs new; (3) call again with confirmed=finalize to accept the verified diff, or confirmed=revert to restore the original file from backup.".format(idx_desc),
+			"description": desc,
 			"parameters":{
 				"returnType":"string",
 				"required":["fileName","fromLine","replacement"],
@@ -68,6 +73,9 @@ class ReplaceLine():
 	#
 	def _is_zero_indexed(self):
 		return Options.get('REPLACELINE_ZERO_INDEXED', False)
+	#
+	def _is_simple_mode(self):
+		return Options.get('REPLACELINE_SIMPLE_MODE', False)
 	#
 	def _min_line(self):
 		return 0 if self._is_zero_indexed() else 1
@@ -219,6 +227,33 @@ class ReplaceLine():
 				base, orig_first))
 		return '\n'.join('⚠ ' + w for w in warns) if warns else ''
 	#
+	def _apply_simple(self, fileName, full_path, lines, new_lines, arr_fl, arr_tl, repl_lines):
+		"""Apply the replacement immediately without preview/confirmation/finalize.
+		Used when REPLACELINE_SIMPLE_MODE is enabled."""
+		new_content = ''.join(new_lines)
+		# File-size guards
+		if len(new_content.strip()) == 0 and len(''.join(lines).strip()) > 0:
+			return "Error: replacement would result in empty file — blocked to prevent data loss."
+		if len(new_content) > len(''.join(lines)) * 10 and len(new_content) > 100000:
+			return "Error: replacement would grow file to {} bytes ({:.0f}x original) — likely incorrect replacement.".format(
+				len(new_content), len(new_content) / max(len(''.join(lines)), 1))
+		try:
+			with open(full_path, 'w') as f:
+				f.writelines(new_lines)
+		except Exception as e:
+			return "Error: failed to write '{}': {}".format(fileName, e)
+		old_text = ''.join(lines[arr_fl:arr_tl + 1])
+		count = arr_tl - arr_fl + 1
+		new_count = len(repl_lines)
+		indent_warn = self._indent_check(lines, new_lines, arr_fl, repl_lines)
+		result = "Replaced line{} {}-{} in '{}'. ({} old line{} -> {} new line{}).".format(
+			's' if count > 1 else '', self._min_line() + arr_fl, self._min_line() + arr_tl, fileName,
+			count, 's' if count != 1 else '',
+			new_count, 's' if new_count != 1 else '')
+		if indent_warn:
+			result += "\n" + indent_warn
+		return result
+
 	def _echo_user(self, message):
 		"""Print a message to the user's console (if a handle is active).
 		Tool results are normally truncated to 500 chars on the console, so
@@ -285,12 +320,27 @@ class ReplaceLine():
 			return "Error: toLine {} exceeds file length ({} lines, max {} {}).".format(tl, total, max_line, idx_label)
 		#
 		confirmed_val = (confirmed or '').strip().lower()
+		# Simple mode bypasses the two-phase preview/confirm/finalize flow entirely.
+		arr_fl = self._to_array_index(fl)
+		arr_tl = self._to_array_index(tl)
+		if self._is_simple_mode():
+			old_lines = lines[arr_fl:arr_tl + 1]
+			old_text = ''.join(old_lines)
+			# Simulate replacement
+			repl = replacement
+			if not repl.endswith('\n'):
+				repl += '\n'
+			repl_lines = repl.split('\n')
+			if repl_lines and repl_lines[-1] == '':
+				repl_lines = repl_lines[:-1]
+			repl_lines = [l + '\n' for l in repl_lines]
+			new_lines = lines[:arr_fl] + repl_lines + lines[arr_tl + 1:]
+			return self._apply_simple(fileName, full_path, lines, new_lines, arr_fl, arr_tl, repl_lines)
+		#
 		if confirmed_val in ('finalize', 'revert'):
 			return self._handle_confirm(confirmed_val, fileName, full_path)
 		confirmed = confirmed_val in ('true', '1', 'yes')
 		current_key = self._make_key(full_path, fl, tl, replacement)
-		arr_fl = self._to_array_index(fl)
-		arr_tl = self._to_array_index(tl)
 		old_lines = lines[arr_fl:arr_tl + 1]
 		old_text = ''.join(old_lines)
 

@@ -182,3 +182,67 @@ def test_backup_lives_in_tmpdir(tmp_path):
 	_apply(t, str(path), 2, 'B')
 	assert t._backup_path.startswith(tempfile.gettempdir())
 	assert re.match(r'.*replaceline_.*\.bak$', t._backup_path)
+
+
+def _set_simple_mode(value):
+	_opts['REPLACELINE_SIMPLE_MODE'] = value
+
+
+def test_simple_mode_applies_immediately_without_preview(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+	_set_simple_mode(True)
+	t = ReplaceLine()
+	res = t.run(fileName=str(path), fromLine=str(tool_line(2)), replacement='B')
+	assert 'Replaced line' in res
+	assert '2' in res
+	assert open(path).read() == 'a\nB\nc\n'
+	assert t._backup_path is None
+	assert t._preview_key is None
+	_set_simple_mode(False)
+
+
+def test_simple_mode_ignores_confirmed_parameter(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+	_set_simple_mode(True)
+	t = ReplaceLine()
+	res = t.run(fileName=str(path), fromLine=str(tool_line(2)), replacement='B', confirmed='finalize')
+	assert 'Replaced line' in res
+	assert open(path).read() == 'a\nB\nc\n'
+	_set_simple_mode(False)
+
+
+def test_simple_mode_multiline_range(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'l1\nl2\nl3\nl4\nl5\n')
+	_set_simple_mode(True)
+	t = ReplaceLine()
+	res = t.run(fileName=str(path), fromLine=str(tool_line(3)),
+		toLine=str(tool_line(4)), replacement='X1\nX2')
+	assert 'Replaced line' in res
+	assert open(path).read() == 'l1\nl2\nX1\nX2\nl5\n'
+	_set_simple_mode(False)
+
+
+def test_simple_mode_returns_error_on_empty_file(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+	_set_simple_mode(True)
+	t = ReplaceLine()
+	res = t.run(fileName=str(path), fromLine=str(tool_line(1)),
+		toLine=str(tool_line(3)), replacement='')
+	assert 'empty file' in res
+	assert open(path).read() == 'a\nb\nc\n'
+	_set_simple_mode(False)
+
+
+def test_simple_mode_description_mentions_simple_mode(tmp_path):
+	_set_simple_mode(True)
+	t = ReplaceLine()
+	assert 'SIMPLE MODE' in t.info['description']
+	assert 'applied immediately' in t.info['description']
+	_set_simple_mode(False)
+
+
+def test_normal_mode_description_mentions_three_phase_flow(tmp_path):
+	_set_simple_mode(False)
+	t = ReplaceLine()
+	assert 'Three-phase flow' in t.info['description']
+	assert 'confirmed=finalize' in t.info['description']

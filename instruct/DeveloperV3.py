@@ -93,11 +93,11 @@ TOOL USAGE GUIDELINES:
 - Terminal: Use ONLY for one-liner commands. For complex scripts or data processing, use WriteFile/CreateFile.
 - WriteFile / CreateFile: Use for content < 2048 bytes in one call, or when creating a file from scratch.
 - AppendFile: Use when content > 2048 bytes (write first chunk with WriteFile, then AppendFile for rest). Also use for adding new content to existing files — avoids rewriting the whole file.
-- ReplaceLine: Use for targeted line edits. **TWO-STEP WORKFLOW:**
-  Step 1 — PREVIEW: Call **without** `<confirmed>`. The tool returns "Line X currently reads: ... Proposed replacement: ..." so you can verify your edit before applying.
-  Step 2 — CONFIRM: If the preview looks correct, call again WITH `<confirmed>true</confirmed>` to execute the replacement.
-  
-  This saves you a ReadFile call — the preview shows the old content. If it doesn't match what you expected (wrong line numbers, wrong text), adjust and preview again.
+- ReplaceLine: Use for targeted line edits. First, ReadFile with `<lineNumbers>true</lineNumbers>` to get exact line numbers. Then:
+  - If **SIMPLE MODE** is enabled (`REPLACELINE_SIMPLE_MODE=true`), call ReplaceLine directly with the line numbers and `<replacement>` — the change applies immediately, no preview/confirmation needed.
+  - Otherwise, use the **TWO-STEP WORKFLOW**: Step 1 — PREVIEW: Call **without** `<confirmed>`. The tool returns "Line X currently reads: ... Proposed replacement: ..." so you can verify your edit before applying. Step 2 — CONFIRM: If the preview looks correct, call again WITH `<confirmed>true</confirmed>` to execute the replacement.
+
+  If a preview doesn't match what you expected (wrong line numbers, wrong text), adjust and preview again.
 
   **CRITICAL ReplaceLine rules:**
   - The parameter is <replacement>, NOT <content> or <contentOfFile>. WRONG: <content>Hello</content> -> ERROR. RIGHT: <replacement>Hello</replacement>
@@ -200,16 +200,16 @@ AVAILABLE TOOLS (use exact XML format):
 - <Diff><file1>file1.txt</file1><file2>file2.txt</file2><unified>3</unified></Diff>: Compare files. Params: <file1>, <file2>, [<unified>]
 - <Sed><pattern>old_text</pattern><replacement>new_text</replacement><fileName>file.txt</fileName><inplace>true</inplace></Sed>: Find/replace. Params: <pattern>, <replacement>, <fileName>, [<inplace>]
 - <ImageTransform><fileName>photo.png</fileName><operation>resize</operation><params>{"maxWidth":800,"maxHeight":600}</params></ImageTransform>: Transform images (resize, crop, convert, flip, rotate). Params: <fileName>, <operation>, [<params>] (JSON), [<output>]
-- <ReplaceLine><fileName>file.txt</fileName><fromLine>10</fromLine><toLine>20</toLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s) in a file. **TWO-STEP WORKFLOW:**
-  Step 1 — PREVIEW: Call **without** `<confirmed>`. The tool returns what line(s) currently contain and what you propose to replace them with.
-  Step 2 — CONFIRM: If the preview matches your intent, call again WITH `<confirmed>true</confirmed>` to execute.
-  Params: <fileName>, <fromLine> (required), [<toLine>] (optional, defaults to fromLine), <replacement>, [<confirmed>] (set to "true" to apply)
+- <ReplaceLine><fileName>file.txt</fileName><fromLine>10</fromLine><toLine>20</toLine><replacement>new content</replacement></ReplaceLine>: Replace specific line(s) in a file.
+  - If **SIMPLE MODE** is enabled (`REPLACELINE_SIMPLE_MODE=true`), call directly with `<fileName>`, `<fromLine>`, optional `<toLine>`, and `<replacement>`. The change is applied immediately.
+  - Otherwise, use the **TWO-STEP WORKFLOW**: Step 1 — PREVIEW: Call **without** `<confirmed>`. The tool returns what line(s) currently contain and what you propose to replace them with. Step 2 — CONFIRM: If the preview matches your intent, call again WITH `<confirmed>true</confirmed>` to execute.
+  Params: <fileName>, <fromLine> (required), [<toLine>] (optional, defaults to fromLine), <replacement>, [<confirmed>] (set to "true" to apply in normal mode; ignored in simple mode)
 
   **CRITICAL:**
   - Use <replacement>, NEVER <content> or <contentOfFile>. Wrong parameter causes "Missing required parameter(s): replacement".
   - Always ReadFile with <lineNumbers>true</lineNumbers> first to get correct line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config).
   - When replacing a block, include its opening AND closing delimiters in the range.
-  - After confirmed replacement, verify with ReadFile if the preview was truncated.
+  - After replacement, verify with ReadFile if the result was truncated.
 
   Examples:
   Single line:
