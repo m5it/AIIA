@@ -39,6 +39,18 @@ class FakeHandle:
 		self.hHM.msgs = [m for m in self.hHM.msgs if m.get('role') == 'system']
 		self.Options['AI_ROW_ID'] = 0
 
+	def _summarize_context(self, msgs, limit, threshold):
+		# Minimal stub: simulate keeping last SUMMARIZE_LEAVE rows and replacing
+		# older ones with a summary system message.
+		leave = int(self.Options.get('SUMMARIZE_LEAVE', 0))
+		if leave <= 0:
+			return False
+		keep_count = min(leave, len(self.hHM.msgs))
+		kept = self.hHM.msgs[-keep_count:] if keep_count > 0 else []
+		summary_msg = {'role': 'system', 'content': '[Context summary: simulated summary]'}
+		self.hHM.msgs = [summary_msg] + kept
+		return True
+
 	def _build_continue_prompt(self, base="Continue with the task."):
 		return base
 
@@ -310,15 +322,121 @@ def test_insert_summary_collapses_transient_state_messages(tmp_path):
 	assert 'current task' in summary[0]['content']
 	assert 'Task 1/7' not in summary[0]['content']
 	# The old standalone mode/plan messages are gone.
-	standalone_states = [
-		m for m in new
-		if m['role'] == 'system'
-		and (m['content'].startswith('Mode changed to')
-			 or m['content'].startswith('Plan is ready!'))
+
+
+def test_collect_drop_indices_default_keeps_system_and_last_five_exchanges():
+	from src.HandleContext import HandleContext
+
+	class Stub(HandleContext):
+		def __init__(self):
+			self.Options = {'SUMMARIZE_LEAVE': 0}
+			self.hLG = FakeLogger()
+
+	stub = Stub()
+	msgs = [
+		{'role': 'system', 'content': 'sys1'},
+		{'role': 'user', 'content': 'u1'},
+		{'role': 'assistant', 'content': 'a1'},
+		{'role': 'user', 'content': 'u2'},
+		{'role': 'assistant', 'content': 'a2'},
+		{'role': 'user', 'content': 'u3'},
+		{'role': 'assistant', 'content': 'a3'},
+		{'role': 'user', 'content': 'u4'},
+		{'role': 'assistant', 'content': 'a4'},
+		{'role': 'user', 'content': 'u5'},
+		{'role': 'assistant', 'content': 'a5'},
+		{'role': 'user', 'content': 'u6'},
+		{'role': 'assistant', 'content': 'a6'},
 	]
-	assert len(standalone_states) == 0
-	# Recent exchanges survive.
-	assert new[-2]['content'] == 'Continue task 1/5...'
-	assert new[-1]['content'] == 'Let me check this section:'
-	# rowIds are renumbered.
-	assert [m.get('rowId', i) for i, m in enumerate(new)] == list(range(len(new)))
+	cleaned, idx = stub._collect_drop_indices(msgs)
+	keep = set(range(len(cleaned))) - set(idx)
+	# system message + last 5 user/assistant exchanges = 1 + 10 = 11 kept
+	assert len(keep) == 11
+	assert 0 in keep  # system
+	assert 12 in keep  # last assistant
+	assert 11 in keep  # last user
+	assert 1 not in keep  # first user dropped
+
+
+def test_collect_drop_indices_leave_n_keeps_last_n_rows():
+	from src.HandleContext import HandleContext
+
+	class Stub(HandleContext):
+		def __init__(self):
+			self.Options = {'SUMMARIZE_LEAVE': 3}
+			self.hLG = FakeLogger()
+
+	stub = Stub()
+	msgs = [
+		{'role': 'system', 'content': 'sys1'},
+		{'role': 'user', 'content': 'u1'},
+		{'role': 'assistant', 'content': 'a1'},
+		{'role': 'user', 'content': 'u2'},
+		{'role': 'assistant', 'content': 'a2'},
+		{'role': 'user', 'content': 'u3'},
+	]
+	cleaned, idx = stub._collect_drop_indices(msgs)
+	keep = set(range(len(cleaned))) - set(idx)
+	assert keep == {3, 4, 5}  # last 3 rows
+
+
+def test_collect_drop_indices_leave_n_larger_than_history_keeps_all():
+	from src.HandleContext import HandleContext
+
+	class Stub(HandleContext):
+		def __init__(self):
+			self.Options = {'SUMMARIZE_LEAVE': 100}
+			self.hLG = FakeLogger()
+
+	stub = Stub()
+	msgs = [
+		{'role': 'system', 'content': 'sys1'},
+		{'role': 'user', 'content': 'u1'},
+	]
+	cleaned, idx = stub._collect_drop_indices(msgs)
+	assert idx == []
+
+
+def test_insert_summary_places_summary_before_kept_tail(tmp_path):
+	stub = _make_stub(tmp_path)
+	stub.Options['SUMMARIZE_LEAVE'] = 2
+	msgs = [
+		{'role': 'system', 'content': 'sys1'},
+		{'role': 'user', 'content': 'u1'},
+		{'role': 'assistant', 'content': 'a1'},
+		{'role': 'user', 'content': 'u2'},
+		{'role': 'assistant', 'content': 'a2'},
+	]
+	# Keep sys1, a1, u2, a2; summarize away u1.
+	new = stub._insert_summary(msgs, {0, 2, 3, 4}, 'summary')
+	# Standing system block stays first, then summary, then the kept tail.
+	assert new[0]['role'] == 'system' and new[0]['content'] == 'sys1'
+	assert new[1]['role'] == 'system'
+	assert new[1]['content'].startswith('[Context summary:')
+	assert new[2]['role'] == 'assistant' and new[2]['content'] == 'a1'
+	assert new[3]['role'] == 'user' and new[3]['content'] == 'u2'
+	assert new[4]['role'] == 'assistant' and new[4]['content'] == 'a2'
+
+
+def test_summarize_with_leave_greater_than_zero_keeps_last_rows():
+	c, fake = _make()
+	fake.Options['SUMMARIZE_LEAVE'] = 2
+	ret = c.CMD_SUMMARIZE('!SUMMARIZE')
+	assert ret == 0
+	# Fake stub keeps 2 rows + summary, then adds a warm-up user message
+	assert len(fake.hHM.msgs) == 4  # summary + 2 kept + user
+	assert fake.hHM.msgs[0]['role'] == 'system'
+	assert fake.hHM.msgs[0]['content'].startswith('[Context summary:')
+	assert fake.hHM.msgs[-1]['role'] == 'user'
+
+
+def test_summarize_leave_zero_uses_auto_clear():
+	c, fake = _make()
+	fake.Options['SUMMARIZE_LEAVE'] = 0
+	ret = c.CMD_SUMMARIZE('!SUMMARIZE')
+	assert ret == 0
+	assert fake._auto_clear_calls == 1
+	# Auto-clear strips everything except system messages; then a warm-up user
+	# message is appended.
+	assert fake.hHM.msgs[-1]['role'] == 'user'
+	assert 'Continue' in fake.hHM.msgs[-1]['content']

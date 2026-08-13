@@ -43,6 +43,7 @@ Options         = {
 	"AI_FREEZE_LOOP"      :0,  # testing: 1 = repeat the last user turn instead of prompting (Ctrl+C "Stop AI" to break out)
 	"AI_PLANBUILD_AUTOCLEAN":0,  # 1 = auto-prune finished plan/build task work from the model context (sliding window between task anchors)
 	"AI_PLANBUILD_WAIT"   :5,   # assistant responses after the latest task anchor before an autoclean triggers (min 1)
+	"SUMMARIZE_LEAVE"     :0,   # 0 = current behavior (keep system msgs + last 5 exchanges), N = keep last N rows of history when summarizing
 	"AI_MODEL_TIMEOUT"    :120, # seconds before model API call times out (0 = no timeout)
 	"STREAM_CHUNK_TIMEOUT":120, # seconds — abort stream if no chunk arrives (prevents indefinite hangs)
 	"ALTERNATIVE_MODELS"  :["kimi-k2.7-code:cloud"], # fallback models on stream stall (empty = disabled)

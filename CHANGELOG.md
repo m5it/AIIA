@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-13 — v1.1.53
+
+### Auto: Version v1.1.53
+
+- Version auto-incremented from v1.1.52
+- Files changed: config.py, src/CommandsSession.py, src/HandleContext.py, tests/test_summarize_command.py
+
+---
+
+
 ## 2026-08-13 — v1.1.52
 
 ### Auto: Version v1.1.52

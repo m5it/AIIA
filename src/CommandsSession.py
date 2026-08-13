@@ -15,7 +15,8 @@ _REHEAT_MSG = (
 
 _SUMMARIZE_MSG = (
 	"[Context Summarized]\n"
-	"The chat history was cleared to free context; system instructions were kept.\n"
+	"The chat history was summarized to free context. Recent rows and any standing "
+	"system instructions were kept.\n"
 	"Rebuild your working knowledge of this environment:\n"
 	"1) Call <listTools> to reload all available tools and their parameters.\n"
 	"2) Retrieve your core instructions and any tips you rely on with <GetTip>, "
@@ -210,14 +211,21 @@ class CommandsSession():
 	#
 	#
 	def CMD_SUMMARIZE(self, inp=""):
-		"""!SUMMARIZE — clear chat history (keeps system messages) then warm the
-		model back up via a single user message: reload the tool list and tips
-		so the next turn starts with working tool knowledge (useful for cloud
-		models with no memory).  The active plan and cached file buffers are
+		"""!SUMMARIZE — summarize older chat history, keep the most recent rows
+		(controlled by SUMMARIZE_LEAVE), then warm the model back up via a single
+		user message. SUMMARIZE_LEAVE=0 keeps current behavior: clear everything
+		except system messages. SUMMARIZE_LEAVE=N keeps the last N rows of history
+		and summarizes the rest. The active plan and cached file buffers are
 		appended to the user message so they survive the summary."""
-		self.handle.hLG.echo("Summarizing — clearing history, keeping system messages...",
-			{'color':True,'colorValue':'orange','debugOnly':False})
-		self.handle._auto_clear()
+		leave = int(self.handle.Options.get('SUMMARIZE_LEAVE', 0))
+		if leave > 0:
+			self.handle.hLG.echo("Summarizing — keeping last {} rows...".format(leave),
+				{'color':True,'colorValue':'orange','debugOnly':False})
+			self.handle._summarize_context(self.handle.hHM.msgs, 0, 0)
+		else:
+			self.handle.hLG.echo("Summarizing — clearing history, keeping system messages...",
+				{'color':True,'colorValue':'orange','debugOnly':False})
+			self.handle._auto_clear()
 		continue_msg = self.handle._build_continue_prompt(base=_SUMMARIZE_MSG)
 		self.handle.Response('user', {'content': continue_msg})
 		self.handle.hTM.clear_all_caches()

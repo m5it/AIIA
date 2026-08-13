@@ -229,20 +229,31 @@ class HandleContext():
 
 	def _collect_drop_indices(self, msgs):
 		"""Strip malformed entries (no `role` key) that slipped into history.
-		Collect indices of the older messages to drop, keeping the last 5
-		exchanges + all system prompts. Returns (msgs, idx) where idx is the
-		sorted list of indices to summarize away."""
+		Collect indices of the older messages to drop.
+
+		Default behavior (SUMMARIZE_LEAVE=0): keep the last 5 exchanges +
+		all system prompts.
+
+		When SUMMARIZE_LEAVE=N > 0: keep exactly the last N rows of history
+		regardless of role, and summarize everything before them.
+
+		Returns (msgs, idx) where idx is the sorted list of indices to summarize away."""
 		msgs = [m for m in msgs if isinstance(m, dict) and m.get('role')]
+		leave = int(getattr(self, 'Options', {}).get('SUMMARIZE_LEAVE', 0))
 		keep = set()
-		exchange_count = 0
-		for i in range(len(msgs) - 1, -1, -1):
-			role = msgs[i]['role']
-			if role == 'system':
+		if leave > 0:
+			for i in range(max(0, len(msgs) - leave), len(msgs)):
 				keep.add(i)
-			elif exchange_count < 5 and role in ('user', 'assistant'):
-				keep.add(i)
-				if role == 'user':
-					exchange_count += 1
+		else:
+			exchange_count = 0
+			for i in range(len(msgs) - 1, -1, -1):
+				role = msgs[i]['role']
+				if role == 'system':
+					keep.add(i)
+				elif exchange_count < 5 and role in ('user', 'assistant'):
+					keep.add(i)
+					if role == 'user':
+						exchange_count += 1
 		idx = sorted(i for i in range(len(msgs)) if i not in keep)
 		return msgs, idx
 
