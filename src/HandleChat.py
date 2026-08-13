@@ -39,26 +39,39 @@ def _prune_mode_instructions(msgs, current_text, other_text, cur_prefix, other_p
 	has_current is False.
 	"""
 	keep = []
-	has_current = False
+	has_current_text = False
+	has_current_tip = False
 	for m in msgs:
 		if isinstance(m, dict) and m.get('role') == 'system':
 			c = m.get('content', '') or ''
 			is_exact_current = (c == current_text)
+			is_current_tip = (cur_prefix and c.startswith(cur_prefix))
 			is_other = (
 				c == other_text
 				or (other_prefix and c.startswith(other_prefix))
 				or (other_tool_prefix and c.startswith(other_tool_prefix))
 				or (other_workflow_prefix and c.startswith(other_workflow_prefix))
 			)
+			# Drop the other mode's instructions. If the short prompt is shared
+			# between modes (AI_INSTRUCT_OPTION=2), keep it via is_exact_current.
 			if is_other and not is_exact_current:
 				continue
+			# Keep the first exact-text current instruction and normalize it.
 			if is_exact_current:
-				if has_current:
+				if has_current_text:
 					continue
 				m['content'] = current_text
-				has_current = True
+				has_current_text = True
+			# Keep the first current-mode tip entry (e.g. [BUILD MODE INSTRUCTIONS])
+			# and deduplicate later occurrences, but don't let it satisfy the
+			# "current instructions present" contract — the short prompt is the
+			# canonical current instruction.
+			elif is_current_tip:
+				if has_current_tip:
+					continue
+				has_current_tip = True
 		keep.append(m)
-	return keep, has_current
+	return keep, has_current_text
 
 
 def _is_aux_system_message(content):

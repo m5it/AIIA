@@ -107,9 +107,25 @@ class TipManager():
 		if not entries:
 			return 0
 		self.handle._consumed_tips.add(title)
+		# Mode-aware filtering for the instruct_* tip: it contains both plan
+		# and build instruction entries. Only reinsert the entries for the
+		# current mode so the model doesn't receive conflicting instructions.
+		mode = self.handle.Options.get('MODE', 'build')
+		is_instruct_tip = title.startswith('instruct_')
+		if is_instruct_tip:
+			other_mode = 'plan' if mode == 'build' else 'build'
+			other_prefix = '[{} MODE INSTRUCTIONS]'.format(other_mode.upper())
+			other_tool_prefix = '[{} MODE TOOL REFERENCE]'.format(other_mode.upper())
+			other_workflow_prefix = '[{} MODE WORKFLOW EXAMPLE]'.format(other_mode.upper())
 		count = 0
 		for data in entries:
 			for msg in data.get('entries', []):
+				content = msg.get('content', '')
+				if is_instruct_tip and (
+						content.startswith(other_prefix)
+						or content.startswith(other_tool_prefix)
+						or content.startswith(other_workflow_prefix)):
+					continue
 				# Tips replay as system instructions — the training data and
 				# LLM role validation only know system/user/assistant/tool.
 				# Coerce legacy 'model' entries so old tips stay valid.
@@ -117,13 +133,20 @@ class TipManager():
 				if role == 'model':
 					role = 'system'
 				self.handle.Response(role, {
-					'content': msg.get('content', ''),
+					'content': content,
 					'thinking': msg.get('thinking', None),
 					'name': msg.get('name', None),
 					'rowId': msg.get('rowId', self.handle.Options['AI_ROW_ID']),
 				})
 				self.handle.Options['AI_ROW_ID'] += 1
 				count += 1
+		# After reinserting an instruct tip, run a cleanup pass so any stale
+		# mode instructions already in the context are removed.
+		if is_instruct_tip and hasattr(self.handle, '_set_mode_instructions'):
+			try:
+				self.handle._set_mode_instructions(mode)
+			except Exception:
+				pass
 		return count
 	#
 	def delete(self, title, source=None):

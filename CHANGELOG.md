@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-13 — v1.1.50
+
+### Auto: Version v1.1.50
+
+- Version auto-incremented from v1.1.49
+- Files changed: src/HandleChat.py, src/TipManager.py, tests/test_mode_instructions_cleanup.py
+
+---
+
+
 ## 2026-08-13 — v1.1.49
 
 ### Auto: Version v1.1.49
