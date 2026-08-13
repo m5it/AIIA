@@ -404,9 +404,13 @@ class HandleParse():
 			for inv in tool_invocations:
 				if inv['name'] == 'nextTask':
 					result_str = str(result) if result else ""
-					if result_str.startswith("NEXT_TASK:"):
-						next_instruction = result_str[10:]
-						self.Response('user', {'content': "<nextTask>\n\nYour task:\n{}".format(next_instruction)})
+					if result_str.startswith("NEXT_TASK|"):
+						parts = result_str[10:].split("|", 1)
+						if len(parts) == 2:
+							task_id, next_instruction = parts
+						else:
+							task_id, next_instruction = "", parts[0] if parts else ""
+						self.Response('user', {'content': "<nextTask>\n\nTask ID: {}\nStatus: in_progress\n\nYour task:\n{}".format(task_id, next_instruction)})
 						self._write_current_task()
 					elif result_str.startswith("ALL_COMPLETED:"):
 						self.hLG.echo("Plan completed! All tasks finished.", {'color':True, 'colorValue':'green'})
@@ -415,10 +419,12 @@ class HandleParse():
 				elif inv['name'] == 'startBuild':
 					result_str = str(result) if result else ""
 					if result_str.startswith("START_BUILD|"):
-						parts = result_str.split("|", 2)
-						task_info = parts[1]
-						instruction = parts[2]
-						self.Response('system', {'content': "Mode changed to BUILD. You can now make changes.\n\n{} - {}".format(task_info, instruction)})
+						parts = result_str.split("|", 3)
+						if len(parts) == 4:
+							task_id, task_info, instruction = parts[1], parts[2], parts[3]
+						else:
+							task_id, task_info, instruction = "", parts[1] if len(parts) > 1 else "", parts[2] if len(parts) > 2 else ""
+						self.Response('system', {'content': "Mode changed to BUILD. You can now make changes.\n\nTask ID: {}\n{} - {}".format(task_id, task_info, instruction)})
 						self._write_current_task()
 		# Handle planDone in any mode — inject system message and signal completion
 		if plan_done:

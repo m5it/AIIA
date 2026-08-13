@@ -243,9 +243,18 @@ class PlanBase:
 
 	@staticmethod
 	def LogProgress(task_id, what_was_done, plans_path="plans"):
-		if PlanBase.draft and task_id in PlanBase.draft.tasks:
-			task = PlanBase.draft.tasks[task_id]
-			task.log.append(TaskLog(what_was_done))
-			PlanBase.draft.save(plans_path)
-			return {"task_id": task_id, "logged": what_was_done, "log_entries": len(task.log)}
+		if PlanBase.draft:
+			# Primary path: explicit task ID provided by the model.
+			if task_id and task_id in PlanBase.draft.tasks:
+				task = PlanBase.draft.tasks[task_id]
+				task.log.append(TaskLog(what_was_done))
+				PlanBase.draft.save(plans_path)
+				return {"task_id": task_id, "logged": what_was_done, "log_entries": len(task.log)}
+			# Fallback: if the model passed a wrong/missing ID, log to the current
+			# in-progress task so progress is not lost.
+			current_task = next((t for t in PlanBase.draft.tasks.values() if t.status == 'in_progress'), None)
+			if current_task:
+				current_task.log.append(TaskLog(what_was_done))
+				PlanBase.draft.save(plans_path)
+				return {"task_id": current_task.id, "logged": what_was_done, "log_entries": len(current_task.log), "note": "Task ID not found; logged to current in_progress task"}
 		return {"error": "Task not found or no active plan"}

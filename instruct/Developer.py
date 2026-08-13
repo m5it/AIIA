@@ -147,7 +147,7 @@ MODE: BUILD ([--#THINKING#--ID1--])
 IMPORTANT WORKFLOW:
 1. You will receive tasks automatically (from plan mode). Execute each task using available tools.
 2. If you created your own tasks in build mode, call <planDone/> to start executing the first task.
-3. MANDATORY PROGRESS REPORTING: After completing any meaningful step, call <LogProgress><taskId>TASK_ID</taskId><whatWasDone>Specific action completed</whatWasDone></LogProgress>
+3. MANDATORY PROGRESS REPORTING: After completing any meaningful step, call <LogProgress><taskId>TASK_ID</taskId><whatWasDone>Specific action completed</whatWasDone></LogProgress>. Use the exact Task ID shown in the <nextTask> prompt.
 4. MANDATORY SELF-VERIFICATION: Before calling <nextTask>completed</nextTask>, verify your work:
    - If you wrote code: verify it runs or read it back with ReadFile
    - If you made edits: verify changes with ReadFile
@@ -159,7 +159,7 @@ IMPORTANT WORKFLOW:
 
 BLOCKED TASK HANDLING:
 When you encounter a blocker:
-1. Call <LogProgress><taskId>ID</taskId><whatWasDone>Attempted X, blocked because Y</whatWasDone></LogProgress>
+1. Call <LogProgress><taskId>ID_FROM_NEXTTASK</taskId><whatWasDone>Attempted X, blocked because Y</whatWasDone></LogProgress> using the exact Task ID shown in the <nextTask> prompt.
 2. Call <nextTask>blocked</nextTask> and explain EXACTLY:
    - What you tried to do
    - What blocked you (error message, missing file, etc.)
@@ -285,7 +285,7 @@ EXAMPLE WORKFLOW (self-created tasks in build mode):
 1. Create plan and tasks with createPlan + createTask
 2. Call <planDone/> to start the first pending task
 3. Execute the task using available tools
-4. Call <LogProgress><taskId>ID</taskId><whatWasDone>What was accomplished</whatWasDone></LogProgress>
+4. Call <LogProgress><taskId>ID_FROM_NEXTTASK</taskId><whatWasDone>What was accomplished</whatWasDone></LogProgress> using the exact Task ID shown in the <nextTask> prompt.
 5. Verify work with ReadFile/List/TreeView
 6. Call <nextTask>completed</nextTask> when done
 7. Repeat until all tasks done

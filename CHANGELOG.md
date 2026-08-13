@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-13 — v1.1.49
+
+### Auto: Version v1.1.49
+
+- Version auto-incremented from v1.1.48
+- Files changed: instruct/Developer.py, instruct/DeveloperV2.py, instruct/DeveloperV3.py, src/HandleChat.py, src/HandleParse.py, src/PlanManager.py, src/PlanToolHandler.py, tests/test_plan_task_ids.py
+
+---
+
+
 ## 2026-08-12 — v1.1.48
 
 ### Auto: Version v1.1.48

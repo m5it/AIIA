@@ -358,7 +358,7 @@ class HandleChat():
 		task_number = completed + 1
 
 		task_label = next_instruction[:60] + '...' if len(next_instruction) > 60 else next_instruction
-		msg = "continue task {} / {}...\n{}".format(task_number, total, next_instruction)
+		msg = "<nextTask>\n\nTask ID: {}\nStatus: in_progress\n\ncontinue task {} / {}...\n{}".format(in_progress_task.id, task_number, total, next_instruction)
 		self.Response('user', {'content': msg})
 		self.hLG.echo("Auto-continue: task {}/{} — {}".format(task_number, total, task_label),
 			{'color': True, 'colorValue': 'green', 'debugOnly': False})
@@ -994,7 +994,7 @@ class HandleChat():
 			task_number = sum(1 for t in PlanBase.draft.tasks.values() if t.status in ["completed", "in_progress"])
 			total_tasks = len(PlanBase.draft.tasks)
 			# Mode-switch + task notification as system so the model treats it as instruction
-			self.Response('system', {'content': "Mode changed to BUILD. You can now make changes.\n\nTask {}/{} - {}".format(task_number, total_tasks, first_task.instruction)})
+			self.Response('system', {'content': "Mode changed to BUILD. You can now make changes.\n\nTask ID: {}\nTask {}/{} - {}".format(first_task.id, task_number, total_tasks, first_task.instruction)})
 			self.hLG.echo("Started build: Task {}/{}".format(task_number, total_tasks), {'color':True, 'colorValue':'green'})
 			self._write_current_task()
 		else:

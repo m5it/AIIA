@@ -197,7 +197,7 @@ class PlanToolHandler():
 			else:
 				PlanBase.draft.jobDone(self.handle)
 				return "ALL_COMPLETED:Plan finished successfully"
-		return "NEXT_TASK:{}".format(result.get('next_task_instruction', ''))
+		return "NEXT_TASK|{}|{}".format(result.get('current_task_id', ''), result.get('next_task_instruction', ''))
 	#--
 	#
 	def _plan_jobDone(self, params, plans_path):
@@ -266,7 +266,7 @@ class PlanToolHandler():
 			PlanBase.LogProgress(first_task.id, "Build started", plans_path)
 			task_number = sum(1 for t in PlanBase.draft.tasks.values() if t.status in ["completed", "in_progress"])
 			total_tasks = len(PlanBase.draft.tasks)
-			return "START_BUILD|Task {}/{}|{}".format(task_number, total_tasks, first_task.instruction)
+			return "START_BUILD|{}|Task {}/{}|{}".format(first_task.id, task_number, total_tasks, first_task.instruction)
 		return "No pending tasks in plan"
 	#--
 	#
