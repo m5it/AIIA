@@ -131,6 +131,12 @@ class Plan:
 		except Exception:
 			pass
 		self.save()
+		# Also update PLAN.md so its status header reflects completion.
+		try:
+			from src.PlanSaver import PlanSaver
+			PlanSaver.save_plan(self, getattr(handle, 'Options', {}).get('working_dir'))
+		except Exception:
+			pass
 		return {"plan_id": self.id, "status": "completed", "summary": "Plan finished"}
 
 	def view(self):

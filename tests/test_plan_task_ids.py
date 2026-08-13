@@ -165,3 +165,40 @@ def test_try_auto_continue_includes_task_id(tmp_path):
 	assert "Status: in_progress" in content
 	assert "continue task 1 / 1" in content
 	PlanBase.draft = None
+
+
+def test_jobdone_updates_plan_md_to_completed(tmp_path):
+	from src.PlanManager import PlanBase, Plan
+
+	PlanBase.draft = Plan('test_plan')
+	PlanBase.draft.title = 'Test Plan'
+	PlanBase.draft.instructions = 'Test instructions'
+	t1 = PlanBase.draft.createTask('Task one instruction', 'Task one')
+	t1.status = 'in_progress'
+	(t1).__class__ = t1.__class__
+
+	working_dir = str(tmp_path / 'project')
+	os.makedirs(working_dir, exist_ok=True)
+	plans_path = str(tmp_path / 'plans')
+	os.makedirs(plans_path, exist_ok=True)
+
+	# Save plan + PLAN.md as in-progress first
+	PlanBase.draft.save(plans_path)
+	from src.PlanSaver import PlanSaver
+	PlanSaver.save_plan(PlanBase.draft, working_dir)
+
+	plan_md_path = os.path.join(working_dir, 'PLAN.md')
+	with open(plan_md_path) as f:
+		before = f.read()
+	assert '## Status: in_progress' in before
+
+	class StubHandle:
+		Options = {'working_dir': working_dir}
+		file_buffer_cache = {}
+
+	PlanBase.draft.jobDone(StubHandle())
+
+	with open(plan_md_path) as f:
+		after = f.read()
+	assert '## Status: completed' in after
+	PlanBase.draft = None

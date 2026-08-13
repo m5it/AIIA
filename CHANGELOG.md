@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-13 — v1.1.61
+
+### Auto: Version v1.1.61
+
+- Version auto-incremented from v1.1.60
+- Files changed: src/HandleChat.py, src/PlanManager.py, tests/test_auto_continue_repeat_detector.py, tests/test_plan_task_ids.py
+
+---
+
+
 ## 2026-08-13 — v1.1.60
 
 ### Auto: Version v1.1.60

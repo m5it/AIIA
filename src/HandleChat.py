@@ -392,6 +392,9 @@ class HandleChat():
 		task_label = next_instruction[:60] + '...' if len(next_instruction) > 60 else next_instruction
 		msg = "<nextTask>\n\nTask ID: {}\nStatus: in_progress\n\ncontinue task {} / {}...\n{}".format(in_progress_task.id, task_number, total, next_instruction)
 		self.Response('user', {'content': msg})
+		# Auto-continue injects a new user turn, so reset the repeat detector
+		# so the model can retry the same tool call without being auto-cancelled.
+		self._last_response_hash = None
 		self.hLG.echo("Auto-continue: task {}/{} — {}".format(task_number, total, task_label),
 			{'color': True, 'colorValue': 'green', 'debugOnly': False})
 		self._write_current_task()
@@ -1206,6 +1209,7 @@ class HandleChat():
 				"Auto-continue: AI round {}/50 — continuing plan creation".format(auto_continue_count),
 				{'color':True, 'colorValue':'cyan','debugOnly':False})
 			self.Response('user', {'content': 'Continue creating plan tasks.'})
+			self._last_response_hash = None
 			return auto_continue_count, True
 		else:
 			return self._auto_build_reenter(auto_continue_count)
@@ -1246,4 +1250,5 @@ class HandleChat():
 				auto_continue_count, task_num, total, task_label),
 			{'color':True, 'colorValue':'green','debugOnly':False})
 		self.Response('user', {'content': 'Continue task {}/{}...\n{}'.format(task_num, total, task_inst)})
+		self._last_response_hash = None
 		return auto_continue_count, True
