@@ -66,6 +66,7 @@ Each commit auto-increments the third decimal in `AUTOVERSION.py` (e.g., `1.0.0`
 | `!SITE_LIST` | List all websites with available JS support scripts |
 | `!SITE <domain>` | Show available scripts for a specific website |
 | `!SITE_UPDATE <domain> <script>` | Create or update a website JS support script |
+| `!TIP_CLEAN [pattern]` | Delete tip titles matching a glob pattern (default: `session_*_cleared`) |
 
 ## User Commands (build mode)
 

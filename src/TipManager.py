@@ -15,10 +15,27 @@ class TipManager():
 		return p
 	#
 	def _list_titles(self, source):
+		"""List tip titles under a source. Recurses into project subdirs.
+		Returns a list of (source_path, title) tuples."""
 		path = self._path(source)
 		if not os.path.isdir(path):
 			return []
-		return sorted([d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))])
+		result = []
+		for entry in sorted(os.listdir(path)):
+			entry_path = os.path.join(path, entry)
+			if not os.path.isdir(entry_path):
+				continue
+			files = [f for f in os.listdir(entry_path) if f.endswith('.json')]
+			subdirs = [f for f in os.listdir(entry_path)
+					   if os.path.isdir(os.path.join(entry_path, f))]
+			if files and not subdirs:
+				# Leaf directory: a tip title.
+				result.append((source, entry))
+			elif subdirs:
+				# Project subdirectory: recurse.
+				for sub_source, sub_title in self._list_titles("{}/{}".format(source, entry)):
+					result.append((sub_source, sub_title))
+		return result
 	#
 	def _list_entries(self, source, title):
 		path = self._path(source, title)
@@ -81,23 +98,26 @@ class TipManager():
 	def list(self, source=None):
 		result = {}
 		for s in (['user', 'model'] if source is None else [source]):
-			titles = self._list_titles(s)
-			for t in titles:
-				entries = self._list_entries(s, t)
+			for source_path, title in self._list_titles(s):
+				entries = self._list_entries(source_path, title)
 				if entries:
-					result["{}/{}".format(s, t)] = {
-						'source': s,
-						'title': t,
+					result["{}/{}".format(source_path, title)] = {
+						'source': source_path,
+						'title': title,
 						'count': len(entries),
 					}
 		return result
 	#
 	def get(self, title, source=None):
+		"""Retrieve entries for a title. source may be a path like 'model/p_HASH'.
+		When source is None, search recursively under both 'user' and 'model'."""
 		if source:
 			return self._list_entries(source, title)
 		combined = []
 		for s in ['user', 'model']:
-			combined.extend(self._list_entries(s, title))
+			for source_path, t in self._list_titles(s):
+				if t == title:
+					combined.extend(self._list_entries(source_path, title))
 		return combined
 	#
 	def reinsert(self, title, source=None):
@@ -151,18 +171,35 @@ class TipManager():
 	#
 	def delete(self, title, source=None):
 		removed = 0
-		for s in (['user', 'model'] if source is None else [source]):
-			path = self._path(s, title)
+		if source:
+			path = self._path(source, title)
 			if os.path.isdir(path):
 				for f in os.listdir(path):
 					os.remove(os.path.join(path, f))
 				os.rmdir(path)
 				removed += 1
+		else:
+			for s in ['user', 'model']:
+				for source_path, t in self._list_titles(s):
+					if t == title:
+						path = self._path(source_path, title)
+						if os.path.isdir(path):
+							for f in os.listdir(path):
+								os.remove(os.path.join(path, f))
+							os.rmdir(path)
+							removed += 1
 		return removed
 	#
 	def delete_entry(self, title, entry_num, source=None):
-		for s in (['user', 'model'] if source is None else [source]):
-			path = self._path(s, title)
+		if source:
+			paths = [self._path(source, title)]
+		else:
+			paths = []
+		for s in ['user', 'model']:
+			for source_path, t in self._list_titles(s):
+				if t == title:
+					paths.append(self._path(source_path, title))
+		for path in paths:
 			if not os.path.isdir(path):
 				continue
 			files = sorted([f for f in os.listdir(path) if f.endswith('.json')])

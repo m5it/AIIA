@@ -1,6 +1,16 @@
 import os, json
 from config import Options
 
+def _find_tip_dirs(base, title):
+	"""Recursively find all directories named title under the tip base."""
+	found = []
+	if not os.path.isdir(base):
+		return found
+	for root, dirs, files in os.walk(base):
+		if os.path.basename(root) == title:
+			found.append(root)
+	return found
+
 class GetTip():
 	def __init__(self):
 		self.info = {
@@ -22,15 +32,13 @@ class GetTip():
 			return "Error: <title> is required and cannot be empty." + self._usage()
 		base = Options.get('TIPS_PATH', os.path.expanduser('~/.config/aiia/tips'))
 		combined = []
-		for s in ['user', 'model']:
-			path = os.path.join(base, s, title)
-			if os.path.isdir(path):
-				for f in sorted(os.listdir(path)):
-					if f.endswith('.json'):
-						try:
-							with open(os.path.join(path, f)) as fp:
-								combined.append(json.load(fp))
-						except: pass
+		for path in _find_tip_dirs(base, title):
+			for f in sorted(os.listdir(path)):
+				if f.endswith('.json'):
+					try:
+						with open(os.path.join(path, f)) as fp:
+							combined.append(json.load(fp))
+					except: pass
 		if not combined:
 			return "No tips found for title '{}'".format(title)
 		lines = []

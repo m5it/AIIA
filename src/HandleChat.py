@@ -283,15 +283,33 @@ class HandleChat():
 	#
 
 	def _get_tip_summary(self):
+		"""Build a short tip-availability notice for the model. Session-cleared
+		tips are project-scoped; tips from other projects are hidden."""
 		try:
 			tips = self.hTM.list()
 			if not tips:
 				return ""
+			project_key = getattr(self, '_project_tip_key', lambda: None)()
+			persona = (self.Options.get('INSTRUCT_CLASS', '') or '').lower()
+			active_instruct = 'instruct_{}'.format(persona) if persona else None
 			parts = []
 			for key, info in sorted(tips.items()):
 				if key.startswith('_cache/'):
 					continue
-				parts.append("{} ({} entr{})".format(info['title'], info['count'], 'ies' if info['count'] != 1 else 'y'))
+				title = info.get('title', '')
+				source = info.get('source', '')
+				# Hide session-cleared tips from other projects.
+				if title.startswith('session_') and title.endswith('_cleared'):
+					own_prefix = 'model/p_{}'.format(project_key) if project_key else None
+					is_own = (source == own_prefix or source.startswith(own_prefix + '/')) if own_prefix else False
+					is_global = (source == 'model') and not project_key
+					if not (is_own or is_global):
+						continue
+				# Hide instruct tips from other personas (or all of them if the
+				# active persona is not known).
+				if title.startswith('instruct_') and title != active_instruct:
+					continue
+				parts.append("{} ({} entr{})".format(title, info['count'], 'ies' if info['count'] != 1 else 'y'))
 			if not parts:
 				return ""
 			return "[Tips: {} — use <GetTip> to retrieve, <ReinsertTip> to bring into context]".format(', '.join(parts))

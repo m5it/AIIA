@@ -284,19 +284,37 @@ class Handle(HandleStream, HandleParse, HandleContext, HandleState, HandleChat):
 
 	#
 
+	def _project_tip_key(self):
+		"""Return a stable short key for the current project/working_dir, or None
+		when running in the framework directory with no project."""
+		wd = self.Options.get('working_dir')
+		if not wd:
+			return None
+		import hashlib
+		return hashlib.md5(wd.encode('utf-8')).hexdigest()[:12]
+
+	#
+
 	def _save_clear_tip(self, archive_name, msg_count):
-		"""Save a tip recording that the session was cleared, with archive info."""
+		"""Save a tip recording that the session was cleared, with archive info.
+		Session-cleared tips are project-scoped so they don't clutter other
+		projects' model contexts."""
 		try:
 			sid = self.Options['AI_SESS_ID']
+			project_key = self._project_tip_key()
+			source = 'model'
+			if project_key:
+				source = 'model/p_{}'.format(project_key)
 			summary = ("Session {} was cleared to free context. "
 				"{} messages archived to {}. "
 				"Use <GetTip title='session_{}_cleared'> to retrieve this note.".format(
 					sid, msg_count, archive_name, sid))
-			self.hTM.save("session_{}_cleared".format(sid), "model", [
+			self.hTM.save("session_{}_cleared".format(sid), source, [
 				{'role': 'system', 'content': "[Session {} archive: {} — {} messages]".format(
 					sid, archive_name, msg_count)}
 			])
-			self.hLG.echo("Saved clear tip: session_{}_cleared".format(sid),
+			self.hLG.echo("Saved clear tip: session_{}_cleared (project: {})".format(
+				sid, project_key or 'none'),
 				{'color': True, 'colorValue': 'cyan'})
 		except Exception as e:
 			self.hLG.echo("Failed to save clear tip: {}".format(e),

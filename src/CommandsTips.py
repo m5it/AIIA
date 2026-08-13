@@ -1,4 +1,5 @@
 #--
+import os
 # class CommandsTips — tip-management commands
 class CommandsTips():
 	#
@@ -117,6 +118,27 @@ class CommandsTips():
 		source = a[1].strip().lower() if len(a) > 1 and a[1].strip().lower() in ('user','model') else None
 		removed = self.handle.hTM.delete_all(source)
 		self.handle.hLG.echo("Deleted {} tip title(s)".format(removed),{'color':True,'colorValue':'orange'})
+		return 2
+	#
+	def CMD_TIP_CLEAN(self, inp=""):
+		"""!TIP_CLEAN [pattern] — delete tip titles matching a glob pattern.
+		Default pattern is 'session_*_cleared', which removes stale top-level
+		session-cleared tips that predate project-scoped session storage."""
+		import fnmatch
+		a = inp.split()
+		pattern = a[1] if len(a) > 1 else 'session_*_cleared'
+		removed = 0
+		for s in ['user', 'model']:
+			path = self.handle.hTM._path(s)
+			if not os.path.isdir(path):
+				continue
+			for title in os.listdir(path):
+				if not os.path.isdir(os.path.join(path, title)):
+					continue
+				if fnmatch.fnmatch(title, pattern):
+					removed += self.handle.hTM.delete(title, s)
+		self.handle.hLG.echo("Deleted {} tip title(s) matching '{}'".format(removed, pattern),
+			{'color': True, 'colorValue': 'orange'})
 		return 2
 	#
 	def CMD_CACHE_CLEAR(self, inp=""):

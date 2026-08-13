@@ -1,6 +1,16 @@
 import os, shutil
 from config import Options
 
+def _find_tip_dirs(base, title):
+	"""Recursively find all directories named title under the tip base."""
+	found = []
+	if not os.path.isdir(base):
+		return found
+	for root, dirs, files in os.walk(base):
+		if os.path.basename(root) == title:
+			found.append(root)
+	return found
+
 class DeleteTip():
 	def __init__(self):
 		self.info = {
@@ -22,11 +32,9 @@ class DeleteTip():
 			return "Error: <title> is required and cannot be empty." + self._usage()
 		base = Options.get('TIPS_PATH', os.path.expanduser('~/.config/aiia/tips'))
 		removed = 0
-		for s in ['user', 'model']:
-			path = os.path.join(base, s, title)
-			if os.path.isdir(path):
-				shutil.rmtree(path)
-				removed += 1
+		for path in _find_tip_dirs(base, title):
+			shutil.rmtree(path)
+			removed += 1
 		if removed:
 			return "Deleted tip '{}'".format(title)
 		return "No tip titled '{}' found.".format(title)

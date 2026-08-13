@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-13 — v1.1.55
+
+### Auto: Version v1.1.55
+
+- Version auto-incremented from v1.1.54
+- Files changed: AGENTS.md, src/CommandsTips.py, src/Handle.py, src/HandleChat.py, src/TipManager.py, tests/test_tip_project_scope.py, tools/tool_DeleteTip.py, tools/tool_GetTip.py, tools/tool_ListTips.py
+
+---
+
+
 ## 2026-08-13 — v1.1.54
 
 ### Auto: Version v1.1.54
