@@ -152,6 +152,47 @@ class CommandsSession():
 			PlanSaver.rebuild_history(proj_history, msgs)
 		return 2
 	#
+	def CMD_MOVE_HISTORY(self, inp=""):
+		"""!MH <from_row> <to_row> — move a chat history row to a new position.
+		Row numbers are 0-indexed and match the output of !PH / !SH."""
+		from src.PlanSaver import PlanSaver
+		a = inp.strip().split()
+		if len(a) != 3:
+			print("Usage: !MH <from_row> <to_row>")
+			return 2
+		try:
+			from_row = int(a[1])
+			to_row = int(a[2])
+		except ValueError:
+			print("Row numbers must be integers.")
+			return 2
+		msgs = self.handle.hHM.msgs
+		if from_row < 0 or from_row >= len(msgs) or to_row < 0 or to_row >= len(msgs):
+			print("Rows {}-{} out of range. History has {} rows (0-{}).".format(from_row, to_row, len(msgs), len(msgs) - 1))
+			return 2
+		if from_row == to_row:
+			print("Row {} is already at position {}.".format(from_row, to_row))
+			return 2
+		moved = msgs.pop(from_row)
+		msgs.insert(to_row, moved)
+		role = moved.get('role', '?')
+		content = (moved.get('content', '') or '')[:80]
+		print("Moved row {} to position {} [{}] {}".format(from_row, to_row, role, content))
+		# Rebuild main history file on disk
+		main_path = "{}/{}".format("{}/history".format(self.handle.Options.get('path', '')), self.handle.Options['AI_FILE_HISTORY'])
+		try:
+			os.remove(main_path)
+		except Exception:
+			pass
+		for m in msgs:
+			fwrite(main_path, "{}\n".format(json.dumps(m)), False)
+		# Rebuild project HISTORY.md
+		proj_dir = self.handle.Options.get('working_dir')
+		framework_dir = self.handle.Options.get('path', '').rstrip('/')
+		if proj_dir and proj_dir != framework_dir:
+			proj_history = os.path.join(proj_dir, 'HISTORY.md')
+			PlanSaver.rebuild_history(proj_history, msgs)
+		return 2
 	#
 	def CMD_SAVE_HISTORY(self, inp=""):
 		"""!SAVE_HISTORY [filename] — save current chat history as a reloadable

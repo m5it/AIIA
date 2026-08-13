@@ -180,6 +180,84 @@ def test_remove_range_rebuilds_history_file(tmp_path):
 	assert all(json.loads(l)['role'] == m['role'] for l, m in zip(lines, h.hHM.msgs))
 
 
+def test_move_history_registered():
+	c, _ = _make()
+	assert 'MOVE_HISTORY' in c.cmds
+	info = c.cmds['MOVE_HISTORY']
+	assert info['regex'] == r'^!MH\s+\d+\s+\d+$'
+	assert info['usage'] == '!MH <from_row> <to_row>'
+	assert info['func'] == c.CMD_MOVE_HISTORY
+
+
+def test_move_history_single_row(tmp_path):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_MOVE_HISTORY('!MH 3 1')
+	assert ret == 2
+	assert [m['role'] for m in h.hHM.msgs] == ['system', 'tool', 'user', 'assistant', 'user']
+
+
+def test_move_history_to_beginning(tmp_path):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_MOVE_HISTORY('!MH 4 0')
+	assert ret == 2
+	assert [m['role'] for m in h.hHM.msgs] == ['user', 'system', 'user', 'assistant', 'tool']
+
+
+def test_move_history_to_end(tmp_path):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_MOVE_HISTORY('!MH 0 4')
+	assert ret == 2
+	assert [m['role'] for m in h.hHM.msgs] == ['user', 'assistant', 'tool', 'user', 'system']
+
+
+def test_move_history_same_position(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_MOVE_HISTORY('!MH 2 2')
+	assert ret == 2
+	assert [m['role'] for m in h.hHM.msgs] == [m['role'] for m in _msgs()]
+	assert 'already at position' in capsys.readouterr().out
+
+
+def test_move_history_out_of_bounds(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_MOVE_HISTORY('!MH 0 99')
+	assert ret == 2
+	assert len(h.hHM.msgs) == 5
+	assert 'out of range' in capsys.readouterr().out
+
+
+def test_move_history_wrong_arg_count(tmp_path, capsys):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	ret = c.CMD_MOVE_HISTORY('!MH 1')
+	assert ret == 2
+	assert 'Usage' in capsys.readouterr().out
+	assert len(h.hHM.msgs) == 5
+
+
+def test_move_history_rebuilds_history_file(tmp_path):
+	from src.Commands import Commands
+	h = _make_handle(_msgs(), tmp_path)
+	c = Commands({'handle': h})
+	c.CMD_MOVE_HISTORY('!MH 3 1')
+	p = tmp_path / 'history' / 'test_sess.dbk'
+	assert p.exists()
+	lines = [l for l in p.read_text().strip().split('\n') if l]
+	assert len(lines) == 5
+	assert all(json.loads(l)['role'] == m['role'] for l, m in zip(lines, h.hHM.msgs))
+
+
 def test_save_history_registered():
 	c, _ = _make()
 	assert 'SAVE_HISTORY' in c.cmds

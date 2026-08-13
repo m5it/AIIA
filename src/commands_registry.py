@@ -67,6 +67,13 @@ def _session_commands(self):
 			"usage"      :"!RH <row_num> | !RH <from_row> <to_row>",
 			"func"       :self.CMD_REMOVE,
 		},
+		"MOVE_HISTORY":{
+			"name"       :"Move History Row",
+			"description":"Move a chat history row from one position to another (use !PH to see row numbers).",
+			"regex"      :r"^!MH\s+\d+\s+\d+$",
+			"usage"      :"!MH <from_row> <to_row>",
+			"func"       :self.CMD_MOVE_HISTORY,
+		},
 		"SAVE_HISTORY":{
 			"name"       :"Save History",
 			"description":"Save current chat history as a reloadable .dbk-style file in history/ and the framework root.",
