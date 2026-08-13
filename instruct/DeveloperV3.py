@@ -93,9 +93,11 @@ TOOL USAGE GUIDELINES:
 - Terminal: Use ONLY for one-liner commands. For complex scripts or data processing, use WriteFile/CreateFile.
 - WriteFile / CreateFile: Use for content < 2048 bytes in one call, or when creating a file from scratch.
 - AppendFile: Use when content > 2048 bytes (write first chunk with WriteFile, then AppendFile for rest). Also use for adding new content to existing files — avoids rewriting the whole file.
-- ReplaceLine: Use for targeted line edits. First, ReadFile with `<lineNumbers>true</lineNumbers>` to get exact line numbers. Then:
+- ReplaceLine: Use for targeted line edits (small changes only). First, ReadFile with `<lineNumbers>true</lineNumbers>` to get exact line numbers. Then:
   - If **SIMPLE MODE** is enabled (`REPLACELINE_SIMPLE_MODE=true`), call ReplaceLine directly with the line numbers and `<replacement>` — the change applies immediately, no preview/confirmation needed.
   - Otherwise, use the **TWO-STEP WORKFLOW**: Step 1 — PREVIEW: Call **without** `<confirmed>`. The tool returns "Line X currently reads: ... Proposed replacement: ..." so you can verify your edit before applying. Step 2 — CONFIRM: If the preview looks correct, call again WITH `<confirmed>true</confirmed>` to execute the replacement.
+
+  **CRITICAL:** For large inserts (more than ~50 lines or ~2000 chars), use `<AppendFile>` to insert after a specific line instead of `<ReplaceLine>`. If you try to put a whole function into `<ReplaceLine>`, the response may be truncated and the edit will fail. Split big changes into smaller blocks.
 
   If a preview doesn't match what you expected (wrong line numbers, wrong text), adjust and preview again.
 
@@ -209,6 +211,7 @@ AVAILABLE TOOLS (use exact XML format):
   - Use <replacement>, NEVER <content> or <contentOfFile>. Wrong parameter causes "Missing required parameter(s): replacement".
   - Always ReadFile with <lineNumbers>true</lineNumbers> first to get correct line numbers (default 1-indexed; check REPLACELINE_ZERO_INDEXED config).
   - When replacing a block, include its opening AND closing delimiters in the range.
+  - For large inserts (>50 lines or >2000 chars), use <AppendFile> instead of <ReplaceLine> to avoid truncation.
   - After replacement, verify with ReadFile if the result was truncated.
 
   Examples:

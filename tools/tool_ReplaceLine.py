@@ -320,6 +320,20 @@ class ReplaceLine():
 			return "Error: toLine {} exceeds file length ({} lines, max {} {}).".format(tl, total, max_line, idx_label)
 		#
 		confirmed_val = (confirmed or '').strip().lower()
+		# Validate replacement content. Empty or whitespace-only replacements often
+		# mean the model's response was truncated before the content was written.
+		if replacement is None or replacement.strip() == '':
+			return ("Error: <replacement> content is empty. "
+				"This usually happens when the response is truncated before the content was written. "
+				"For large inserts, use <AppendFile> to insert after a specific line, or split the change into smaller <ReplaceLine> calls.")
+		# Large replacement warning: if the replacement is big, the model may hit
+		# its output token limit. Warn but still apply so the model can act.
+		large_replacement_warn = ""
+		if len(replacement) > 2000 or replacement.count('\n') > 50:
+			large_replacement_warn = (
+				"⚠ Large replacement ({} chars, {} lines). Risk of output truncation. "
+				"Consider using <AppendFile> to insert after line {}, or split into smaller <ReplaceLine> calls.\n\n".format(
+					len(replacement), replacement.count('\n'), fl - 1))
 		# Simple mode bypasses the two-phase preview/confirm/finalize flow entirely.
 		arr_fl = self._to_array_index(fl)
 		arr_tl = self._to_array_index(tl)
@@ -335,7 +349,7 @@ class ReplaceLine():
 				repl_lines = repl_lines[:-1]
 			repl_lines = [l + '\n' for l in repl_lines]
 			new_lines = lines[:arr_fl] + repl_lines + lines[arr_tl + 1:]
-			return self._apply_simple(fileName, full_path, lines, new_lines, arr_fl, arr_tl, repl_lines)
+			return large_replacement_warn + self._apply_simple(fileName, full_path, lines, new_lines, arr_fl, arr_tl, repl_lines)
 		#
 		if confirmed_val in ('finalize', 'revert'):
 			return self._handle_confirm(confirmed_val, fileName, full_path)
@@ -372,13 +386,13 @@ class ReplaceLine():
 			# No matching preview OR file unchanged — preview + execute in one pass
 			self._preview_key = None
 			self._saved_hash = None
-			preview_text = self._preview(fileName, fl, tl, replacement, old_text, preview_diff, indent_warn)
+			preview_text = large_replacement_warn + self._preview(fileName, fl, tl, replacement, old_text, preview_diff, indent_warn)
 		else:
 			# First call (or non-matching) — store preview token
 			self._preview_key = current_key
 			self._saved_hash = self._compute_hash(full_path)
 			self._echo_user("ReplaceLine preview diff for '{}':\n{}".format(fileName, preview_echo))
-			return self._preview(fileName, fl, tl, replacement, old_text, preview_diff, indent_warn)
+			return large_replacement_warn + self._preview(fileName, fl, tl, replacement, old_text, preview_diff, indent_warn)
 
 		# --- Execute the replacement ---
 		new_lines = sim_new_lines
@@ -420,7 +434,7 @@ class ReplaceLine():
 		if indent_warn:
 			diff += "\n" + indent_warn
 		self._echo_user("ReplaceLine verification diff for '{}':\n{}".format(fileName, diff))
-		return ("{}\n\n--- VERIFICATION DIFF (old vs new, ±{} context) ---\n"
+		return large_replacement_warn + ("{}\n\n--- VERIFICATION DIFF (old vs new, ±{} context) ---\n"
 			"{}\n\nBackup: {}\n"
 			"If the diff is correct, call ReplaceLine again with <confirmed>finalize</confirmed> to accept it. "
 			"If it is wrong, call with <confirmed>revert</confirmed> to restore the original file from backup.").format(

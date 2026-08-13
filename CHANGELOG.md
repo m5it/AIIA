@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-13 — v1.1.52
+
+### Auto: Version v1.1.52
+
+- Version auto-incremented from v1.1.51
+- Files changed: instruct/Developer.py, instruct/DeveloperV2.py, instruct/DeveloperV3.py, src/ToolExecutor.py, tests/test_replaceline_tool.py, tools/tool_ReplaceLine.py
+
+---
+
+
 ## 2026-08-13 — v1.1.51
 
 ### Auto: Version v1.1.51

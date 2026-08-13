@@ -432,12 +432,16 @@ class ToolExecutor():
 
 	def _fire_truncation_warning(self, toolName, params, result):
 		# Truncation detection — warn model if response hit num_predict limit
-		if toolName in ('WriteFile', 'CreateFile', 'AppendFile'):
+		if toolName in ('WriteFile', 'CreateFile', 'AppendFile', 'ReplaceLine'):
 			response_tokens = self.handle.Options.get('NUM_LAST_RESPONSE_TOKENS', 0)
 			num_predict = self.handle.Options.get('NUM_PREDICT')
 			if num_predict and response_tokens and response_tokens >= num_predict - 200:
-				warn = ("⚠ TRUNCATION: File may be incomplete (model hit {} token limit). "
-					"Use <WriteFile> for first ~200 lines, then <AppendFile> for subsequent chunks.").format(num_predict)
+				if toolName == 'ReplaceLine':
+					warn = ("⚠ TRUNCATION: ReplaceLine replacement may be incomplete (model hit {} token limit). "
+						"For large inserts, use <AppendFile> to insert after a specific line, or split the change into smaller <ReplaceLine> calls.")
+				else:
+					warn = ("⚠ TRUNCATION: File may be incomplete (model hit {} token limit). "
+						"Use <WriteFile> for first ~200 lines, then <AppendFile> for subsequent chunks.")
 				result = warn + "\n" + str(result)
 				self.handle.Options['CHUNKED_WRITE_HINT'] = True
 		return result

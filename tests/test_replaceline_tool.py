@@ -222,13 +222,25 @@ def test_simple_mode_multiline_range(tmp_path):
 	_set_simple_mode(False)
 
 
-def test_simple_mode_returns_error_on_empty_file(tmp_path):
+def test_simple_mode_returns_error_on_empty_replacement(tmp_path):
 	path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
 	_set_simple_mode(True)
 	t = ReplaceLine()
 	res = t.run(fileName=str(path), fromLine=str(tool_line(1)),
 		toLine=str(tool_line(3)), replacement='')
-	assert 'empty file' in res
+	assert 'empty' in res.lower()
+	assert open(path).read() == 'a\nb\nc\n'
+	_set_simple_mode(False)
+
+
+def test_simple_mode_returns_error_on_emptying_file(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+	_set_simple_mode(True)
+	t = ReplaceLine()
+	# Replacement with only whitespace is caught by empty-content guard first.
+	res = t.run(fileName=str(path), fromLine=str(tool_line(1)),
+		toLine=str(tool_line(3)), replacement='\n')
+	assert 'empty' in res.lower()
 	assert open(path).read() == 'a\nb\nc\n'
 	_set_simple_mode(False)
 
@@ -246,3 +258,42 @@ def test_normal_mode_description_mentions_three_phase_flow(tmp_path):
 	t = ReplaceLine()
 	assert 'Three-phase flow' in t.info['description']
 	assert 'confirmed=finalize' in t.info['description']
+
+
+def test_empty_replacement_returns_error(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+	t = ReplaceLine()
+	res = t.run(fileName=str(path), fromLine=str(tool_line(2)), replacement='')
+	assert 'empty' in res.lower()
+	assert open(path).read() == 'a\nb\nc\n'
+
+
+def test_whitespace_replacement_returns_error(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+	t = ReplaceLine()
+	res = t.run(fileName=str(path), fromLine=str(tool_line(2)), replacement='   \n\t')
+	assert 'empty' in res.lower()
+	assert open(path).read() == 'a\nb\nc\n'
+
+
+def test_large_replacement_warns_in_simple_mode(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+	_set_simple_mode(True)
+	t = ReplaceLine()
+	big_replacement = '\n'.join('line {}'.format(i) for i in range(60))
+	res = t.run(fileName=str(path), fromLine=str(tool_line(2)), replacement=big_replacement)
+	assert 'Large replacement' in res or 'large replacement' in res.lower()
+	assert 'Replaced line' in res
+	assert 'Consider using <AppendFile>' in res
+	assert open(path).read() != 'a\nb\nc\n'
+	_set_simple_mode(False)
+
+
+def test_large_replacement_warns_in_preview(tmp_path):
+	path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+	t = ReplaceLine()
+	big_replacement = '\n'.join('line {}'.format(i) for i in range(60))
+	res = t.run(fileName=str(path), fromLine=str(tool_line(2)), replacement=big_replacement)
+	assert 'Large replacement' in res or 'large replacement' in res.lower()
+	assert 'PREVIEW DIFF' in res
+	assert open(path).read() == 'a\nb\nc\n'
