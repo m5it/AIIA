@@ -1,4 +1,5 @@
 import os, sys
+from config import Options
 from src.functions import fread
 
 class ReadFile():
@@ -31,14 +32,14 @@ class ReadFile():
 					},
 					"lineNumbers":{
 						"type":"string",
-						"default":"False",
-						"description":"(Optional) When true, prepend each line with its original 1-based line number. Useful before ReplaceLine."
+						"default":"from config (READFILE_LINENUMBERS)",
+						"description":"(Optional) When true, prepend each line with its original 1-based line number. Useful before ReplaceLine. If omitted, defaults to the READFILE_LINENUMBERS config option (true by default)."
 					},
 				},
 			},
 		}
 	#
-	def run(self, fileName, max_chars='50000', offset='0', lines=None, lineNumbers='False'):
+	def run(self, fileName, max_chars='50000', offset='0', lines=None, lineNumbers=None):
 		print("ReadFile.run() STARTING on name: {}".format(fileName))
 		try:
 			max_chars = int(max_chars)
@@ -75,7 +76,11 @@ class ReadFile():
 		total_len = len(full_data)
 
 		# Determine whether line numbers are requested
-		show_numbers = str(lineNumbers).lower() in ('true', '1', 'yes', 'on')
+		# Default follows the global config unless the tool call explicitly overrides it.
+		if lineNumbers is None:
+			show_numbers = bool(Options.get('READFILE_LINENUMBERS', True))
+		else:
+			show_numbers = str(lineNumbers).lower() in ('true', '1', 'yes', 'on')
 
 		# Original line number at the start of the returned chunk
 		start_line = 1

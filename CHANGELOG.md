@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-13 — v1.1.58
+
+### Auto: Version v1.1.58
+
+- Version auto-incremented from v1.1.57
+- Files changed: AGENTS.md, config.py, tests/test_core_modules.py, tests/test_readfile_tool.py, tools/tool_ReadFile.py
+
+---
+
+
 ## 2026-08-13 — v1.1.57
 
 ### Auto: Version v1.1.57

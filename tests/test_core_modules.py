@@ -813,7 +813,7 @@ def test_log_gray_color_emits_ansi():
 	assert buf.getvalue() == '\033[90m\033[0m'
 
 
-def test_readfile_line_numbers_default_off():
+def test_readfile_line_numbers_default_on():
 	import tempfile
 	from tools.tool_ReadFile import ReadFile
 	tf = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt')
@@ -821,18 +821,18 @@ def test_readfile_line_numbers_default_off():
 	tf.close()
 	rf = ReadFile()
 	out = rf.run(tf.name)
-	assert out == "line one\nline two\nline three\n"
+	assert out == "1: line one\n2: line two\n3: line three\n"
 
 
-def test_readfile_line_numbers_on():
+def test_readfile_line_numbers_explicit_false():
 	import tempfile
 	from tools.tool_ReadFile import ReadFile
 	tf = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt')
 	tf.write("line one\nline two\nline three\n")
 	tf.close()
 	rf = ReadFile()
-	out = rf.run(tf.name, lineNumbers='True')
-	assert out == "1: line one\n2: line two\n3: line three\n"
+	out = rf.run(tf.name, lineNumbers='False')
+	assert out == "line one\nline two\nline three\n"
 
 
 def test_readfile_line_numbers_with_lines():

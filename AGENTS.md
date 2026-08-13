@@ -169,7 +169,7 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 ```
 
 **Available tools (30 total):**
-- `ReadFile` — Read from `workin/` (params: `<fileName>`, `<offset>` optional, `<lines>` optional, `<max_chars>` optional, `<lineNumbers>` optional — when `true`, prepends original 1-based line numbers, useful before `ReplaceLine`/`AppendFile`)
+- `ReadFile` — Read from `workin/` (params: `<fileName>`, `<offset>` optional, `<lines>` optional, `<max_chars>` optional, `<lineNumbers>` optional — defaults to `READFILE_LINENUMBERS` config; when `true`, prepends original 1-based line numbers, useful before `ReplaceLine`/`AppendFile`)
 - `ReadPDF` — Extract text and metadata from PDF files (params: `<fileName>`, `<fromPage>` optional, `<toPage>` optional, `<limit>` optional)
 - `WriteFile` — Write to `workout/` (params: `<fileName>`, `<contentOfFile>`)
 - `AppendFile` — Append or insert in a file (params: `<fileName>`, `<contentOfFile>`, `<fromLineNumber>` optional — `0` = before first line, `N` = after line `N` using the 1-indexed line numbers from `ReadFile <lineNumbers>true</lineNumbers>`, `-1`/omitted = append at end)
@@ -205,6 +205,8 @@ The model invokes tools by writing XML blocks. Tools load dynamically when first
 **File buffer cache (long data):** When a plan is active, the write tools (`WriteFile`/`CreateFile`/`AppendFile`/`ReplaceLine`/`Sed`-inplace) cache the assembled content of each file they touch in memory (`handle.file_buffer_cache`, keyed by the fileName the model passed). After a context auto-clear or summarize, the cached buffers are re-appended into the injected system message (plan-gated) so the model can continue chunked writes on small-context models. Config: `TOOL_FILE_CACHE` (master toggle), `TOOL_FILE_CACHE_ON_PLAN`, `TOOL_FILE_CACHE_MAX_FILE` (skip larger files), `TOOL_FILE_CACHE_MAX_FILES` (eviction), `TOOL_FILE_CACHE_REINJECT` (reinject on clear), `TOOL_FILE_CACHE_REINJECT_MAX` (per-file cap), `TOOL_FILE_CACHE_REINJECT_TOTAL` (total cap; files beyond it become one-line manifest entries). Cache is cleared when the plan finishes (`jobDone`) or via `!CACHE CLEAR`; inspect with `!CACHE` / `!CACHE SHOW <file>`.
 
 **Transient tool results (small-context paging):** Read tools (`ReadFile`/`ReadPDF`/`Head`/`Tail`/`Grep`/`List`/`TreeView`/`Sort`/`Diff`/`WWW`/`WWWJS`/`ParsePage`) accept a `<transient>N</transient>` parameter. The tool result (and the assistant row that issued it) are auto-removed from history after N AI-loop iterations, so the model can page through large files in bounded chunks without re-filling the context window. Example: `<ReadFile><fileName>big.py</fileName><offset>0</offset><max_chars>2000</max_chars><transient>3</transient></ReadFile>`. Config: `TOOL_TRANSIENT_ENABLED`, `TOOL_TRANSIENT_MAX_STEPS` (clamp).
+
+**ReadFile line numbers:** `ReadFile` prepends 1-based line numbers by default when `<lineNumbers>` is omitted. The default is controlled by the `READFILE_LINENUMBERS` config option (`true` = line numbers, default). An explicit `<lineNumbers>true</lineNumbers>` or `<lineNumbers>false</lineNumbers>` in the tool call overrides the config.
 
 **Read-tool deduplication:** When a read tool returns byte-identical content to a previous tool result that is still in the current context, the duplicate is replaced with a reference to the existing row and a user reminder is injected so the model does not re-read the same data. Config: `TOOL_DEDUPLICATE_READS` (default `true`). Duplicate content is also flagged with `DUP` in the `!PH` history preview.
 

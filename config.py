@@ -153,6 +153,7 @@ Options         = {
 	# ReplaceLine indexing
 	"REPLACELINE_ZERO_INDEXED": False, # False=1-indexed (first line=1, default), True=0-indexed (first line=0)
 	"REPLACELINE_SIMPLE_MODE": True, # True=ReplaceLine applies directly without preview/confirm/finalize
+	"READFILE_LINENUMBERS"    : True, # True=ReadFile prepends 1-based line numbers by default; False=plain text
 	#
 	# Image injection limits
 	"MAX_INJECT_IMAGE_DIMENSION" :1024, # max pixel dimension when ReadImage injects into conversation (0=no limit)

@@ -1,6 +1,9 @@
 import os
 import tempfile
 
+import pytest
+
+from config import Options
 from tools.tool_ReadFile import ReadFile
 
 
@@ -57,3 +60,44 @@ def test_readfile_linenumbers_with_lines_limit(tmp_path):
     assert '2: l2' in res
     assert '3: l3' in res
     assert '4: l4' not in res
+
+
+def test_readfile_default_line_numbers_enabled(tmp_path, monkeypatch):
+    """With READFILE_LINENUMBERS=True (default), ReadFile returns numbered lines."""
+    monkeypatch.setitem(Options, 'READFILE_LINENUMBERS', True)
+    path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+    t = ReadFile()
+    res = t.run(str(path))
+    assert '1: a' in res
+    assert '2: b' in res
+    assert '3: c' in res
+
+
+def test_readfile_explicit_false_overrides_config(tmp_path, monkeypatch):
+    """lineNumbers='false' overrides a global True default."""
+    monkeypatch.setitem(Options, 'READFILE_LINENUMBERS', True)
+    path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+    t = ReadFile()
+    res = t.run(str(path), lineNumbers='false')
+    assert '1: a' not in res
+    assert res.startswith('a\n')
+
+
+def test_readfile_default_line_numbers_disabled(tmp_path, monkeypatch):
+    """With READFILE_LINENUMBERS=False, ReadFile returns plain text by default."""
+    monkeypatch.setitem(Options, 'READFILE_LINENUMBERS', False)
+    path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+    t = ReadFile()
+    res = t.run(str(path))
+    assert '1: a' not in res
+    assert res.startswith('a\n')
+
+
+def test_readfile_explicit_true_overrides_config(tmp_path, monkeypatch):
+    """lineNumbers='true' overrides a global False default."""
+    monkeypatch.setitem(Options, 'READFILE_LINENUMBERS', False)
+    path = _write(tmp_path / 'f.txt', 'a\nb\nc\n')
+    t = ReadFile()
+    res = t.run(str(path), lineNumbers='true')
+    assert '1: a' in res
+    assert '3: c' in res
