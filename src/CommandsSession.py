@@ -197,8 +197,8 @@ class CommandsSession():
 	def CMD_SAVE_HISTORY(self, inp=""):
 		"""!SAVE_HISTORY [filename] — save current chat history as a reloadable
 		.dbk-style file (one JSON msg per line, like history/*.dbk) in the
-		history/ folder and the framework root. Default filename uses the
-		session prefix so it appears in !AH / the history chooser."""
+		history/ folder. Default filename uses the session prefix so it appears
+		in !AH / the history chooser."""
 		msgs = self.handle.hHM.msgs
 		if not msgs:
 			print("No history to save.")
@@ -222,14 +222,11 @@ class CommandsSession():
 		active = self.handle.Options.get('AI_FILE_HISTORY', '')
 		if filename == active:
 			filename = "save_{}".format(filename)
-		# Write main copy into history/ dir
+		# Write copy into history/ dir
 		history_dir = "{}/history".format(self.handle.Options.get('path', '').rstrip('/'))
 		main_path = os.path.join(history_dir, filename)
 		self._write_history_lines(main_path, msgs)
-		# Second copy in the framework root
-		root_path = os.path.join(self.handle.Options.get('path', '').rstrip('/'), filename)
-		self._write_history_lines(root_path, msgs)
-		print("Saved history to {} and {}".format(main_path, root_path))
+		print("Saved history to {}".format(main_path))
 		return 2
 	#
 	@staticmethod

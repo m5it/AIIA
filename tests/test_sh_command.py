@@ -267,7 +267,7 @@ def test_save_history_registered():
 	assert info['func'] == c.CMD_SAVE_HISTORY
 
 
-def test_save_history_writes_both_copies(tmp_path):
+def test_save_history_writes_to_history_dir(tmp_path):
 	from src.Commands import Commands
 	from src.HistoryManager import HistoryManager
 	msgs = _msgs()
@@ -279,7 +279,7 @@ def test_save_history_writes_both_copies(tmp_path):
 	assert ret == 2
 	saves = [f for f in (tmp_path / 'history').iterdir() if '.save.' in f.name]
 	assert len(saves) == 1
-	assert (tmp_path / saves[0].name).exists()
+	assert not (tmp_path / saves[0].name).exists()
 	loaded = [json.loads(l) for l in saves[0].read_text().strip().split('\n') if l]
 	assert len(loaded) == len(msgs)
 	assert [m['role'] for m in loaded] == [m['role'] for m in msgs]
@@ -295,7 +295,7 @@ def test_save_history_custom_filename(tmp_path):
 	ret = c.CMD_SAVE_HISTORY('!SAVE_HISTORY myexport.md')
 	assert ret == 2
 	assert (tmp_path / 'history' / 'myexport.md').exists()
-	assert (tmp_path / 'myexport.md').exists()
+	assert not (tmp_path / 'myexport.md').exists()
 
 
 def test_save_history_does_not_clobber_active(tmp_path):
@@ -305,7 +305,7 @@ def test_save_history_does_not_clobber_active(tmp_path):
 	ret = c.CMD_SAVE_HISTORY('!SAVE_HISTORY test_sess.dbk')
 	assert ret == 2
 	assert (tmp_path / 'history' / 'save_test_sess.dbk').exists()
-	assert (tmp_path / 'save_test_sess.dbk').exists()
+	assert not (tmp_path / 'save_test_sess.dbk').exists()
 
 
 def test_save_history_no_history(tmp_path, capsys):
@@ -324,7 +324,7 @@ def test_save_history_bare_name_gets_dbk_extension(tmp_path):
 	ret = c.CMD_SAVE_HISTORY('!SAVE_HISTORY template1')
 	assert ret == 2
 	assert (tmp_path / 'history' / 'template1.dbk').exists()
-	assert (tmp_path / 'template1.dbk').exists()
+	assert not (tmp_path / 'template1.dbk').exists()
 	assert not (tmp_path / 'history' / 'template1').exists()
 
 

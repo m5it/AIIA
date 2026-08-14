@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-14 — v1.1.62
+
+### Auto: Version v1.1.62
+
+- Version auto-incremented from v1.1.61
+- Files changed: src/CommandsSession.py, tests/test_sh_command.py
+
+---
+
+
 ## 2026-08-13 — v1.1.61
 
 ### Auto: Version v1.1.61
