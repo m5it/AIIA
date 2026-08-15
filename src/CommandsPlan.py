@@ -40,6 +40,8 @@ class CommandsPlan():
 			self._plan_delete(plans_path)
 		elif action == 'DONE':
 			self._plan_done(plans_path, working_dir)
+		elif action == 'NEXT':
+			return self._plan_next(plans_path, working_dir)
 		else:
 			self._plan_usage()
 
@@ -153,13 +155,56 @@ class CommandsPlan():
 		else:
 			print("\nNo active plan to mark as done.")
 
+	def _plan_next(self, plans_path, working_dir):
+		from src.PlanManager import PlanBase
+		if PlanBase.draft is None:
+			print("No active plan.")
+			return 2
+		if self.handle.Options.get('MODE') != 'build':
+			print("Plan not started. Use !START_BUILD first.")
+			return 2
+		if not any(t.status == 'in_progress' for t in PlanBase.draft.tasks.values()):
+			print("No task in progress.")
+			return 2
+
+		# Let the model see the user triggered the command
+		self.handle.Response('user', {
+			'content': 'User called <nextTask>completed</nextTask>. Proceed to the next task.'
+		})
+
+		# Advance the plan via the existing tool handler
+		result_str = self.handle.hTP.HandlePlanTool('nextTask', {'status': 'completed'})
+		result_str = str(result_str) if result_str else ""
+
+		# Replicate the normal nextTask prompt injection from HandleParse
+		if result_str.startswith('NEXT_TASK|'):
+			parts = result_str[10:].split('|', 1)
+			if len(parts) == 2:
+				task_id, next_instruction = parts
+			else:
+				task_id, next_instruction = parts[0] if parts else "", ""
+			self.handle.Response('user', {
+				'content': "<nextTask>\n\nTask ID: {}\nStatus: in_progress\n\nYour task:\n{}".format(task_id, next_instruction)
+			})
+			print("Advanced to next task: {}".format(task_id))
+		elif result_str.startswith('ALL_COMPLETED:'):
+			print(result_str)
+		elif result_str.startswith('DONE_WITH_BLOCKED:'):
+			print(result_str)
+
+		if hasattr(self.handle, '_write_current_task'):
+			self.handle._write_current_task()
+
+		return 0
+
 	def _plan_usage(self):
-		print("\nUsage: !PLAN [PREVIEW|VIEW|TASKS|STATUS|LIST|CLEAR|DELETE|RESET|DONE]")
+		print("\nUsage: !PLAN [PREVIEW|VIEW|TASKS|STATUS|LIST|NEXT|CLEAR|DELETE|RESET|DONE]")
 		print("  PREVIEW  - Show plan overview (default)")
 		print("  VIEW     - Show all tasks with details")
 		print("  TASKS    - Same as VIEW")
 		print("  STATUS   - Show quick status")
 		print("  LIST     - Show all plans (active + completed)")
+		print("  NEXT     - Manually advance to the next task (like <nextTask>completed</nextTask>)")
 		print("  CLEAR    - Remove all tasks from current plan")
 		print("  DELETE   - Delete current plan entirely")
 		print("  RESET    - Same as DELETE")

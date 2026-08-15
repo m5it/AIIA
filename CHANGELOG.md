@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-15 — v1.1.63
+
+### Auto: Version v1.1.63
+
+- Version auto-incremented from v1.1.62
+- Files changed: src/CommandsPlan.py, src/commands_registry.py, tests/test_plan_task_ids.py
+
+---
+
+
 ## 2026-08-14 — v1.1.62
 
 ### Auto: Version v1.1.62

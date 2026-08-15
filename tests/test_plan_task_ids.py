@@ -202,3 +202,156 @@ def test_jobdone_updates_plan_md_to_completed(tmp_path):
 		after = f.read()
 	assert '## Status: completed' in after
 	PlanBase.draft = None
+
+
+def _make_plan_command(tmp_path, mode='build', htp_return='NEXT_TASK|t2|Task 2/2 - Task two instruction'):
+	from src.CommandsPlan import CommandsPlan
+
+	class StubHandle:
+		Options = {
+			'MODE': mode,
+			'plans_path': str(tmp_path / 'plans'),
+		}
+		responses = []
+		wct_called = False
+
+		@staticmethod
+		def Response(role, content):
+			StubHandle.responses.append((role, content))
+
+		@staticmethod
+		def _write_current_task():
+			StubHandle.wct_called = True
+
+	class StubTP:
+		def __init__(self, return_value):
+			self.return_value = return_value
+
+		def HandlePlanTool(self, name, params):
+			self.last_name = name
+			self.last_params = params
+			# When requested, actually advance the plan so tests verify state
+			if name == 'nextTask':
+				from src.PlanManager import PlanBase
+				if PlanBase.draft:
+					result = PlanBase.draft.nextTask(StubHandle, params.get('status', 'completed'))
+					if result.get('done'):
+						if result.get('blocked_count', 0):
+							return "DONE_WITH_BLOCKED:{}".format(result.get('message', 'Some tasks blocked'))
+						return "ALL_COMPLETED:Plan finished successfully"
+					return "NEXT_TASK|{}|{}".format(
+						result.get('current_task_id', ''),
+						result.get('next_task_instruction', ''))
+			return self.return_value
+
+	stub_handle = StubHandle()
+	stub_handle.hTP = StubTP(htp_return)
+	cmd = CommandsPlan()
+	cmd.handle = stub_handle
+	return cmd, stub_handle
+
+
+def test_plan_next_no_active_plan(tmp_path, capsys):
+	from src.PlanManager import PlanBase
+	PlanBase.draft = None
+
+	cmd, handle = _make_plan_command(tmp_path)
+	ret = cmd._plan_next(str(tmp_path / 'plans'), str(tmp_path))
+
+	assert ret == 2
+	assert 'No active plan' in capsys.readouterr().out
+	assert len(handle.responses) == 0
+
+
+def test_plan_next_in_plan_mode(tmp_path, capsys):
+	from src.PlanManager import PlanBase, Plan
+
+	PlanBase.draft = Plan('test_plan')
+	PlanBase.draft.createTask('Task one instruction', 'Task one')
+	cmd, handle = _make_plan_command(tmp_path, mode='plan')
+	ret = cmd._plan_next(str(tmp_path / 'plans'), str(tmp_path))
+
+	assert ret == 2
+	assert 'Use !START_BUILD first' in capsys.readouterr().out
+	assert len(handle.responses) == 0
+	PlanBase.draft = None
+
+
+def test_plan_next_no_task_in_progress(tmp_path, capsys):
+	from src.PlanManager import PlanBase, Plan
+
+	PlanBase.draft = Plan('test_plan')
+	PlanBase.draft.createTask('Task one instruction', 'Task one')
+	cmd, handle = _make_plan_command(tmp_path)
+	ret = cmd._plan_next(str(tmp_path / 'plans'), str(tmp_path))
+
+	assert ret == 2
+	assert 'No task in progress' in capsys.readouterr().out
+	assert len(handle.responses) == 0
+	PlanBase.draft = None
+
+
+def test_plan_next_advances_and_injects_prompt(tmp_path, capsys):
+	from src.PlanManager import PlanBase, Plan
+
+	PlanBase.draft = Plan('test_plan')
+	t1 = PlanBase.draft.createTask('Task one instruction', 'Task one')
+	t2 = PlanBase.draft.createTask('Task two instruction', 'Task two')
+	t1.status = 'in_progress'
+
+	cmd, handle = _make_plan_command(tmp_path, htp_return='NEXT_TASK|{}|Task 2/2 - Task two instruction'.format(t2.id))
+	ret = cmd._plan_next(str(tmp_path / 'plans'), str(tmp_path))
+
+	assert ret == 0
+	assert handle.wct_called
+
+	# First response: user message showing the model what the user did
+	assert handle.responses[0][0] == 'user'
+	assert 'User called <nextTask>completed</nextTask>' in handle.responses[0][1]['content']
+
+	# Second response: next task prompt
+	assert handle.responses[1][0] == 'user'
+	content = handle.responses[1][1]['content']
+	assert content.startswith('<nextTask>\n\n')
+	assert 'Task ID: {}'.format(t2.id) in content
+	assert 'Status: in_progress' in content
+	assert 'Task two instruction' in content
+
+	# Plan state updated
+	assert t1.status == 'completed'
+	assert t2.status == 'in_progress'
+	PlanBase.draft = None
+
+
+def test_plan_next_all_completed(tmp_path, capsys):
+	from src.PlanManager import PlanBase, Plan
+
+	PlanBase.draft = Plan('test_plan')
+	t1 = PlanBase.draft.createTask('Task one instruction', 'Task one')
+	t1.status = 'in_progress'
+
+	cmd, handle = _make_plan_command(tmp_path, htp_return='ALL_COMPLETED:Plan finished successfully')
+	ret = cmd._plan_next(str(tmp_path / 'plans'), str(tmp_path))
+
+	assert ret == 0
+	assert handle.responses[0][0] == 'user'
+	assert 'User called <nextTask>completed</nextTask>' in handle.responses[0][1]['content']
+	assert 'Plan finished successfully' in capsys.readouterr().out
+	PlanBase.draft = None
+
+
+def test_plan_cmd_next_parses_command(tmp_path, capsys):
+	from src.PlanManager import PlanBase, Plan
+
+	PlanBase.draft = Plan('test_plan')
+	t1 = PlanBase.draft.createTask('Task one instruction', 'Task one')
+	t2 = PlanBase.draft.createTask('Task two instruction', 'Task two')
+	t1.status = 'in_progress'
+
+	cmd, handle = _make_plan_command(tmp_path, htp_return='NEXT_TASK|{}|Task 2/2 - Task two instruction'.format(t2.id))
+	ret = cmd.CMD_PLAN('!PLAN NEXT')
+
+	assert ret == 0
+	assert handle.responses[1][0] == 'user'
+	assert 'Task two instruction' in handle.responses[1][1]['content']
+	PlanBase.draft = None

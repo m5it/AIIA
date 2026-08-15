@@ -357,9 +357,9 @@ def _plan_commands(self):
 	return {
 		"PLAN":{
 			"name"       :"Plan",
-			"description":"View or modify plan status. Use LIST to see all plans, CLEAR/DELETE/RESET to remove, DONE to finalize.",
+			"description":"View or modify plan status. Use NEXT to advance the current task, LIST to see all plans, CLEAR/DELETE/RESET to remove, DONE to finalize.",
 			"regex"      :r"^!PLAN(\s+[A-Za-z]+)?(\s+[\d\.]+)?$",
-			"usage"      :"!PLAN [PREVIEW|VIEW|TASKS|STATUS|LIST|CLEAR|DELETE|RESET|DONE]",
+			"usage"      :"!PLAN [PREVIEW|VIEW|TASKS|STATUS|LIST|NEXT|CLEAR|DELETE|RESET|DONE]",
 			"func"       :self.CMD_PLAN,
 		},
 		"START_BUILD":{
