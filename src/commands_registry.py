@@ -116,6 +116,27 @@ def _session_commands(self):
 			"usage"      :"!AH [search_term]",
 			"func"       :self.CMD_VIEW_HISTORY,
 		},
+		"EXPORT_HISTORY":{
+			"name"       :"Export History Row",
+			"description":"Export a specific chat history row (or row range) to a file — raw content only (no header, imported as user message).",
+			"regex"      :r"^!EH(\s+\S+.*)?$",
+			"usage"      :"!EH <row> [filename] | !EH <from> <to> [filename]",
+			"func"       :self.CMD_EXPORT_HISTORY,
+		},
+		"EXPORT_HISTORY_HEADER":{
+			"name"       :"Export History Row (with header)",
+			"description":"Export a specific chat history row (or row range) with markdown header and JSON metadata — importable via !IH.",
+			"regex"      :r"^!EHH(\s+\S+.*)?$",
+			"usage"      :"!EHH <row> [filename] | !EHH <from> <to> [filename]",
+			"func"       :self.CMD_EXPORT_HISTORY_HEADER,
+		},
+		"IMPORT_HISTORY":{
+			"name"       :"Import History Row",
+			"description":"Import messages from a file (exported via !EH/!EHH or raw .txt/.md) into chat history.",
+			"regex"      :r"^!(IH|IMPORT)(\s+\S+.*)?$",
+			"usage"      :"!IH <filename> [row] [--replace] | !IMPORT <filename> [row] [--replace]",
+			"func"       :self.CMD_IMPORT_HISTORY,
+		},
 		"UPDATE_HANDLE":{
 			"name"       :"Update Handle",
 			"description":"Reinit code of program. Used after program update so there is no need to stop the program.",

@@ -248,6 +248,360 @@ class CommandsSession():
 			fwrite(path, "{}\n".format(json.dumps(m)), False)
 	#
 	#
+	def _eh_parse_export_args(self, inp, cmd_tag):
+		"""Shared parser for !EH / !EHH — returns (from_row, to_row, filename) or (None, error_msg)."""
+		msgs = self.handle.hHM.msgs
+		tokens = inp.strip().split()
+		args = tokens[1:] if len(tokens) > 0 and tokens[0].upper() == cmd_tag else tokens
+		if not args:
+			return None, "Usage: !{} <row> [filename] | !{} <from> <to> [filename]".format(cmd_tag, cmd_tag)
+		row_nums = []
+		filename = None
+		for i, a in enumerate(args):
+			try:
+				row_nums.append(int(a))
+			except ValueError:
+				filename = ' '.join(args[i:]).strip()
+				if len(filename) >= 2 and filename[0] == filename[-1] and filename[0] in ('"', "'"):
+					filename = filename[1:-1]
+				break
+			if len(row_nums) == 2:
+				if i + 1 < len(args):
+					filename = ' '.join(args[i + 1:]).strip()
+					if len(filename) >= 2 and filename[0] == filename[-1] and filename[0] in ('"', "'"):
+						filename = filename[1:-1]
+				break
+		if not row_nums:
+			return None, "Row numbers must be integers (see !PH for row numbers)."
+		if len(row_nums) == 1:
+			from_row = to_row = row_nums[0]
+		else:
+			from_row, to_row = row_nums[0], row_nums[1]
+			if from_row > to_row:
+				from_row, to_row = to_row, from_row
+		if from_row < 0 or to_row >= len(msgs):
+			return None, "Rows {}-{} out of range. History has {} rows (0-{}).".format(from_row, to_row, len(msgs), len(msgs) - 1)
+		if not filename:
+			if from_row == to_row:
+				filename = "workout/export_{}.md".format(from_row)
+			else:
+				filename = "workout/export_{}-{}.md".format(from_row, to_row)
+		else:
+			if '/' not in filename and '\\' not in filename:
+				filename = "workout/{}".format(filename)
+		return (from_row, to_row, filename), None
+
+	def _eh_header_block(self, msg, row_idx):
+		"""Render one message as markdown with header and JSON comment (importable)."""
+		role = msg.get('role', 'unknown')
+		tool_name = msg.get('name', '')
+		ts = msg.get('timestamp', time.time())
+		try:
+			time_str = datetime.fromtimestamp(ts).strftime('%H:%M')
+		except Exception:
+			time_str = '??:??'
+		# Header
+		if tool_name:
+			header = "## [{}] {}: {} (row {})\n".format(time_str, role.upper(), tool_name, row_idx)
+		else:
+			header = "## [{}] {} (row {})\n".format(time_str, role.upper(), row_idx)
+		# Thinking block if present
+		body = ""
+		thinking = msg.get('thinking', '')
+		if thinking:
+			body += "> Thinking: {}\n>\n".format(thinking.replace('\n', '\n> '))
+		content = msg.get('content', '')
+		if content is None:
+			content = ''
+		if content:
+			body += content
+		else:
+			body += "(empty)"
+		body += "\n\n---\n\n"
+		# JSON comment for import (full fidelity, not truncated)
+		json_comment = "<!-- {} -->\n\n".format(json.dumps(msg, ensure_ascii=False))
+		return header + body + json_comment
+
+	def CMD_EXPORT_HISTORY(self, inp=""):
+		"""!EH <row> [filename] | !EH <from> <to> [filename] — export raw
+		content of a chat history row (or inclusive range) to a file. Bare
+		filenames are written to workout/; paths with directories are used
+		as-is (parent dirs auto-created). Default filename is
+		workout/export_<row>.md or workout/export_<from>-<to>.md."""
+		msgs = self.handle.hHM.msgs
+		if not msgs:
+			print("No history to export.")
+			return 2
+		parsed, err = self._eh_parse_export_args(inp, "!EH")
+		if err:
+			print(err)
+			if "Usage" not in err:
+				print("Usage: !EH <row> [filename] | !EH <from> <to> [filename]")
+			return 2
+		from_row, to_row, filename = parsed
+		parent = os.path.dirname(filename)
+		if parent:
+			try:
+				os.makedirs(parent, exist_ok=True)
+			except Exception as e:
+				print("Error creating directory '{}': {}".format(parent, e))
+				return 2
+		selected = msgs[from_row:to_row + 1]
+		parts = []
+		for m in selected:
+			c = m.get('content', '')
+			if c is None:
+				c = ''
+			parts.append(c)
+		content = '\n\n'.join(parts) if len(parts) > 1 else (parts[0] if parts else '')
+		if not content:
+			print("Warning: selected row(s) have empty content — writing empty file.")
+		try:
+			with open(filename, 'w', encoding='utf-8') as f:
+				f.write(content)
+		except Exception as e:
+			print("Error writing '{}': {}".format(filename, e))
+			return 2
+		if from_row == to_row:
+			role = selected[0].get('role', '?')
+			print("Exported row {} [{}] ({} chars) to {} [raw]".format(from_row, role, len(content), filename))
+		else:
+			print("Exported rows {}-{} ({} rows, {} chars) to {} [raw]".format(from_row, to_row, len(selected), len(content), filename))
+		return 2
+
+	def CMD_EXPORT_HISTORY_HEADER(self, inp=""):
+		"""!EHH <row> [filename] | !EHH <from> <to> [filename] — export with
+		markdown header and JSON metadata (importable via !IH). Same path rules
+		as !EH. For ranges, each row gets its own header block."""
+		msgs = self.handle.hHM.msgs
+		if not msgs:
+			print("No history to export.")
+			return 2
+		parsed, err = self._eh_parse_export_args(inp, "!EHH")
+		if err:
+			print(err)
+			if "Usage" not in err:
+				print("Usage: !EHH <row> [filename] | !EHH <from> <to> [filename]")
+			return 2
+		from_row, to_row, filename = parsed
+		parent = os.path.dirname(filename)
+		if parent:
+			try:
+				os.makedirs(parent, exist_ok=True)
+			except Exception as e:
+				print("Error creating directory '{}': {}".format(parent, e))
+				return 2
+		selected = msgs[from_row:to_row + 1]
+		blocks = []
+		for idx in range(from_row, to_row + 1):
+			blocks.append(self._eh_header_block(msgs[idx], idx))
+		content = "".join(blocks)
+		try:
+			with open(filename, 'w', encoding='utf-8') as f:
+				f.write(content)
+		except Exception as e:
+			print("Error writing '{}': {}".format(filename, e))
+			return 2
+		if from_row == to_row:
+			role = selected[0].get('role', '?')
+			print("Exported row {} [{}] ({} chars) to {} [with header]".format(from_row, role, len(content), filename))
+		else:
+			print("Exported rows {}-{} ({} rows, {} chars) to {} [with header]".format(from_row, to_row, len(selected), len(content), filename))
+		return 2
+
+	def _ih_resolve_path(self, filename):
+		"""Resolve import filename: bare name tries workout/ first, then as-is, then workin/."""
+		if not filename:
+			return None
+		# Absolute or with dir component — use as-is
+		if '/' in filename or '\\' in filename or os.path.isabs(filename):
+			if os.path.exists(filename):
+				return filename
+			# Also try relative to CWD even if not exists yet (for error message)
+			return filename
+		# Bare name: try workout/, then as-is, then workin/
+		for cand in ["workout/{}".format(filename), filename, "workin/{}".format(filename)]:
+			if os.path.exists(cand):
+				return cand
+		return "workout/{}".format(filename)
+
+	def _ih_parse_file(self, filepath):
+		"""Parse import file into list of message dicts. Tries HTML-comment JSON, then JSON-lines, then raw."""
+		import re
+		try:
+			with open(filepath, 'r', encoding='utf-8') as f:
+				raw = f.read()
+		except Exception as e:
+			return None, "Cannot read '{}': {}".format(filepath, e)
+		if not raw or not raw.strip():
+			return None, "File '{}' is empty.".format(filepath)
+		# 1) HTML comment JSON blocks: <!-- {...} -->
+		comment_pat = re.compile(r'<!--\s*(\{.*?\})\s*-->', re.DOTALL)
+		matches = comment_pat.findall(raw)
+		if matches:
+			msgs = []
+			for jstr in matches:
+				try:
+					m = json.loads(jstr)
+					if isinstance(m, dict) and m.get('role'):
+						msgs.append(m)
+				except Exception:
+					continue
+			if msgs:
+				return msgs, None
+		# 2) JSON-lines: each non-empty line is a JSON object with role
+		lines = [l.strip() for l in raw.splitlines() if l.strip()]
+		json_lines = []
+		for l in lines:
+			if l.startswith('{'):
+				try:
+					m = json.loads(l)
+					if isinstance(m, dict) and m.get('role'):
+						json_lines.append(m)
+				except Exception:
+					break
+		if json_lines and len(json_lines) == len([l for l in lines if l.startswith('{')]):
+			# All JSON-looking lines parsed successfully — treat as JSON-lines file
+			if len(json_lines) == len(lines):
+				return json_lines, None
+			# Mixed content but at least some JSON lines — still use them if they cover all JSON lines
+			if json_lines:
+				return json_lines, None
+		# 3) Raw: single user message with entire file content
+		return [{'role': 'user', 'content': raw}], None
+
+	def CMD_IMPORT_HISTORY(self, inp=""):
+		"""!IH <filename> [row] [--replace] | !IMPORT <filename> [row] [--replace] — import
+		messages from a file. Bare filenames are looked up in workout/ first. Without
+		row, appends to end; with row N, inserts at position N. With --replace,
+		replaces row(s) starting at N instead of inserting."""
+		import shlex
+		msgs = self.handle.hHM.msgs
+		# Parse with shlex to handle quoted filenames
+		try:
+			tokens = shlex.split(inp.strip())
+		except ValueError:
+			tokens = inp.strip().split()
+		# tokens[0] is !IH / !IMPORT
+		if not tokens or len(tokens) == 1:
+			print("Usage: !IH <filename> [row] [--replace] | !IMPORT <filename> [row] [--replace]")
+			print("  filename  — file to import (bare name looks in workout/)")
+			print("  row       — optional position to insert at (see !PH); omit to append")
+			print("  --replace — replace row(s) at position instead of inserting")
+			return 2
+		args = tokens[1:]
+		# Extract flags
+		replace = False
+		clean = []
+		for a in args:
+			if a.lower() in ('--replace', '-r', '--overwrite'):
+				replace = True
+			else:
+				clean.append(a)
+		args = clean
+		if not args:
+			print("Usage: !IH <filename> [row] [--replace]")
+			return 2
+		filename = args[0]
+		row_pos = None
+		if len(args) >= 2:
+			try:
+				row_pos = int(args[1])
+			except ValueError:
+				print("Row must be an integer (see !PH). Got: {}".format(args[1]))
+				return 2
+			if len(args) > 2:
+				print("Usage: !IH <filename> [row] [--replace]")
+				return 2
+		elif len(args) > 2:
+			print("Usage: !IH <filename> [row] [--replace]")
+			return 2
+		# Resolve path
+		resolved = self._ih_resolve_path(filename)
+		if not resolved or not os.path.exists(resolved):
+			print("File not found: '{}' (tried workout/{} and ./{}).".format(filename, filename, filename))
+			return 2
+		# Parse file
+		imported, err = self._ih_parse_file(resolved)
+		if err:
+			print(err)
+			return 2
+		if not imported:
+			print("No messages found in '{}'.".format(resolved))
+			return 2
+		# Normalize imported messages: ensure required fields, assign current session id, fresh timestamps if missing
+		now = time.time()
+		date_str = str(datetime.now().date())
+		current_sid = self.handle.Options.get('AI_SESS_ID', 0)
+		for m in imported:
+			if not m.get('role'):
+				m['role'] = 'user'
+			if m.get('content') is None:
+				m['content'] = ''
+			if not m.get('timestamp'):
+				m['timestamp'] = now
+			if not m.get('date'):
+				m['date'] = date_str
+			if not m.get('sessionId'):
+				m['sessionId'] = current_sid
+			# rowId will be reassigned below
+		# Determine insertion
+		if row_pos is None:
+			# Append
+			insert_at = len(msgs)
+			msgs.extend(imported)
+			action = "appended"
+		else:
+			if row_pos < 0 or row_pos > len(msgs):
+				print("Row {} out of range. History has {} rows (0-{}). Use omit to append.".format(row_pos, len(msgs), len(msgs) - 1 if msgs else 0))
+				return 2
+			if replace:
+				# Replace N rows starting at row_pos (or as many as imported, clamped)
+				for i, m in enumerate(imported):
+					idx = row_pos + i
+					if idx < len(msgs):
+						msgs[idx] = m
+					else:
+						msgs.append(m)
+				insert_at = row_pos
+				action = "replaced {} row(s) at {}".format(len(imported), row_pos)
+			else:
+				# Insert
+				for i, m in enumerate(imported):
+					msgs.insert(row_pos + i, m)
+				insert_at = row_pos
+				action = "inserted at {}".format(row_pos)
+		# Renumber rowIds and update global counter
+		for i, m in enumerate(msgs):
+			m['rowId'] = i
+		self.handle.Options['AI_ROW_ID'] = len(msgs)
+		# Rewrite history files
+		from src.PlanSaver import PlanSaver
+		main_path = "{}/{}".format("{}/history".format(self.handle.Options.get('path', '')), self.handle.Options['AI_FILE_HISTORY'])
+		try:
+			os.remove(main_path)
+		except Exception:
+			pass
+		for m in msgs:
+			fwrite(main_path, "{}\n".format(json.dumps(m)), False)
+		proj_dir = self.handle.Options.get('working_dir')
+		framework_dir = self.handle.Options.get('path', '').rstrip('/')
+		if proj_dir and proj_dir != framework_dir:
+			proj_history = os.path.join(proj_dir, 'HISTORY.md')
+			PlanSaver.rebuild_history(proj_history, msgs)
+		# Report
+		if len(imported) == 1:
+			role = imported[0].get('role', '?')
+			print("Imported 1 message [{}] from {} — {} (now {} rows).".format(role, resolved, action, len(msgs)))
+		else:
+			roles = {}
+			for m in imported:
+				r = m.get('role', '?')
+				roles[r] = roles.get(r, 0) + 1
+			parts = ', '.join("{} {}".format(n, r) for r, n in sorted(roles.items()))
+			print("Imported {} messages ({}) from {} — {} (now {} rows).".format(len(imported), parts, resolved, action, len(msgs)))
+		return 2
+
 	def CMD_SUMMARIZE(self, inp=""):
 		"""!SUMMARIZE — summarize older chat history, keep the most recent rows
 		(controlled by SUMMARIZE_LEAVE), then warm the model back up via a single
