@@ -1,10 +1,10 @@
 # AIIA — AI Interactive Agent
 
-**Version 1.1.6** | Terminal-based AI agent powered by Ollama or any OpenAI-compatible server (e.g. vLLM), featuring dynamic XML tool invocation, plan/build mode system, secure command execution, HTTP SSE server for editor integration, persistent session management, and an opt-in aiia_work marketplace client.
+**Version 1.1.64** | Terminal-based AI agent powered by Ollama or any OpenAI-compatible server (e.g. vLLM), featuring dynamic XML tool invocation, plan/build mode system, secure command execution, HTTP SSE server for editor integration, persistent session management, and an opt-in aiia_work marketplace client.
 
 [![codecov](https://codecov.io/gh/m5it/OurAI/branch/main/graph/badge.svg)](https://codecov.io/gh/m5it/OurAI)
 
-> **Recent updates:** v1.1.6 — new `aiia_work` marketplace client (`python run.py --work` / `!WORK` commands), Ctrl+D "Stop AI" no longer disables plan auto-continue, and a round of Handle/Commands/backends refactors. See [CHANGELOG.md](CHANGELOG.md) for details.
+> **Recent updates:** v1.1.64 — history export/import (`!EH` raw → `workout/` timestamped, `!EHH` with header+JSON for `!IH`/`!IMPORT` round-trip) + important pinning (`!IM` `10 12,15 17-20` flexible, `!IMSTAT` status, `!IR` unpin — pinned rows survive `!SUMMARIZE`, ★ in `!PH`), plus v1.1.6 `aiia_work` marketplace client. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Features
 
@@ -31,7 +31,7 @@
 - **Tool Result Caching** — Tools with `cache_ttl` class attribute (e.g., listTools=600s, TreeView=300s) cache results to files; `!CACHE_CLEAR` to flush all caches; global TTL in config
 - **Terminal Improvements** — `rm`/`rmdir`/`ln`/`install` added to allowlist; `./` and `/` paths bypass allowlist for user scripts; argument-smash detection returns specific XML correction error
 - **Orchestra System** — Multi-agent task distribution: one director process dispatches tasks to any number of worker processes over TCP; each worker has its own model, persona, and tools; planning can be delegated to a designated worker
-- **Session Management** — `!CLEAR` to clear chat history (keep persona), `!RH <row>` or `!RH <from> <to>` to remove rows, `!SUMMARIZE` to clear and warm the model back up on tools/tips while preserving the active plan, `!SAVE_HISTORY [file]` to export history, `!NEW SESSION` for a full reset
+- **Session Management** — `!CLEAR` to clear chat history (keep persona), `!PH`/`!SH`/`!AH` to preview/search/list history, `!RH <row>` / `!RH <from> <to>` to remove rows, `!EH <row> [file]` raw export and `!EHH <row> [file]` header export (timestamped `workout/export_<row>_<YYYYMMDD_HHMMSS>.md` to avoid overwrite, importable via `!IH`/`!IMPORT [row] [--replace]`), `!IM 10 12,15 17-20` pin important rows + `!IMSTAT` status + `!IR [rows|--all]` unpin (★ in `!PH`, pinned survive `!SUMMARIZE`), `!SUMMARIZE` to clear and warm the model back up on tools/tips while preserving the active plan, `!SAVE_HISTORY [file]` to export full history, `!NEW SESSION` for a full reset
 - **Factory Reset** — `-R` flag resets all state (history, plans, session ID, tips, cookies) to factory defaults with confirmation prompt
 
 ---

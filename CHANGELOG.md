@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-05 — v1.1.64
+
+### Added: History export/import with timestamp + important pinning
+
+- **`!EH` / `!EHH`**: raw vs header export, default filenames now timestamped `workout/export_<row>_<YYYYMMDD_HHMMSS>.md` to avoid overwrite (`src/CommandsSession.py:_eh_default_filename`)
+- **`!IH` / `!IMPORT`**: import from `workout/` with HTML-comment JSON → JSON-lines → raw fallback, `insert` / `--replace` at position
+- **`!IM` / `!IMSTAT` / `!IR`**: pin important rows with flexible spec `10 12,15 17-20,23` (`_im_parse_rows` handles spaces/commas/ranges), `important:true` per-message flag, ★ marker in `!PH` (`_ph_format_row`/`_ph_row_view`), `!IMSTAT` status view, `!IR --all` unpin; pinned rows never dropped by `!SUMMARIZE` (`HandleContext._collect_drop_indices`)
+- **Fix**: range parser regex `\\s` double-escape caused `17..20` to be ignored
+
+**Files:** `src/CommandsSession.py`, `src/HandleContext.py`, `src/commands_registry.py`, `README.md`
+
+---
+
 ## 2026-08-15 — v1.1.63
 
 ### Auto: Version v1.1.63

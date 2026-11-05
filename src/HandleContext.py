@@ -237,6 +237,9 @@ class HandleContext():
 		When SUMMARIZE_LEAVE=N > 0: keep exactly the last N rows of history
 		regardless of role, and summarize everything before them.
 
+		Pinned rows (important:true via !IM) are never dropped — they survive
+		summarize even when outside the keep window.
+
 		Returns (msgs, idx) where idx is the sorted list of indices to summarize away."""
 		msgs = [m for m in msgs if isinstance(m, dict) and m.get('role')]
 		leave = int(getattr(self, 'Options', {}).get('SUMMARIZE_LEAVE', 0))
@@ -254,6 +257,10 @@ class HandleContext():
 					keep.add(i)
 					if role == 'user':
 						exchange_count += 1
+		# Never drop pinned/important rows
+		for i, m in enumerate(msgs):
+			if m.get('important'):
+				keep.add(i)
 		idx = sorted(i for i in range(len(msgs)) if i not in keep)
 		return msgs, idx
 

@@ -137,6 +137,27 @@ def _session_commands(self):
 			"usage"      :"!IH <filename> [row] [--replace] | !IMPORT <filename> [row] [--replace]",
 			"func"       :self.CMD_IMPORT_HISTORY,
 		},
+		"IMPORTANT_MARK":{
+			"name"       :"Mark Important Rows",
+			"description":"Pin rows so !SUMMARIZE never removes them (per-message flag, ★ in !PH).",
+			"regex"      :r"^!IM(\s+.*)?$",
+			"usage"      :"!IM [rows] | !IM --clear [rows]  (rows: 10 12,15 17-20 — flexible)",
+			"func"       :self.CMD_IMPORTANT,
+		},
+		"IMPORTANT_STAT":{
+			"name"       :"Important Rows Status",
+			"description":"Show which rows are pinned as important (★) and per-role counts.",
+			"regex"      :r"^!IMSTAT$",
+			"usage"      :"!IMSTAT",
+			"func"       :self.CMD_IMSTAT,
+		},
+		"IMPORTANT_REMOVE":{
+			"name"       :"Unpin Important Rows",
+			"description":"Remove important flag from rows (shortcut for !IM --clear).",
+			"regex"      :r"^!IR(\s+.*)?$",
+			"usage"      :"!IR [rows] | !IR --all",
+			"func"       :self.CMD_IR,
+		},
 		"UPDATE_HANDLE":{
 			"name"       :"Update Handle",
 			"description":"Reinit code of program. Used after program update so there is no need to stop the program.",

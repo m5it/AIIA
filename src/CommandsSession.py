@@ -248,6 +248,15 @@ class CommandsSession():
 			fwrite(path, "{}\n".format(json.dumps(m)), False)
 	#
 	#
+	def _eh_default_filename(self, from_row, to_row, ext=".md"):
+		"""Build a unique default export filename with timestamp so repeated exports don't overwrite."""
+		ts = time.strftime("%Y%m%d_%H%M%S")
+		if from_row == to_row:
+			base = "export_{}_{}".format(from_row, ts)
+		else:
+			base = "export_{}-{}_{}".format(from_row, to_row, ts)
+		return "workout/{}{}".format(base, ext)
+
 	def _eh_parse_export_args(self, inp, cmd_tag):
 		"""Shared parser for !EH / !EHH — returns (from_row, to_row, filename) or (None, error_msg)."""
 		msgs = self.handle.hHM.msgs
@@ -282,11 +291,11 @@ class CommandsSession():
 		if from_row < 0 or to_row >= len(msgs):
 			return None, "Rows {}-{} out of range. History has {} rows (0-{}).".format(from_row, to_row, len(msgs), len(msgs) - 1)
 		if not filename:
-			if from_row == to_row:
-				filename = "workout/export_{}.md".format(from_row)
-			else:
-				filename = "workout/export_{}-{}.md".format(from_row, to_row)
+			filename = self._eh_default_filename(from_row, to_row, ".md")
 		else:
+			# If user gave bare name with no extension, append .md
+			if '/' not in filename and '\\' not in filename and os.path.splitext(filename)[1] == '':
+				filename = "{}.md".format(filename)
 			if '/' not in filename and '\\' not in filename:
 				filename = "workout/{}".format(filename)
 		return (from_row, to_row, filename), None
@@ -326,8 +335,9 @@ class CommandsSession():
 		"""!EH <row> [filename] | !EH <from> <to> [filename] — export raw
 		content of a chat history row (or inclusive range) to a file. Bare
 		filenames are written to workout/; paths with directories are used
-		as-is (parent dirs auto-created). Default filename is
-		workout/export_<row>.md or workout/export_<from>-<to>.md."""
+		as-is (parent dirs auto-created). Default filename now includes a
+		timestamp so repeated exports don't collide:
+		workout/export_<row>_<YYYYMMDD_HHMMSS>.md."""
 		msgs = self.handle.hHM.msgs
 		if not msgs:
 			print("No history to export.")
@@ -372,7 +382,7 @@ class CommandsSession():
 	def CMD_EXPORT_HISTORY_HEADER(self, inp=""):
 		"""!EHH <row> [filename] | !EHH <from> <to> [filename] — export with
 		markdown header and JSON metadata (importable via !IH). Same path rules
-		as !EH. For ranges, each row gets its own header block."""
+		as !EH; default filename also includes a timestamp to avoid overwrites."""
 		msgs = self.handle.hHM.msgs
 		if not msgs:
 			print("No history to export.")
@@ -602,6 +612,198 @@ class CommandsSession():
 			print("Imported {} messages ({}) from {} — {} (now {} rows).".format(len(imported), parts, resolved, action, len(msgs)))
 		return 2
 
+	def _im_parse_rows(self, spec, max_len):
+		"""Parse flexible row spec like '10 12,15 17-20,23' into sorted unique indices.
+		Supports spaces, commas, and ranges with -, .., : . Returns (rows, bad_tokens)."""
+		import re
+		if not spec or not spec.strip():
+			return [], []
+		# Normalize: replace commas with spaces, then split
+		# Keep ranges like 17-20 intact
+		tmp = spec.replace(',', ' ')
+		parts = [p.strip() for p in tmp.split() if p.strip()]
+		rows = set()
+		bad = []
+		for p in parts:
+			# Range patterns: 10-12, 10..12, 10:12
+			m = re.match(r'^(\d+)\s*(?:-|\.\.|:)\s*(\d+)$', p)
+			if m:
+				try:
+					a = int(m.group(1)); b = int(m.group(2))
+					if a > b:
+						a, b = b, a
+					for x in range(a, b+1):
+						if 0 <= x < max_len:
+							rows.add(x)
+						else:
+							# collect out-of-range as bad for warning
+							bad.append(str(x))
+					continue
+				except ValueError:
+					bad.append(p)
+					continue
+			# Single number
+			try:
+				v = int(p)
+				if 0 <= v < max_len:
+					rows.add(v)
+				else:
+					bad.append(p)
+			except ValueError:
+				bad.append(p)
+		return sorted(rows), bad
+
+	def CMD_IMPORTANT(self, inp=""):
+		"""!IM [rows] | !IM --clear [rows] — pin/unpin rows so summarize keeps them.
+		Rows spec is flexible: spaces, commas, and ranges (e.g. !IM 10 12,15 17-20,23).
+		No args lists current pins. Pins are stored per-message as important:true."""
+		msgs = self.handle.hHM.msgs
+		if not msgs:
+			print("No history.")
+			return 2
+		raw = inp.strip()
+		# Strip leading !IM
+		spec = ""
+		if raw.upper().startswith("!IM"):
+			spec = raw[3:].strip()
+		# No args -> list pins
+		if not spec:
+			pinned = [i for i, m in enumerate(msgs) if m.get('important')]
+			if not pinned:
+				print("No important (pinned) rows. Use !IM <rows> to pin (e.g. !IM 10 12,15 17-20).")
+				return 2
+			print("\n{}=== PINNED ROWS ({} via !IM) ==={}\n".format(_PH_Y, len(pinned), _PH_R))
+			seen = set()
+			for i in pinned:
+				print(_ph_format_row(i, msgs[i], seen))
+			print("{}Use !PH <row> to view, !IM --clear [rows] to unpin.{}\n".format(_PH_D, _PH_R))
+			return 2
+		# Detect clear mode
+		clear = False
+		low = spec.lower()
+		if low.startswith('--clear') or low.startswith('--unpin') or low.startswith('--off') or low.startswith('clear'):
+			clear = True
+			# Remove the flag word
+			for flag in ('--clear', '--unpin', '--off', 'clear'):
+				if low.startswith(flag):
+					spec = spec[len(flag):].strip()
+					break
+			# Bare !IM --clear with no rows -> clear all
+			if not spec:
+				cnt = 0
+				for m in msgs:
+					if m.get('important'):
+						m.pop('important', None)
+						cnt += 1
+				# Rewrite history files to persist
+				self.handle._rewrite_history(msgs)
+				print("Cleared {} pinned row(s).".format(cnt))
+				return 2
+		# Parse row spec
+		rows, bad = self._im_parse_rows(spec, len(msgs))
+		if bad:
+			print("Warning: ignored invalid/out-of-range entries: {}".format(", ".join(bad)))
+		if not rows:
+			print("No valid rows. Usage: !IM <rows> | !IM --clear [rows]")
+			print("  rows: flexible e.g. 10 12,15 17-20,23")
+			return 2
+		changed = 0
+		for r in rows:
+			if clear:
+				if msgs[r].get('important'):
+					msgs[r].pop('important', None)
+					changed += 1
+			else:
+				if not msgs[r].get('important'):
+					msgs[r]['important'] = True
+					changed += 1
+		# Persist
+		self.handle._rewrite_history(msgs)
+		if clear:
+			print("Unpinned {} row(s): {}".format(changed, ", ".join(str(x) for x in rows)))
+		else:
+			print("Pinned {} row(s) as important: {}".format(changed, ", ".join(str(x) for x in rows)))
+			# Show them
+			seen = set()
+			for r in rows:
+				print(_ph_format_row(r, msgs[r], seen))
+		return 2
+
+
+	def CMD_IMSTAT(self, inp=""):
+		"""!IMSTAT — show pinned/important rows with stats."""
+		msgs = self.handle.hHM.msgs
+		if not msgs:
+			print("No history.")
+			return 2
+		pinned = [(i, m) for i, m in enumerate(msgs) if m.get('important')]
+		if not pinned:
+			print("No important (pinned) rows — use !IM <rows> to pin.")
+			return 2
+		print("\n{}=== IMPORTANT ROWS ({} pinned, via !IM) ==={}\n".format(_PH_Y, len(pinned), _PH_R))
+		# Per-role counts
+		roles = {}
+		for _, m in pinned:
+			r = m.get('role', '?')
+			roles[r] = roles.get(r, 0) + 1
+		parts = ', '.join("{} {}".format(n, r) for r, n in sorted(roles.items()))
+		print("{}Pinned: {} | Total history: {} rows{}\n".format(_PH_D, parts, len(msgs), _PH_R))
+		seen = set()
+		for i, m in pinned:
+			print(_ph_format_row(i, m, seen))
+		print("\n{}Use !IR <rows> or !IM --clear [rows] to unpin; !PH <row> to view.{}\n".format(_PH_D, _PH_R))
+		return 2
+
+	def CMD_IR(self, inp=""):
+		"""!IR [rows] | !IR --all — unpin rows (remove important flag). Flexible row spec."""
+		msgs = self.handle.hHM.msgs
+		if not msgs:
+			print("No history.")
+			return 2
+		raw = inp.strip()
+		spec = ""
+		if raw.upper().startswith("!IR"):
+			spec = raw[3:].strip()
+		# Normalize --all flag
+		low = spec.lower()
+		if low in ('--all', 'all', '*'):
+			spec = ""
+		if not spec:
+			# No rows -> if there are pinned rows, unpin all (confirm via print)
+			pinned = [i for i, m in enumerate(msgs) if m.get('important')]
+			if not pinned:
+				print("No important rows to remove.")
+				return 2
+			cnt = 0
+			for i in pinned:
+				msgs[i].pop('important', None)
+				cnt += 1
+			self.handle._rewrite_history(msgs)
+			print("Unpinned {} row(s) (all).".format(cnt))
+			return 2
+		# Handle --clear prefix if user typed !IR --clear ...
+		if low.startswith('--clear'):
+			spec = spec[len('--clear'):].strip()
+		elif low.startswith('--unpin'):
+			spec = spec[len('--unpin'):].strip()
+		if not spec:
+			print("Usage: !IR <rows> | !IR --all  (rows: 10 12,15 17-20 — flexible)")
+			return 2
+		rows, bad = self._im_parse_rows(spec, len(msgs))
+		if bad:
+			print("Warning: ignored invalid/out-of-range entries: {}".format(", ".join(bad)))
+		if not rows:
+			print("No valid rows. Usage: !IR <rows> | !IR --all")
+			return 2
+		changed = 0
+		for r in rows:
+			if msgs[r].get('important'):
+				msgs[r].pop('important', None)
+				changed += 1
+		self.handle._rewrite_history(msgs)
+		print("Unpinned {} row(s): {}".format(changed, ", ".join(str(x) for x in rows)))
+		return 2
+
 	def CMD_SUMMARIZE(self, inp=""):
 		"""!SUMMARIZE — summarize older chat history, keep the most recent rows
 		(controlled by SUMMARIZE_LEAVE), then warm the model back up via a single
@@ -752,12 +954,14 @@ def _ph_row_view(msgs, row):
 	ts = msg.get('timestamp', 0)
 	tool_name = msg.get('name', '')
 	thinking = msg.get('thinking', '')
+	pinned = msg.get('important')
 	time_str = datetime.fromtimestamp(ts).strftime('%H:%M:%S') if ts else '??:??:??'
 	color, label = _ph_label(role, tool_name)
 	# Header
 	print()
-	print("{}{}═{} {}[{}]{} {} {}{} {}═{}{}".format(
-		_PH_D, '═' * 3, _PH_R, _PH_D, time_str, _PH_R, color + label + _PH_R, _PH_W, row, _PH_D, '═' * (40 - len(label)), _PH_R))
+	pin_tag = " {}★ PINNED{}".format(_PH_Y, _PH_R) if pinned else ""
+	print("{}{}═{} {}[{}]{} {} {}{} {}═{}{}{}".format(
+		_PH_D, '═' * 3, _PH_R, _PH_D, time_str, _PH_R, color + label + _PH_R, _PH_W, row, _PH_D, '═' * (40 - len(label)), _PH_R, pin_tag))
 	# Thinking block
 	if thinking:
 		print("\n{}💡 Thinking:{}\n{}".format(_PH_D, _PH_R, thinking))
@@ -767,7 +971,7 @@ def _ph_row_view(msgs, row):
 	else:
 		print("\n{}(empty){}\n".format(_PH_D, _PH_R))
 	# Footer
-	print("{}{}═{} ({} chars) {} crc32b:{}{}".format(_PH_D, '═' * 50, _PH_R, len(content), _PH_D, _ph_crc32(content), _PH_R))
+	print("{}{}═{} ({} chars) {} crc32b:{} {}{}".format(_PH_D, '═' * 50, _PH_R, len(content), _PH_D, _ph_crc32(content), _PH_R, "★ pinned" if pinned else "", _PH_R))
 	return 2
 
 #--
@@ -792,9 +996,10 @@ def _ph_format_row(i, msg, seen_hashes=None):
 		if hash_str in seen_hashes:
 			dup_marker = ' {}DUP{}'.format(_PH_D, _PH_R)
 		seen_hashes.add(hash_str)
+	pin_marker = ' {}★{}'.format(_PH_Y, _PH_R) if msg.get('important') else ''
 	return " {:>3} {} {}[{}]{} {:<14} {} {:>6} chars{}{} {}".format(
 		i, _PH_D + hash_str + _PH_R, _PH_D, time_str, _PH_R, color + label + _PH_R,
-		_PH_D, len(content), _PH_R, dup_marker, _PH_D + preview + _PH_R)
+		_PH_D, len(content), _PH_R, dup_marker + pin_marker, _PH_D + preview + _PH_R)
 
 def _ph_stats(msgs):
 	"""Compute per-role stats from history rows.
