@@ -804,6 +804,78 @@ class CommandsSession():
 		print("Unpinned {} row(s): {}".format(changed, ", ".join(str(x) for x in rows)))
 		return 2
 
+	def CMD_UPDATE_HISTORY(self, inp=""):
+		"""!UH <row> [new_content] — edit a history row's content.
+		Shows the row (via !PH view) then either uses inline new_content or
+		prompts interactively. Multi-line input uses Ctrl+X to finish (standard
+		for all enter-accepting inputs), empty (just Enter) cancels."""
+		import re
+		msgs = self.handle.hHM.msgs
+		if not msgs:
+			print("No history.")
+			return 2
+		m = re.match(r'^!UH\s+(\d+)(?:\s+(.*))?$', inp.strip(), re.DOTALL)
+		if not m:
+			print("Usage: !UH <row> [new_content]")
+			return 2
+		try:
+			row = int(m.group(1))
+		except ValueError:
+			print("Row must be an integer (see !PH).")
+			return 2
+		if row < 0 or row >= len(msgs):
+			print("Row {} out of range (0-{}).".format(row, len(msgs)-1))
+			return 2
+		msg = msgs[row]
+		# Show current row
+		_ph_row_view(msgs, row)
+		inline = m.group(2)
+		new_content = None
+		if inline is not None and inline.strip() != "":
+			new_content = inline
+			# Strip surrounding quotes if user wrote !UH 10 \"hello world\"
+			new_content = new_content.strip()
+			if len(new_content) >= 2 and new_content[0] == new_content[-1] and new_content[0] in ('"', "'"):
+				new_content = new_content[1:-1]
+		else:
+			# Interactive prompt — Ctrl+X to finish, empty to cancel (standard)
+			role = msg.get('role', '?')
+			self.handle.hLG.echo("Enter new content for row {} [{}] — Ctrl+X to finish, empty (just Enter) to cancel:".format(row, role),
+				{'color': True, 'colorValue': 'cyan', 'debugOnly': False})
+			try:
+				from src.functions import user_input as _ui
+				new_content = _ui({'quit_with_ctrlx': True})
+			except Exception:
+				try:
+					new_content = input()
+				except EOFError:
+					new_content = ""
+			# user_input with quit_with_ctrlx returns content with newlines, strip trailing newline added by handler
+			if new_content is None:
+				new_content = ""
+			# Cancel on empty
+			if new_content.strip() == "":
+				print("Cancelled — no changes.")
+				return 2
+			# Remove possible trailing newline from Ctrl+X handler quirk (it reads extra empty after 0x18)
+			# Keep internal newlines as-is
+		# No change?
+		old_content = msg.get('content', '')
+		if new_content == old_content:
+			print("No changes — content identical.")
+			return 2
+		# Apply update
+		msg['content'] = new_content
+		# Update timestamp to reflect edit
+		msg['timestamp'] = time.time()
+		msg['date'] = str(datetime.now().date())
+		# Preserve edited flag
+		msg['edited'] = True
+		# Persist
+		self.handle._rewrite_history(msgs)
+		print("Updated row {} [{}]: {} chars -> {} chars.".format(row, msg.get('role','?'), len(old_content), len(new_content)))
+		return 2
+
 	def CMD_SUMMARIZE(self, inp=""):
 		"""!SUMMARIZE — summarize older chat history, keep the most recent rows
 		(controlled by SUMMARIZE_LEAVE), then warm the model back up via a single

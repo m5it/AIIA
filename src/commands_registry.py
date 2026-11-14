@@ -158,6 +158,13 @@ def _session_commands(self):
 			"usage"      :"!IR [rows] | !IR --all",
 			"func"       :self.CMD_IR,
 		},
+		"UPDATE_HISTORY":{
+			"name"       :"Update History Row",
+			"description":"Edit content of a history row (user/assistant). Shows row then prompts for new content (or use inline: !UH <row> <new_content>).",
+			"regex"      :r"^!UH\s+\d+(\s+.*)?$",
+			"usage"      :"!UH <row> [new_content]",
+			"func"       :self.CMD_UPDATE_HISTORY,
+		},
 		"UPDATE_HANDLE":{
 			"name"       :"Update Handle",
 			"description":"Reinit code of program. Used after program update so there is no need to stop the program.",
