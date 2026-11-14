@@ -165,6 +165,13 @@ def _session_commands(self):
 			"usage"      :"!UH <row> [new_content]",
 			"func"       :self.CMD_UPDATE_HISTORY,
 		},
+		"EXECUTE_HISTORY":{
+			"name"       :"Execute History Row",
+			"description":"Re-execute a history row: re-send a user message to the AI or re-run an assistant's tools.",
+			"regex"      :r"^!XH\s+\d+$",
+			"usage"      :"!XH <row>",
+			"func"       :self.CMD_EXECUTE_HISTORY,
+		},
 		"UPDATE_HANDLE":{
 			"name"       :"Update Handle",
 			"description":"Reinit code of program. Used after program update so there is no need to stop the program.",

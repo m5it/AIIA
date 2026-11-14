@@ -876,6 +876,85 @@ class CommandsSession():
 		print("Updated row {} [{}]: {} chars -> {} chars.".format(row, msg.get('role','?'), len(old_content), len(new_content)))
 		return 2
 
+	def CMD_EXECUTE_HISTORY(self, inp=""):
+		"""!XH <row> — re-execute a history row: re-send a user message to the AI
+		or re-run an assistant's tool calls. Appends a new entry and triggers AI
+		when needed."""
+		import re
+		msgs = self.handle.hHM.msgs
+		if not msgs:
+			print("No history.")
+			return 2
+		m = re.match(r'^!XH\s+(\d+)\s*$', inp.strip())
+		if not m:
+			print("Usage: !XH <row>")
+			return 2
+		try:
+			row = int(m.group(1))
+		except ValueError:
+			print("Row must be an integer (see !PH).")
+			return 2
+		if row < 0 or row >= len(msgs):
+			print("Row {} out of range (0-{}).".format(row, len(msgs)-1))
+			return 2
+		target = msgs[row]
+		role = target.get('role', '?')
+		content = target.get('content', '') or ''
+		thinking = target.get('thinking', '')
+		# User → re-send as new user message and trigger AI
+		if role == 'user':
+			opts = {'content': content}
+			if thinking:
+				opts['thinking'] = thinking
+			if target.get('images'):
+				opts['images'] = target.get('images')
+			if target.get('image_refs'):
+				opts['image_refs'] = target.get('image_refs')
+			self.handle.Response('user', opts)
+			print("Re-executed user row {} ({} chars) — triggering AI...".format(row, len(content)))
+			return 0
+		# Assistant → re-insert and re-run any tools inside
+		elif role == 'assistant':
+			opts = {'content': content}
+			if thinking:
+				opts['thinking'] = thinking
+			if target.get('name'):
+				opts['name'] = target.get('name')
+			# Carry thinking as content's thinking if present, but don't duplicate tool XML cleaning
+			self.handle.Response('assistant', opts)
+			# Detect tools in the replayed content
+			try:
+				tool_invs = self.handle.hTP.ParseTextToolInvocation(content)
+			except Exception as e:
+				tool_invs = None
+				print("Tool parse error on replay: {}".format(e))
+			if tool_invs:
+				print("Re-executing {} tool(s) from assistant row {}: {}".format(len(tool_invs), row, ", ".join(t.get('name','?') for t in tool_invs)))
+				try:
+					self.handle.hTP.FireToolInvocation(tool_invs)
+				except Exception as e:
+					print("Tool execution error on replay: {}".format(e))
+				# Tools produced new messages (tool results, possibly nextTask user prompt)
+				# Continue to AI to process tool outputs
+				return 0
+			else:
+				print("Re-inserted assistant row {} (no tools) — {} chars.".format(row, len(content)))
+				return 2
+		# Tool/System → just re-insert, no AI trigger
+		elif role == 'tool':
+			self.handle.Response('tool', {'content': content, 'name': target.get('name', '')})
+			print("Re-inserted tool row {} [{}] — tip: !XH its assistant parent (row {}) to re-run tools.".format(row, target.get('name',''), max(0, row-1)))
+			return 2
+		elif role == 'system':
+			self.handle.Response('system', {'content': content})
+			print("Re-inserted system row {} ({} chars).".format(row, len(content)))
+			return 2
+		else:
+			# Fallback: treat as user
+			self.handle.Response('user', {'content': content})
+			print("Re-executed row {} [{}] as user ({} chars) — triggering AI...".format(row, role, len(content)))
+			return 0
+
 	def CMD_SUMMARIZE(self, inp=""):
 		"""!SUMMARIZE — summarize older chat history, keep the most recent rows
 		(controlled by SUMMARIZE_LEAVE), then warm the model back up via a single
